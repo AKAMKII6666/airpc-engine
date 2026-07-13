@@ -1,0 +1,31 @@
+.grid {
+  display: grid;
+  grid-template-columns: minmax(16rem, 22rem) 1fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.panel {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  background: #fff;
+  border: 1px solid color-mix(in srgb, #1a5f4a 18%, transparent);
+}
+
+.pre {
+  margin: 0;
+  padding: 0.75rem;
+  max-height: 28rem;
+  overflow: auto;
+  font-size: 0.75rem;
+  background: oklch(0.97 0.01 160);
+  border-radius: 0.35rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+.DS_Store
+.env
+.env.local
+.env.*.local
+data/memory/*.sqlite
+data/memory/*.sqlite-*
+data/logs/*.jsonl
+!.gitkeep

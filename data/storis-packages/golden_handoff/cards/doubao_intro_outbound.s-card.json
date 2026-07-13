@@ -1,0 +1,77 @@
+{
+  "cardId": "doubao_intro_outbound",
+  "cardKind": "story",
+  "title": "介绍小雨",
+  "ownerAgentId": "doubao-sister",
+  "entryMode": "outbound_auto",
+  "interactionMode": "realtime_dialogue",
+  "context": {
+    "privateBrief": "让用户去打给小雨，勿剧透主线。",
+    "speakableBrief": "有个朋友小雨想认识你。",
+    "background": "",
+    "premise": "澜星主动外呼用户，介绍小雨。",
+    "emotion": "热心",
+    "objective": "用户知道并愿意拨打小雨",
+    "forbidden": ["剧透小雨身世"]
+  },
+  "objectives": {
+    "requiredBeats": ["user_knows_to_call_xiaoyu"]
+  },
+  "toolPolicy": {
+    "mode": "allowlist",
+    "allowedToolIds": ["share_expert_number", "refer_to_expert"]
+  },
+  "exits": [
+    {
+      "exitId": "success_handoff",
+      "exitKind": "handoff",
+      "title": "同意去打",
+      "priority": 100,
+      "condition": {
+        "op": "and",
+        "items": [
+          { "op": "outcome_flag", "flag": "answered_completed", "equals": true },
+          { "op": "beat_completed", "beatId": "user_knows_to_call_xiaoyu" }
+        ]
+      },
+      "effects": [
+        {
+          "id": "unlock_xiaoyu",
+          "effect": "set_character_unlocked",
+          "agentId": "xiaoyu",
+          "unlocked": true
+        },
+        {
+          "id": "attach_xiaoyu",
+          "effect": "attach_call_card",
+          "agentId": "xiaoyu",
+          "cardId": "xiaoyu_waiting_user",
+          "activation": "inbound_user_dial"
+        },
+        {
+          "id": "redial_xiaoyu",
+          "effect": "set_redial_slot",
+          "agentId": "xiaoyu",
+          "cardId": "xiaoyu_waiting_user"
+        }
+      ]
+    },
+    {
+      "exitId": "hangup_early_fail",
+      "exitKind": "failure",
+      "title": "提前挂断",
+      "priority": 10,
+      "condition": {
+        "op": "outcome_flag",
+        "flag": "hangup_early",
+        "equals": true
+      },
+      "effects": [
+        {
+          "id": "keep_intro",
+          "effect": "keep_card_pending"
+        }
+      ]
+    }
+  ]
+}

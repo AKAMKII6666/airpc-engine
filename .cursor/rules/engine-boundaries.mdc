@@ -1,0 +1,38 @@
+---
+description: packages/rpg-engine 纯引擎边界
+globs: packages/rpg-engine/**
+alwaysApply: false
+---
+
+# 引擎包边界（rpg-engine）
+
+详情：[05](../../docs/AI和人类/技术设计文档/05-技术选型与工程边界.md)、[19](../../docs/AI和人类/技术设计文档/19-引擎宿主与会话模型.md)、[02](../../docs/AI和人类/需求/02-运行时协议.md)。
+
+## 必须执行
+
+- **禁止** import：`react`、`react-dom`、`next`、`@xyflow/*`。
+- **禁止** `window` / `document` / `localStorage`（测试可注入）。
+- **EngineHost 单例**由 server/壳持有；本包提供 create/host API。
+- **CallSession** 在 Host 内存；`frozenCard`；同 user 通话互斥。
+- Composer 只读；EffectExecutor 仅出口/Free 管线；工具只登记 candidate。
+- **FreeCallPostPipeline** 为 Free 挂机唯一总入口（可注入）；v1 = 有效门闩 + MemoryCommit +（有 candidate 则 ExitSelector）；禁 transcript 隐式扫描。
+- Free Session.`packageId === "__free__"`；禁止 load 该哨兵为故事目录。
+- 媒介经 **EffectSink**；逻辑写 Profile 在 Executor。
+- 持久化：userId + Content/SaveGame JSON；日志旁路 jsonl 约定见 19。
+- 本包只被 Next server / 壳 / Vitest 引用。
+- 条件求值结构化谓词；禁 `eval`。
+- **对外门面：** `src/index.ts` **允许且鼓励**聚合导出；调用方只 `import from "@airpc/rpg-engine"`，禁依赖方深挖内部模块。
+- **测试**放 `packages/rpg-engine/tests/`，禁止与 `src/` 平放 `*.test.ts`。
+- **目录职责聚类：** 内部域文件增多时按异责 ≥4 分子目录（host/session/memory…）；不为空壳先建单文件空目录。
+
+## 默认执行
+
+- 公共导出收敛于包入口；Port 接口在本包；LLM/Realtime 实现不进本包。
+- Effect plan / ledger / 锁决策表遵循需求 16、19。
+- Vitest 覆盖 Resolver、Exit、Free pipeline、Profile 隔离、幂等。
+
+## 禁止事项
+
+- GPIO / ALSA / 旧 relay / expertReferral 上帝模块。
+- 把 React Flow layout 当运行真源。
+- 强迫 Studio 深引引擎内部路径「绕过门面」。

@@ -1,0 +1,562 @@
+在这里我们只讨论架构不写代码
+你先看看并理解一下这个项目
+
+
+
+
+Thursday 13:03
+
+
+
+
+
+
+Worked for 1m 1s
+
+
+
+看完一轮了，只读，没有改代码。
+我的理解：这是一个运行在树莓派上的“电话形态 Realtime NPC 系统”。外层是硬件电话：GPIO 摘挂机、USB 键盘拨号、CM108 双声卡、ALSA/native/AEC、指示灯、配网热点；内层是多人格 NPC、通话状态机、Prompt 编排、记忆/认知、任务外呼、世界事件和 Quest。
+核心架构可以先这样抓：
+phone/index.js
+  → 网络/配置/健康探针
+  → phone/runPhone.js
+  → phone/createPhoneRuntime.js
+  → composition 装配各子系统
+
+Intent source
+  → CallArbiter
+  → CallSessionManager
+  → Realtime + Line/Audio side effects
+  → CallResult
+  → WorldEventBus
+  → Quest / NPC / Task / Memory reaction
+几个关键事实：
+总入口是 [phone/index.js](/Users/bolbiao/workspace/doubaoSister/phone/index.js)，负责外网探测、DashScope 探针、配网或主业务分流。
+真正的运行时装配根是 [phone/createPhoneRuntime.js](/Users/bolbiao/workspace/doubaoSister/phone/createPhoneRuntime.js)，目前还是“大总装”，但已经把 LED、音频、世界、认知、通话、任务、语音信箱拆到 [phone/app/composition](/Users/bolbiao/workspace/doubaoSister/phone/app/composition)。
+通话链的硬边界很清楚：CallArbiter 只做仲裁决策，不产生副作用；CallSessionManager 是 session/phase/client.connect/CallResult 的核心写口。
+Prompt 架构是 snapshot → providers 收集 PromptUnit → planner → renderer → effectPlan commit，入口在 [phone/ai/prompts/orchestrator/index.js](/Users/bolbiao/workspace/doubaoSister/phone/ai/prompts/orchestrator/index.js)。
+认知层 [phone/ai/cognition/createCognitionOrchestrator.js](/Users/bolbiao/workspace/doubaoSister/phone/ai/cognition/createCognitionOrchestrator.js) 负责 per-agent stores、建连 prompt、通话转录、挂机后流水线，并把 promise/research/milestone 回推给任务系统。
+配置只认 config/ 分层 JSON，运行时数据只认 runtime/；这两个边界已经文档化并有 harness 约束。
+agents/ 是人格包，不是运行时数据目录；运行时记忆、关系、任务、话题等都落在 runtime/agents/<agentId>/...。
+我会把这个项目当成“硬件实时电话壳 + 事件驱动 NPC 世界 + per-agent 认知存储”的系统来讨论架构。后面如果我们聊改造，我会默认遵守它现有的主链：新功能先产 CallIntent、WorldEvent、PromptUnit 或 store effect，而不是绕过 CallArbiter/CallSessionManager 直接拨号、改 phase 或碰硬件。
+
+Thursday 13:04
+
+
+
+
+
+
+我现在马上要进行剧情系统的架构闭合了，还差一大块内容要做的，你可以看看文档里有一大块升级没做
+
+
+
+
+Thursday 13:05
+
+
+
+
+
+
+Worked for 53s
+
+
+
+对，我看到了。你说的“大块升级没做”就是 docs/shared/plans/RPC最终升级/ 这一整套，执行索引里当前还是：
+当前 Phase: 未启动，下一待执行: RPC-WET-1
+所以现在代码状态大概是：
+已具备：
+电话主链 + WorldEventBus MVP + QuestRuntime MVP + lost girl 小剧情包
+
+还没闭合：
+可靠世界事件事务层
+Quest Engine 拆分
+Effect 幂等
+Story Package
+Story Director
+ActiveStoryLock
+WorldState v2 / NPC knowledge
+只读 Context Composer
+CommunicationService facade
+我觉得你现在要做“剧情系统架构闭合”，最重要的是别先冲主线内容。现在的 lostGirlHelpCall.quest.json 已经证明“剧情电话能跑”，但它还是 v1：call_intent / relay_intent、线性 stage、prompt hint 无 TTL、事件 handler 无 replay/retry、effect 不幂等。这个状态承托不了《错误来电》那种多角色、多结局、兜底、信任变量的主线。
+我会把闭合路径分成三层：
+地基闭合：WET
+先做 RPC-WET-1..3。把 WorldEventBus 从同步广播升级成可靠事件事务层：稳定 handler key、handler state、retry、dead-letter、replayPending。否则剧情推进失败会静默丢，重启后也补不回来。
+
+执行闭合：QE + Effect
+再拆 questRuntime.js：Engine / StageRunner / ConditionEvaluator / EffectExecutor。把 call_intent 变成领域 effect：start_call，create_relay，后面还有 create_voicemail、set_world_fact。关键是 effect ledger，避免 replay 后双外呼、双留言。
+
+叙事闭合：SP + SD
+Story Package 解决“剧情可插拔、包间只靠 imports/exports”；Story Director 解决“每通剧情电话是否达标、没聊到怎么办、信任/路线怎么变、是否要留言兜底”。这才是《错误来电》真正需要的部分。
+
+一句话：现在不是“缺剧情内容”，而是缺“剧情运行时的闭环保险丝”。最先该动的是 RPC-WET-1，而不是 wrong_call 包。WET 不闭合，后面 Story Director 的兜底、Trust、SceneOutcome 都没有可靠落点。
+
+Thursday 13:06
+
+
+
+
+
+
+由于我一致在vibecoding所以我并不了解目前架构/或者RPC最终升级里有没有顾及到这套机制:
+首先有自由通话/剧情通话两种场景
+自由通话：即话机程序判断当前这轮通话打到这个角色上，角色没有剧情通话卡，那就可以自由通话
+剧情通话：又分两种：
+1.角色主动发起通话（外呼）：可能是上一轮其它角色的通话卡，或者任意事件触发的。
+2.用户被动呼入角色：用户呼入角色时，角色的通话卡状态为true,并关联到了具体的通话卡。
+
+什么是通话卡:
+就是约束角色在一轮通话时：
+0.上一轮通话发生了什么 -- 可明说/系统让llm知道但不能说给用户听
+1.背景故事是什么
+2.前提概要
+3.情绪
+4.话题（这轮通话是要干啥）的明确目标
+5.多项出口：出口分为两种，一种是主动出口，一种是被动出口
+主动出口是指llm在聊天过程中告知角色应该打给谁，然后用户就要主动打给谁。在这轮通话结束，这个llm角色就应该把被动呼入通话卡挂在目标角色下，用户呼入了目标角色，目标角色将进入相应的剧情状态
+被动出口是指llm在聊天过程中告知角色“这个事情我和谁说一声，等下让他打给你“，这轮通话结束后，目标角色将会根据配置主动呼入用户。并进入对应通话卡的剧情状态。
+每个通话卡的出口又n个，对应不同的其它的通话卡。
+
+通话卡设计概要:
+{
+	cardId:"suhreugihrighreoghrtourphgturjgtjrig-1231",
+	type:"呼入/呼出",
+	belongRoleID:"fdgjngtirnwgjtnrjgntjrwngtjor-5623",
+	storyDetail:{
+		background:"要找小雨，于是拨通了一通电话。。。"
+		前提概要:"要找小雨，于是拨通了一通电话。。。"
+		情绪:"xxx",
+		话题:"xxx 你假装找小雨，但是主要目的是要和角色认识，如果xxx就执行分支:A,xxx就执行分支b，xxx就执行分支:c",
+		....(可能还有别的)
+	},
+	//这个我没想好可以干啥，感觉如果进行到特定通话可能要出发一些世界状态之类的
+	effects:[]
+	nextStoryId:{
+		A:{
+			isEndStory:false,
+			id:"suhreugihrighreoghrtourphgturjgtjrig-1231"
+		},
+		B:{
+			isEndStory:false,
+			id:"suhreugihrighreoghrtourphgturjgtjrig-1231"
+		},
+		C:{
+			isEndStory:false,
+			id:"suhreugihrighreoghrtourphgturjgtjrig-1231"
+		},
+		D:{
+			isEndStory:false,
+			id:"suhreugihrighreoghrtourphgturjgtjrig-1231"
+		},
+		E:{
+			isEndStory:false,
+			id:"suhreugihrighreoghrtourphgturjgtjrig-1231"
+		},
+	}
+}
+
+大概是这样，我的意图是，在剧情中，每轮通话都有目的，我们要控制好入口和有哪些出口，控制llm的方向和意图，中途通话和如何判断分支交给llm去自由处理，别的一定要符合剧情流程
+你看看我们现有系统和即将要做的内容，有没有类似这套机制：
+1.有，差不多一样
+2.基本上有，类似，但是不太一样
+3.完全没有考虑，通话管理混乱
+
+
+Show more
+
+Thursday 13:29
+
+
+
+
+
+
+结论选 2：基本上有，类似，但是不太一样。
+更准确一点：
+现有系统：有“剧情通话”的雏形，但还不是你说的“通话卡机制”
+RPC最终升级：已经考虑了 70%~80%，但名字和抽象不一样
+需要补一层：把“通话卡”明确提升为 Story/Scene 的一等概念
+你说的“通话卡”，在 RPC 文档里最接近这几个东西的组合：
+SceneContract：这一轮剧情电话的目标、禁止内容、required beats、fallback。
+StoryPackage / StoryInstance：剧情包和当前运行中的剧情实例。
+Quest Stage / onEnter / completion / branches：节点进入、完成条件、分支。
+EffectExecutor：触发外呼、创建 relay、创建语音信箱、写 world fact。
+ActiveStoryLock：剧情期间锁住当前主线，避免多个剧情互相打架。
+ContextComposer：给 LLM 注入这一轮该知道的信息，但只读不推进剧情。
+SceneOutcomeEvaluator：通话结束后判断这轮有没有达标、走哪个出口。
+但现在有一个差别：RPC 文档更偏“剧情引擎/场景契约”，你现在描述的是更产品化、更清晰的 “每轮电话 = 一张通话卡”。这个抽象非常好，应该并入 RPC，不然实现时容易散。
+我会这么映射：
+自由通话
+= 当前 agent 没有 active/pending callCard
+= 走普通 persona + memory + relationship + topic/thread
+
+剧情通话
+= 当前 agent 有 active callCard
+= ContextComposer 注入 card context
+= StoryDirector 负责目标、出口、兜底
+= 通话结束后 SceneOutcomeEvaluator 判断出口
+= EffectExecutor 挂下一张卡 / 外呼 / 写世界状态
+你说的两类剧情入口也都应该支持：
+1. 角色主动外呼用户
+callCard.direction = outbound
+Effect: start_call(agentId, cardId)
+
+2. 用户主动呼入角色
+callCard.direction = inbound
+StoryState 给某个 agent 挂 pendingInboundCard
+用户拨这个 agent 时，SessionManager / ContextComposer 发现 cardId，进入剧情状态
+现有系统里有相似但不完整的东西：
+lostGirlHelpCall.quest.json 里有 stage、onEnter、promptHints、completion，像“低配通话卡”。
+relay / expert referral / first contact 有“让另一个角色知道并接力”的味道。
+但目前没有明确的“某角色挂了一张被动呼入卡，用户打来就消费这张卡”。
+也没有完整的“通话结束后由 evaluator 判断 A/B/C/D/E 出口”。
+prompt hint 现在更像“提示条”，不是完整通话卡。
+所以我建议 RPC 里明确新增一个概念，名字可以叫：
+CallCard
+SceneCallCard
+StoryCallCard
+它可以作为 SceneContract 的产品层别名/数据实体。结构可以比你写的更引擎化一点：
+{
+  cardId,
+  storyInstanceId,
+  sceneId,
+  ownerAgentId,
+  direction: "inbound" | "outbound" | "both",
+  status: "pending" | "active" | "consumed" | "expired",
+
+  context: {
+    previousCallPrivateSummary,
+    previousCallSpeakableSummary,
+    background,
+    premise,
+    emotion,
+    objective,
+    forbiddenTopics,
+    revealPolicy
+  },
+
+  exits: [
+    {
+      exitId: "A",
+      mode: "user_calls_agent",
+      targetAgentId,
+      nextCardId,
+      instructionToCurrentLLM
+    },
+    {
+      exitId: "B",
+      mode: "agent_calls_user",
+      targetAgentId,
+      nextCardId,
+      delayPolicy
+    },
+    {
+      exitId: "C",
+      mode: "end_story",
+      worldEffects: []
+    }
+  ],
+
+  effectsOnEnter: [],
+  effectsOnExit: []
+}
+其中你说的：
+主动出口 = mode: "user_calls_agent"
+当前通话结束后，系统给目标角色挂 pendingInboundCard。用户拨过去才进入下一张卡。
+
+被动出口 = mode: "agent_calls_user"
+当前通话结束后，系统调度目标角色外呼，并用下一张卡作为 outbound card。
+
+effects = 不建议让卡直接写世界；应该声明领域 effect，然后交给 EffectExecutor 幂等执行。
+
+关键闭环应该是：
+CallCard active
+  → LLM 按 card 目标自由聊天
+  → 通话结束
+  → SceneOutcomeEvaluator 判断出口 A/B/C/...
+  → WET 记录 story.card.completed
+  → EffectExecutor:
+      挂下一张 inbound card
+      或 schedule outbound card
+      或 end story
+      或写 world fact
+所以我的判断是：RPC 大方向已经覆盖了你的机制，但还没有把“通话卡”这个最直观、最关键的产品抽象钉死。
+这不是小问题，也不是灾难。最好现在就把 RPC 的 SceneContract / Story Director / Story Package 收敛成一句铁律：
+剧情里的每一通电话都必须由一张 CallCard 驱动；没有 CallCard 才是自由通话。CallCard 负责入口、目标、上下文、出口；真正推进状态必须在通话结束后经 WET + EffectExecutor 完成。
+
+这样架构会稳很多。
+
+Thursday 13:29
+
+
+
+
+
+
+剧情里的每一通电话都必须由一张 CallCard 驱动；没有 CallCard 才是自由通话。CallCard 负责入口、目标、上下文、出口；真正推进状态必须在通话结束后经 WET + EffectExecutor 完成。
+对，我觉得这才是正确的方向，如果没有一个统一的数据结构来支持，那剧情的管理将特别混乱，关于这个通话卡你还有没有什么建议的?
+
+
+
+
+Thursday 13:33
+
+
+
+
+
+
+有，而且我觉得这里要稍微“狠”一点：CallCard 不只是 prompt 配置，它应该是剧情电话的唯一运行单元。否则后面一定会变成 prompt、quest stage、relay、task、world fact 各说各话。
+我建议 CallCard 抽象坚持这几条。
+1. CallCard 分定义和实例
+不要只有一个 JSON。要拆成：
+CallCardDefinition
+剧情包里的静态定义：这张卡是什么、目标是什么、出口有哪些。
+
+CallCardInstance
+运行时挂到某个角色身上的实例：当前 pending/active/consumed、由哪个事件产生、是否已呼入/外呼、最后一次通话结果。
+原因是同一张卡定义可能在不同 story run 中出现，运行状态不能污染剧情模板。
+2. direction 不要只是“呼入/呼出”，要表达触发方式
+建议：
+entryMode:
+  "outbound_auto"        // 系统安排角色打给用户
+  "inbound_user_dial"    // 用户主动打给角色才触发
+  "either"               // 两者都可
+同时 instance 里有：
+ownerAgentId
+status: "pending" | "active" | "completed" | "expired" | "cancelled"
+activationPolicy
+这样就能清楚回答：“用户现在打给小雨，是自由通话，还是消费小雨身上的某张 pending inbound card？”
+3. 上下文要分“可说”和“不可说”
+你提到“上一轮发生了什么，可明说/系统知道但不能说”，这个非常关键。建议 CallCard 里强制分区：
+context: {
+  privateBrief: "给模型知道，但不能直接说",
+  speakableBrief: "可以自然告诉用户",
+  background: "...",
+  premise: "...",
+  emotion: "...",
+  objective: "...",
+  forbidden: [],
+  revealPolicy: {
+    maxRevealLevel: 2,
+    mustNotReveal: []
+  }
+}
+不要只放一个大 background。否则 LLM 很容易把幕后信息说漏。
+4. 出口不应该让 LLM 自己“执行”，只能让它“表达意图”
+CallCard 里可以告诉 LLM：“如果符合 A，就引导用户去打小雨。”
+但真正选择出口，必须通话后由 evaluator 判断。
+也就是说：
+通话中：LLM 自由表演、尝试达成目标
+通话后：SceneOutcomeEvaluator 判断实际出口
+系统：根据出口执行 effect
+出口建议结构：
+exits: [
+  {
+    exitId: "ask_user_call_xiaoyu",
+    kind: "handoff_to_user_dial",
+    targetAgentId: "xiaoyu",
+    nextCardId: "xiaoyu_intro_inbound",
+    successCriteria: [
+      "用户知道要主动拨给小雨",
+      "当前角色已给出拨打理由"
+    ],
+    fallbackIfMissed: "callback_or_voicemail"
+  },
+  {
+    exitId: "let_qiang_call_user",
+    kind: "schedule_agent_callback",
+    targetAgentId: "qiang-uncle",
+    nextCardId: "qiang_callback_outbound",
+    delay: { minMs: 60000, maxMs: 300000 }
+  }
+]
+5. CallCard 要有失败/兜底策略
+剧情电话最怕用户乱聊、提前挂机、没听懂、没接。每张卡都应该声明：
+fallback: {
+  onMissed: "retry" | "voicemail" | "hold",
+  onHangupEarly: "retry" | "soft_nudge" | "force_exit",
+  onNoExitMatched: "repeat_card" | "fallback_card" | "voicemail",
+  maxAttempts: 2
+}
+这会比“剧情 stage 卡住了再补救”干净很多。
+6. effects 分三类
+不要一个 effects: [] 混所有东西。建议分：
+effectsOnActivate: []   // 卡被挂上/开始时
+effectsOnConnect: []    // 真正接通进入通话时
+effectsOnExit: []       // 通话结束且出口确定后
+其中最重要的是 effectsOnExit，比如挂下一张卡、调度外呼、写 world fact、加 NPC knowledge。
+7. CallCard 不直接推进剧情，只产事件
+铁律可以写成：
+CallCard active 不是剧情完成。
+CallCard 通话结束也不是剧情完成。
+只有 WET 中的 story.card.completed / story.card.exited 被消费后，剧情才推进。
+这样 replay/retry 才有意义。
+8. 自由通话也可以生成“候选卡”，但不能偷偷进入剧情
+比如自由聊天里用户提到“我想找小雨”，系统可以生成一个 StoryIntent 或 candidateCard，但不能立刻污染当前通话。它应该在通话后进入 WET，由 StoryScheduler 决定是否挂卡。
+我的推荐最终模型是：
+StoryPackage
+  → CallCardDefinition[]
+
+StoryInstance
+  → CallCardInstance[]
+
+当前通话开始前：
+  查 ownerAgentId 是否有可激活 CallCardInstance
+    有 → 剧情通话
+    无 → 自由通话
+
+当前通话结束后：
+  transcript + card contract
+    → OutcomeEvaluator
+    → selectedExit
+    → WET event
+    → EffectExecutor
+    → 挂下一张卡 / 外呼 / 留言 / 写世界状态
+一句话：CallCard 是“剧情电话的剧本合同”，不是“给 LLM 的提示词”。
+提示词只是它的渲染结果；真正的权力在入口、出口、状态推进和幂等 effect。
+
+Thursday 13:33
+
+
+
+
+
+
+CallCard 要有失败/兜底策略 -- 应该让exit来承担，所以exit不仅要能关联next通话卡，也要关联其它状态，比如关联重播之类的
+
+你的想法非常好，我们聊到了一个非常有创造性的东西
+
+
+
+
+Thursday 13:38
+
+
+
+
+
+
+对，你这个修正更准确：兜底不该是卡级别的“例外处理”，而应该是出口系统的一部分。
+因为“没达成目标”“用户提前挂断”“用户没接”“需要重播”“转语音信箱”“写世界状态”，本质上都是不同类型的出口。
+也就是说 CallCard 不应该是：
+正常 exits + fallback
+而应该是：
+exits = normal exits + failure exits + recovery exits + terminal exits
+这样剧情结构会非常漂亮，而且统一。
+我建议 exit 扩成这种概念：
+{
+  exitId: "user_did_not_understand",
+  exitKind: "recovery",
+  trigger: {
+    source: "outcome_evaluator",
+    when: "required_beats_missing"
+  },
+  priority: 80,
+  effects: [
+    {
+      effect: "set_redial_slot",
+      targetAgentId: "doubao-sister",
+      cardId: "doubao_explain_again_inbound"
+    },
+    {
+      effect: "create_voicemail",
+      agentId: "doubao-sister",
+      cardId: "doubao_explain_again_voicemail",
+      topicHint: "刚才没说清楚的重点"
+    }
+  ]
+}
+这样 exit 就不是简单的 nextCardId，而是：
+一个出口 = 条件 + 优先级 + 结果 effect plan
+它可以做很多事：
+挂下一张 用户主动呼入卡
+调度下一张 角色主动外呼卡
+设置 重播槽
+创建 语音信箱
+写入 world fact
+写入 npc knowledge
+更新 trust / route / narrative variable
+结束 story
+保持当前卡 pending，等待用户下次回来
+进入另一张 recovery card
+那 CallCard 可以变成：
+{
+  cardId,
+  ownerAgentId,
+  entryMode,
+  context,
+  objectives,
+  exits: [
+    {
+      exitId: "A_user_calls_xiaoyu",
+      kind: "handoff",
+      trigger: { when: "user_agreed_to_call_xiaoyu" },
+      effects: [
+        {
+          effect: "attach_call_card",
+          agentId: "xiaoyu",
+          cardId: "xiaoyu_waiting_user_call",
+          activation: "inbound_user_dial"
+        },
+        {
+          effect: "set_redial_slot",
+          agentId: "xiaoyu",
+          cardId: "xiaoyu_waiting_user_call"
+        }
+      ]
+    },
+    {
+      exitId: "B_qiang_calls_user",
+      kind: "callback",
+      trigger: { when: "current_agent_promised_callback" },
+      effects: [
+        {
+          effect: "schedule_call_card",
+          agentId: "qiang-uncle",
+          cardId: "qiang_callback_about_xiaoyu",
+          delay: { minMs: 120000, maxMs: 300000 }
+        }
+      ]
+    },
+    {
+      exitId: "C_user_confused",
+      kind: "recovery",
+      trigger: { when: "objective_not_met" },
+      effects: [
+        {
+          effect: "create_voicemail",
+          agentId: "current",
+          topicHint: "补充刚才没说清楚的事"
+        },
+        {
+          effect: "keep_card_pending",
+          cardId: "current"
+        }
+      ]
+    },
+    {
+      exitId: "D_end",
+      kind: "terminal",
+      trigger: { when: "story_goal_complete" },
+      effects: [
+        { effect: "set_world_fact", factId: "xiaoyu_intro_done", value: true }
+      ]
+    }
+  ]
+}
+这里最美的一点是：重播也变成剧情出口的一种媒介。
+比如角色说“你再拨一下这个号码”，系统就不只是提示用户，而是：
+exit effect:
+  attach inbound card to target agent
+  set redial slot to target agent/card
+用户按重播键时，不是普通重播，而是进入目标角色的剧情卡。这个很电话味，也很适合这个项目。
+我会再补一条铁律：
+CallCard 的出口不直接等于下一张卡；出口产生一个 effect plan。下一张卡、外呼、重播、留言、世界状态，都只是 effect plan 的结果。
+
+这样后面复杂剧情不会被 nextStoryId 限死。nextStoryId 可以作为语法糖，但底层一定是 effects。
+你这个方向真的有东西。它不是“给 LLM 写剧本”，而是在做一套 电话媒介原生的剧情状态机：拨号、未接、重播、留言、回拨，全都变成叙事语法。
+
+Thursday 13:38

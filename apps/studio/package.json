@@ -1,0 +1,30 @@
+{
+  "name": "@airpc/studio",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "npm run build -w @airpc/rpg-engine && next dev",
+    "build": "npm run build -w @airpc/rpg-engine && next build",
+    "start": "next start",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@airpc/rpg-engine": "*",
+    "@emotion/cache": "^11.14.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/material": "^7.1.1",
+    "@mui/material-nextjs": "^7.1.1",
+    "next": "^16.2.10",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "zustand": "^5.0.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.30",
+    "@types/react": "^19.1.6",
+    "@types/react-dom": "^19.1.5",
+    "sass": "^1.89.2",
+    "typescript": "^5.8.3"
+  }
+}

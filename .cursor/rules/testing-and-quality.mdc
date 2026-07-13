@@ -1,0 +1,52 @@
+---
+description: 修改后的检查、测试与质量门禁
+alwaysApply: true
+---
+
+# 测试与质量门禁
+
+## 测试目录（定稿）
+
+- Vitest 用例放在包内或仓库约定的 **`tests/`**，按模块分子目录。
+- **禁止**在 `packages/rpg-engine/src/**`、`apps/studio/app/**`、`apps/studio/bis/**` 等业务树内新增平放的 `*.test.ts`。
+- 引擎：`packages/rpg-engine/tests/`；被测优先经 **`@airpc/rpg-engine` 门面**导入（测内部实现时除外并注明）。
+
+## 修改后验证
+
+| 改动类型 | 建议命令 |
+|----------|----------|
+| `packages/rpg-engine/**` | `npm test`（含 `check:engine-imports`） |
+| `apps/studio/**` | `npm run typecheck -w @airpc/studio`；确认 client 未 import 引擎写口、无 LLM Key、无 Studio barrel |
+| 架构 / rules | Host 单例、UserGate、调试/编辑分离、目录聚类 |
+| 仅文档 / `.mdc` | 核对 `需求/` 与 `技术设计文档/` 交叉链接 |
+
+- 修复缺陷时优先增加能复现问题的回归测试。
+- 检查因环境无法运行时须明确报告，**不得伪造 pass**。
+- **未获用户明确要求而 commit**。
+
+## 引擎高风险契约（改动须有测或明确理由）
+
+- Resolver（pending vs free、priority、ActiveStoryLock）
+- ExitSelector（静态 ∪ 动态、priority）
+- Effect plan 幂等与 `critical` 中止
+- Profile 按 userId 隔离
+- `patch_memory` / knowledge 跨角色且仅出口阶段
+- ToolRegistry 未知 id 拒绝
+- schemaVersion 加载策略（见技术设计 `17`）
+
+## 禁止事项
+
+- 为通过检查删测试、无关格式化或行为修改。
+- 关闭 `strict`、大范围 `eslint-disable` 掩盖问题。
+- 声称已对接旧 doubaoSister 迁移验收（本项目不做）。
+
+## 可不写测试
+
+- 纯文案、注释、文档调整，且不改变运行时逻辑。
+- 与任务无关的 import 整理。
+
+上述情况若触及 TS 范围仍建议跑 typecheck。
+
+## 报告要求
+
+总结须列出：已运行的命令、结果、未覆盖风险、与 [需求/06](../../docs/AI和人类/需求/06-验收标准.md) 相关项是否推进。

@@ -1,0 +1,64 @@
+---
+description: airpc-engine 核心工程边界与规则索引
+alwaysApply: true
+---
+
+# 核心工程规则
+
+手写规范；冲突时以本项目 rules 与 [规则制定原则.mdc](./规则制定原则.mdc) 为准。
+
+**导航**：[AGENTS.md](../../AGENTS.md)。  
+**需求总纲**：[docs/AI和人类/需求/00-文档索引.md](../../docs/AI和人类/需求/00-文档索引.md)。  
+**技术设计**：[docs/AI和人类/技术设计文档/00-技术设计索引.md](../../docs/AI和人类/技术设计文档/00-技术设计索引.md) · [19](../../docs/AI和人类/技术设计文档/19-引擎宿主与会话模型.md)。
+
+本仓库是 **AI-RPG NPC 引擎 + B/S Studio**；电话壳不在本仓。
+
+拓扑：**浏览器 (MUI + scss module + Zustand/bis/shell) → Next 门面 → EngineHost 单例 → data/**。
+
+## 必须执行
+
+- **`packages/rpg-engine` 纯 TypeScript**：禁 `react` / `react-dom` / `next` / `@xyflow/*` / 浏览器 DOM。
+- **引擎只跑在 server / 壳**；禁 client import 引擎写口；**Host 进程单例**（本机 v1）。
+- **Next 为 API 门面**：注入 `userId`（无密码，经 UserGate）、DTO、错误码、save；不实现剧情规则。
+- **浏览器只请求与展示**：不持 LLM Key；不以 client store 为 Profile/Memory 真源。
+- **Studio UI = 仅 MUI**；样式 **CSS Modules + SCSS**；画布 `@xyflow/react`。
+- **Studio 客户端 = Zustand + bis + shell**（见技术设计 [21](../../docs/AI和人类/技术设计文档/21-Studio客户端分层.md)）。
+- **经历态**：薄 Profile JSON + Memory SQLite；**CallSession** 在 Host 内存（默认不进 SaveGame）。
+- **持久化 v1** = Content/薄 Profile JSON + Memory SQLite + `logs/*.jsonl`（见技术设计 18/19/20）。
+- **Story**：Outcome → ExitSelector → Effect (+ Sink)。**Free**：`FreeCallPostPipeline`（MemoryCommit；有 candidate 再 Exit）；`packageId=__free__`。
+- **可拨**：`effectiveDialable = dialable || unlocked`；解锁经 `set_character_unlocked`。
+- **通话中**工具只登记 `RuntimeExitCandidate`；禁直接 Effect；禁 onConnect 写记忆；禁 Free 隐式扫 transcript 写 Profile。
+- **调试与编辑分离**：调试不改卡；本通 `frozenCard`。
+- **不设 Relay**；条件为结构化谓词；**不对标实现、不迁移**旧话机（能力参考见需求 13；新壳另建）。
+- **Barrel：** `@airpc/rpg-engine` **允许且鼓励** `src/index.ts` 统一门面倒出；Studio/壳只 `import from "@airpc/rpg-engine"`，禁深挖引擎内部。**`apps/studio` 内禁止** `index.ts` barrel（bis/store/ajaxHelper/uiComponents/types 等直引具体文件）。
+- **目录职责聚类（反平铺）：** 同目录 ≥2 组异责且可分类文件 **≥4** → 必须分子目录；禁止长前缀代目录；不为空壳未来域建单文件空目录；本任务新增若恶化平铺须当场收目录。
+- **测试隔离：** 用例进独立 `tests/`；禁止与 `src`/`app`/`bis` 业务文件平放 `*.test.ts`。
+- 修改聚焦任务；**不要自动 commit**，除非用户明确要求。
+
+## 默认执行
+
+- 产品需求写 `docs/AI和人类/需求/**`；工程定稿写 `docs/AI和人类/技术设计文档/**`。
+- UI 简体中文；稳定 id 英文 / snake_case。
+- Effect plan：逐条、失败继续、`critical` 中止；无自动回滚。
+
+## 领域规则索引
+
+| 文件 | 触发 | 详情 |
+|------|------|------|
+| [engine-boundaries.mdc](./engine-boundaries.mdc) | `packages/rpg-engine/**` | [05](../../docs/AI和人类/技术设计文档/05-技术选型与工程边界.md)、[19](../../docs/AI和人类/技术设计文档/19-引擎宿主与会话模型.md) |
+| [studio-boundaries.mdc](./studio-boundaries.mdc) | `apps/studio/**` | [03](../../docs/AI和人类/需求/03-编辑器界面需求.md)、[21](../../docs/AI和人类/技术设计文档/21-Studio客户端分层.md)、[19](../../docs/AI和人类/技术设计文档/19-引擎宿主与会话模型.md) |
+| [docs-governance.mdc](./docs-governance.mdc) | `docs/**` | 三层 + 需求/技术分册 |
+| [docs-execution.mdc](./docs-execution.mdc) | docs/源码 | 编码前后读写 |
+| [testing-and-quality.mdc](./testing-and-quality.mdc) | 始终 | [06](../../docs/AI和人类/需求/06-验收标准.md) |
+
+## 目标包结构
+
+```text
+packages/rpg-engine/     # 准 npm；对外 index 门面；tests/ 独立
+apps/studio/             # 禁 barrel；bis/store/ajaxHelper…
+data/
+docs/人类/
+docs/AI和人类/需求/
+docs/AI和人类/技术设计文档/
+docs/AI/
+```

@@ -1,0 +1,44 @@
+.page {
+  max-width: 52rem;
+}
+
+.title {
+  margin: 0 0 0.5rem;
+  color: #12352c;
+}
+
+.lead {
+  margin: 0 0 1.25rem;
+  color: color-mix(in srgb, #12352c 70%, #5c6b73);
+}
+
+.list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.card {
+  display: block;
+  padding: 1rem 1.1rem;
+  border: 1px solid color-mix(in srgb, #1a5f4a 22%, transparent);
+  border-radius: 0.5rem;
+  background: #fff;
+  cursor: pointer;
+  text-align: left;
+}
+
+.card:hover {
+  border-color: #1a5f4a;
+}
+
+.cardTitle {
+  margin: 0;
+  font-weight: 600;
+  color: #12352c;
+}
+
+.meta {
+  margin: 0.35rem 0 0;
+  font-size: 0.85rem;
+  color: #5c6b73;
+}

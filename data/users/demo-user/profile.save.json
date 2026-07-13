@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "userId": "demo-user",
+  "user": {
+    "userId": "demo-user",
+    "nickname": "小明",
+    "location": {
+      "country": "中国",
+      "province": "广东省",
+      "city": "深圳市"
+    },
+    "createdAt": "2026-07-13T00:00:00.000Z",
+    "updatedAt": "2026-07-13T00:00:00.000Z"
+  },
+  "characters": {
+    "doubao-sister": {
+      "agentId": "doubao-sister",
+      "unlocked": true
+    },
+    "xiaoyu": {
+      "agentId": "xiaoyu",
+      "unlocked": false
+    }
+  },
+  "stories": {},
+  "callCards": {
+    "board": {
+      "byAgent": {}
+    }
+  },
+  "world": {
+    "lore": null,
+    "facts": [],
+    "knowledge": {}
+  },
+  "schedule": {
+    "clockMs": 0,
+    "intents": []
+  },
+  "research": {
+    "commitments": []
+  },
+  "meta": {
+    "createdAt": "2026-07-13T00:00:00.000Z",
+    "updatedAt": "2026-07-13T00:00:00.000Z",
+    "note": "记忆明细在 data/memory/memory.sqlite，不在本文件内嵌"
+  }
+}

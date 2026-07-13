@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "users": [
+    {
+      "userId": "demo-user",
+      "nickname": "小明",
+      "createdAt": "2026-07-13T00:00:00.000Z"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+.hero {
+  max-width: 40rem;
+}
+
+.title {
+  margin: 0 0 0.75rem;
+  font-size: clamp(1.5rem, 2vw + 1rem, 2rem);
+  color: #12352c;
+}
+
+.lead {
+  margin: 0;
+  line-height: 1.6;
+  color: color-mix(in srgb, #12352c 72%, #5c6b73);
+}
+
+.meta {
+  margin-top: 1.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  background: oklch(0.97 0.02 160);
+  font-size: 0.875rem;
+  color: #5c6b73;
+}

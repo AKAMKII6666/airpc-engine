@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "tools": [
+    {
+      "toolId": "refer_to_expert",
+      "displayName": "安排专家回电",
+      "allowedCardKinds": ["free", "story"],
+      "allowedInPlayback": false,
+      "behavior": "register_exit",
+      "note": "Zod inputSchema 实现时补全；此处为清单占位"
+    },
+    {
+      "toolId": "share_expert_number",
+      "displayName": "已口播专家号码",
+      "allowedCardKinds": ["free", "story"],
+      "allowedInPlayback": false,
+      "behavior": "register_exit"
+    },
+    {
+      "toolId": "schedule_reminder_call",
+      "displayName": "预约回电提醒",
+      "allowedCardKinds": ["free", "story"],
+      "allowedInPlayback": false,
+      "behavior": "register_exit"
+    },
+    {
+      "toolId": "schedule_recurring_call",
+      "displayName": "登记重复外呼",
+      "allowedCardKinds": ["free", "story"],
+      "allowedInPlayback": false,
+      "behavior": "register_exit"
+    },
+    {
+      "toolId": "record_shared_secret",
+      "displayName": "登记共同秘密",
+      "allowedCardKinds": ["free", "story"],
+      "allowedInPlayback": false,
+      "behavior": "register_exit"
+    },
+    {
+      "toolId": "create_research_commitment",
+      "displayName": "研究承诺",
+      "allowedCardKinds": ["free", "story"],
+      "allowedInPlayback": false,
+      "behavior": "register_exit"
+    },
+    {
+      "toolId": "record_user_name",
+      "displayName": "登记用户称呼",
+      "allowedCardKinds": ["free", "story"],
+      "allowedInPlayback": false,
+      "behavior": "register_exit"
+    },
+    {
+      "toolId": "search_memory",
+      "displayName": "搜索记忆",
+      "allowedCardKinds": ["free", "story"],
+      "allowedInPlayback": true,
+      "behavior": "session_local",
+      "note": "查 Memory SQLite FTS；text_query 与时间窗至少一个；max_results 硬上限 10；Hit 摘要≤200 字；算法见技术设计 20 §5"
+    },
+    {
+      "toolId": "get_memory_by_id",
+      "displayName": "按 id 取记忆",
+      "allowedCardKinds": ["free", "story"],
+      "allowedInPlayback": true,
+      "behavior": "session_local",
+      "note": "同 user+agent；正文≤500 字；不写库"
+    }
+  ],
+  "shellOnlyTools": [
+    "request_hangup",
+    "end_conversation",
+    "complete_referral_handoff"
+  ]
+}

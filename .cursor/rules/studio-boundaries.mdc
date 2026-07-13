@@ -1,0 +1,42 @@
+---
+description: apps/studio 编辑器与调试器边界（B/S + MUI + bis/shell）
+globs: apps/studio/**
+alwaysApply: false
+---
+
+# Studio 边界
+
+详情：[03](../../docs/AI和人类/需求/03-编辑器界面需求.md)、[04](../../docs/AI和人类/需求/04-调试器界面需求.md)、[19](../../docs/AI和人类/技术设计文档/19-引擎宿主与会话模型.md)、**[21](../../docs/AI和人类/技术设计文档/21-Studio客户端分层.md)**。
+
+## 必须执行
+
+- **B/S**：浏览器发意图与渲染；领域在 server（Host 单例）。
+- **UI 主库 = 仅 MUI**；画布 `@xyflow/react`；样式 **CSS Modules + SCSS**。
+- **客户端编排 = Zustand + bis + shell**（见 21）：Store 记账、Shell 灌数、bis 办事、UI 傻渲染。
+- **禁止** `'use client'` import 引擎写口/运行时。
+- **禁止**浏览器持 LLM Key；TextDialogueAdapter 仅 Next server。
+- **禁止** store 发请求 / toast / 导航；**禁止** page/com 裸 `fetch` 拼 BFF URL（走 `ajaxHelper`）。
+- **仅** `*.shell.bis.ts`（及少数 `*Flow.ts`）可碰路由导航 / 首屏数据钩子。
+- **UserGate** 可复用组件（非独立业务页）：进 `/debugger`、进故事列表项/创建故事时弹出；无密码。
+- 路由主路径：`/stories`、`/stories/[packageId]`、`/characters`、`/debugger`。
+- 真源：Content + 薄 Profile JSON + Memory SQLite；画布为投影；layout 旁车。
+- **调试与编辑分离**：调试器不改卡；发现问题回画布保存后再调试。
+- Zustand **不得**当 Profile/Memory 真源；不得灌十年记忆大数组。
+- **隐私**：playtest 隐藏 privateBrief；导出日志不落 private 原文。
+- **禁止** `bis/` · `store/` · `ajaxHelper/` · `uiComponents/` · `types/frontEnd/` 等处的 `index.ts` barrel；直引具体文件。
+- **目录职责聚类**：异责可分类文件 ≥4 须分子目录（见 [05 §1.1](../../docs/AI和人类/技术设计文档/05-技术选型与工程边界.md)）。
+- **测试**不进 `app/**` / `bis/**` 旁；进独立 `tests/`。
+
+## 默认执行
+
+- API：`/api/debug/chat`（SSE）、`/api/debug/endCall`、内容/用户 CRUD。
+- 卡画布：节点 + 出口连线；effect 用属性面板。
+- UI 简体中文。
+
+## 禁止事项
+
+- client 复制 Exit/Effect 语义与引擎分叉。
+- 绕过门面在浏览器改 `data/**` 业务 JSON。
+- 自研 canvas 底层；以 shadcn/Radix/Ant 替换 MUI 作主栈（除非用户改口）。
+- 在组件里直接堆业务编排导致「Zustand 糊成一片」。
+- 对 `@airpc/rpg-engine` **深挖**内部路径（应走包门面；与引擎「鼓励 barrel」相对）。

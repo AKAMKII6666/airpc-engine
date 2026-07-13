@@ -1,0 +1,18 @@
+{
+  "name": "airpc-engine",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @airpc/studio",
+    "build": "npm run build -w @airpc/rpg-engine && npm run build -w @airpc/studio",
+    "test": "npm run check:engine-imports && npm run test -w @airpc/rpg-engine",
+    "check:engine-imports": "node scripts/check-engine-imports.mjs",
+    "typecheck": "npm run build -w @airpc/rpg-engine && npm run typecheck -w @airpc/rpg-engine && npm run typecheck -w @airpc/studio"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

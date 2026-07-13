@@ -1,0 +1,15 @@
+.root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--studio-bg, #f4f6f8);
+  color: var(--studio-fg, #1a1a1a);
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 1.5rem clamp(1rem, 3vw, 2.5rem);
+}
