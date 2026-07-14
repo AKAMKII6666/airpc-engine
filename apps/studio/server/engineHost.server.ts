@@ -38,3 +38,20 @@ export function getWorkspaceLoadError(): {
 } | null {
   return workspaceError;
 }
+
+/**
+ * Content 保存后刷新引擎包缓存。
+ * 默认保留 sessions / profiles / activeByUser（S1）；不得与踢会话绑在一起。
+ */
+export async function reloadStudioWorkspace(): Promise<void> {
+  const host = getEngineHost();
+  await host.loadWorkspace(getStudioDataRoot(), { resetRuntime: false });
+  workspaceLoaded = true;
+  workspaceError = null;
+}
+
+/** 显式重置运行时（踢会话 + 清 Profile 缓存），禁与普通保存绑定 */
+export async function resetStudioWorkspaceRuntime(): Promise<void> {
+  const host = await getStudioEngineHost();
+  host.resetRuntime();
+}

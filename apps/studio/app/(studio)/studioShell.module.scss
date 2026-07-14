@@ -22,25 +22,13 @@
   color: #12352c;
 }
 
-.nav {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-}
-
-.nav a {
-  color: #1a5f4a;
+.brandLink {
   text-decoration: none;
-  font-size: 0.95rem;
+  color: inherit;
 }
 
-.nav a:hover {
-  text-decoration: underline;
-}
-
-.userChip {
-  font-size: 0.85rem;
-  color: #5c6b73;
+.brandLink:hover .brand {
+  color: #1a5f4a;
 }
 
 .main {

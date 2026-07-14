@@ -1,7 +1,7 @@
 /**
- * 模块名称：用户列表 / 创建（文件系统）
+ * 模块名称：用户列表 / 创建 / 删除（文件系统）
  */
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { getStudioDataRoot } from "@studio/server/dataRoot.server";
 
@@ -15,6 +15,8 @@ interface UsersIndex {
   schemaVersion: number;
   users: UserSummary[];
 }
+
+const USER_ID_RE = /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/;
 
 async function readIndex(): Promise<UsersIndex> {
   const file = path.join(getStudioDataRoot(), "users/index.json");
@@ -35,8 +37,19 @@ export async function listUserSummaries(): Promise<UserSummary[]> {
 export async function createUserProfile(input: {
   userId: string;
   nickname: string;
+  location?: {
+    country: string;
+    province: string;
+    city: string;
+    district?: string;
+  };
 }): Promise<UserSummary> {
   const index = await readIndex();
+  if (!USER_ID_RE.test(input.userId)) {
+    throw Object.assign(new Error("invalid userId"), {
+      code: "VALIDATION_FAILED",
+    });
+  }
   if (index.users.some((u) => u.userId === input.userId)) {
     throw Object.assign(new Error("user exists"), { code: "VALIDATION_FAILED" });
   }
@@ -57,6 +70,7 @@ export async function createUserProfile(input: {
     user: {
       userId: input.userId,
       nickname: input.nickname,
+      location: input.location,
       createdAt: now,
       updatedAt: now,
     },
@@ -74,4 +88,32 @@ export async function createUserProfile(input: {
     "utf8",
   );
   return summary;
+}
+
+export async function deleteUserProfile(userId: string): Promise<void> {
+  if (!USER_ID_RE.test(userId)) {
+    throw Object.assign(new Error("invalid userId"), {
+      code: "VALIDATION_FAILED",
+    });
+  }
+  if (userId === "demo-user") {
+    throw Object.assign(new Error("demo-user 为样例存档，禁止删除"), {
+      code: "VALIDATION_FAILED",
+    });
+  }
+  const index = await readIndex();
+  const next = index.users.filter(function (u) {
+    return u.userId !== userId;
+  });
+  if (next.length === index.users.length) {
+    throw Object.assign(new Error(`user not found: ${userId}`), {
+      code: "NOT_FOUND",
+    });
+  }
+  index.users = next;
+  await writeIndex(index);
+  await rm(path.join(getStudioDataRoot(), "users", userId), {
+    recursive: true,
+    force: true,
+  });
 }

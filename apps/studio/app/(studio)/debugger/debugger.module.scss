@@ -29,3 +29,15 @@
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+.preCompact {
+  margin: 0;
+  padding: 0.75rem;
+  max-height: 14rem;
+  overflow: auto;
+  font-size: 0.75rem;
+  background: oklch(0.97 0.01 160);
+  border-radius: 0.35rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

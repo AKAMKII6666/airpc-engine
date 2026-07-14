@@ -1,0 +1,203 @@
+.canvas {
+  position: relative;
+  flex: 1;
+  min-height: 360px;
+  border: 1px solid var(--mui-palette-divider, #e0e0e0);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f7f8fa;
+}
+
+.laneBands {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.laneBand {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-bottom: 1px dashed #d0d5dd;
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(255, 255, 255, 0.35),
+    rgba(255, 255, 255, 0.35) 8px,
+    rgba(236, 239, 244, 0.55) 8px,
+    rgba(236, 239, 244, 0.55) 16px
+  );
+}
+
+.laneLabel {
+  position: absolute;
+  left: 8px;
+  top: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #667085;
+  letter-spacing: 0.02em;
+}
+
+.empty {
+  padding: 24px;
+  color: #666;
+}
+
+.node {
+  min-width: 168px;
+  border-radius: 6px !important;
+  border: 2px solid #90caf9 !important;
+  background: #fff !important;
+  font-size: 12px;
+  padding: 0 !important;
+  z-index: 1;
+}
+
+.nodeKindStory {
+  border-color: #64b5f6 !important;
+}
+
+.nodeKindFree {
+  border-color: #ba68c8 !important;
+  background: #faf5fc !important;
+}
+
+.nodeKindSystem {
+  border-color: #90a4ae !important;
+  background: #f5f7f8 !important;
+}
+
+.nodeModeInbound {
+  box-shadow: inset 3px 0 0 #43a047;
+}
+
+.nodeModeOutbound {
+  box-shadow: inset 3px 0 0 #fb8c00;
+}
+
+.nodeModeEither {
+  box-shadow: inset 3px 0 0 #78909c;
+}
+
+.nodeEntry {
+  border-color: #43a047 !important;
+  border-width: 2.5px !important;
+}
+
+.nodeSelected {
+  outline: 2px solid #1976d2;
+  outline-offset: 1px;
+}
+
+.nodeInner {
+  position: relative;
+  padding: 8px 12px;
+}
+
+.nodeBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nodeTitle {
+  font-weight: 600;
+}
+
+.nodeMeta {
+  color: #666;
+  font-size: 11px;
+}
+
+.badgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  background: #eef2f6;
+  color: #344054;
+  border: 1px solid #d0d5dd;
+}
+
+.badge_inbound {
+  background: #e8f5e9;
+  color: #1b5e20;
+  border-color: #a5d6a7;
+}
+
+.badge_outbound {
+  background: #fff3e0;
+  color: #e65100;
+  border-color: #ffcc80;
+}
+
+.badge_playback,
+.badge_prompt {
+  background: #e3f2fd;
+  color: #0d47a1;
+  border-color: #90caf9;
+}
+
+.badge_voicemail {
+  background: #f3e5f5;
+  color: #6a1b9a;
+  border-color: #ce93d8;
+}
+
+.badge_redial {
+  background: #e0f2f1;
+  color: #00695c;
+  border-color: #80cbc4;
+}
+
+.badge_schedule {
+  background: #fce4ec;
+  color: #ad1457;
+  border-color: #f48fb1;
+}
+
+.badge_attach {
+  background: #eceff1;
+  color: #455a64;
+  border-color: #b0bec5;
+}
+
+.markerStart,
+.markerEnd {
+  min-width: 72px;
+  border-radius: 999px !important;
+  border: 2px solid #37474f !important;
+  background: #eceff1 !important;
+  padding: 0 !important;
+  font-size: 12px;
+  font-weight: 700;
+  z-index: 1;
+}
+
+.markerStart {
+  border-color: #2e7d32 !important;
+  background: #e8f5e9 !important;
+  color: #1b5e20;
+}
+
+.markerEnd {
+  border-color: #546e7a !important;
+  background: #eceff1 !important;
+  color: #37474f;
+}
+
+.markerInner {
+  position: relative;
+  padding: 10px 16px;
+  text-align: center;
+}

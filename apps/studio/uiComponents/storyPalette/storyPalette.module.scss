@@ -1,0 +1,35 @@
+.palette {
+  border: 1px solid var(--mui-palette-divider, #e0e0e0);
+  border-radius: 8px;
+  padding: 12px;
+  overflow: auto;
+  background: #fff;
+  min-width: 0;
+}
+
+.list {
+  max-height: 48vh;
+  overflow: auto;
+}
+
+.item {
+  padding: 8px;
+  border: 1px solid #eee;
+  border-radius: 6px;
+}
+
+.itemHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px;
+}
+
+.name {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.section {
+  margin-top: 16px !important;
+}

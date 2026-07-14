@@ -1,0 +1,29 @@
+.nav {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.nav a {
+  color: #1a5f4a;
+  text-decoration: none;
+  font-size: 0.95rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 0.35rem;
+}
+
+.nav a:hover {
+  background: color-mix(in srgb, #1a5f4a 10%, transparent);
+}
+
+.active {
+  background: color-mix(in srgb, #1a5f4a 14%, transparent);
+  font-weight: 600;
+}
+
+.userBtn {
+  margin-left: 0.35rem !important;
+  color: #5c6b73 !important;
+  text-transform: none !important;
+}

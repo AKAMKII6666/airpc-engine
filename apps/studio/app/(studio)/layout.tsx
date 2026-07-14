@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from "@mui/material";
 import { useStudioLayoutShellBis } from "@studio/bis/shell/studioLayout.shell.bis";
+import { StudioNav } from "@studio/uiComponents/studioNav/StudioNav";
 import {
   useStudioStore,
   useStudioStoreShallow,
@@ -34,15 +35,15 @@ const StudioGroupLayout: FC<IStudioGroupLayoutProps> = function (props) {
   const { children } = props;
   useStudioLayoutShellBis();
 
-  const { userId, userNickname, bannerError, schemaDialog } =
-    useStudioStoreShallow(function (s) {
+  const { bannerError, schemaDialog, userId } = useStudioStoreShallow(
+    function (s) {
       return {
-        userId: s.layout.userId,
-        userNickname: s.layout.userNickname,
         bannerError: s.layout.bannerError,
         schemaDialog: s.layout.schemaDialog,
+        userId: s.layout.userId,
       };
-    });
+    },
+  );
   const setLayoutUserId = useStudioStore((s) => s.setLayoutUserId);
   const setSchemaDialog = useStudioStore((s) => s.setSchemaDialog);
 
@@ -60,16 +61,10 @@ const StudioGroupLayout: FC<IStudioGroupLayoutProps> = function (props) {
   return (
     <div className={styles.shell}>
       <header className={styles.header}>
-        <p className={styles.brand}>airpc-engine · Studio</p>
-        <nav className={styles.nav}>
-          <Link href="/stories">故事</Link>
-          <Link href="/debugger">调试</Link>
-          <span className={styles.userChip}>
-            {userId
-              ? `用户：${userNickname ?? userId}`
-              : "未选用户"}
-          </span>
-        </nav>
+        <Link href="/" className={styles.brandLink}>
+          <p className={styles.brand}>airpc-engine · Studio</p>
+        </Link>
+        <StudioNav />
       </header>
       {bannerError ? (
         <Alert severity="warning" sx={{ borderRadius: 0 }}>

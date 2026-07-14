@@ -57,7 +57,23 @@ export const UserGate: FC<IUserGateProps> = function (props) {
               >
                 <ListItemText
                   primary={u.nickname}
-                  secondary={u.userId}
+                  secondary={
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <span>{u.userId}</span>
+                      {u.userId !== "demo-user" ? (
+                        <Button
+                          size="small"
+                          color="error"
+                          onClick={function (e): void {
+                            e.stopPropagation();
+                            void gate.deleteUser(u.userId);
+                          }}
+                        >
+                          删除
+                        </Button>
+                      ) : null}
+                    </Stack>
+                  }
                 />
               </ListItemButton>
             );

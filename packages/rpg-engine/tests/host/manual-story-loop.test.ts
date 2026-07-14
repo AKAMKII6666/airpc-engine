@@ -45,7 +45,7 @@ describe("manual story loop", () => {
     expect(isEngineError(resolved)).toBe(false);
     if (isEngineError(resolved)) return;
 
-    const session = host.beginCall("demo-user", resolved, {
+    const session = await host.beginCall("demo-user", resolved, {
       channel: "manual",
       localNowIso: "2026-07-13T16:00:00+08:00",
       timeZone: "Asia/Shanghai",
@@ -53,6 +53,16 @@ describe("manual story loop", () => {
     expect(isEngineError(session)).toBe(false);
     if (isEngineError(session)) return;
     expect(session.composeScene.callDirection).toBe("outbound");
+    expect(session.composeScene.localTime.bucket).toBe("afternoon");
+    expect(session.matchedLayerIds).toEqual(
+      expect.arrayContaining(["outbound_any", "outbound_afternoon"]),
+    );
+    expect(session.renderedPrompt?.openingSpeakable).toContain("下午");
+    expect(
+      session.renderedPrompt?.systemHard.some((s) =>
+        s.includes("[用户本地时间]"),
+      ),
+    ).toBe(true);
     expect(session.status).toBe("in_call");
 
     const end = await host.endCall(session.sessionId, {
@@ -97,10 +107,10 @@ describe("manual story loop", () => {
     });
     if (isEngineError(resolved)) throw resolved;
 
-    const first = host.beginCall("demo-user", resolved, { channel: "manual" });
+    const first = await host.beginCall("demo-user", resolved, { channel: "manual" });
     if (isEngineError(first)) throw first;
 
-    const second = host.beginCall("demo-user", resolved, { channel: "manual" });
+    const second = await host.beginCall("demo-user", resolved, { channel: "manual" });
     expect(isEngineError(second)).toBe(true);
     if (isEngineError(second)) {
       expect(second.code).toBe("CONFLICT_ACTIVE_CALL");

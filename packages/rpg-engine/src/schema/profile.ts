@@ -3,6 +3,8 @@
  */
 import { z } from "zod";
 
+import { WorldLoreDocSchema } from "./worldLore.js";
+
 export const UserSchema = z.object({
   userId: z.string(),
   nickname: z.string(),
@@ -29,6 +31,8 @@ export const CallCardInstanceSchema = z.object({
   agentId: z.string(),
   status: z.enum(["pending", "active", "completed", "cancelled"]),
   entryMode: z.string().optional(),
+  /** Resolve 多 pending 时与 card/出口 priority 对齐（可选） */
+  priority: z.number().optional(),
   createdAt: z.string(),
   updatedAt: z.string().optional(),
 });
@@ -42,12 +46,43 @@ export const CharacterRuntimeSchema = z
   })
   .passthrough();
 
+/** ActiveStoryLock（需求 10 §3.2 / 技术设计 19 §8.4） */
+export const ActiveStoryLockSchema = z.object({
+  activeStoryInstanceId: z.string(),
+  packageId: z.string(),
+  lockLevel: z.enum(["soft", "hard"]),
+  allowedAgentIds: z.array(z.string()),
+  blockedPolicy: z.enum([
+    "reject_call",
+    "force_free_suppressed",
+    "allow_with_warning",
+  ]),
+  reason: z.string(),
+  startedAt: z.string(),
+});
+
+export type ActiveStoryLock = z.infer<typeof ActiveStoryLockSchema>;
+
+export const StorySaveSchema = z
+  .object({
+    packageId: z.string(),
+    status: z.enum(["inactive", "active", "completed", "aborted"]),
+    instanceId: z.string().optional(),
+    variables: z.record(z.string(), z.unknown()).default({}),
+    completedCardIds: z.array(z.string()).optional(),
+    lock: ActiveStoryLockSchema.nullable().optional(),
+  })
+  .passthrough();
+
+export type StorySave = z.infer<typeof StorySaveSchema>;
+
 export const PlayerProfileSchema = z
   .object({
     schemaVersion: z.literal(1),
     userId: z.string(),
     user: UserSchema,
     characters: z.record(z.string(), CharacterRuntimeSchema).default({}),
+    /** 值形状见 StorySaveSchema；读锁时用 ActiveStoryLockSchema.safeParse */
     stories: z.record(z.string(), z.unknown()).default({}),
     callCards: z
       .object({
@@ -78,7 +113,7 @@ export const PlayerProfileSchema = z
       .optional(),
     world: z
       .object({
-        lore: z.unknown().nullable().optional(),
+        lore: WorldLoreDocSchema.nullable().optional(),
         facts: z.array(z.unknown()).default([]),
         knowledge: z.record(z.string(), z.unknown()).default({}),
       })

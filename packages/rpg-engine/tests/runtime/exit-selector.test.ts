@@ -49,4 +49,32 @@ describe("selectExit", () => {
     });
     expect(selected).toBeNull();
   });
+
+  it("same priority: static beats dynamic", () => {
+    const selected = selectExit(
+      card,
+      {
+        flags: { answered_completed: true },
+        completedBeats: ["b1"],
+        missedRequiredBeats: [],
+      },
+      [
+        {
+          candidateId: "c1",
+          toolId: "share_expert_number",
+          registeredAt: "2026-01-01T00:00:00.000Z",
+          priority: 100,
+          effects: [
+            {
+              id: "e1",
+              effect: "set_character_unlocked",
+              args: { agentId: "x" },
+            },
+          ],
+        },
+      ],
+    );
+    expect(selected?.source).toBe("static");
+    expect(selected?.exit.exitId).toBe("win");
+  });
 });

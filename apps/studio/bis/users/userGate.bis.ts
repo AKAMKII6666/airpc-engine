@@ -6,6 +6,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useStudioStore } from "@studio/store/storeContext/studioStoreContext";
 import {
+  deleteUserApi,
   getUsers,
   postCreateUser,
   postSelectUser,
@@ -17,7 +18,16 @@ export interface IUserGateBisResult {
   loading: boolean;
   error: string | null;
   selectUser: (userId: string) => Promise<boolean>;
-  createUser: (userId: string, nickname: string) => Promise<boolean>;
+  createUser: (
+    userId: string,
+    nickname: string,
+    location?: {
+      country: string;
+      province: string;
+      city: string;
+    },
+  ) => Promise<boolean>;
+  deleteUser: (userId: string) => Promise<boolean>;
   reload: () => void;
 }
 
@@ -27,6 +37,7 @@ export function useUserGateBis(): IUserGateBisResult {
   const [error, setError] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
   const setLayoutUserId = useStudioStore((s) => s.setLayoutUserId);
+  const userId = useStudioStore((s) => s.layout.userId);
 
   useEffect(
     function (): void {
@@ -46,22 +57,26 @@ export function useUserGateBis(): IUserGateBisResult {
   );
 
   const selectUser = useCallback(
-    async function (userId: string): Promise<boolean> {
-      const res = await postSelectUser(userId);
+    async function (id: string): Promise<boolean> {
+      const res = await postSelectUser(id);
       if (!res.ok) {
         setError(res.message ?? "select failed");
         return false;
       }
-      const hit = users.find((u) => u.userId === userId);
-      setLayoutUserId(userId, hit?.nickname ?? null);
+      const hit = users.find((u) => u.userId === id);
+      setLayoutUserId(id, hit?.nickname ?? null);
       return true;
     },
     [users, setLayoutUserId],
   );
 
   const createUser = useCallback(
-    async function (userId: string, nickname: string): Promise<boolean> {
-      const res = await postCreateUser({ userId, nickname });
+    async function (
+      id: string,
+      nickname: string,
+      location?: { country: string; province: string; city: string },
+    ): Promise<boolean> {
+      const res = await postCreateUser({ userId: id, nickname, location });
       if (!res.ok) {
         setError(res.message ?? "create failed");
         return false;
@@ -69,9 +84,33 @@ export function useUserGateBis(): IUserGateBisResult {
       setTick(function (n) {
         return n + 1;
       });
-      return selectUser(userId);
+      return selectUser(id);
     },
     [selectUser],
+  );
+
+  const deleteUser = useCallback(
+    async function (id: string): Promise<boolean> {
+      if (
+        typeof window !== "undefined" &&
+        !window.confirm(`确认删除用户 ${id}？不可恢复。`)
+      ) {
+        return false;
+      }
+      const res = await deleteUserApi(id);
+      if (!res.ok) {
+        setError(res.message ?? "delete failed");
+        return false;
+      }
+      if (userId === id) {
+        setLayoutUserId(null, null);
+      }
+      setTick(function (n) {
+        return n + 1;
+      });
+      return true;
+    },
+    [userId, setLayoutUserId],
   );
 
   return {
@@ -80,6 +119,7 @@ export function useUserGateBis(): IUserGateBisResult {
     error,
     selectUser,
     createUser,
+    deleteUser,
     reload: function (): void {
       setTick(function (n) {
         return n + 1;

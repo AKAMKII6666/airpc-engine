@@ -1,0 +1,35 @@
+.page {
+  max-width: 40rem;
+}
+
+.title {
+  margin: 0 0 0.5rem;
+  color: #12352c;
+}
+
+.lead {
+  margin: 0 0 1.25rem;
+  color: color-mix(in srgb, #12352c 70%, #5c6b73);
+  line-height: 1.5;
+}
+
+.current {
+  padding: 0.9rem 1rem;
+  border: 1px solid color-mix(in srgb, #1a5f4a 22%, transparent);
+  border-radius: 0.5rem;
+  background: #fff;
+  margin-bottom: 0.5rem;
+}
+
+.currentValue {
+  margin: 0.35rem 0 0.75rem;
+  color: #12352c;
+  font-weight: 600;
+}
+
+.list {
+  border: 1px solid color-mix(in srgb, #1a5f4a 18%, transparent);
+  border-radius: 0.5rem;
+  background: #fff;
+  padding: 0.25rem 0 !important;
+}

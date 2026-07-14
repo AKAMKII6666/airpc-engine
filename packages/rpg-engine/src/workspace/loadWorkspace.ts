@@ -4,79 +4,82 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import {
-  CallCardDefinitionSchema,
-  StoryPackageConfSchema,
-  type CallCardDefinition,
-  type StoryPackageConf,
+	CallCardDefinitionSchema,
+	StoryPackageConfSchema,
+	type CallCardDefinition,
+	type StoryPackageConf,
 } from "../schema/callCard.js";
 import { PlayerProfileSchema, type PlayerProfile } from "../schema/profile.js";
 import {
-  CharacterDefSchema,
-  type CharacterDef,
+	CharacterDefSchema,
+	type CharacterDef,
 } from "../schema/character.js";
 import { engineError, type EngineError } from "../host/errors.js";
 
 const SUPPORTED_SCHEMA = 1;
 
 export interface LoadedPackage {
-  conf: StoryPackageConf;
-  dir: string;
-  /** 按需填充；不在 loadWorkspace 时预读全部卡 / layout */
-  cards: Map<string, CallCardDefinition>;
+	conf: StoryPackageConf;
+	dir: string;
+	/** 按需填充；不在 loadWorkspace 时预读全部卡 / layout */
+	cards: Map<string, CallCardDefinition>;
 }
 
 export interface WorkspaceState {
   rootDir: string;
   packages: Map<string, LoadedPackage>;
   characters: Map<string, CharacterDef>;
+  /** characters/free-cards/*.s-card.json，按 cardId */
+  freeCards: Map<string, CallCardDefinition>;
 }
 
 export async function loadWorkspaceState(rootDir: string): Promise<WorkspaceState> {
-  const workspacePath = path.join(rootDir, "workspace.json");
-  const raw = JSON.parse(await readFile(workspacePath, "utf8")) as {
-    schemaVersion?: number;
-  };
-  if (raw.schemaVersion !== SUPPORTED_SCHEMA) {
-    throw engineError(
-      "SCHEMA_UNSUPPORTED",
-      `workspace schemaVersion ${String(raw.schemaVersion)} unsupported`,
-    );
-  }
+	const workspacePath = path.join(rootDir, "workspace.json");
+	const raw = JSON.parse(await readFile(workspacePath, "utf8")) as {
+		schemaVersion?: number;
+	};
+	if (raw.schemaVersion !== SUPPORTED_SCHEMA) {
+		throw engineError(
+			"SCHEMA_UNSUPPORTED",
+			`workspace schemaVersion ${String(raw.schemaVersion)} unsupported`,
+		);
+	}
 
-  const packages = new Map<string, LoadedPackage>();
-  const packagesRoot = path.join(rootDir, "storis-packages");
-  let entries: string[] = [];
-  try {
-    entries = await readdir(packagesRoot);
-  } catch {
-    entries = [];
-  }
+	const packages = new Map<string, LoadedPackage>();
+	const packagesRoot = path.join(rootDir, "storis-packages");
+	let entries: string[] = [];
+	try {
+		entries = await readdir(packagesRoot);
+	} catch {
+		entries = [];
+	}
 
-  for (const name of entries) {
-    const dir = path.join(packagesRoot, name);
-    const confPath = path.join(dir, "story.conf.json");
-    let confRaw: string;
-    try {
-      confRaw = await readFile(confPath, "utf8");
-    } catch {
-      continue;
-    }
-    const conf = StoryPackageConfSchema.parse(JSON.parse(confRaw));
-    if (conf.schemaVersion !== SUPPORTED_SCHEMA) {
-      throw engineError(
-        "SCHEMA_UNSUPPORTED",
-        `package ${conf.packageId} schemaVersion unsupported`,
-      );
-    }
-    // 故意不读 canvas.layout.json / 不预载 cards/*.s-card.json
-    packages.set(conf.packageId, {
-      conf,
-      dir,
-      cards: new Map(),
-    });
-  }
+	for (const name of entries) {
+		const dir = path.join(packagesRoot, name);
+		const confPath = path.join(dir, "story.conf.json");
+		let confRaw: string;
+		try {
+			confRaw = await readFile(confPath, "utf8");
+		} catch {
+			continue;
+		}
+		const conf = StoryPackageConfSchema.parse(JSON.parse(confRaw));
+		if (conf.schemaVersion !== SUPPORTED_SCHEMA) {
+			throw engineError(
+				"SCHEMA_UNSUPPORTED",
+				`package ${conf.packageId} schemaVersion unsupported`,
+			);
+		}
+		// 故意不读 canvas.layout.json / 不预载 cards/*.s-card.json
+		packages.set(conf.packageId, {
+			conf,
+			dir,
+			cards: new Map(),
+		});
+	}
 
   const characters = new Map<string, CharacterDef>();
+  const freeCards = new Map<string, CallCardDefinition>();
   const charactersRoot = path.join(rootDir, "characters");
   let charFiles: string[] = [];
   try {
@@ -91,7 +94,21 @@ export async function loadWorkspaceState(rootDir: string): Promise<WorkspaceStat
     characters.set(def.agentId, def);
   }
 
-  return { rootDir, packages, characters };
+  const freeDir = path.join(charactersRoot, "free-cards");
+  let freeFiles: string[] = [];
+  try {
+    freeFiles = await readdir(freeDir);
+  } catch {
+    freeFiles = [];
+  }
+  for (const name of freeFiles) {
+    if (!name.endsWith(".s-card.json") && !name.endsWith(".json")) continue;
+    const text = await readFile(path.join(freeDir, name), "utf8");
+    const card = CallCardDefinitionSchema.parse(JSON.parse(text));
+    freeCards.set(card.cardId, card);
+  }
+
+  return { rootDir, packages, characters, freeCards };
 }
 
 export async function loadCard(
@@ -99,6 +116,12 @@ export async function loadCard(
   packageId: string,
   cardId: string,
 ): Promise<CallCardDefinition | EngineError> {
+  if (packageId === "__free__") {
+    return engineError(
+      "INVALID_PACKAGE_ID",
+      "cannot loadPackage/loadCard for free sentinel __free__",
+    );
+  }
   const pkg = ws.packages.get(packageId);
   if (!pkg) {
     return engineError("NOT_FOUND", `package not found: ${packageId}`);
@@ -119,24 +142,35 @@ export async function loadCard(
   return card;
 }
 
+export function getFreeCard(
+  ws: WorkspaceState,
+  cardId: string,
+): CallCardDefinition | EngineError {
+  const card = ws.freeCards.get(cardId);
+  if (!card) {
+    return engineError("NOT_FOUND", `free card not found: ${cardId}`);
+  }
+  return card;
+}
+
 export async function readProfile(
-  rootDir: string,
-  userId: string,
+	rootDir: string,
+	userId: string,
 ): Promise<PlayerProfile | EngineError> {
-  const profilePath = path.join(rootDir, "users", userId, "profile.save.json");
-  let text: string;
-  try {
-    text = await readFile(profilePath, "utf8");
-  } catch {
-    return engineError("NOT_FOUND", `profile not found: ${userId}`);
-  }
-  try {
-    return PlayerProfileSchema.parse(JSON.parse(text));
-  } catch (err) {
-    return engineError("VALIDATION_FAILED", "profile parse failed", err);
-  }
+	const profilePath = path.join(rootDir, "users", userId, "profile.save.json");
+	let text: string;
+	try {
+		text = await readFile(profilePath, "utf8");
+	} catch {
+		return engineError("NOT_FOUND", `profile not found: ${userId}`);
+	}
+	try {
+		return PlayerProfileSchema.parse(JSON.parse(text));
+	} catch (err) {
+		return engineError("VALIDATION_FAILED", "profile parse failed", err);
+	}
 }
 
 export function profilePath(rootDir: string, userId: string): string {
-  return path.join(rootDir, "users", userId, "profile.save.json");
+	return path.join(rootDir, "users", userId, "profile.save.json");
 }

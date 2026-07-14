@@ -1,5 +1,5 @@
 /**
- * 模块名称：出口条件 / Outcome / Effect Zod
+ * 模块名称：出口条件 / Outcome / Effect Zod（S7：Effect 白名单判别）
  */
 import { z } from "zod";
 
@@ -63,12 +63,38 @@ export type ExitCondition =
   | { op: "beat_missing"; beatId: string }
   | { op: "all_required_beats_completed" };
 
+/** 与 validatePackage 白名单对齐；未知名在 Zod parse 即失败 */
+export const KNOWN_EFFECT_NAMES = [
+  "set_character_unlocked",
+  "attach_call_card",
+  "set_redial_slot",
+  "unmount_call_card",
+  "keep_card_pending",
+  "schedule_call_card",
+  "schedule_recurring_call",
+  "create_research_commitment",
+  "update_user_profile",
+  "patch_memory",
+  "set_world_fact",
+  "update_npc_knowledge",
+  "end_story",
+  "create_voicemail",
+  "play_system_prompt",
+] as const;
+
+export type KnownEffectName = (typeof KNOWN_EFFECT_NAMES)[number];
+
+/**
+ * Effect：effect 枚举为判别主路径；其它键 catchall 承载参数。
+ * 禁止 `effect: z.string()` 无限 passthrough 当主契约。
+ */
 export const EffectSchema = z
   .object({
     id: z.string(),
-    effect: z.string(),
+    effect: z.enum(KNOWN_EFFECT_NAMES),
+    critical: z.boolean().optional(),
   })
-  .passthrough();
+  .catchall(z.unknown());
 
 export type Effect = z.infer<typeof EffectSchema> & {
   effect: string;

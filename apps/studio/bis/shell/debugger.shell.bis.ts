@@ -20,6 +20,7 @@ export function useDebuggerShellBis(): void {
   const setDebuggerLoading = useStudioStore((s) => s.setDebuggerLoading);
   const applyDebuggerSnapshot = useStudioStore((s) => s.applyDebuggerSnapshot);
   const setDebuggerError = useStudioStore((s) => s.setDebuggerError);
+  const setSchemaDialog = useStudioStore((s) => s.setSchemaDialog);
 
   useEffect(
     function (): (() => void) | void {
@@ -30,6 +31,14 @@ export function useDebuggerShellBis(): void {
         const res = await getDebugSnapshot(userId);
         if (cancelled) return;
         if (!res.ok || !res.data) {
+          if (res.code === "SCHEMA_UNSUPPORTED") {
+            setSchemaDialog({
+              open: true,
+              message:
+                res.message ??
+                "调试入口检测到 schemaVersion 不兼容，请升级 Studio 或降级内容。",
+            });
+          }
           setDebuggerError(res.message ?? "snapshot failed");
           return;
         }
@@ -45,6 +54,7 @@ export function useDebuggerShellBis(): void {
       setDebuggerLoading,
       applyDebuggerSnapshot,
       setDebuggerError,
+      setSchemaDialog,
     ],
   );
 }

@@ -19,13 +19,28 @@
     },
     "xiaoyu": {
       "agentId": "xiaoyu",
-      "unlocked": false
+      "unlocked": true
     }
   },
   "stories": {},
   "callCards": {
     "board": {
-      "byAgent": {}
+      "byAgent": {
+        "xiaoyu": {
+          "pending": [
+            {
+              "instanceId": "caa1bf9f-bcc2-46ff-b00f-1f2890a2f328",
+              "cardId": "xiaoyu_waiting_user",
+              "packageId": "golden_handoff",
+              "agentId": "xiaoyu",
+              "status": "pending",
+              "entryMode": "inbound_user_dial",
+              "createdAt": "2026-07-14T07:39:21.572Z",
+              "updatedAt": "2026-07-14T07:39:21.572Z"
+            }
+          ]
+        }
+      }
     }
   },
   "world": {
@@ -42,7 +57,13 @@
   },
   "meta": {
     "createdAt": "2026-07-13T00:00:00.000Z",
-    "updatedAt": "2026-07-13T00:00:00.000Z",
+    "updatedAt": "2026-07-14T07:39:21.576Z",
     "note": "记忆明细在 data/memory/memory.sqlite，不在本文件内嵌"
+  },
+  "telephony": {
+    "redialSlot": {
+      "agentId": "xiaoyu",
+      "cardId": "xiaoyu_waiting_user"
+    }
   }
 }

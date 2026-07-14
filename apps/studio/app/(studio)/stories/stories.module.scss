@@ -2,8 +2,16 @@
   max-width: 52rem;
 }
 
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
 .title {
-  margin: 0 0 0.5rem;
+  margin: 0;
   color: #12352c;
 }
 
@@ -18,23 +26,43 @@
 }
 
 .card {
-  display: block;
+  display: grid;
+  gap: 0.5rem;
   padding: 1rem 1.1rem;
   border: 1px solid color-mix(in srgb, #1a5f4a 22%, transparent);
   border-radius: 0.5rem;
   background: #fff;
-  cursor: pointer;
-  text-align: left;
 }
 
 .card:hover {
   border-color: #1a5f4a;
 }
 
+.cardMain {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
 .cardTitle {
   margin: 0;
   font-weight: 600;
   color: #12352c;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cardActions {
+  justify-content: flex-end;
 }
 
 .meta {

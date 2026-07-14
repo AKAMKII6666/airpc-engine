@@ -12,14 +12,62 @@
     "premise": "澜星主动外呼用户，介绍小雨。",
     "emotion": "热心",
     "objective": "用户知道并愿意拨打小雨",
-    "forbidden": ["剧透小雨身世"]
+    "forbidden": [
+      "剧透小雨身世"
+    ],
+    "promptScenes": [
+      {
+        "layerId": "outbound_afternoon",
+        "priority": 10,
+        "match": {
+          "callDirection": "outbound",
+          "timeBuckets": [
+            "afternoon"
+          ]
+        },
+        "patch": {
+          "openingSpeakable": "喂喂，下午还好吗？有个朋友想认识你。",
+          "toneHint": "轻松、热心"
+        }
+      },
+      {
+        "layerId": "outbound_evening",
+        "priority": 10,
+        "match": {
+          "callDirection": "outbound",
+          "timeBuckets": [
+            "evening"
+          ]
+        },
+        "patch": {
+          "openingSpeakable": "晚上好呀，打扰一下——有个朋友想认识你。",
+          "toneHint": "轻声、热心"
+        }
+      },
+      {
+        "layerId": "outbound_any",
+        "priority": 1,
+        "match": {
+          "callDirection": "outbound"
+        },
+        "patch": {
+          "openingSpeakable": "喂喂，是我。有个朋友想认识你。",
+          "appendSpeakable": "别紧张，随便聊聊就行。"
+        }
+      }
+    ]
   },
   "objectives": {
-    "requiredBeats": ["user_knows_to_call_xiaoyu"]
+    "requiredBeats": [
+      "user_knows_to_call_xiaoyu"
+    ]
   },
   "toolPolicy": {
     "mode": "allowlist",
-    "allowedToolIds": ["share_expert_number", "refer_to_expert"]
+    "allowedToolIds": [
+      "share_expert_number",
+      "refer_to_expert"
+    ]
   },
   "exits": [
     {
@@ -30,8 +78,15 @@
       "condition": {
         "op": "and",
         "items": [
-          { "op": "outcome_flag", "flag": "answered_completed", "equals": true },
-          { "op": "beat_completed", "beatId": "user_knows_to_call_xiaoyu" }
+          {
+            "op": "outcome_flag",
+            "flag": "answered_completed",
+            "equals": true
+          },
+          {
+            "op": "beat_completed",
+            "beatId": "user_knows_to_call_xiaoyu"
+          }
         ]
       },
       "effects": [
@@ -72,6 +127,16 @@
           "effect": "keep_card_pending"
         }
       ]
+    },
+    {
+      "exitId": "edge_to_xiaoyu_story_3",
+      "exitKind": "handoff",
+      "title": "连到 xiaoyu_story_3",
+      "priority": 50,
+      "condition": {
+        "op": "always"
+      },
+      "effects": []
     }
   ]
 }

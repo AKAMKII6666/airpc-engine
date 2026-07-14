@@ -4,12 +4,14 @@
 
 ## 必读
 
-1. [docs/AI和人类/需求/00-文档索引.md](docs/AI和人类/需求/00-文档索引.md) — 产品总纲  
-2. [docs/AI和人类/里程碑/项目初始执行索引.md](docs/AI和人类/里程碑/项目初始执行索引.md) — **写代码分期顺序**  
-3. [docs/AI和人类/技术设计文档/00-技术设计索引.md](docs/AI和人类/技术设计文档/00-技术设计索引.md) — 工程分册入口  
-4. [docs/AI和人类/技术设计文档/19-引擎宿主与会话模型.md](docs/AI和人类/技术设计文档/19-引擎宿主与会话模型.md) — Host / CallSession  
-5. [docs/AI和人类/技术设计文档/21-Studio客户端分层.md](docs/AI和人类/技术设计文档/21-Studio客户端分层.md) — Zustand · bis · shell  
-6. [.cursor/rules/codingRole.mdc](.cursor/rules/codingRole.mdc) — 编码铁律  
+1. [docs/AI和人类/需求/00-文档索引.md](docs/AI和人类/需求/00-文档索引.md) — 产品总纲 
+2. [docs/AI和人类/里程碑/项目第三步计划执行索引.md](docs/AI和人类/里程碑/项目第三步计划执行索引.md) — **第三步主线已收口（T0–T11）；后置见该页刻意后置** 
+3. [docs/AI和人类/里程碑/项目第二步计划执行索引.md](docs/AI和人类/里程碑/项目第二步计划执行索引.md) — 第二步分期（S0–S11，已收口） 
+4. [docs/AI和人类/里程碑/项目初始执行索引.md](docs/AI和人类/里程碑/项目初始执行索引.md) — 初始阶段分期（P0–P6a，已收口） 
+5. [docs/AI和人类/技术设计文档/00-技术设计索引.md](docs/AI和人类/技术设计文档/00-技术设计索引.md) — 工程分册入口 
+6. [docs/AI和人类/技术设计文档/19-引擎宿主与会话模型.md](docs/AI和人类/技术设计文档/19-引擎宿主与会话模型.md) — Host / CallSession 
+7. [docs/AI和人类/技术设计文档/21-Studio客户端分层.md](docs/AI和人类/技术设计文档/21-Studio客户端分层.md) — Zustand · bis · shell 
+8. [.cursor/rules/codingRole.mdc](.cursor/rules/codingRole.mdc) — 编码铁律 
 
 ## 拓扑
 
@@ -25,7 +27,7 @@ Browser (React + MUI + scss module + Zustand/bis/shell)
 ```text
 packages/rpg-engine/
 apps/studio/
-data/                  # storis-packages/ + characters/ + users/ + logs/
+data/                  # storis-packages/（正式故事包根）+ characters/ + users/ + logs/
 docs/人类/
 docs/AI和人类/需求/           # 产品需求
 docs/AI和人类/技术设计文档/   # 工程定稿（选型/拓扑/Host/导出/版本）
@@ -33,6 +35,11 @@ docs/AI和人类/里程碑/         # 实现分期 / 执行索引
 docs/AI/
 .cursor/rules/
 ```
+
+## 磁盘与 Registry 口径（S0 定稿）
+
+- **故事包根目录正式名** = `data/storis-packages/`（拼写保持现状；全仓重命名另立项，不做本步强制迁移）
+- **ToolRegistry v1 真源** = 引擎代码内置 `builtinRegistry`；`data/tools/registry.json` = **非真源／预留导出副本**（运行时无读路径）
 
 ## 铁律摘要
 

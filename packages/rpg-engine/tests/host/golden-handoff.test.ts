@@ -70,6 +70,8 @@ describe("golden_handoff", () => {
     const host = createEngineHost({ persist: true });
     await host.loadWorkspace(dataRoot);
     const profile = await host.ensureProfile("demo-user");
+    // 存档可能已被其它调试解锁；golden 起手必须不可拨
+    delete profile.characters.xiaoyu;
 
     const xiaoyuDef = CharacterDefSchema.parse(
       JSON.parse(
@@ -88,7 +90,7 @@ describe("golden_handoff", () => {
     if (isEngineError(r1)) throw r1;
     expect(host.getLoadedCardCount("golden_handoff")).toBe(1);
 
-    const s1 = host.beginCall("demo-user", r1, { channel: "manual" });
+    const s1 = await host.beginCall("demo-user", r1, { channel: "manual" });
     if (isEngineError(s1)) throw s1;
 
     const e1 = await host.endCall(s1.sessionId, {
@@ -127,7 +129,7 @@ describe("golden_handoff", () => {
     expect(r2.cardId).toBe("xiaoyu_waiting_user");
     expect(host.getLoadedCardCount("golden_handoff")).toBe(2);
 
-    const s2 = host.beginCall("demo-user", r2, {
+    const s2 = await host.beginCall("demo-user", r2, {
       channel: "manual",
       localNowIso: "2026-07-13T17:00:00+08:00",
     });

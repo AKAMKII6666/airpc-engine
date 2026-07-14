@@ -56,9 +56,12 @@ alwaysApply: true
 ```text
 packages/rpg-engine/     # 准 npm；对外 index 门面；tests/ 独立
 apps/studio/             # 禁 barrel；bis/store/ajaxHelper…
-data/
+data/                    # storis-packages/（正式故事包根）+ characters/ + users/ + …
 docs/人类/
 docs/AI和人类/需求/
 docs/AI和人类/技术设计文档/
 docs/AI/
 ```
+
+- **故事包根**正式名 = `data/storis-packages/`（不另起 `stories-packages`；全仓改名另立项）。
+- **ToolRegistry v1 真源** = `packages/rpg-engine` 内置 `builtinRegistry`；`data/tools/registry.json` 非运行时真源（预留／导出副本）。

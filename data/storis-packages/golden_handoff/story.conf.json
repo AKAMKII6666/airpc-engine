@@ -2,10 +2,17 @@
   "schemaVersion": 1,
   "packageId": "golden_handoff",
   "title": "黄金样例：转介",
-  "participants": ["doubao-sister", "xiaoyu"],
+  "participants": [
+    "doubao-sister",
+    "xiaoyu"
+  ],
   "entryCardId": "doubao_intro_outbound",
   "cards": [
-    { "cardId": "doubao_intro_outbound" },
-    { "cardId": "xiaoyu_waiting_user" }
+    {
+      "cardId": "doubao_intro_outbound"
+    },
+    {
+      "cardId": "xiaoyu_waiting_user"
+    }
   ]
 }

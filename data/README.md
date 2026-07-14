@@ -11,7 +11,7 @@
 |------|------|
 | `storis-packages/golden_handoff/` | 黄金转介包（澜星介绍小雨） |
 | `characters/` | 澜星、小雨 + free-cards |
-| `tools/registry.json` | v1 工具清单占位（含记忆召回） |
+| `tools/registry.json` | **非真源／预留**；运行时与校验以引擎 `builtinRegistry` 为准（见需求 13） |
 | `memory/` | Memory SQLite 目录（实现后生成 `memory.sqlite`） |
 | `users/demo-user/` | 薄存档（记忆不在 JSON 内嵌） |
 | `assets/` | 全局资产库根（样例暂无媒体文件） |

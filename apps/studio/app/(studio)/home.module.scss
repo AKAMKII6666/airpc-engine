@@ -1,0 +1,102 @@
+.page {
+  max-width: 56rem;
+}
+
+.title {
+  margin: 0 0 0.5rem;
+  color: #12352c;
+}
+
+.lead {
+  margin: 0 0 0.75rem;
+  color: color-mix(in srgb, #12352c 70%, #5c6b73);
+  line-height: 1.5;
+}
+
+.userLine {
+  margin: 0 0 1.5rem;
+  font-size: 0.9rem;
+  color: #5c6b73;
+}
+
+.userLine strong {
+  color: #12352c;
+  font-weight: 600;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 1.15rem 1.2rem;
+  border: 1px solid color-mix(in srgb, #1a5f4a 22%, transparent);
+  border-radius: 0.55rem;
+  background: #fff;
+  text-decoration: none;
+  color: inherit;
+  min-height: 8rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card:hover {
+  border-color: #1a5f4a;
+  box-shadow: 0 1px 0 color-mix(in srgb, #1a5f4a 12%, transparent);
+}
+
+.cardPrimary {
+  border-color: color-mix(in srgb, #1a5f4a 40%, transparent);
+  background: color-mix(in srgb, #fff 88%, #1a5f4a 12%);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 650;
+  color: #12352c;
+}
+
+.cardDesc {
+  margin: 0;
+  flex: 1;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: #5c6b73;
+}
+
+.cardPath {
+  font-size: 0.8rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: #1a5f4a;
+}
+
+.note {
+  margin-top: 1.75rem;
+  padding: 0.9rem 1rem;
+  border-left: 3px solid color-mix(in srgb, #1a5f4a 35%, transparent);
+  background: color-mix(in srgb, #fff 70%, transparent);
+}
+
+.noteTitle {
+  margin: 0 0 0.25rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #12352c;
+}
+
+.noteBody {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #5c6b73;
+}
+
+@media (max-width: 720px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

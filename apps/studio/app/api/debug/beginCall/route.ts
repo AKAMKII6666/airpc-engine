@@ -14,8 +14,10 @@ export async function POST(req: Request): Promise<Response> {
   try {
     const body = (await req.json()) as {
       userId?: string;
+      mode?: "story" | "free";
       packageId?: string;
       cardId?: string;
+      agentId?: string;
       localNowIso?: string;
       timeZone?: string;
     };
@@ -23,17 +25,31 @@ export async function POST(req: Request): Promise<Response> {
     if (!userId) {
       return apiFail("USER_REQUIRED", "select user first", 403);
     }
-    if (!body.packageId || !body.cardId) {
-      return apiFail("VALIDATION_FAILED", "packageId and cardId required");
-    }
 
     const host = await getStudioEngineHost();
     await host.ensureProfile(userId);
-    const resolved = await host.resolveAsync(userId, {
-      kind: "simulate_start",
-      packageId: body.packageId,
-      cardId: body.cardId,
-    });
+
+    const mode = body.mode ?? "story";
+    let resolved;
+    if (mode === "free") {
+      if (!body.agentId) {
+        return apiFail("VALIDATION_FAILED", "agentId required for free mode");
+      }
+      resolved = await host.resolveAsync(userId, {
+        kind: "free_call",
+        agentId: body.agentId,
+      });
+    } else {
+      if (!body.packageId || !body.cardId) {
+        return apiFail("VALIDATION_FAILED", "packageId and cardId required");
+      }
+      resolved = await host.resolveAsync(userId, {
+        kind: "simulate_start",
+        packageId: body.packageId,
+        cardId: body.cardId,
+      });
+    }
+
     if (isEngineError(resolved)) {
       return apiFail(
         resolved.code,
@@ -42,7 +58,7 @@ export async function POST(req: Request): Promise<Response> {
         resolved.details,
       );
     }
-    const session = host.beginCall(userId, resolved, {
+    const session = await host.beginCall(userId, resolved, {
       channel: "manual",
       localNowIso: body.localNowIso,
       timeZone: body.timeZone ?? "Asia/Shanghai",
@@ -59,8 +75,12 @@ export async function POST(req: Request): Promise<Response> {
       packageId: session.packageId,
       cardId: session.resolve.cardId,
       agentId: session.resolve.agentId,
+      resolveSource: session.resolve.source,
       composeScene: session.composeScene,
+      renderedPrompt: session.renderedPrompt,
+      matchedLayerIds: session.matchedLayerIds,
       frozenCardTitle: session.frozenCard.title,
+      cardKind: session.frozenCard.cardKind,
       status: session.status,
     });
   } catch (err) {

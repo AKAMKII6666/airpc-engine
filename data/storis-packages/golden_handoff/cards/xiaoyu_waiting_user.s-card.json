@@ -12,12 +12,18 @@
     "premise": "用户拨打小雨，完成初次认识。",
     "emotion": "害羞但友善",
     "objective": "双方完成初识寒暄",
-    "forbidden": ["否认认识澜星"]
+    "forbidden": [
+      "否认认识澜星"
+    ]
   },
   "objectives": {
-    "requiredBeats": ["first_hello_done"]
+    "requiredBeats": [
+      "first_hello_done"
+    ]
   },
-  "toolPolicy": { "mode": "deny_all" },
+  "toolPolicy": {
+    "mode": "deny_all"
+  },
   "exits": [
     {
       "exitId": "meet_ok",
@@ -27,8 +33,15 @@
       "condition": {
         "op": "and",
         "items": [
-          { "op": "outcome_flag", "flag": "answered_completed", "equals": true },
-          { "op": "beat_completed", "beatId": "first_hello_done" }
+          {
+            "op": "outcome_flag",
+            "flag": "answered_completed",
+            "equals": true
+          },
+          {
+            "op": "beat_completed",
+            "beatId": "first_hello_done"
+          }
         ]
       },
       "effects": [

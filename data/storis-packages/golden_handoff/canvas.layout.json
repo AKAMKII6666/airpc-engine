@@ -2,12 +2,26 @@
   "schemaVersion": 1,
   "packageId": "golden_handoff",
   "lanes": [
-    { "agentId": "doubao-sister", "order": 0 },
-    { "agentId": "xiaoyu", "order": 1 }
+    {
+      "agentId": "doubao-sister",
+      "order": 0
+    },
+    {
+      "agentId": "xiaoyu",
+      "order": 1
+    }
   ],
   "nodes": [
-    { "cardId": "doubao_intro_outbound", "x": 120, "y": 80 },
-    { "cardId": "xiaoyu_waiting_user", "x": 420, "y": 80 }
+    {
+      "cardId": "doubao_intro_outbound",
+      "x": 126.00961686895414,
+      "y": 88
+    },
+    {
+      "cardId": "xiaoyu_waiting_user",
+      "x": 603.7374313544775,
+      "y": 288
+    }
   ],
   "note": "引擎忽略本文件；仅 Studio 画布使用"
 }

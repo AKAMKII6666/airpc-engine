@@ -3,6 +3,7 @@
  */
 import { z } from "zod";
 import type { PlayerProfile } from "./profile.js";
+import { PromptSceneLayerSchema } from "./promptScene.js";
 
 export const CharacterDefSchema = z
   .object({
@@ -11,10 +12,78 @@ export const CharacterDefSchema = z
     displayName: z.string().optional(),
     dialable: z.boolean().default(false),
     isNarrativeOnly: z.boolean().optional(),
-    identity: z.record(z.string(), z.unknown()).optional(),
-    persona: z.record(z.string(), z.unknown()).optional(),
+    identity: z
+      .object({
+        gender: z.string().optional(),
+        age: z.number().optional(),
+        ageNote: z.string().optional(),
+        birthday: z.string().optional(),
+      })
+      .passthrough()
+      .optional(),
+    persona: z
+      .object({
+        systemPrompt: z.string().optional(),
+        speakingStyle: z.string().optional(),
+        exampleLines: z.array(z.string()).optional(),
+        profession: z.string().optional(),
+        voiceId: z.string().optional(),
+        voiceNotes: z.string().optional(),
+      })
+      .passthrough()
+      .optional(),
     freeCardId: z.string().optional(),
-    social: z.array(z.unknown()).optional(),
+    social: z
+      .array(
+        z
+          .object({
+            targetAgentId: z.string(),
+            canKnow: z.boolean().optional(),
+            canMention: z.boolean().optional(),
+            canIntroduce: z.boolean().optional(),
+          })
+          .passthrough(),
+      )
+      .optional(),
+    /** 本通卡未写 opening 时回落；与卡 promptScenes 同构 */
+    defaultPromptScenes: z.array(PromptSceneLayerSchema).optional(),
+    callFlowPrompts: z
+      .object({
+        longSilence: z
+          .array(
+            z.object({
+              variantId: z.string(),
+              text: z.string(),
+            }),
+          )
+          .optional(),
+        longCallNudge: z
+          .array(
+            z.object({
+              variantId: z.string(),
+              text: z.string(),
+            }),
+          )
+          .optional(),
+        preHangupFarewell: z
+          .array(
+            z.object({
+              variantId: z.string(),
+              text: z.string(),
+            }),
+          )
+          .optional(),
+      })
+      .passthrough()
+      .optional(),
+    callFlowPolicy: z
+      .object({
+        silenceTimeoutMs: z.number().optional(),
+        callDurationThresholdMs: z.number().optional(),
+        preHangupLeadMs: z.number().optional(),
+      })
+      .passthrough()
+      .optional(),
     meta: z.record(z.string(), z.unknown()).optional(),
   })
   .passthrough();
