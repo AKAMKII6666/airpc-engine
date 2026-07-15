@@ -14,13 +14,18 @@
   "nodes": [
     {
       "cardId": "doubao_intro_outbound",
-      "x": 126.00961686895414,
+      "x": 161.2459337854424,
       "y": 88
     },
     {
       "cardId": "xiaoyu_waiting_user",
-      "x": 603.7374313544775,
+      "x": 569.3788874572612,
       "y": 288
+    },
+    {
+      "cardId": "doubao_sister_story_3",
+      "x": 554.8112679936327,
+      "y": 88
     }
   ],
   "note": "引擎忽略本文件；仅 Studio 画布使用"

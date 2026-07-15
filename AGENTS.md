@@ -5,13 +5,14 @@
 ## 必读
 
 1. [docs/AI和人类/需求/00-文档索引.md](docs/AI和人类/需求/00-文档索引.md) — 产品总纲 
-2. [docs/AI和人类/里程碑/项目第三步计划执行索引.md](docs/AI和人类/里程碑/项目第三步计划执行索引.md) — **第三步主线已收口（T0–T11）；后置见该页刻意后置** 
-3. [docs/AI和人类/里程碑/项目第二步计划执行索引.md](docs/AI和人类/里程碑/项目第二步计划执行索引.md) — 第二步分期（S0–S11，已收口） 
-4. [docs/AI和人类/里程碑/项目初始执行索引.md](docs/AI和人类/里程碑/项目初始执行索引.md) — 初始阶段分期（P0–P6a，已收口） 
-5. [docs/AI和人类/技术设计文档/00-技术设计索引.md](docs/AI和人类/技术设计文档/00-技术设计索引.md) — 工程分册入口 
-6. [docs/AI和人类/技术设计文档/19-引擎宿主与会话模型.md](docs/AI和人类/技术设计文档/19-引擎宿主与会话模型.md) — Host / CallSession 
-7. [docs/AI和人类/技术设计文档/21-Studio客户端分层.md](docs/AI和人类/技术设计文档/21-Studio客户端分层.md) — Zustand · bis · shell 
-8. [.cursor/rules/codingRole.mdc](.cursor/rules/codingRole.mdc) — 编码铁律 
+2. [docs/AI和人类/里程碑/对照本仓库文档的工程落地_100计划.md](docs/AI和人类/里程碑/对照本仓库文档的工程落地_100计划.md) — **当前工程刀口（E0–E11；做完 = 本仓需求工程 100%）** 
+3. [docs/AI和人类/里程碑/项目第三步计划执行索引.md](docs/AI和人类/里程碑/项目第三步计划执行索引.md) — 第三步主线已收口（T0–T11）；缺口以 100% 计划为准 
+4. [docs/AI和人类/里程碑/项目第二步计划执行索引.md](docs/AI和人类/里程碑/项目第二步计划执行索引.md) — 第二步分期（S0–S11，已收口） 
+5. [docs/AI和人类/里程碑/项目初始执行索引.md](docs/AI和人类/里程碑/项目初始执行索引.md) — 初始阶段分期（P0–P6a，已收口） 
+6. [docs/AI和人类/技术设计文档/00-技术设计索引.md](docs/AI和人类/技术设计文档/00-技术设计索引.md) — 工程分册入口 
+7. [docs/AI和人类/技术设计文档/19-引擎宿主与会话模型.md](docs/AI和人类/技术设计文档/19-引擎宿主与会话模型.md) — Host / CallSession 
+8. [docs/AI和人类/技术设计文档/21-Studio客户端分层.md](docs/AI和人类/技术设计文档/21-Studio客户端分层.md) — Zustand · bis · shell 
+9. [.cursor/rules/codingRole.mdc](.cursor/rules/codingRole.mdc) — 编码铁律 
 
 ## 拓扑
 

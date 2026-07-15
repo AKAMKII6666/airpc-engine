@@ -1,0 +1,23 @@
+{
+  "name": "general-batch-exe",
+  "version": "0.3.0",
+  "private": true,
+  "description": "External FSM orchestrator for batch execute–review–repair loops. Independent of any host project and of @batch-execute.",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18"
+  },
+  "bin": {
+    "gbx": "./bin/gbx.js"
+  },
+  "scripts": {
+    "start": "node bin/gbx.js",
+    "gbx": "node bin/gbx.js",
+    "help": "node bin/gbx.js --help",
+    "test": "node --test tests/**/*.test.js",
+    "dry-run:example": "node bin/gbx.js --exFile examples/minimal-execution-index.md --workdir . --dry-run"
+  },
+  "dependencies": {
+    "yaml": "^2.8.0"
+  }
+}

@@ -22,7 +22,14 @@
       "unlocked": true
     }
   },
-  "stories": {},
+  "stories": {
+    "golden_handoff": {
+      "packageId": "golden_handoff",
+      "status": "active",
+      "instanceId": "96f248ae-5f11-4949-9ecf-a5f23f15c1d7",
+      "variables": {}
+    }
+  },
   "callCards": {
     "board": {
       "byAgent": {
@@ -43,6 +50,12 @@
       }
     }
   },
+  "telephony": {
+    "redialSlot": {
+      "agentId": "xiaoyu",
+      "cardId": "xiaoyu_waiting_user"
+    }
+  },
   "world": {
     "lore": null,
     "facts": [],
@@ -57,13 +70,7 @@
   },
   "meta": {
     "createdAt": "2026-07-13T00:00:00.000Z",
-    "updatedAt": "2026-07-14T07:39:21.576Z",
+    "updatedAt": "2026-07-15T00:56:15.953Z",
     "note": "记忆明细在 data/memory/memory.sqlite，不在本文件内嵌"
-  },
-  "telephony": {
-    "redialSlot": {
-      "agentId": "xiaoyu",
-      "cardId": "xiaoyu_waiting_user"
-    }
   }
 }

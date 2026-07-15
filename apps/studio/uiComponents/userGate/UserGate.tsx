@@ -13,6 +13,7 @@ import {
   DialogContent,
   DialogTitle,
   List,
+  ListItem,
   ListItemButton,
   ListItemText,
   Stack,
@@ -45,37 +46,36 @@ export const UserGate: FC<IUserGateProps> = function (props) {
         <List dense>
           {gate.users.map(function (u) {
             return (
-              <ListItemButton
+              <ListItem
                 key={u.userId}
-                disabled={gate.loading}
-                onClick={function (): void {
-                  void (async function (): Promise<void> {
-                    const ok = await gate.selectUser(u.userId);
-                    if (ok) onSelected(u.userId);
-                  })();
-                }}
+                disablePadding
+                secondaryAction={
+                  u.userId !== "demo-user" ? (
+                    <Button
+                      size="small"
+                      color="error"
+                      disabled={gate.loading}
+                      onClick={function (): void {
+                        void gate.deleteUser(u.userId);
+                      }}
+                    >
+                      删除
+                    </Button>
+                  ) : undefined
+                }
               >
-                <ListItemText
-                  primary={u.nickname}
-                  secondary={
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <span>{u.userId}</span>
-                      {u.userId !== "demo-user" ? (
-                        <Button
-                          size="small"
-                          color="error"
-                          onClick={function (e): void {
-                            e.stopPropagation();
-                            void gate.deleteUser(u.userId);
-                          }}
-                        >
-                          删除
-                        </Button>
-                      ) : null}
-                    </Stack>
-                  }
-                />
-              </ListItemButton>
+                <ListItemButton
+                  disabled={gate.loading}
+                  onClick={function (): void {
+                    void (async function (): Promise<void> {
+                      const ok = await gate.selectUser(u.userId);
+                      if (ok) onSelected(u.userId);
+                    })();
+                  }}
+                >
+                  <ListItemText primary={u.nickname} secondary={u.userId} />
+                </ListItemButton>
+              </ListItem>
             );
           })}
         </List>

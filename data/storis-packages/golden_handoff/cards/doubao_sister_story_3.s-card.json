@@ -1,0 +1,26 @@
+{
+  "cardId": "doubao_sister_story_3",
+  "cardKind": "story",
+  "title": "新卡 doubao_sister_story_3",
+  "ownerAgentId": "doubao-sister",
+  "entryMode": "inbound_user_dial",
+  "interactionMode": "realtime_dialogue",
+  "context": {
+    "privateBrief": "",
+    "speakableBrief": "",
+    "background": "",
+    "premise": "",
+    "emotion": "",
+    "objective": "",
+    "forbidden": [],
+    "promptScenes": []
+  },
+  "objectives": {
+    "requiredBeats": []
+  },
+  "toolPolicy": {
+    "mode": "allowlist",
+    "allowedToolIds": []
+  },
+  "exits": []
+}
