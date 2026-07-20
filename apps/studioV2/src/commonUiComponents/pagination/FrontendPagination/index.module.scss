@@ -1,0 +1,16 @@
+@use "../../../../typeFiles/theme/tokens.scss" as t;
+
+.root {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  width: 100%;
+  padding: 8px 0;
+}
+
+.summary {
+  font-size: 0.8125rem;
+  color: t.$text-muted;
+}

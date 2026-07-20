@@ -1,0 +1,20 @@
+[gbx] ▶ batch-reviewer:V2-S5-3+V2-S5-4 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … batch-reviewer:V2-S5-3+V2-S5-4 still running (15s elapsed, no output for 15s)
+[gbx] … batch-reviewer:V2-S5-3+V2-S5-4 still running (30s elapsed, no output for 30s)
+[gbx] … batch-reviewer:V2-S5-3+V2-S5-4 still running (45s elapsed, no output for 45s)
+[gbx] … batch-reviewer:V2-S5-3+V2-S5-4 still running (60s elapsed, no output for 60s)
+[gbx] … batch-reviewer:V2-S5-3+V2-S5-4 still running (75s elapsed, no output for 75s)
+[gbx] … batch-reviewer:V2-S5-3+V2-S5-4 still running (90s elapsed, no output for 90s)
+Batch 2 审查已写入 `.ai-workflow-v2-refine5/reviews/latest.json`。
+
+**结论：`fail`**（major=1，minor=1）→ 建议 `VERIFY_BATCH`
+
+| 项 | 结果 |
+|---|---|
+| S5-3 allowlist 多选 | 静态通过：`OptionMultiSelect` + `BUILTIN_TOOL_OPTIONS`；非 allowlist 隐藏 |
+| S5-4 枚举审计 | 静态通过：性别/kind 为 Select；无枚举 TextField 残留 |
+| 写盘 / 引擎 | 未见违规 |
+| `quality:studio` | **未跑**（Executor 写明 verify NOT run / Shell denied） |
+
+硬规则要求：实现批若写明 verify NOT run，不得 pass。索引中 V2-S5-3/4 仍为 ⬜。
+[gbx] ■ batch-reviewer:V2-S5-3+V2-S5-4 done exit=0 elapsed=99s

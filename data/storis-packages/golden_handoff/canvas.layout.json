@@ -14,17 +14,22 @@
   "nodes": [
     {
       "cardId": "doubao_intro_outbound",
-      "x": 161.2459337854424,
+      "x": 89.33559475454572,
       "y": 88
     },
     {
       "cardId": "xiaoyu_waiting_user",
-      "x": 569.3788874572612,
+      "x": 200,
       "y": 288
     },
     {
-      "cardId": "doubao_sister_story_3",
-      "x": 554.8112679936327,
+      "cardId": "demo_playback_hello",
+      "x": 390.29643648051876,
+      "y": 88
+    },
+    {
+      "cardId": "doubao_a_writes_b",
+      "x": 438.66383440631296,
       "y": 88
     }
   ],

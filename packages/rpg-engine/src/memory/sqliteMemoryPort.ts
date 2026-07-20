@@ -7,6 +7,7 @@ import { mkdirSync } from "node:fs";
 import path from "node:path";
 import {
   MEMORY_PROJECT_DEFAULTS,
+  MEMORY_ROLLUP_DEFAULTS,
   MEMORY_SEARCH_DEFAULTS,
 } from "../constants.js";
 import { engineError, type EngineError } from "../host/errors.js";
@@ -32,6 +33,13 @@ interface EntryRow {
   created_at: string;
 }
 
+interface RollupPeriod {
+  kind: "month" | "quarter";
+  key: string;
+  rangeFrom: string;
+  rangeTo: string;
+}
+
 function truncate(text: string, max: number): string {
   if (text.length <= max) return text;
   return text.slice(0, max - 1) + "…";
@@ -49,7 +57,83 @@ function escapeFtsQuery(raw: string): string {
   // 去掉 FTS 特殊字符，整句作短语
   const safe = trimmed.replace(/["'^:*(){}[\]\\]/g, " ").trim();
   if (!safe) return "";
-  return `"${safe.replace(/\s+/g, " ")}"`;
+  // unicode61 将每个 CJK 字视为独立 token；无空格短语 "小蛋糕" 会当作单 token 而零命中
+  const spaced = safe
+    .replace(/([\u3400-\u9FFF\uF900-\uFAFF])/g, " $1 ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!spaced) return "";
+  return `"${spaced}"`;
+}
+
+function pad2(n: number): string {
+  return String(n).padStart(2, "0");
+}
+
+/** 日历月 period（UTC） */
+export function monthPeriodFromIso(iso: string): RollupPeriod {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) {
+    throw new Error(`invalid endedAt for rollup: ${iso}`);
+  }
+  const y = d.getUTCFullYear();
+  const m = d.getUTCMonth(); // 0-based
+  const key = `${y}-${pad2(m + 1)}`;
+  const rangeFrom = `${key}-01T00:00:00.000Z`;
+  const lastDay = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
+  const rangeTo = `${key}-${pad2(lastDay)}T23:59:59.999Z`;
+  return { kind: "month", key, rangeFrom, rangeTo };
+}
+
+/** 日历季 period（UTC） */
+export function quarterPeriodFromIso(iso: string): RollupPeriod {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) {
+    throw new Error(`invalid endedAt for rollup: ${iso}`);
+  }
+  const y = d.getUTCFullYear();
+  const m = d.getUTCMonth();
+  const q = Math.floor(m / 3) + 1;
+  const startMonth = (q - 1) * 3;
+  const endMonth = startMonth + 2;
+  const key = `${y}-Q${q}`;
+  const rangeFrom = `${y}-${pad2(startMonth + 1)}-01T00:00:00.000Z`;
+  const lastDay = new Date(Date.UTC(y, endMonth + 1, 0)).getUTCDate();
+  const rangeTo = `${y}-${pad2(endMonth + 1)}-${pad2(lastDay)}T23:59:59.999Z`;
+  return { kind: "quarter", key, rangeFrom, rangeTo };
+}
+
+/** 上一自然月（用于跨月补算） */
+export function previousMonthPeriod(iso: string): RollupPeriod {
+  const d = new Date(iso);
+  const prev = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() - 1, 15));
+  return monthPeriodFromIso(prev.toISOString());
+}
+
+/** 上一自然季（用于跨季补算；与 previousMonth 对称） */
+export function previousQuarterPeriod(iso: string): RollupPeriod {
+  const d = new Date(iso);
+  // 退到上季中间某月（同季 startMonth 再减 1 个月 → 上季末月）
+  const prev = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() - 3, 15));
+  return quarterPeriodFromIso(prev.toISOString());
+}
+
+function buildExtractiveRollupSummary(
+  period: RollupPeriod,
+  entries: Array<{ kind: string | null; text: string; at: string }>,
+): string {
+  const snippets = entries.map(function (e) {
+    const kind = e.kind ?? "episodic";
+    return `${kind}@${e.at.slice(0, 10)}: ${truncate(
+      e.text,
+      MEMORY_ROLLUP_DEFAULTS.entrySnippetChars,
+    )}`;
+  });
+  const header = `[${period.kind} ${period.key}] n=${entries.length}`;
+  return truncate(
+    [header, ...snippets].join(" | "),
+    MEMORY_ROLLUP_DEFAULTS.maxSummaryChars,
+  );
 }
 
 export function createSqliteMemoryPort(dbPath: string): MemoryPort {
@@ -254,6 +338,40 @@ export function createSqliteMemoryPort(dbPath: string): MemoryPort {
       }
       const maxResults = clampMaxResults(input.maxResults);
       const kinds = input.kinds;
+      const kindsClause =
+        kinds && kinds.length > 0
+          ? `AND kind IN (${kinds.map(function () {
+              return "?";
+            }).join(",")})`
+          : "";
+      // 内部宽限再截断（kinds 已下推 SQL 时与 maxR 对齐即可）
+      const internalLimit = Math.min(
+        Math.max(maxResults * 5, maxResults),
+        50,
+      );
+
+      function runLike(): EntryRow[] {
+        const sql = `
+          SELECT id, user_id, agent_id, layer, kind, text, at, created_at
+          FROM memory_entries
+          WHERE user_id = ? AND agent_id = ?
+            AND text LIKE ?
+            ${input.fromIso ? "AND at >= ?" : ""}
+            ${input.toIso ? "AND at <= ?" : ""}
+            ${kindsClause}
+          ORDER BY at DESC
+          LIMIT ?`;
+        const params: unknown[] = [
+          input.userId,
+          input.agentId,
+          `%${textQ}%`,
+        ];
+        if (input.fromIso) params.push(input.fromIso);
+        if (input.toIso) params.push(input.toIso);
+        if (kinds && kinds.length > 0) params.push(...kinds);
+        params.push(internalLimit);
+        return db.prepare(sql).all(...params) as EntryRow[];
+      }
 
       let rows: EntryRow[] = [];
 
@@ -267,7 +385,7 @@ export function createSqliteMemoryPort(dbPath: string): MemoryPort {
           );
         }
         if (ftsQ) {
-          // 强制 LIMIT；禁止无 LIMIT 全表
+          // 强制 LIMIT；禁止无 LIMIT 全表；kinds 下推避免后过滤丢命中
           const sql = `
             SELECT e.id, e.user_id, e.agent_id, e.layer, e.kind, e.text, e.at, e.created_at
             FROM memory_entries_fts f
@@ -276,34 +394,28 @@ export function createSqliteMemoryPort(dbPath: string): MemoryPort {
               AND f.user_id = ? AND f.agent_id = ?
               ${input.fromIso ? "AND e.at >= ?" : ""}
               ${input.toIso ? "AND e.at <= ?" : ""}
+              ${
+                kinds && kinds.length > 0
+                  ? `AND e.kind IN (${kinds.map(function () {
+                      return "?";
+                    }).join(",")})`
+                  : ""
+              }
             ORDER BY e.at DESC
             LIMIT ?`;
           const params: unknown[] = [ftsQ, input.userId, input.agentId];
           if (input.fromIso) params.push(input.fromIso);
           if (input.toIso) params.push(input.toIso);
-          params.push(maxResults);
+          if (kinds && kinds.length > 0) params.push(...kinds);
+          params.push(internalLimit);
           rows = db.prepare(sql).all(...params) as EntryRow[];
+          // FTS 零命中时 LIKE 降级（中文分词边界等）
+          if (rows.length === 0) {
+            rows = runLike();
+          }
         }
       } else if (hasText) {
-        // LIKE 降级（文档化）
-        const sql = `
-          SELECT id, user_id, agent_id, layer, kind, text, at, created_at
-          FROM memory_entries
-          WHERE user_id = ? AND agent_id = ?
-            AND text LIKE ?
-            ${input.fromIso ? "AND at >= ?" : ""}
-            ${input.toIso ? "AND at <= ?" : ""}
-          ORDER BY at DESC
-          LIMIT ?`;
-        const params: unknown[] = [
-          input.userId,
-          input.agentId,
-          `%${textQ}%`,
-        ];
-        if (input.fromIso) params.push(input.fromIso);
-        if (input.toIso) params.push(input.toIso);
-        params.push(maxResults);
-        rows = db.prepare(sql).all(...params) as EntryRow[];
+        rows = runLike();
       } else {
         const sql = `
           SELECT id, user_id, agent_id, layer, kind, text, at, created_at
@@ -311,20 +423,15 @@ export function createSqliteMemoryPort(dbPath: string): MemoryPort {
           WHERE user_id = ? AND agent_id = ?
             ${input.fromIso ? "AND at >= ?" : ""}
             ${input.toIso ? "AND at <= ?" : ""}
+            ${kindsClause}
           ORDER BY at DESC
           LIMIT ?`;
         const params: unknown[] = [input.userId, input.agentId];
         if (input.fromIso) params.push(input.fromIso);
         if (input.toIso) params.push(input.toIso);
-        params.push(maxResults);
+        if (kinds && kinds.length > 0) params.push(...kinds);
+        params.push(internalLimit);
         rows = db.prepare(sql).all(...params) as EntryRow[];
-      }
-
-      if (kinds && kinds.length > 0) {
-        const set = new Set(kinds);
-        rows = rows.filter(function (r) {
-          return r.kind !== null && set.has(r.kind as (typeof kinds)[number]);
-        });
       }
 
       return rows.slice(0, maxResults).map(function (r) {
@@ -384,19 +491,37 @@ export function createSqliteMemoryPort(dbPath: string): MemoryPort {
         const summary =
           input.summaryText?.trim() ||
           `call_summary session=${input.sessionId} ended=${input.endedAt}`;
-        const id = insertEntry({
-          userId: input.userId,
-          agentId: input.agentId,
-          layer: "episodic",
-          kind: "call_summary",
-          text: summary,
-          at: input.endedAt,
-          callId: input.sessionId,
-        });
+        const ids: string[] = [];
+        ids.push(
+          insertEntry({
+            userId: input.userId,
+            agentId: input.agentId,
+            layer: "episodic",
+            kind: "call_summary",
+            text: summary,
+            at: input.endedAt,
+            callId: input.sessionId,
+          }),
+        );
+        for (const raw of input.vignettes ?? []) {
+          const text = typeof raw === "string" ? raw.trim() : "";
+          if (!text) continue;
+          ids.push(
+            insertEntry({
+              userId: input.userId,
+              agentId: input.agentId,
+              layer: "episodic",
+              kind: "vignette",
+              text,
+              at: input.endedAt,
+              callId: input.sessionId,
+            }),
+          );
+        }
         return {
           ok: true,
           writtenLayers: ["episodic"],
-          writtenEpisodicIds: [id],
+          writtenEpisodicIds: ids,
         };
       } catch (err) {
         return {
@@ -407,8 +532,103 @@ export function createSqliteMemoryPort(dbPath: string): MemoryPort {
       }
     },
 
-    async rollupIfNeeded(): Promise<void> {
-      // v1：增量 rollup 后置；占位不写
+    async rollupIfNeeded(input: {
+      userId: string;
+      agentId: string;
+      endedAt: string;
+    }): Promise<void> {
+      const periods: RollupPeriod[] = [
+        previousMonthPeriod(input.endedAt),
+        previousQuarterPeriod(input.endedAt),
+        monthPeriodFromIso(input.endedAt),
+        quarterPeriodFromIso(input.endedAt),
+      ];
+      // 去重（同 key 可能重复时跳过）
+      const seen = new Set<string>();
+
+      for (const period of periods) {
+        const dedupeKey = `${period.kind}:${period.key}`;
+        if (seen.has(dedupeKey)) continue;
+        seen.add(dedupeKey);
+
+        const entries = db
+          .prepare(
+            `SELECT id, kind, text, at FROM memory_entries
+             WHERE user_id = ? AND agent_id = ?
+               AND layer = 'episodic'
+               AND at >= ? AND at <= ?
+             ORDER BY at ASC
+             LIMIT ?`,
+          )
+          .all(
+            input.userId,
+            input.agentId,
+            period.rangeFrom,
+            period.rangeTo,
+            MEMORY_ROLLUP_DEFAULTS.maxEntriesPerPeriod,
+          ) as Array<{ id: string; kind: string | null; text: string; at: string }>;
+
+        if (entries.length === 0) continue;
+
+        const existing = db
+          .prepare(
+            `SELECT id FROM memory_rollups
+             WHERE user_id = ? AND agent_id = ?
+               AND period_kind = ? AND period_key = ?`,
+          )
+          .get(
+            input.userId,
+            input.agentId,
+            period.kind,
+            period.key,
+          ) as { id: string } | undefined;
+
+        // 触发：该 period 尚无 rollup，或本通落在该 period（刷新当前月/季）
+        const isCurrentMonth =
+          period.kind === "month" &&
+          period.key === monthPeriodFromIso(input.endedAt).key;
+        const isCurrentQuarter =
+          period.kind === "quarter" &&
+          period.key === quarterPeriodFromIso(input.endedAt).key;
+        if (existing && !isCurrentMonth && !isCurrentQuarter) {
+          // 上月已有 rollup 则跳过（增量补算仅填缺失）
+          continue;
+        }
+
+        const summary = buildExtractiveRollupSummary(period, entries);
+        const now = input.endedAt;
+        if (existing) {
+          db.prepare(
+            `UPDATE memory_rollups
+             SET summary = ?, range_from = ?, range_to = ?, updated_at = ?
+             WHERE id = ?`,
+          ).run(
+            summary,
+            period.rangeFrom,
+            period.rangeTo,
+            now,
+            existing.id,
+          );
+        } else {
+          db.prepare(
+            `INSERT INTO memory_rollups
+              (id, user_id, agent_id, period_kind, period_key,
+               range_from, range_to, summary, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          ).run(
+            randomUUID(),
+            input.userId,
+            input.agentId,
+            period.kind,
+            period.key,
+            period.rangeFrom,
+            period.rangeTo,
+            summary,
+            now,
+            now,
+          );
+        }
+      }
     },
 
     close(): void {

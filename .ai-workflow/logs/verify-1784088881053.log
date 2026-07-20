@@ -1,0 +1,78 @@
+[gbx] ▶ verify:npm test start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+
+> test
+> npm run check:engine-imports && npm run test -w @airpc/rpg-engine
+
+
+> check:engine-imports
+> node scripts/check-engine-imports.mjs
+
+check:engine-imports ok (42 files)
+
+> @airpc/rpg-engine@0.0.1 test
+> vitest run
+
+
+ RUN  v3.2.7 /Users/bolbiao/workspace/airpc-engine/packages/rpg-engine
+
+ ✓ tests/host/night-layer-e2e.test.ts (2 tests) 111ms
+ ✓ tests/host/refer-to-expert-e2e.test.ts (1 test) 116ms
+ ✓ tests/host/golden-handoff.test.ts (2 tests) 142ms
+ ✓ tests/host/content-reload-preserves-session.test.ts (2 tests) 146ms
+ ✓ tests/host/active-story-lock.test.ts (3 tests) 180ms
+ ✓ tests/host/free-call-pipeline.test.ts (4 tests) 262ms
+ ❯ tests/memory/sqlite-memory.test.ts (8 tests | 1 failed) 59ms
+   ✓ SqliteMemoryPort > projectForCall respects count/char budget; no full-table dump 13ms
+   ✓ SqliteMemoryPort > search rejects without text or time window 5ms
+   ✓ SqliteMemoryPort > search clamps max_results to 10 and truncates snippet 7ms
+   ✓ SqliteMemoryPort > isolates by agentId (cross-agent zero hits) 5ms
+   ✓ SqliteMemoryPort > getById truncates body to 500 and requires same user+agent 4ms
+   × SqliteMemoryPort > E5: commit writes vignette and projectForCall includes it 13ms
+     → expected 0 to be greater than 0
+   ✓ SqliteMemoryPort > E5: rollupIfNeeded creates month/quarter rollup; before/after assertable 7ms
+   ✓ SqliteMemoryPort > E5: rollupIfNeeded backfills previous quarter when endedAt is in next quarter 5ms
+ ✓ tests/host/playback-phase.test.ts (1 test) 85ms
+ ✓ tests/host/manual-story-loop.test.ts (2 tests) 178ms
+ ✓ tests/host/schedule-outbound.test.ts (2 tests) 111ms
+ ✓ tests/host/isolation-recurring-e2e.test.ts (2 tests) 243ms
+ ✓ tests/host/a-to-b-memory-e2e.test.ts (1 test) 134ms
+ ✓ tests/lore/bootstrap-fallback.test.ts (3 tests) 31ms
+ ✓ tests/validation/golden-handoff.validate.test.ts (10 tests) 738ms
+ ✓ tests/host/log-redact.test.ts (1 test) 4ms
+ ✓ tests/runtime/pick-pending-entry-mode.test.ts (4 tests) 3ms
+ ✓ tests/schema/callcard-schema-tighten.test.ts (4 tests) 3ms
+ ✓ tests/runtime/effect-sink-plan-status.test.ts (3 tests) 10ms
+ ✓ tests/runtime/select-call-flow-prompt.test.ts (2 tests) 2ms
+ ✓ tests/runtime/composer.test.ts (10 tests) 6ms
+ ✓ tests/runtime/exit-selector.test.ts (3 tests) 2ms
+ ✓ tests/index.smoke.test.ts (1 test) 1ms
+ ✓ tests/runtime/effect-s11.test.ts (5 tests) 4ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/memory/sqlite-memory.test.ts > SqliteMemoryPort > E5: commit writes vignette and projectForCall includes it
+AssertionError: expected 0 to be greater than 0
+ ❯ tests/memory/sqlite-memory.test.ts:190:25
+    188|       maxResults: 5,
+    189|     });
+    190|     expect(hits.length).toBeGreaterThan(0);
+       |                         ^
+    191|     expect(hits.every((h) => h.kind === "vignette")).toBe(true);
+    192| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 22 passed (23)
+      Tests  1 failed | 75 passed (76)
+   Start at  12:14:41
+   Duration  1.64s (transform 445ms, setup 0ms, collect 3.95s, tests 2.57s, environment 3ms, prepare 1.21s)
+
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path /Users/bolbiao/workspace/airpc-engine/packages/rpg-engine
+npm error workspace @airpc/rpg-engine@0.0.1
+npm error location /Users/bolbiao/workspace/airpc-engine/packages/rpg-engine
+npm error command failed
+npm error command sh -c vitest run
+[gbx] ■ verify:npm test done exit=1 elapsed=2s

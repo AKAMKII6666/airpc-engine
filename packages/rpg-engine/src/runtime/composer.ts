@@ -50,9 +50,7 @@ function layerMatches(
   ) {
     return false;
   }
-  if (m.timeBuckets && m.timeBuckets.length > 0) {
-    if (!m.timeBuckets.includes(scene.localTime.bucket)) return false;
-  }
+  // 半开区间：h >= from && h < to（与需求 01 / 细化修改1 对齐）
   if (m.localHourRange) {
     const { from, to } = m.localHourRange;
     const h = scene.localTime.localHour;
@@ -124,8 +122,8 @@ function buildTimeHardBlock(scene: ComposeScene): string {
       : "仅校正用语；勿主动闲聊时间。";
   return [
     "[用户本地时间]",
-    `- 现在：${scene.localTime.isoWithOffset}，时段=${scene.localTime.bucket}`,
-    "- 问候与节奏应符合该时段；勿说错「早上好」等。",
+    `- 现在：${scene.localTime.isoWithOffset}，本地小时=${scene.localTime.localHour}`,
+    "- 问候与节奏应符合当前本地时间；勿说错「早上好」等。",
     "- 与剧情冲突时：objective / forbidden 优先，时间事实仍保留。",
     `- 政策：${policyNote}`,
   ].join("\n");

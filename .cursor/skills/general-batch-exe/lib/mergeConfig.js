@@ -8,8 +8,10 @@
 const DEFAULTS = {
   batch_size: 3,
   max_rounds: 40,
-  max_fix_attempts: 2,
-  max_full_fix_attempts: 2,
+  max_fix_attempts: 5,
+  max_full_fix_attempts: 5,
+  /** Scripts green but tasks still ⬜ — separate from hard verify fix budget. */
+  max_checkbox_fix_attempts: 2,
   stop_on_fail: true,
   group: 'order',
   verify_default: [],
@@ -31,6 +33,12 @@ const DEFAULTS = {
     command: process.env.GBX_AGENT_CMD || 'cursor-agent',
     print_flag: '-p',
   },
+  /** false = live tee + heartbeats (default). true = capture-only. */
+  quiet: false,
+  heartbeat_ms: 15_000,
+  /** Same verify fingerprint failures before BLOCKED (even if fix budget remains). */
+  max_ineffective_fixes: 2,
+  verify_capture_max_bytes: 65536,
 };
 
 function isPlainObject(v) {
@@ -83,6 +91,15 @@ function mergeConfig({ projectConfig = {}, frontmatter = {}, cli = {} } = {}) {
   }
   if (cli.continueOnExecutorFail === true) {
     cfg.continue_on_executor_fail = true;
+  }
+  if (cli.quiet === true) {
+    cfg.quiet = true;
+  }
+  if (cli.quiet === false) {
+    cfg.quiet = false;
+  }
+  if (cli.noHeartbeat === true) {
+    cfg.heartbeat_ms = 0;
   }
 
   return cfg;

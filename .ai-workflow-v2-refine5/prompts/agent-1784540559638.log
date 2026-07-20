@@ -1,0 +1,31 @@
+[gbx] ▶ executor:V2-S5-3+V2-S5-4 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … executor:V2-S5-3+V2-S5-4 still running (15s elapsed, no output for 15s)
+[gbx] … executor:V2-S5-3+V2-S5-4 still running (30s elapsed, no output for 30s)
+[gbx] … executor:V2-S5-3+V2-S5-4 still running (45s elapsed, no output for 45s)
+[gbx] … executor:V2-S5-3+V2-S5-4 still running (60s elapsed, no output for 60s)
+[gbx] … executor:V2-S5-3+V2-S5-4 still running (75s elapsed, no output for 75s)
+[gbx] … executor:V2-S5-3+V2-S5-4 still running (90s elapsed, no output for 90s)
+[gbx] … executor:V2-S5-3+V2-S5-4 still running (105s elapsed, no output for 105s)
+[gbx] … executor:V2-S5-3+V2-S5-4 still running (120s elapsed, no output for 120s)
+[gbx] … executor:V2-S5-3+V2-S5-4 still running (135s elapsed, no output for 135s)
+[gbx] … executor:V2-S5-3+V2-S5-4 still running (150s elapsed, no output for 150s)
+[gbx] … executor:V2-S5-3+V2-S5-4 still running (165s elapsed, no output for 165s)
+**本批代码已改完，但 verify NOT run**（本环境 Shell 连续被拒，无法执行 `npm run quality:studio`）。按 gbx 规则：**V2-S5-3 / V2-S5-4 仍保持 ⬜**，未勾选执行索引。
+
+### V2-S5-3（工具策略 allowlist 多选）
+- 新增 `BUILTIN_TOOL_OPTIONS` / `BUILTIN_TOOL_ID_SET`（`callCardLabels.ts`）
+- 新增 AutoForm 控件 `OptionMultiSelect`（Checkbox 多选 → `toolId[]`）
+- `buildNodeToolPolicyItems(mode)`：仅 `allowlist` 展示多选；其它模式隐藏
+- 写回时过滤未知 toolId；离开 allowlist 时不写 `allowedToolIds`
+
+### V2-S5-4（枚举审计）
+- 角色/玩家性别、角色 kind 选项收口到 `libraryLabels.ts`
+- 表单项保持 Select（无枚举 TextField / StringListEditor）
+- 回归测：allowlist 多选契约 + 枚举 Select 审计
+
+### 请你本地补跑
+```bash
+npm run quality:studio
+```
+全绿后把执行索引里 `V2-S5-3`、`V2-S5-4` 改为 ✅，或用 gbx `--clear-blocked --after-manual` 续跑。
+[gbx] ■ executor:V2-S5-3+V2-S5-4 done exit=0 elapsed=177s

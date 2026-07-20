@@ -10,7 +10,6 @@ import {
   createEngineHost,
   FREE_PACKAGE_ID,
   hasBlockingErrors,
-  validatePackage,
 } from "../../src/index.js";
 
 const repoRoot = path.resolve(
@@ -179,5 +178,39 @@ describe("validatePackage", () => {
     await host.loadWorkspace(dataRoot);
     const report = await host.validatePackage("golden_handoff");
     expect(report.errors.some((e) => e.ruleId === "ASSET_UNKNOWN")).toBe(true);
+  });
+
+  it("ASSET_URI_MISSING when meta uri file absent", async () => {
+    tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-val-uri-"));
+    const dataRoot = path.join(tmpRoot, "data");
+    await cp(dataSrc, dataRoot, { recursive: true });
+    await rm(path.join(dataRoot, "assets/files/clip_hello.wav"));
+    const host = createEngineHost({ persist: false, autoMemory: false });
+    await host.loadWorkspace(dataRoot);
+    const report = await host.validatePackage("golden_handoff");
+    expect(
+      report.errors.some((e) => e.ruleId === "ASSET_URI_MISSING"),
+    ).toBe(true);
+  });
+
+  it("ASSET_KIND_MISMATCH when playback refs image", async () => {
+    tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-val-kind-"));
+    const dataRoot = path.join(tmpRoot, "data");
+    await cp(dataSrc, dataRoot, { recursive: true });
+    await writeFile(
+      path.join(dataRoot, "assets/meta/clip_hello.json"),
+      JSON.stringify({
+        assetId: "clip_hello",
+        kind: "image",
+        uri: "files/clip_hello.wav",
+        displayName: "wrong kind",
+      }),
+    );
+    const host = createEngineHost({ persist: false, autoMemory: false });
+    await host.loadWorkspace(dataRoot);
+    const report = await host.validatePackage("golden_handoff");
+    expect(
+      report.warnings.some((w) => w.ruleId === "ASSET_KIND_MISMATCH"),
+    ).toBe(true);
   });
 });

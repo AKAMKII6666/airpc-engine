@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "reviewRunId": "batch-reviewer-2-06f5bdd9-057e-4dde-9dae-1920a6008522",
+  "role": "batch-reviewer",
+  "batchId": "2",
+  "exFile": "docs/AI和人类/里程碑/v2.0/细化修改1_执行索引.md",
+  "result": "fail",
+  "blocker": 0,
+  "critical": 1,
+  "major": 2,
+  "minor": 1,
+  "recommendedNextState": "FIX_BATCH",
+  "summary": "本批 V2-R1-4/R2-1/R2-2 代码静态看大体落地（identity 字段、AutoForm+ComsMap、六基础控件），但 Executor 明示 verify NOT run / Shell denied，quality:engine 与 quality:studio 均未对本批执行；索引仍 ⬜。另 ComsMap 路径 comProps 无法覆盖 value/onChange，逃生口不完整。",
+  "issues": [
+    {
+      "id": "R2-1",
+      "severity": "critical",
+      "file": ".ai-workflow-v2-refine1/STATE.json",
+      "location": "lastAgentStdout / lastVerifyReportPath",
+      "description": "Executor 摘要含「verify NOT run」与 Shell denied；本批含引擎任务 V2-R1-4，却未跑 npm run quality:engine，亦未跑 quality:studio。reports/latest-verify.json 仍是 batch-1（V2-R1-1..3），不能作为本批门禁证据。执行索引 V2-R1-4 / V2-R2-1 / V2-R2-2 仍为 ⬜。",
+      "expectedBehavior": "实现批须对本批跑通任务列 verify（R1-4→quality:engine；R2→quality:studio），exit 0 后再勾选 ✅；不得用上一批 verify 冒充本批。",
+      "suggestedVerification": "在可执行 Shell 的环境跑 npm run quality:engine && npm run quality:studio；通过后将三行改为 ✅，再交 VERIFY_BATCH。"
+    },
+    {
+      "id": "R2-2",
+      "severity": "major",
+      "file": "apps/studioV2/src/commonUiComponents/form/fields/FormTextField/index.tsx",
+      "location": "FormTextField / FormSelectField / FormAutoTextArea 等 ComsMap 字段；对照 AutoForm/index.tsx mergeAutoBindWithComProps",
+      "description": "需求 §3.7 / V2-R2-1 要求 comProps 可覆盖自动绑的 value/onChange。当前 mapped 路径虽把 comProps merge 进 Field props，但 FormTextField 等始终用 formik getIn/setFieldValue 读写真源，忽略传入的 value/onChange；契约测试里 comProps:{ value:'-' } 只校验配置形状，未验渲染行为。children 路径的 cloneElement 逃生口正常。",
+      "expectedBehavior": "comType 字段在提供 comProps.value / onChange（或等价）时应以逃生口为准覆盖自动绑；disabled 等壳属性与 value 逃生应一致可用。",
+      "suggestedVerification": "补单测或组件测：items 含 TextField + comProps.value/onChange 时控件展示与写回遵循 comProps；或文档化并实现字段组件对覆盖 props 的优先读取。"
+    },
+    {
+      "id": "R2-3",
+      "severity": "major",
+      "file": "apps/studioV2/src/commonUiComponents/form/AutoForm/index.tsx",
+      "location": "renderMappedItem → Field；V2-R2-1 验收 A0",
+      "description": "双逃生口在 mapped 路径上仅部分成立（comProps 可改 disabled/options 等，不能改 value 绑定），与「自动绑 + comProps/children 双逃生口均可用」总验收不完全一致；修复 R2-2 前不宜宣称 R2-1 完成。",
+      "expectedBehavior": "A0：声明式编排 + 嵌套 name 自动绑 + comProps 与 children 两条逃生口均可验证。",
+      "suggestedVerification": "修复 R2-2 后重跑 tests/commonUi/autoFormContract.test.ts 并扩展行为断言；再跑 quality:studio。"
+    },
+    {
+      "id": "R2-4",
+      "severity": "minor",
+      "file": "apps/studioV2/src/commonUiComponents/form/fields/FormTextField/index.tsx",
+      "location": "function (props) + 空格缩进；FormSelectField 同构",
+      "description": "同批已改的 FormCheckboxField / FormAutoTextArea 等按 V2 规约入口解构+注释+tab；FormTextField / FormSelectField 仍为 function(props) 再解构且空格缩进。若本批触碰了这些文件，触碰即应按 studio-v2-quality 整改，否则 quality:studio 结构/注释门禁可能红。",
+      "expectedBehavior": "触碰的 TSX 入口显式解构并带字段注释；新增/修改代码用 tab 缩进。",
+      "suggestedVerification": "对照 git diff 确认是否触碰；触碰则按 FormCheckboxField 模式改入口，再跑 quality:studio。"
+    }
+  ],
+  "checks": {
+    "typecheck": "skipped",
+    "lint": "skipped",
+    "tests": "skipped",
+    "behaviorChecks": "fail",
+    "negativeChecks": "pass",
+    "structureChecks": "skipped",
+    "baselineDelta": "unknown",
+    "qualityEngine": "skipped"
+  },
+  "notes": "只读审查；未改业务代码。静态对照：CharacterDefSchema.identity 已有 fullName/nickname；需求 11 已同步；样例 doubao-sister/xiaoyu 已填；AutoForm 目录单元与 ComsMap 六键齐全；嵌套 getIn、children 逃生、AutoTextArea scrollHeight 自适应、未见裸 CSS 单位陷阱与无豁免 eslint-disable。timeBuckets 残留非本批回归焦点（R1-1..3 已 ✅）。R3 角色落盘未宣称完成。下一态建议 FIX_BATCH：先修 comProps 逃生，再在可跑 Shell 环境执行双质量门禁并勾选。"
+}

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "label": "batch-10",
+  "at": "2026-07-15T05:00:47.735Z",
+  "ok": true,
+  "phase": "batch",
+  "activeTaskIds": [
+    "E9"
+  ],
+  "reason": "all commands passed",
+  "failedCommand": null,
+  "exitCode": 0,
+  "results": [
+    {
+      "command": "npm test",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "[gbx] ▶ verify:npm test start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> test\n> npm run check:engine-imports && npm run test -w @airpc/rpg-engine\n\n\n> check:engine-imports\n> node scripts/check-engine-imports.mjs\n\ncheck:engine-imports ok (42 files)\n\n> @airpc/rpg-engine@0.0.1 test\n> vitest run\n\n\n RUN  v3.2.7 /Users/bolbiao/workspace/airpc-engine/packages/rpg-engine\n\n ✓ tests/host/isolation-recurring-e2e.test.ts (2 tests) 120ms\n ✓ tests/host/content-reload-preserves-session.test.ts (2 tests) 124ms\n ✓ tests/host/manual-story-loop.test.ts (2 tests) 142ms\n ✓ tests/host/free-call-pipeline.test.ts (4 tests) 174ms\n ✓ tests/host/active-story-lock.test.ts (3 tests) 173ms\n ✓ tests/host/clock-tick-e2e.test.ts (4 tests) 215ms\n ✓ tests/host/schedule-outbound.test.ts (2 tests) 73ms\n ✓ tests/host/playback-phase.test.ts (1 test) 75ms\n ✓ tests/host/golden-handoff.test.ts (2 tests) 145ms\n ✓ tests/host/night-layer-e2e.test.ts (2 tests) 115ms\n ✓ tests/validation/golden-handoff.validate.test.ts (10 tests) 591ms\n ✓ tests/host/chat-turns-e2e.test.ts (2 tests) 200ms\n ✓ tests/host/a-to-b-memory-e2e.test.ts (1 test) 327ms\n   ✓ E4b A→B knowledge／memory > doubao-sister exit writes xiaoyu knowledge + semantic memory  326ms\n ✓ tests/lore/bootstrap-fallback.test.ts (6 tests) 34ms\n ✓ tests/runtime/effect-s11.test.ts (5 tests) 6ms\n ✓ tests/memory/sqlite-memory.test.ts (8 tests) 62ms\n ✓ tests/runtime/composer.test.ts (10 tests) 7ms\n ✓ tests/runtime/effect-sink-plan-status.test.ts (3 tests) 5ms\n ✓ tests/host/refer-to-expert-e2e.test.ts (1 test) 146ms\n ✓ tests/runtime/pick-pending-entry-mode.test.ts (4 tests) 6ms\n ✓ tests/schema/callcard-schema-tighten.test.ts (4 tests) 4ms\n ✓ tests/host/log-redact.test.ts (1 test) 1ms\n ✓ tests/runtime/select-call-flow-prompt.test.ts (2 tests) 2ms\n ✓ tests/index.smoke.test.ts (1 test) 2ms\n ✓ tests/runtime/exit-selector.test.ts (3 tests) 2ms\n\n Test Files  25 passed (25)\n      Tests  85 passed (85)\n   Start at  13:00:42\n   Duration  1.78s (transform 457ms, setup 0ms, collect 4.39s, tests 2.75s, environment 3ms, prepare 1.31s)\n\n[gbx] ■ verify:npm test done exit=0 elapsed=2s\n",
+      "stderr": "",
+      "stdoutTail": "ports && npm run test -w @airpc/rpg-engine\n\n\n> check:engine-imports\n> node scripts/check-engine-imports.mjs\n\ncheck:engine-imports ok (42 files)\n\n> @airpc/rpg-engine@0.0.1 test\n> vitest run\n\n\n RUN  v3.2.7 /Users/bolbiao/workspace/airpc-engine/packages/rpg-engine\n\n ✓ tests/host/isolation-recurring-e2e.test.ts (2 tests) 120ms\n ✓ tests/host/content-reload-preserves-session.test.ts (2 tests) 124ms\n ✓ tests/host/manual-story-loop.test.ts (2 tests) 142ms\n ✓ tests/host/free-call-pipeline.test.ts (4 tests) 174ms\n ✓ tests/host/active-story-lock.test.ts (3 tests) 173ms\n ✓ tests/host/clock-tick-e2e.test.ts (4 tests) 215ms\n ✓ tests/host/schedule-outbound.test.ts (2 tests) 73ms\n ✓ tests/host/playback-phase.test.ts (1 test) 75ms\n ✓ tests/host/golden-handoff.test.ts (2 tests) 145ms\n ✓ tests/host/night-layer-e2e.test.ts (2 tests) 115ms\n ✓ tests/validation/golden-handoff.validate.test.ts (10 tests) 591ms\n ✓ tests/host/chat-turns-e2e.test.ts (2 tests) 200ms\n ✓ tests/host/a-to-b-memory-e2e.test.ts (1 test) 327ms\n   ✓ E4b A→B knowledge／memory > doubao-sister exit writes xiaoyu knowledge + semantic memory  326ms\n ✓ tests/lore/bootstrap-fallback.test.ts (6 tests) 34ms\n ✓ tests/runtime/effect-s11.test.ts (5 tests) 6ms\n ✓ tests/memory/sqlite-memory.test.ts (8 tests) 62ms\n ✓ tests/runtime/composer.test.ts (10 tests) 7ms\n ✓ tests/runtime/effect-sink-plan-status.test.ts (3 tests) 5ms\n ✓ tests/host/refer-to-expert-e2e.test.ts (1 test) 146ms\n ✓ tests/runtime/pick-pending-entry-mode.test.ts (4 tests) 6ms\n ✓ tests/schema/callcard-schema-tighten.test.ts (4 tests) 4ms\n ✓ tests/host/log-redact.test.ts (1 test) 1ms\n ✓ tests/runtime/select-call-flow-prompt.test.ts (2 tests) 2ms\n ✓ tests/index.smoke.test.ts (1 test) 2ms\n ✓ tests/runtime/exit-selector.test.ts (3 tests) 2ms\n\n Test Files  25 passed (25)\n      Tests  85 passed (85)\n   Start at  13:00:42\n   Duration  1.78s (transform 457ms, setup 0ms, collect 4.39s, tests 2.75s, environment 3ms, prepare 1.31s)\n\n[gbx] ■ verify:npm test done exit=0 elapsed=2s\n",
+      "stderrTail": "",
+      "errorLocations": []
+    },
+    {
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "[gbx] ▶ verify:npm run typecheck start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> typecheck\n> npm run build -w @airpc/rpg-engine && npm run typecheck -w @airpc/rpg-engine && npm run typecheck -w @airpc/studio\n\n\n> @airpc/rpg-engine@0.0.1 build\n> tsc -p tsconfig.build.json\n\n\n> @airpc/rpg-engine@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n> @airpc/studio@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n[gbx] ■ verify:npm run typecheck done exit=0 elapsed=3s\n",
+      "stderr": "",
+      "stdoutTail": "[gbx] ▶ verify:npm run typecheck start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> typecheck\n> npm run build -w @airpc/rpg-engine && npm run typecheck -w @airpc/rpg-engine && npm run typecheck -w @airpc/studio\n\n\n> @airpc/rpg-engine@0.0.1 build\n> tsc -p tsconfig.build.json\n\n\n> @airpc/rpg-engine@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n> @airpc/studio@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n[gbx] ■ verify:npm run typecheck done exit=0 elapsed=3s\n",
+      "stderrTail": "",
+      "errorLocations": []
+    }
+  ],
+  "errorLocations": [],
+  "historyFile": "batch-10-1784091647735.json"
+}

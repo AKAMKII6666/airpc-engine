@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "reviewRunId": "batch-reviewer-1-3c37fe26-7169-4996-8158-ff979cc31a43",
+  "role": "batch-reviewer",
+  "batchId": "1",
+  "exFile": "docs/AI和人类/里程碑/v2.0/项目第二步计划执行索引.md",
+  "result": "fail",
+  "blocker": 0,
+  "critical": 1,
+  "major": 2,
+  "minor": 1,
+  "recommendedNextState": "FIX_BATCH",
+  "summary": "Batch 1（V2-S1/S2/S3）表单骨架代码已落地，但执行器明确 verify NOT run；formik 仅写入 package.json、未进 node_modules/lock 解析；索引三行仍为 ⬜。按规则不得放行。",
+  "issues": [
+    {
+      "id": "R1-1",
+      "severity": "critical",
+      "file": ".ai-workflow-v2-step2/prompts/agent-1784192645431.log",
+      "location": "executor summary ~L101–L119",
+      "description": "执行器摘要含「verify NOT run」（Shell 无法跑 npm）；且磁盘无 node_modules/formik，package-lock 无 node_modules/formik 解析条目。本批 verify=npm run quality:studio，门禁未跑且以当前依赖态必然 typecheck 失败。对照 reviewer 规则：质量门禁失败 / verify NOT run → 不得 pass。",
+      "expectedBehavior": "在可执行环境完成 npm install（含 formik）后跑通 npm run quality:studio（exit 0），再勾选任务。",
+      "suggestedVerification": "npm install && npm run quality:studio；确认 node_modules/formik 存在且 lock 含解析条目"
+    },
+    {
+      "id": "R1-2",
+      "severity": "major",
+      "file": "docs/AI和人类/里程碑/v2.0/项目第二步计划执行索引.md",
+      "location": "§1 任务表 V2-S1 / V2-S2 / V2-S3",
+      "description": "本批出口要求任务行均为 ✅，但 V2-S1/S2/S3 仍为 ⬜（执行器自述因 verify 未跑未勾选）。批未收口。",
+      "expectedBehavior": "quality:studio 通过后将三行改为 ✅。",
+      "suggestedVerification": "rg 'V2-S1|V2-S2|V2-S3' 执行索引，确认状态列为 ✅"
+    },
+    {
+      "id": "R1-3",
+      "severity": "major",
+      "file": "apps/studioV2/package.json",
+      "location": "dependencies.formik + package-lock.json",
+      "description": "V2-S1 要求安装 formik：package.json 已声明 ^2.4.6，但未实际安装；lockfile 仅在 apps/studioV2 依赖列表出现字符串，无已解析包。S2/S3 源码 import formik，在未安装前无法通过门禁。",
+      "expectedBehavior": "formik 安装到 workspace 并可被 @airpc/studio-v2 解析。",
+      "suggestedVerification": "test -d node_modules/formik && npm run typecheck -w @airpc/studio-v2"
+    },
+    {
+      "id": "R1-4",
+      "severity": "minor",
+      "file": "apps/studioV2/src/commonUiComponents/form/fields/formBoundFieldProps.ts",
+      "location": "re-export + fields/types/fieldTypesAnchor.ts",
+      "description": "存在仅做类型再导出的兼容/聚合壳（formBoundFieldProps.ts、fieldTypesAnchor.ts），与 studio-v2-quality「禁止迁移壳 / re-export barrel」精神冲突；真源已在 fields/types/formBoundTypes.ts。",
+      "expectedBehavior": "删除再导出壳，调用方直引 formBoundTypes.ts；或若门禁允许单文件类型真源则只保留一处。",
+      "suggestedVerification": "rg formBoundFieldProps|fieldTypesAnchor apps/studioV2；确认无残留 import"
+    }
+  ],
+  "checks": {
+    "typecheck": "skipped",
+    "lint": "skipped",
+    "tests": "skipped",
+    "behaviorChecks": "pass",
+    "negativeChecks": "pass",
+    "qualityStudio": "not_run"
+  },
+  "notes": "只读审查，未改业务代码。对照第二步需求 §3：S1 目录骨架（modal/pagination 仅 .gitkeep、form 已实现）与 S2 FormFieldShell+四字段、S3 FormSchemaRenderer/formTypes 实现面基本对齐；无 Host 写口、无 debugger 改动、无 eslint-disable、未见裸 CSS 单位进 JS sx。S 批未收口不得推进 P/E。modal/pagination 空目录留待 V2-S4/S5 属本批预期。建议 FIX：npm install → quality:studio → 勾选 ✅ → 再 Review。"
+}

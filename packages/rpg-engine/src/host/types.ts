@@ -2,11 +2,11 @@
  * 模块名称：CallSession / Resolve / BeginCall 类型（P1）
  */
 import type { CallCardDefinition } from "../schema/callCard.js";
+import type { ChatTurn } from "../schema/dialogueSession.js";
 import type { Outcome } from "../schema/outcome.js";
-import type { TimeBucket } from "../schema/promptScene.js";
 import type { RuntimeExitCandidate } from "../tools/types.js";
 
-export type { TimeBucket };
+export type { ChatTurn };
 
 export interface EffectPlanItemResult {
 	effectId: string;
@@ -43,6 +43,9 @@ export type CallIntent =
   | { kind: "agent_outbound"; agentId: string }
   | { kind: "free_call"; agentId: string };
 
+/** 本通真实入口（相对卡上 preferred/entryMode；Composer 据此定方向） */
+export type ActualCallEntry = "inbound_user_dial" | "outbound_auto";
+
 export interface ResolveResult {
 	ok: true;
 	source: "story_pending" | "free" | "redial" | "simulate";
@@ -59,7 +62,7 @@ export interface ComposeScene {
 	localTime: {
 		isoWithOffset: string;
 		timeZone?: string;
-		bucket: TimeBucket;
+		/** 用户本地小时 0–23；场景匹配仅用 localHourRange */
 		localHour: number;
 	};
 	timeMentionPolicy: "allow_casual" | "correct_only";
@@ -106,6 +109,11 @@ export interface CallSession {
 		intent: CallIntent;
 	};
 	frozenCard: CallCardDefinition;
+	/**
+	 * 真实入口：user_dial → inbound_user_dial；agent_outbound → outbound_auto。
+	 * 延迟外呼卡 entryMode=either 时仍依此区分开场姿态，而非卡定义 preferred。
+	 */
+	actualEntry?: ActualCallEntry;
 	composeScene: ComposeScene;
 	renderedPrompt?: RenderedPrompt;
 	matchedLayerIds?: string[];
@@ -140,6 +148,8 @@ export interface CallSession {
     reason: string;
     at: string;
   };
+  /** 文本调试轮次（server Adapter 经 Host 登记；禁 Effect） */
+  chatTurns?: ChatTurn[];
 }
 
 export interface FreePipelineTrace {

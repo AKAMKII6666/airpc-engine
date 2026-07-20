@@ -1,0 +1,22 @@
+[gbx] ▶ fixer:V2-R1-4+V2-R2-1+V2-R2-2 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-R1-4+V2-R2-1+V2-R2-2 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-R1-4+V2-R2-1+V2-R2-2 still running (30s elapsed, no output for 30s)
+[gbx] … fixer:V2-R1-4+V2-R2-1+V2-R2-2 still running (45s elapsed, no output for 45s)
+[gbx] … fixer:V2-R1-4+V2-R2-1+V2-R2-2 still running (60s elapsed, no output for 60s)
+[gbx] … fixer:V2-R1-4+V2-R2-1+V2-R2-2 still running (75s elapsed, no output for 75s)
+[gbx] … fixer:V2-R1-4+V2-R2-1+V2-R2-2 still running (90s elapsed, no output for 90s)
+[gbx] … fixer:V2-R1-4+V2-R2-1+V2-R2-2 still running (105s elapsed, no output for 105s)
+[gbx] … fixer:V2-R1-4+V2-R2-1+V2-R2-2 still running (120s elapsed, no output for 120s)
+已修 `quality:studio` 唯一硬错误 **STUDIO-STRUCT-017**。
+
+**改动：** `apps/studioV2/src/bis/pageBis/assets/createAssetForm.ts`  
+JSDoc 行首由空格 ` *` 改为 tab `\t*`（与 `FormCheckboxField` 一致），全文统一 tab 缩进。
+
+**未做：** WARN 级 STRUCT-002/003（不挡门禁）；审查里的 comProps 逃生口（本触发为 `verify_fail`，只修仍红的 verify 项）。
+
+**自验：** 未自验（Shell 多次被拒，`npm run quality:studio` 未能执行）。请本机跑：
+
+```bash
+cd /Users/bolbiao/workspace/airpc-engine && npm run quality:studio
+```
+[gbx] ■ fixer:V2-R1-4+V2-R2-1+V2-R2-2 done exit=0 elapsed=132s

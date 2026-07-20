@@ -1,0 +1,15 @@
+{
+  "studioRoot": ".",
+  "excludeDirNames": ["node_modules", ".next", "tests", "dist"],
+  "thresholds": {
+    "page": { "warnLines": 120, "hardLines": 200 },
+    "uiComponent": { "warnLines": 250, "hardLines": 400 },
+    "hookOrCommand": { "warnLines": 250, "hardLines": 400 },
+    "other": { "warnLines": 5, "hardLines": 8 },
+    "function": { "warnLines": 3, "hardLines": 5 },
+    "complexity": { "warn": 2, "hard": 3 }
+  },
+  "bannedClientEngineWriteSymbols": ["createEngineHost"],
+  "bannedImportPatterns": ["@airpc/rpg-engine/"],
+  "allowlist": []
+}

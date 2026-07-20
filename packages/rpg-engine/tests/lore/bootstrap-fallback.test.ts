@@ -10,6 +10,7 @@ import {
   resetEngineHostForTests,
   type LoreBootstrapPort,
   type PlayerProfile,
+  type WorldLoreDoc,
 } from "@airpc/rpg-engine";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -44,6 +45,14 @@ function bareProfile(userId: string): PlayerProfile {
   };
 }
 
+function mockLlmPort(lore: WorldLoreDoc): LoreBootstrapPort {
+  return {
+    generate: async function () {
+      return lore;
+    },
+  };
+}
+
 describe("lore bootstrap", function () {
   it("buildFallbackLore sets source=fallback", function () {
     const lore = buildFallbackLore({
@@ -62,6 +71,44 @@ describe("lore bootstrap", function () {
     expect(lore.sharedPremise).toContain("深圳");
   });
 
+  it("mock LLM port writes source=llm", async function () {
+    const llmDoc: WorldLoreDoc = {
+      version: 1,
+      source: "llm",
+      generatedAt: "2026-01-01T00:00:00.000Z",
+      location: {
+        country: "中国",
+        province: "广东省",
+        city: "深圳市",
+      },
+      sharedPremise: "LLM 生成的深圳日常电话世界。",
+      perspectives: {
+        xiaoyu: ["你知道用户在深圳附近。"],
+      },
+      characters: {
+        xiaoyu: { displayName: "小雨", blurb: "本地可通话角色" },
+      },
+    };
+    const profile = bareProfile("u-llm");
+    const result = await bootstrapLoreOntoProfile({
+      profile,
+      characters: [
+        {
+          schemaVersion: 1,
+          agentId: "xiaoyu",
+          displayName: "小雨",
+          dialable: false,
+        },
+      ],
+      port: mockLlmPort(llmDoc),
+      force: true,
+    });
+    expect(result.usedFallback).toBe(false);
+    expect(result.lore.source).toBe("llm");
+    expect(result.lore.sharedPremise).toContain("LLM");
+    expect(profile.world.lore?.source).toBe("llm");
+  });
+
   it("port failure falls back", async function () {
     const failing: LoreBootstrapPort = {
       generate: async function () {
@@ -76,10 +123,11 @@ describe("lore bootstrap", function () {
     });
     expect(result.usedFallback).toBe(true);
     expect(result.lore.source).toBe("fallback");
+    expect(result.errorMessage).toContain("network down");
     expect(profile.world.lore).toEqual(result.lore);
   });
 
-  it("host.bootstrapLore writes profile", async function () {
+  it("host.bootstrapLore without port uses fallback", async function () {
     resetEngineHostForTests();
     const host = createEngineHost({ persist: false, autoMemory: false });
     await host.loadWorkspace(rootDir, { resetRuntime: true });
@@ -96,5 +144,72 @@ describe("lore bootstrap", function () {
       expect(out.lore.source).toBe("fallback");
       expect(out.usedFallback).toBe(true);
     }
+  });
+
+  it("host.bootstrapLore with mock LLM port writes llm", async function () {
+    resetEngineHostForTests();
+    const llmDoc: WorldLoreDoc = {
+      version: 1,
+      source: "llm",
+      generatedAt: "2026-07-15T00:00:00.000Z",
+      location: {
+        country: "中国",
+        province: "广东省",
+        city: "广州市",
+      },
+      sharedPremise: "Host 注入 mock LLM Lore。",
+      perspectives: {},
+    };
+    const host = createEngineHost({
+      persist: false,
+      autoMemory: false,
+      loreBootstrap: mockLlmPort(llmDoc),
+    });
+    await host.loadWorkspace(rootDir, { resetRuntime: true });
+    const userId = "demo-user";
+    const p = await host.ensureProfile(userId);
+    p.user.location = {
+      country: "中国",
+      province: "广东省",
+      city: "广州市",
+    };
+    const out = await host.bootstrapLore(userId, { force: true });
+    expect(isEngineError(out)).toBe(false);
+    if (!isEngineError(out)) {
+      expect(out.usedFallback).toBe(false);
+      expect(out.lore.source).toBe("llm");
+      expect(out.lore.sharedPremise).toContain("mock LLM");
+    }
+    expect(p.world.lore?.source).toBe("llm");
+  });
+
+  it("host.bootstrapLore port throw still writes fallback", async function () {
+    resetEngineHostForTests();
+    const failing: LoreBootstrapPort = {
+      generate: async function () {
+        throw new Error("vendor 503");
+      },
+    };
+    const host = createEngineHost({
+      persist: false,
+      autoMemory: false,
+      loreBootstrap: failing,
+    });
+    await host.loadWorkspace(rootDir, { resetRuntime: true });
+    const userId = "demo-user";
+    const p = await host.ensureProfile(userId);
+    p.user.location = {
+      country: "中国",
+      province: "浙江省",
+      city: "杭州市",
+    };
+    const out = await host.bootstrapLore(userId, { force: true });
+    expect(isEngineError(out)).toBe(false);
+    if (!isEngineError(out)) {
+      expect(out.usedFallback).toBe(true);
+      expect(out.lore.source).toBe("fallback");
+      expect(out.errorMessage).toContain("vendor 503");
+    }
+    expect(p.world.lore?.source).toBe("fallback");
   });
 });

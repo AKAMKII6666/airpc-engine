@@ -1,0 +1,41 @@
+@use "../../../typeFiles/theme/tokens.scss" as t;
+
+.bar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 8px 14px;
+	background: rgba(16, 24, 36, 0.94);
+	border-bottom: 1px solid t.$border-panel;
+	z-index: 3;
+}
+
+.titles {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	min-width: 0;
+}
+
+.back {
+	color: t.$text-secondary !important;
+	min-width: auto;
+}
+
+.pkg {
+	color: t.$text-primary;
+	font-weight: 600;
+	line-height: 1.2;
+}
+
+.chapter {
+	color: t.$text-muted;
+}
+
+.actions {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	flex-shrink: 0;
+}

@@ -1,0 +1,38 @@
+[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+
+> quality:studio
+> node scripts/studio-quality/quality-studio.mjs
+
+
+==> ensure-modal-layout (pre-typecheck)
+ensure-modal-layout: nothing to remove
+
+==> lint (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 lint
+> node ./scripts/run-eslint.mjs . --max-warnings 0
+
+
+==> typecheck (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 typecheck
+> tsc -p tsconfig.json --noEmit
+
+
+==> check:comments
+STUDIO-COMMENT-001  apps/studioV2/src/bis/pageBis/characters/characterDetailForm.ts:34:1  严格契约目录中的导出「CHARACTER_BASIC_FIELDS」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用
+STUDIO-COMMENT-001  apps/studioV2/src/bis/pageBis/characters/characterDetailForm.ts:59:1  严格契约目录中的导出「CHARACTER_IDENTITY_FIELDS」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用
+STUDIO-COMMENT-001  apps/studioV2/src/bis/pageBis/characters/characterDetailForm.ts:91:1  严格契约目录中的导出「CHARACTER_PERSONA_FIELDS」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用
+STUDIO-COMMENT-001  apps/studioV2/src/bis/pageBis/characters/characterDetailForm.ts:112:1  严格契约目录中的导出「CHARACTER_SOCIAL_FIELDS」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用
+STUDIO-COMMENT-001  apps/studioV2/src/bis/pageBis/characters/characterDetailForm.ts:122:1  严格契约目录中的导出「CHARACTER_FREE_FIELDS」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用
+STUDIO-COMMENT-001  apps/studioV2/src/bis/pageBis/characters/characterDetailForm.ts:135:1  严格契约目录中的导出「toCharacterDetailFormValues」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用
+STUDIO-COMMENT-001  apps/studioV2/src/bis/pageBis/characters/characterDetailForm.ts:154:1  严格契约目录中的导出「validateCharacterDetailForm」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用
+STUDIO-COMMENT-001  apps/studioV2/src/bis/pageBis/characters/createCharacterForm.ts:23:1  严格契约目录中的导出「CREATE_CHARACTER_INITIAL_VALUES」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用
+STUDIO-COMMENT-001  apps/studioV2/src/bis/pageBis/characters/createCharacterForm.ts:29:1  严格契约目录中的导出「CREATE_CHARACTER_FORM_FIELDS」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用
+STUDIO-COMMENT-001  apps/studioV2/src/bis/pageBis/characters/createCharacterForm.ts:57:1  严格契约目录中的导出「validateCreateCharacterForm」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:24:3  严格契约字段「CharacterIdentityProjection.gender」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+check:comments failed (11 issues, 115 files)
+check:comments failed (exit 1)
+
+quality:studio FAILED
+[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=4s

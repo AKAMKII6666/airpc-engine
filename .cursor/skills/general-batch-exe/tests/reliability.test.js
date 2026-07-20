@@ -49,9 +49,9 @@ describe('strict CLI parsing', () => {
     assert.throws(() => parseArgs(['--max-iterations=1.5']), /positive integer/);
   });
 
-  it('rejects conflicting checkpoint switches', () => {
+  it('rejects conflicting reset/clear-blocked switches', () => {
     assert.throws(
-      () => parseArgs(['--checkpoint', '--no-checkpoint']),
+      () => parseArgs(['--reset-state', '--clear-blocked']),
       /cannot be used together/,
     );
   });

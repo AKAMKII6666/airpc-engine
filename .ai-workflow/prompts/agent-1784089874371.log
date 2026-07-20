@@ -1,0 +1,13 @@
+[gbx] ▶ fixer:E6 start cmd=agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … still running fixer:E6 elapsed=15s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089874371.log
+[gbx] … still running fixer:E6 elapsed=30s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089874371.log
+[gbx] … still running fixer:E6 elapsed=45s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089874371.log
+**根因：** `fixTrigger=verify_fail` 实际不是命令失败。`latest-verify.json` 已是 `ok=true`（`npm test` / `typecheck` 均 exit 0），审查也是 `pass`。loop 里明确是 `checkbox missing: E6` → `checks=false` 才进 FIX。
+
+**已做：**
+- 任务表 E6：`⬜` → `✅`
+- 页顶指针：下一刀改为 **E7**（E0–E6 已 ✅）
+- 未改业务代码、未写 `STATE.json`
+
+E6 完成标准此前已满足（server LLM port + Host mock/失败→fallback 测；世界台区分 source）；本轮只补勾选门禁。
+[gbx] ■ fixer:E6 done exit=0 elapsed=52s

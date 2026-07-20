@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "label": "batch-5",
+  "at": "2026-07-16T01:36:14.033Z",
+  "ok": true,
+  "phase": "batch",
+  "activeTaskIds": [
+    "V1-P3",
+    "V1-Q1",
+    "V1-Q2"
+  ],
+  "reason": "all commands passed",
+  "failedCommand": null,
+  "exitCode": 0,
+  "results": [
+    {
+      "command": "npm run typecheck -w @airpc/studio-v2",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "[gbx] ▶ verify:npm run typecheck -w @airpc/studio-v2 start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> @airpc/studio-v2@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n[gbx] ■ verify:npm run typecheck -w @airpc/studio-v2 done exit=0 elapsed=1s\n",
+      "stderr": "",
+      "stdoutTail": "[gbx] ▶ verify:npm run typecheck -w @airpc/studio-v2 start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> @airpc/studio-v2@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n[gbx] ■ verify:npm run typecheck -w @airpc/studio-v2 done exit=0 elapsed=1s\n",
+      "stderrTail": "",
+      "errorLocations": []
+    },
+    {
+      "command": "npm run lint -w @airpc/studio-v2",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "[gbx] ▶ verify:npm run lint -w @airpc/studio-v2 start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> @airpc/studio-v2@0.0.1 lint\n> node ./scripts/run-eslint.mjs . --max-warnings 0\n\n[gbx] ■ verify:npm run lint -w @airpc/studio-v2 done exit=0 elapsed=1s\n",
+      "stderr": "",
+      "stdoutTail": "[gbx] ▶ verify:npm run lint -w @airpc/studio-v2 start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> @airpc/studio-v2@0.0.1 lint\n> node ./scripts/run-eslint.mjs . --max-warnings 0\n\n[gbx] ■ verify:npm run lint -w @airpc/studio-v2 done exit=0 elapsed=1s\n",
+      "stderrTail": "",
+      "errorLocations": []
+    },
+    {
+      "command": "npm run check:comments",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "[gbx] ▶ verify:npm run check:comments start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> check:comments\n> node scripts/studio-quality/check-comments.mjs && node --test scripts/studio-quality/tests/check-comments.test.mjs\n\ncheck:comments ok (24 files)\n▶ check:comments\n  ✔ 合格契约通过 (10.49225ms)\n  ✔ 缺失导出意图注释失败 (1.713583ms)\n  ✔ 缺失字段说明失败 (1.03675ms)\n  ✔ 复述占位注释失败 (1.075ms)\n  ✔ 无原因抑制失败（含裸 eslint-disable） (2.430375ms)\n  ✔ 带原因抑制通过 (1.246083ms)\n  ✔ 输出格式含规则编号与位置 (0.844375ms)\n✔ check:comments (19.487375ms)\nℹ tests 7\nℹ suites 1\nℹ pass 7\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 157.100833\n[gbx] ■ verify:npm run check:comments done exit=0 elapsed=0s\n",
+      "stderr": "",
+      "stdoutTail": "[gbx] ▶ verify:npm run check:comments start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> check:comments\n> node scripts/studio-quality/check-comments.mjs && node --test scripts/studio-quality/tests/check-comments.test.mjs\n\ncheck:comments ok (24 files)\n▶ check:comments\n  ✔ 合格契约通过 (10.49225ms)\n  ✔ 缺失导出意图注释失败 (1.713583ms)\n  ✔ 缺失字段说明失败 (1.03675ms)\n  ✔ 复述占位注释失败 (1.075ms)\n  ✔ 无原因抑制失败（含裸 eslint-disable） (2.430375ms)\n  ✔ 带原因抑制通过 (1.246083ms)\n  ✔ 输出格式含规则编号与位置 (0.844375ms)\n✔ check:comments (19.487375ms)\nℹ tests 7\nℹ suites 1\nℹ pass 7\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 157.100833\n[gbx] ■ verify:npm run check:comments done exit=0 elapsed=0s\n",
+      "stderrTail": "",
+      "errorLocations": []
+    },
+    {
+      "command": "npm test",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "[gbx] ▶ verify:npm test start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> test\n> npm run check:engine-imports && npm run test -w @airpc/rpg-engine\n\n\n> check:engine-imports\n> node scripts/check-engine-imports.mjs\n\ncheck:engine-imports ok (43 files)\n\n> @airpc/rpg-engine@0.0.1 test\n> vitest run\n\n\n RUN  v3.2.7 /Users/bolbiao/workspace/airpc-engine/packages/rpg-engine\n\n ✓ tests/host/night-layer-e2e.test.ts (2 tests) 122ms\n ✓ tests/host/content-reload-preserves-session.test.ts (2 tests) 130ms\n ✓ tests/host/active-story-lock.test.ts (3 tests) 164ms\n ✓ tests/host/engine-plan-7.1-7.3.test.ts (6 tests) 271ms\n ✓ tests/host/engine-plan-7.4-7.5.test.ts (8 tests) 340ms\n ✓ tests/host/isolation-recurring-e2e.test.ts (3 tests) 360ms\n ✓ tests/host/end-story-next-e2e.test.ts (1 test) 128ms\n ✓ tests/validation/golden-handoff.validate.test.ts (10 tests) 707ms\n ✓ tests/host/chat-turns-e2e.test.ts (2 tests) 304ms\n ✓ tests/host/clock-tick-e2e.test.ts (4 tests) 356ms\n ✓ tests/host/golden-handoff.test.ts (2 tests) 218ms\n ✓ tests/host/manual-story-loop.test.ts (2 tests) 235ms\n ✓ tests/host/schedule-card-recurring.test.ts (4 tests) 436ms\n ✓ tests/host/free-call-pipeline.test.ts (4 tests) 318ms\n ✓ tests/lore/bootstrap-fallback.test.ts (6 tests) 32ms\n ✓ tests/host/end-story-free-e2e.test.ts (1 test) 138ms\n ✓ tests/host/schedule-outbound.test.ts (2 tests) 120ms\n ✓ tests/host/refer-to-expert-e2e.test.ts (1 test) 160ms\n ✓ tests/host/schedule-once-early-dial.test.ts (3 tests) 319ms\n ✓ tests/runtime/effect-sink-plan-status.test.ts (7 tests) 51ms\n ✓ tests/host/playback-phase.test.ts (1 test) 195ms\n ✓ tests/host/wet.test.ts (8 tests) 16ms\n ✓ tests/runtime/end-story-cleanup.test.ts (5 tests) 7ms\n ✓ tests/runtime/composer.test.ts (10 tests) 5ms\n ✓ tests/memory/sqlite-memory.test.ts (8 tests) 152ms\n ✓ tests/host/a-to-b-memory-e2e.test.ts (1 test) 267ms\n ✓ tests/runtime/select-call-flow-prompt.test.ts (2 tests) 2ms\n ✓ tests/runtime/pick-pending-entry-mode.test.ts (4 tests) 5ms\n ✓ tests/runtime/effect-s11.test.ts (5 tests) 7ms\n ✓ tests/host/log-redact.test.ts (1 test) 2ms\n ✓ tests/schema/callcard-schema-tighten.test.ts (4 tests) 21ms\n ✓ tests/index.smoke.test.ts (1 test) 2ms\n ✓ tests/runtime/exit-selector.test.ts (3 tests) 3ms\n\n Test Files  33 passed (33)\n      Tests  126 passed (126)\n   Start at  09:36:11\n   Duration  2.68s (transform 662ms, setup 0ms, collect 6.08s, tests 5.59s, environment 4ms, prepare 1.97s)\n\n[gbx] ■ verify:npm test done exit=0 elapsed=3s\n",
+      "stderr": "",
+      "stdoutTail": "ssion.test.ts (2 tests) 130ms\n ✓ tests/host/active-story-lock.test.ts (3 tests) 164ms\n ✓ tests/host/engine-plan-7.1-7.3.test.ts (6 tests) 271ms\n ✓ tests/host/engine-plan-7.4-7.5.test.ts (8 tests) 340ms\n ✓ tests/host/isolation-recurring-e2e.test.ts (3 tests) 360ms\n ✓ tests/host/end-story-next-e2e.test.ts (1 test) 128ms\n ✓ tests/validation/golden-handoff.validate.test.ts (10 tests) 707ms\n ✓ tests/host/chat-turns-e2e.test.ts (2 tests) 304ms\n ✓ tests/host/clock-tick-e2e.test.ts (4 tests) 356ms\n ✓ tests/host/golden-handoff.test.ts (2 tests) 218ms\n ✓ tests/host/manual-story-loop.test.ts (2 tests) 235ms\n ✓ tests/host/schedule-card-recurring.test.ts (4 tests) 436ms\n ✓ tests/host/free-call-pipeline.test.ts (4 tests) 318ms\n ✓ tests/lore/bootstrap-fallback.test.ts (6 tests) 32ms\n ✓ tests/host/end-story-free-e2e.test.ts (1 test) 138ms\n ✓ tests/host/schedule-outbound.test.ts (2 tests) 120ms\n ✓ tests/host/refer-to-expert-e2e.test.ts (1 test) 160ms\n ✓ tests/host/schedule-once-early-dial.test.ts (3 tests) 319ms\n ✓ tests/runtime/effect-sink-plan-status.test.ts (7 tests) 51ms\n ✓ tests/host/playback-phase.test.ts (1 test) 195ms\n ✓ tests/host/wet.test.ts (8 tests) 16ms\n ✓ tests/runtime/end-story-cleanup.test.ts (5 tests) 7ms\n ✓ tests/runtime/composer.test.ts (10 tests) 5ms\n ✓ tests/memory/sqlite-memory.test.ts (8 tests) 152ms\n ✓ tests/host/a-to-b-memory-e2e.test.ts (1 test) 267ms\n ✓ tests/runtime/select-call-flow-prompt.test.ts (2 tests) 2ms\n ✓ tests/runtime/pick-pending-entry-mode.test.ts (4 tests) 5ms\n ✓ tests/runtime/effect-s11.test.ts (5 tests) 7ms\n ✓ tests/host/log-redact.test.ts (1 test) 2ms\n ✓ tests/schema/callcard-schema-tighten.test.ts (4 tests) 21ms\n ✓ tests/index.smoke.test.ts (1 test) 2ms\n ✓ tests/runtime/exit-selector.test.ts (3 tests) 3ms\n\n Test Files  33 passed (33)\n      Tests  126 passed (126)\n   Start at  09:36:11\n   Duration  2.68s (transform 662ms, setup 0ms, collect 6.08s, tests 5.59s, environment 4ms, prepare 1.97s)\n\n[gbx] ■ verify:npm test done exit=0 elapsed=3s\n",
+      "stderrTail": "",
+      "errorLocations": []
+    }
+  ],
+  "errorLocations": [],
+  "historyFile": "batch-5-1784165774033.json"
+}

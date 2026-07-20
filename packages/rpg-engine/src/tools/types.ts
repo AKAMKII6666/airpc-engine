@@ -8,7 +8,7 @@ export type ToolBehavior = "register_exit" | "session_local";
 export interface ToolDefinition {
   toolId: string;
   displayName: string;
-  allowedCardKinds: Array<"free" | "story" | "system">;
+  allowedCardKinds: Array<"free" | "story" | "system" | "schedule">;
   allowedInPlayback: boolean;
   behavior: ToolBehavior;
 }

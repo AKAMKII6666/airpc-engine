@@ -1,0 +1,48 @@
+@use "../../../../../typeFiles/theme/tokens.scss" as t;
+
+.row {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	width: 100%;
+}
+
+.preview {
+	flex: 0 0 auto;
+	width: 56px;
+	height: 56px;
+	border-radius: 12px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: t.$bg-node;
+	border: 1px solid t.$border-node;
+	color: t.$brand-cyan;
+	font-size: 1.25rem;
+	font-weight: 600;
+}
+
+.controls {
+	flex: 1 1 auto;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	min-width: 0;
+}
+
+.fileLabel {
+	display: inline-flex;
+	width: fit-content;
+	cursor: pointer;
+}
+
+.fileInput {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	border: 0;
+}

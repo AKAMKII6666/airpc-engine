@@ -1,0 +1,57 @@
+[gbx] ▶ verify:npm test start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+
+> test
+> npm run check:engine-imports && npm run test -w @airpc/rpg-engine
+
+
+> check:engine-imports
+> node scripts/check-engine-imports.mjs
+
+check:engine-imports ok (43 files)
+
+> @airpc/rpg-engine@0.0.1 test
+> vitest run
+
+
+ RUN  v3.2.7 /Users/bolbiao/workspace/airpc-engine/packages/rpg-engine
+
+ ✓ tests/host/night-layer-e2e.test.ts (2 tests) 117ms
+ ✓ tests/host/a-to-b-memory-e2e.test.ts (1 test) 123ms
+ ✓ tests/host/schedule-once-early-dial.test.ts (3 tests) 284ms
+ ✓ tests/host/free-call-pipeline.test.ts (4 tests) 305ms
+ ✓ tests/host/engine-plan-7.4-7.5.test.ts (8 tests) 352ms
+ ✓ tests/host/engine-plan-7.1-7.3.test.ts (6 tests) 543ms
+ ✓ tests/validation/golden-handoff.validate.test.ts (10 tests) 748ms
+ ✓ tests/host/chat-turns-e2e.test.ts (2 tests) 266ms
+ ✓ tests/host/schedule-card-recurring.test.ts (4 tests) 292ms
+ ✓ tests/host/manual-story-loop.test.ts (2 tests) 257ms
+ ✓ tests/host/content-reload-preserves-session.test.ts (2 tests) 380ms
+ ✓ tests/host/golden-handoff.test.ts (2 tests) 300ms
+ ✓ tests/host/clock-tick-e2e.test.ts (4 tests) 576ms
+ ✓ tests/host/end-story-next-e2e.test.ts (1 test) 105ms
+ ✓ tests/host/active-story-lock.test.ts (3 tests) 222ms
+ ✓ tests/host/playback-phase.test.ts (1 test) 111ms
+ ✓ tests/host/isolation-recurring-e2e.test.ts (3 tests) 320ms
+ ✓ tests/lore/bootstrap-fallback.test.ts (6 tests) 47ms
+ ✓ tests/runtime/effect-sink-plan-status.test.ts (7 tests) 51ms
+ ✓ tests/host/refer-to-expert-e2e.test.ts (1 test) 214ms
+ ✓ tests/memory/sqlite-memory.test.ts (8 tests) 74ms
+ ✓ tests/host/schedule-outbound.test.ts (2 tests) 154ms
+ ✓ tests/host/end-story-free-e2e.test.ts (1 test) 186ms
+ ✓ tests/host/wet.test.ts (8 tests) 19ms
+ ✓ tests/runtime/pick-pending-entry-mode.test.ts (4 tests) 3ms
+ ✓ tests/runtime/end-story-cleanup.test.ts (5 tests) 41ms
+ ✓ tests/schema/callcard-schema-tighten.test.ts (4 tests) 4ms
+ ✓ tests/runtime/effect-s11.test.ts (5 tests) 14ms
+ ✓ tests/host/log-redact.test.ts (1 test) 4ms
+ ✓ tests/runtime/composer.test.ts (10 tests) 10ms
+ ✓ tests/runtime/exit-selector.test.ts (3 tests) 5ms
+ ✓ tests/runtime/select-call-flow-prompt.test.ts (2 tests) 2ms
+ ✓ tests/index.smoke.test.ts (1 test) 2ms
+
+ Test Files  33 passed (33)
+      Tests  126 passed (126)
+   Start at  11:20:28
+   Duration  3.52s (transform 722ms, setup 0ms, collect 8.04s, tests 6.13s, environment 5ms, prepare 2.17s)
+
+[gbx] ■ verify:npm test done exit=0 elapsed=4s

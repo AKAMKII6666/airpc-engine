@@ -9,6 +9,22 @@ export const UserSchema = z.object({
   userId: z.string(),
   nickname: z.string(),
   fullName: z.string().optional(),
+  /** 玩家性别；磁盘可选，Studio 编辑态全必填 */
+  gender: z.enum(["male", "female"]).optional(),
+  /** 生日 YYYY-MM-DD；与 age 各填各的，不做交叉校验 */
+  birthday: z.string().optional(),
+  /** 年龄整数；与 birthday 各填各的，不做推算校验 */
+  age: z.number().int().optional(),
+  /**
+   * NPC 可外呼本地小时窗（半开：h >= from && h < to）。
+   * 窗外 scheduleTick defer；与 promptScenes.localHourRange 无关。
+   */
+  outboundWindow: z
+    .object({
+      from: z.number().int().min(0).max(23),
+      to: z.number().int().min(0).max(24),
+    })
+    .optional(),
   location: z
     .object({
       country: z.string(),
@@ -31,6 +47,13 @@ export const CallCardInstanceSchema = z.object({
   agentId: z.string(),
   status: z.enum(["pending", "active", "completed", "cancelled"]),
   entryMode: z.string().optional(),
+  /**
+   * 推荐入口姿态（延迟外呼常用 outbound_auto）；
+   * 与 entryMode=either 并存，便于 Composer／文案区分「计划外呼」vs「允许提前呼入」。
+   */
+  activationHint: z.string().optional(),
+  /** 关联的 schedule once intentId；提前呼入／外呼 beginCall 时用于消费 intent */
+  scheduledIntentId: z.string().optional(),
   /** Resolve 多 pending 时与 card/出口 priority 对齐（可选） */
   priority: z.number().optional(),
   createdAt: z.string(),

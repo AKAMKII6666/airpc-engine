@@ -1,0 +1,28 @@
+[gbx] ▶ executor:E4d start cmd=agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … still running executor:E4d elapsed=15s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088211208.log
+[gbx] … still running executor:E4d elapsed=30s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088211208.log
+[gbx] … still running executor:E4d elapsed=45s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088211208.log
+[gbx] … still running executor:E4d elapsed=60s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088211208.log
+[gbx] … still running executor:E4d elapsed=75s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088211208.log
+[gbx] … still running executor:E4d elapsed=90s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088211208.log
+[gbx] … still running executor:E4d elapsed=105s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088211208.log
+[gbx] … still running executor:E4d elapsed=120s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088211208.log
+[gbx] … still running executor:E4d elapsed=135s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088211208.log
+[gbx] … still running executor:E4d elapsed=150s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088211208.log
+**E4d 已落地**：同卡补齐 `night`／`late_night` 层，并加 Composer／host 测；任务表已 ⬜→✅。
+
+### 改动
+1. **样例** `doubao_intro_outbound.s-card.json`：新增 `outbound_night`、`outbound_late_night`（与既有 afternoon／evening 同卡 outbound）
+2. **Composer 测** `composer.test.ts`：改 `localNowIso` 分别命中 night／late_night，并断言本地时间 hard 块
+3. **Host 测** `tests/host/night-layer-e2e.test.ts`：`beginCall` + `22:30`／`02:15` → `matchedLayerIds`／开场文案／`[用户本地时间]`
+4. **任务表** E4d → ✅
+
+### Verify
+**verify NOT run** — 本环境对 `npm`／`node`／`bash` Shell 均被拒，未能执行任务行的 `npm test`，请勿视为已绿。
+
+请本机执行：
+
+```bash
+cd /Users/bolbiao/workspace/airpc-engine && npm test
+```
+[gbx] ■ executor:E4d done exit=0 elapsed=157s

@@ -13,7 +13,18 @@ function parseArgs(argv) {
     checkpoint: false,
     noCheckpoint: false,
     resetState: false,
+    /** Unblock BLOCKED → smart resume; clears agent stdout + archives latest review. */
+    clearBlocked: false,
+    /**
+     * With --clear-blocked: human already ran verify / checked ✅.
+     * Prefer VERIFY_BATCH (all active ✅) or FIX_BATCH (still ⬜) over re-EXECUTE.
+     */
+    afterManual: false,
     continueOnExecutorFail: false,
+    /** Default live console; --quiet or GBX_QUIET=1 suppresses streams. */
+    quiet: process.env.GBX_QUIET === '1' || process.env.GBX_QUIET === 'true',
+    /** Disable tee heartbeats (agent stdout/stderr still live). */
+    noHeartbeat: false,
     exFile: null,
     config: null,
     workdir: process.cwd(),
@@ -85,8 +96,28 @@ function parseArgs(argv) {
       out.resetState = true;
       continue;
     }
+    if (arg === '--clear-blocked') {
+      out.clearBlocked = true;
+      continue;
+    }
+    if (arg === '--after-manual') {
+      out.afterManual = true;
+      continue;
+    }
     if (arg === '--continue-on-executor-fail') {
       out.continueOnExecutorFail = true;
+      continue;
+    }
+    if (arg === '--quiet') {
+      out.quiet = true;
+      continue;
+    }
+    if (arg === '--verbose') {
+      out.quiet = false;
+      continue;
+    }
+    if (arg === '--no-heartbeat') {
+      out.noHeartbeat = true;
       continue;
     }
     if (valueOptions.has(arg)) {
@@ -113,6 +144,12 @@ function parseArgs(argv) {
 
   if (out.checkpoint && out.noCheckpoint) {
     fail('--checkpoint and --no-checkpoint cannot be used together');
+  }
+  if (out.resetState && out.clearBlocked) {
+    fail('--reset-state and --clear-blocked cannot be used together');
+  }
+  if (out.afterManual && !out.clearBlocked) {
+    fail('--after-manual requires --clear-blocked');
   }
 
   return out;

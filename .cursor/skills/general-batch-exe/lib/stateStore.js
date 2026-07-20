@@ -13,12 +13,21 @@ const INITIAL = {
   currentBatch: 1,
   batchFixAttempts: 0,
   fullFixAttempts: 0,
+  /** Scripts OK but active tasks still ⬜ (separate budget from batchFixAttempts). */
+  checkboxFixAttempts: 0,
   iteration: 0,
   lastSuccessfulCommit: null,
   manualQaRequired: false,
   blockedReason: null,
   activeTaskIds: [],
   exFile: null,
+  /** review_fail | verify_fail | checkbox_missing | full_review_fail | full_verify_fail | null */
+  fixTrigger: null,
+  lastVerifyOk: null,
+  lastVerifySummary: null,
+  lastVerifyFingerprint: null,
+  lastVerifyReportPath: null,
+  ineffectiveFixStreak: 0,
 };
 
 function workflowPaths(workdir, workflowDir) {
@@ -29,6 +38,7 @@ function workflowPaths(workdir, workflowDir) {
     reviews: path.join(root, 'reviews'),
     latestReview: path.join(root, 'reviews', 'latest.json'),
     reports: path.join(root, 'reports'),
+    latestVerify: path.join(root, 'reports', 'latest-verify.json'),
     logs: path.join(root, 'logs'),
     logFile: path.join(root, 'logs', 'loop.log'),
   };

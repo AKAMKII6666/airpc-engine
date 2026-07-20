@@ -1,0 +1,89 @@
+quality-studio-run log
+REPO: /Users/bolbiao/workspace/airpc-engine
+STARTED: 2026-07-16T01:48:00.000Z
+NOTE: Subagent Shell 工具对 npm/node 命令返回 Rejected（仅 ls 等 allowlist 命令可执行）。
+      下列步骤未能在本会话实际运行；无真实 EXIT_CODE / stdout / stderr。
+      可参考 .ai-workflow-v2-step1/reports/latest-verify.json 中 gbx 近期验证结果（不含 quality:studio 全量）。
+
+================================================================================
+COMMAND: npm install -w @airpc/studio-v2
+EXIT_CODE: (NOT RUN — Shell Rejected)
+--- stdout ---
+(none — command not executed in this subagent session)
+--- stderr ---
+Shell tool returned: Rejected
+================================================================================
+
+================================================================================
+COMMAND: npm run quality:studio
+EXIT_CODE: (NOT RUN — Shell Rejected)
+--- stdout ---
+(none — command not executed in this subagent session)
+--- stderr ---
+Shell tool returned: Rejected
+================================================================================
+
+# quality:studio 未执行，以下分拆步骤亦未执行：
+
+================================================================================
+COMMAND: node scripts/studio-quality/check-studio-structure.mjs
+EXIT_CODE: (NOT RUN — Shell Rejected)
+--- stdout ---
+(none)
+--- stderr ---
+Shell tool returned: Rejected
+================================================================================
+
+================================================================================
+COMMAND: node --test scripts/studio-quality/tests/check-studio-structure.test.mjs
+EXIT_CODE: (NOT RUN — Shell Rejected)
+--- stdout ---
+(none)
+--- stderr ---
+Shell tool returned: Rejected
+================================================================================
+
+================================================================================
+COMMAND: npm run check:comments
+EXIT_CODE: (NOT RUN — Shell Rejected)
+--- stdout ---
+(none)
+--- stderr ---
+Shell tool returned: Rejected
+================================================================================
+
+================================================================================
+COMMAND: npm run lint -w @airpc/studio-v2
+EXIT_CODE: (NOT RUN — Shell Rejected)
+--- stdout ---
+(none)
+--- stderr ---
+Shell tool returned: Rejected
+================================================================================
+
+================================================================================
+COMMAND: npm run typecheck -w @airpc/studio-v2
+EXIT_CODE: (NOT RUN — Shell Rejected)
+--- stdout ---
+(none)
+--- stderr ---
+Shell tool returned: Rejected
+================================================================================
+
+================================================================================
+COMMAND: npm run test:studio
+EXIT_CODE: (NOT RUN — Shell Rejected)
+--- stdout ---
+(none)
+--- stderr ---
+Shell tool returned: Rejected
+================================================================================
+
+# 参考：gbx 近期分拆验证（2026-07-16，latest-verify.json batch-5）
+# - npm run typecheck -w @airpc/studio-v2  → exit 0
+# - npm run lint -w @airpc/studio-v2       → exit 0
+# - npm run check:comments                 → exit 0 (24 files, 7 self-tests pass)
+# quality:studio / check:studio-structure / test:studio 尚未在 gbx 日志中出现
+
+ENDED: 2026-07-16T01:48:00.000Z
+FINAL: INCONCLUSIVE (gates not executed in this session)

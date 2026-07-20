@@ -53,7 +53,7 @@ describe("manual story loop", () => {
     expect(isEngineError(session)).toBe(false);
     if (isEngineError(session)) return;
     expect(session.composeScene.callDirection).toBe("outbound");
-    expect(session.composeScene.localTime.bucket).toBe("afternoon");
+    expect(session.composeScene.localTime.localHour).toBe(16);
     expect(session.matchedLayerIds).toEqual(
       expect.arrayContaining(["outbound_any", "outbound_afternoon"]),
     );

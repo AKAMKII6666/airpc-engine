@@ -1,0 +1,42 @@
+[gbx] ▶ fixer:V2-R4-2+V2-R4-3 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-R4-2+V2-R4-3 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-R4-2+V2-R4-3 still running (30s elapsed, no output for 30s)
+[gbx] … fixer:V2-R4-2+V2-R4-3 still running (45s elapsed, no output for 45s)
+[gbx] … fixer:V2-R4-2+V2-R4-3 still running (60s elapsed, no output for 60s)
+[gbx] … fixer:V2-R4-2+V2-R4-3 still running (75s elapsed, no output for 75s)
+[gbx] … fixer:V2-R4-2+V2-R4-3 still running (90s elapsed, no output for 90s)
+[gbx] … fixer:V2-R4-2+V2-R4-3 still running (105s elapsed, no output for 105s)
+[gbx] … fixer:V2-R4-2+V2-R4-3 still running (120s elapsed, no output for 120s)
+[gbx] … fixer:V2-R4-2+V2-R4-3 still running (135s elapsed, no output for 135s)
+[gbx] … fixer:V2-R4-2+V2-R4-3 still running (150s elapsed, no output for 150s)
+[gbx] … fixer:V2-R4-2+V2-R4-3 still running (165s elapsed, no output for 165s)
+[gbx] … fixer:V2-R4-2+V2-R4-3 still running (180s elapsed, no output for 180s)
+[gbx] … fixer:V2-R4-2+V2-R4-3 still running (195s elapsed, no output for 195s)
+[gbx] … fixer:V2-R4-2+V2-R4-3 still running (210s elapsed, no output for 210s)
+## 结果：未收口（环境拦删除 / 门禁）
+
+对照 `reviews/latest.json`（`review_fail`），本批两项 major：
+
+| ID | 问题 | 本轮处理 |
+|----|------|----------|
+| **R4-1** | 须对本批跑 `npm run quality:studio` | Shell 全程 Rejected → **未自验** |
+| **R4-2** | 物理删除 `FormSchemaRenderer/` 与 `adaptFormFieldConfig.ts` 墓碑 | Delete / Shell / `rm` / `git rm` 均被拒，文件仍在 |
+| **R4-3** | 勾选 V2-R4-2/R4-3 | 故意保持 ⬜（删未成、门禁未跑） |
+
+实现面本身已齐：`UserDetailEditForm` / `AssetDetailEditForm` 已走 AutoForm `items[]`，无 `FormSchemaRenderer` import；09/05 文档已写「已删除」。卡点只剩**物理删墓碑 + 自验**。
+
+已写本地一键脚本（agent 无法执行）：
+
+`.ai-workflow-v2-refine1/tmp-delete-form-tombstones.sh`
+
+请在本机终端批准后执行：
+
+```bash
+cd /Users/bolbiao/workspace/airpc-engine
+bash .ai-workflow-v2-refine1/tmp-delete-form-tombstones.sh
+```
+
+（会删墓碑、清误建的 `_delete_me_probe.txt`，再跑 `quality:studio`。）门禁绿后把执行索引 V2-R4-2 / V2-R4-3 改为 ✅。
+
+**未自验** — 未声称 `quality:studio` 通过；未写 `STATE.json`。
+[gbx] ■ fixer:V2-R4-2+V2-R4-3 done exit=0 elapsed=220s

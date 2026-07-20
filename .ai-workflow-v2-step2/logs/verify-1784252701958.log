@@ -1,0 +1,38 @@
+[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+
+> quality:studio
+> node scripts/studio-quality/quality-studio.mjs
+
+
+==> ensure-modal-layout (pre-typecheck)
+ensure-modal-layout: nothing to remove
+
+==> ensure-migrated-layout (pre-typecheck)
+removed obsolete flat file: apps/studioV2/src/pageComponents/characters/com/CharacterDeleteConfirmModal.tsx
+removed obsolete flat file: apps/studioV2/src/pageComponents/assets/com/AssetDeleteConfirmModal.tsx
+ensure-migrated-layout: removed 2 file(s)
+
+==> lint (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 lint
+> node ./scripts/run-eslint.mjs . --max-warnings 0
+
+
+==> typecheck (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 typecheck
+> tsc -p tsconfig.json --noEmit
+
+src/pageComponents/assets/AssetLibraryView.tsx(72,9): error TS4104: The type 'readonly string[]' is 'readonly' and cannot be assigned to the mutable type 'string[]'.
+src/pageComponents/characters/CharacterLibraryView.tsx(80,9): error TS4104: The type 'readonly string[]' is 'readonly' and cannot be assigned to the mutable type 'string[]'.
+npm error Lifecycle script `typecheck` failed with error:
+npm error code 2
+npm error path /Users/bolbiao/workspace/airpc-engine/apps/studioV2
+npm error workspace @airpc/studio-v2@0.0.1
+npm error location /Users/bolbiao/workspace/airpc-engine/apps/studioV2
+npm error command failed
+npm error command sh -c tsc -p tsconfig.json --noEmit
+typecheck (@airpc/studio-v2) failed (exit 2)
+
+quality:studio FAILED
+[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=5s

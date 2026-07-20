@@ -92,19 +92,40 @@ export function expandRegisterExitEffects(
       ];
     }
     case "schedule_recurring_call": {
-      return [
-        {
-          id: `recurring_${randomUUID().slice(0, 8)}`,
-          effect: "schedule_recurring_call",
-          agentId: sessionAgentId,
-          topicHint: String(args.topic_hint ?? ""),
-          hour: Number(args.hour ?? 9),
-          minute: Number(args.minute ?? 0),
-          scheduleMode: String(args.schedule_mode ?? "daily"),
-          weekdays: args.weekdays,
-          jobId: args.job_id,
-        },
-      ];
+      const scheduleCardId =
+        typeof args.schedule_card_id === "string" && args.schedule_card_id
+          ? String(args.schedule_card_id)
+          : undefined;
+      const cardId =
+        typeof args.card_id === "string" && args.card_id
+          ? String(args.card_id)
+          : undefined;
+      const packageId =
+        typeof args.package_id === "string" && args.package_id
+          ? String(args.package_id)
+          : undefined;
+      // 必须带 scheduleCardId，或显式 cardId+packageId；禁止裸 topicHint 任务
+      if (!scheduleCardId && !(cardId && packageId)) {
+        return engineError(
+          "VALIDATION_FAILED",
+          "schedule_recurring_call requires schedule_card_id or card_id+package_id",
+        );
+      }
+      const row: Effect = {
+        id: `recurring_${randomUUID().slice(0, 8)}`,
+        effect: "schedule_recurring_call",
+        agentId: sessionAgentId,
+        topicHint: String(args.topic_hint ?? ""),
+        hour: Number(args.hour ?? 9),
+        minute: Number(args.minute ?? 0),
+        scheduleMode: String(args.schedule_mode ?? "daily"),
+        weekdays: args.weekdays,
+        jobId: args.job_id,
+      };
+      if (scheduleCardId) row.scheduleCardId = scheduleCardId;
+      if (cardId) row.cardId = cardId;
+      if (packageId) row.packageId = packageId;
+      return [row];
     }
     case "record_shared_secret": {
       const label = String(args.label ?? "");

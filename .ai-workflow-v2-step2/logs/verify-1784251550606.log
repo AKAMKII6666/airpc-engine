@@ -1,0 +1,43 @@
+[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+
+> quality:studio
+> node scripts/studio-quality/quality-studio.mjs
+
+
+==> ensure-modal-layout (pre-typecheck)
+ensure-modal-layout: nothing to remove
+
+==> lint (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 lint
+> node ./scripts/run-eslint.mjs . --max-warnings 0
+
+
+==> typecheck (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 typecheck
+> tsc -p tsconfig.json --noEmit
+
+
+==> check:comments
+check:comments ok (126 files)
+
+==> check:studio-structure
+WARN STUDIO-STRUCT-002  apps/studioV2/src/commonUiComponents/modal/form/FormModal.tsx:72:1  函数 FormModalFrame 有效行数 65 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/characters/com/CharacterDetailEditForm.tsx:42:3  函数 CharacterDetailEditForm 有效行数 84 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/characters/com/useCharacterLibraryPage.ts:18:1  函数 useCharacterLibraryPage 有效行数 71 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/debugger/com/CallRunPanel.tsx:43:52  函数 CallRunPanel 有效行数 72 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/home/WorkbenchSideCol.tsx:21:37  函数 WorkbenchSideCol 有效行数 78 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/packages/create/CreatePackageView.tsx:22:38  函数 CreatePackageView 有效行数 63 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/packages/export/ExportPackageForm.tsx:33:45  函数 ExportPackageForm 有效行数 65 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/packages/list/PackageListView.tsx:30:36  函数 PackageListView 有效行数 84 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/settings/com/SettingsEnginePanels.tsx:92:62  函数 SchemaEnginePanel 有效行数 65 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/users/UserLibraryDetail.tsx:26:62  函数 UserLibraryDetail 有效行数 66 超过告警线 60  考虑拆分以保持可测性
+STUDIO-STRUCT-008  apps/studioV2/src/bis/pageBis/characters:1:1  目录含 4 个源文件且职责组≥2（charac,create,delete），应分子目录  按 domain/commands/features 等职责拆分子目录，禁止长前缀代目录
+STUDIO-STRUCT-008  apps/studioV2/src/pageComponents/assets/com:1:1  目录含 4 个源文件且职责组≥2（asset,useass），应分子目录  按 domain/commands/features 等职责拆分子目录，禁止长前缀代目录
+STUDIO-STRUCT-008  apps/studioV2/src/pageComponents/characters/com:1:1  目录含 4 个源文件且职责组≥2（character,usecha），应分子目录  按 domain/commands/features 等职责拆分子目录，禁止长前缀代目录
+check:studio-structure failed (3 errors, 10 warnings, 126 files)
+check:studio-structure failed (exit 1)
+
+quality:studio FAILED
+[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=5s

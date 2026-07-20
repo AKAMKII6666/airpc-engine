@@ -1,0 +1,29 @@
+[gbx] ▶ fixer:V1-E4+V1-E5+V1-E6 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … still running fixer:V1-E4+V1-E5+V1-E6 elapsed=15s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784125873740.log
+[gbx] … still running fixer:V1-E4+V1-E5+V1-E6 elapsed=30s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784125873740.log
+[gbx] … still running fixer:V1-E4+V1-E5+V1-E6 elapsed=45s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784125873740.log
+[gbx] … still running fixer:V1-E4+V1-E5+V1-E6 elapsed=60s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784125873740.log
+[gbx] … still running fixer:V1-E4+V1-E5+V1-E6 elapsed=75s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784125873740.log
+[gbx] … still running fixer:V1-E4+V1-E5+V1-E6 elapsed=90s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784125873740.log
+[gbx] … still running fixer:V1-E4+V1-E5+V1-E6 elapsed=105s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784125873740.log
+[gbx] … still running fixer:V1-E4+V1-E5+V1-E6 elapsed=120s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784125873740.log
+Batch 2 FIX 已完成（对照 `reviews/latest.json`）。
+
+### 已处理
+
+| 问题 | 处理 |
+|------|------|
+| **R2-2 (major)** | 新增 Host e2e：`packages/rpg-engine/tests/host/end-story-free-e2e.test.ts` — `end_story` 无 `next` 清场后，`user_dial(xiaoyu/doubao-sister)` 均 `source===free`，旧 story pending / once 不再命中 |
+| **R2-1 (major)** | 索引中 **V1-E4 / V1-E5 / V1-E6** 已勾 ✅ |
+| **R2-3 (minor)** | 无代码改动；依赖后续 `npm test` 回归 |
+
+### 说明
+
+当前会话 **Shell 全部被拒**，本地未能执行 `npm test`。请由 gbx 下一阶段 verify 或在本机运行：
+
+```bash
+cd /Users/bolbiao/workspace/airpc-engine && npm test
+```
+
+未改动 `STATE.json`。
+[gbx] ■ fixer:V1-E4+V1-E5+V1-E6 done exit=0 elapsed=135s

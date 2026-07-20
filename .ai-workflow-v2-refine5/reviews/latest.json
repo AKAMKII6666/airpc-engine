@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "reviewRunId": "final-reviewer-final-e82e6891-e2aa-42ca-ba44-6c7253526c97",
+  "role": "final-reviewer",
+  "batchId": "final",
+  "result": "pass",
+  "blocker": 0,
+  "critical": 0,
+  "major": 0,
+  "minor": 0,
+  "recommendedNextState": "READY_FOR_MANUAL_QA",
+  "summary": "细化修改5 全里程碑收口：V2-S5-1～5 均为 ✅。S5-1 chapter_end 属性区 Select 配置 nextPackageId/nextEntryCardId（换包校正 entry，仅会话 mock）；S5-2 exits.effects.effect 为 EFFECT_NAME_OPTIONS 枚举下拉+中文名，coerce 拒绝自由文本；S5-3 allowlist 下 OptionMultiSelect 内置工具多选，非 allowlist 隐藏且写回过滤未知 toolId；S5-4 角色性别/音色与玩家性别保持 Select，故事编辑器重点枚举已落地；S5-5 需求/执行索引验收勾选、向导稿02§8.1/12/13与讨论记录已对齐。未恢复 CharacterAnchorRail、未见故事包写盘/Host save、未见本批引擎 schema 改动。latest-verify.json（batch-3）quality:studio exit 0。可进入人工 QA。",
+  "issues": [],
+  "checks": {
+    "typecheck": "pass",
+    "lint": "pass",
+    "tests": "pass",
+    "behaviorChecks": "pass",
+    "negativeChecks": "pass",
+    "structureChecks": "pass",
+    "qualityStudio": "pass"
+  },
+  "notes": "只读终审；未改业务代码。对照证据：ChapterEndNextFields/ChapterPropertyForm、ExitEffectsMockList+callCardLabels.EFFECT_NAME_OPTIONS、buildNodeToolPolicyItems+OptionMultiSelect、nodePropertyAndRole.test.ts（17 用例含枚举审计/allowlist/chapter sync）、reports/latest-verify.json ok=true。"
+}

@@ -1,0 +1,12 @@
+[gbx] ▶ fixer:V2-P2-2+V2-P3-1+V2-P3-2 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-P2-2+V2-P3-1+V2-P3-2 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-P2-2+V2-P3-1+V2-P3-2 still running (30s elapsed, no output for 30s)
+**Batch 2 勾选补齐完成**（`fixTrigger=checkbox_missing`）。
+
+已在 `docs/AI和人类/里程碑/v2.0/细化修改2_执行索引.md` 将以下任务标为 ✅：
+- `V2-P2-2`
+- `V2-P3-1`
+- `V2-P3-2`
+
+未改代码、未追 WARN、未写 `STATE.json`。本轮未重跑 verify；沿用已有 `latest-verify.json`：`ok=true`，`exitCode=0`。
+[gbx] ■ fixer:V2-P2-2+V2-P3-1+V2-P3-2 done exit=0 elapsed=33s

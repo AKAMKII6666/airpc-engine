@@ -15,10 +15,14 @@ alwaysApply: true
 
 | 改动类型 | 建议命令 |
 |----------|----------|
-| `packages/rpg-engine/**` | `npm test`（含 `check:engine-imports`） |
+| `packages/rpg-engine/**` | `npm run quality:engine`（含 import、typecheck、structure、Vitest、门禁自测） |
 | `apps/studio/**` | `npm run typecheck -w @airpc/studio`；确认 client 未 import 引擎写口、无 LLM Key、无 Studio barrel |
 | 架构 / rules | Host 单例、UserGate、调试/编辑分离、目录聚类 |
 | 仅文档 / `.mdc` | 核对 `需求/` 与 `技术设计文档/` 交叉链接 |
+
+Studio V2 工程建立后，所有 V2 改动还必须执行统一的 `quality:studio` 门禁。该命令必须汇总 lint、typecheck、注释契约检查、复杂度/结构检查和 Studio 测试；任一硬门禁失败即视为未完成。
+
+引擎改动同理：`quality:engine` 为本库统一出口（规则见 [engine-code-quality.mdc](./engine-code-quality.mdc)）；开发中可用更窄命令，任务勾选前必须完整入口。
 
 - 修复缺陷时优先增加能复现问题的回归测试。
 - 检查因环境无法运行时须明确报告，**不得伪造 pass**。
@@ -39,6 +43,15 @@ alwaysApply: true
 - 为通过检查删测试、无关格式化或行为修改。
 - 关闭 `strict`、大范围 `eslint-disable` 掩盖问题。
 - 声称已对接旧 doubaoSister 迁移验收（本项目不做）。
+- 以注释密度替代注释质量，或为通过行数门禁删除有价值注释、压缩代码。
+- 无原因使用 `eslint-disable`、`@ts-ignore`、`@ts-expect-error` 或质量门禁豁免。
+
+## Studio V2 注释与复杂度
+
+- 新增/修改的公共领域契约、跨层端口、编辑器命令、关键状态转换和非显然副作用必须有意图注释或 JSDoc。
+- 特殊字段必须说明单位、时序、所有权、持久化或可空语义；普通 DTO 和显然代码不要求机械注释。
+- 文件、函数、复杂度和依赖边界必须由脚本检查，具体阈值与脚本契约见 [V2 质量门禁需求](../../docs/AI和人类/sudioV2.0版本/需求/ui/08-Studio-V2前端工程规则与质量门禁需求.md)。
+- V2 新代码不得以旧 Studio 遗留问题为基线豁免。
 
 ## 可不写测试
 

@@ -1,0 +1,41 @@
+[gbx] ▶ executor:V1-E10+V1-P1+V1-P2 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=15s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784162872453.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=30s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784162872453.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=45s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784162872453.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=60s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784162872453.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=75s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784162872453.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=90s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784162872453.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=105s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784162872453.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=120s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784162872453.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=135s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784162872453.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=150s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784162872453.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=165s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784162872453.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=180s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784162872453.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=195s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784162872453.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=210s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784162872453.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=225s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784162872453.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=240s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784162872453.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=255s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784162872453.log
+**verify NOT run**（本环境 Shell 全部 `Rejected`，含 `npm test` / `typecheck`）。按 prompt 规则：**未**把执行索引里的 V1-E10 / V1-P1 / V1-P2 标为 ✅，仍保持 ⬜。
+
+### 静态核对（实现已在仓内）
+
+| 任务 | 现状 |
+|------|------|
+| **V1-E10** | `packages/rpg-engine/tests/host/engine-plan-7.4-7.5.test.ts` 已覆盖 §7.4（next / 无 next / delay 提前呼入）与 §7.5（sink 成功/失败/critical/reject/延迟 + `endCall` 等待） |
+| **V1-P1** | `apps/studioV2` + `@airpc/studio-v2`；根脚本含 `typecheck` / `dev:v2`；Next+TS+MUI+scss |
+| **V1-P2** | `app/` · `domain/` · `commands/` · `store/` · `services/` · `features/`；`createStudioId`；暗色 `darkTokens`；无 barrel；client 未深挖引擎 |
+
+上一轮 batch-3 的 `npm test`（E7–E9）全绿时，**尚未包含** E10 该文件；E10/studioV2 需本轮机器 verify 才能收口。
+
+### 请在本机或恢复 Shell 后执行
+
+```bash
+cd /Users/bolbiao/workspace/airpc-engine
+npm install   # 若 @airpc/studio-v2 尚未进 lock/node_modules
+npm test
+npm run typecheck -w @airpc/studio-v2
+```
+
+通过后再把索引对应行 ⬜→✅（或让 gbx 下一轮 executor 在 verify 绿后勾选）。未改 `STATE.json`。
+[gbx] ■ executor:V1-E10+V1-P1+V1-P2 done exit=0 elapsed=267s

@@ -1,0 +1,55 @@
+[gbx] ▶ executor:E10 start cmd=agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … still running executor:E10 elapsed=15s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091647741.log
+[gbx] … still running executor:E10 elapsed=30s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091647741.log
+[gbx] … still running executor:E10 elapsed=45s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091647741.log
+[gbx] … still running executor:E10 elapsed=60s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091647741.log
+[gbx] … still running executor:E10 elapsed=75s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091647741.log
+[gbx] … still running executor:E10 elapsed=90s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091647741.log
+[gbx] … still running executor:E10 elapsed=105s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091647741.log
+[gbx] … still running executor:E10 elapsed=120s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091647741.log
+[gbx] … still running executor:E10 elapsed=135s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091647741.log
+[gbx] … still running executor:E10 elapsed=150s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091647741.log
+[gbx] … still running executor:E10 elapsed=165s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091647741.log
+[gbx] … still running executor:E10 elapsed=180s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091647741.log
+[gbx] … still running executor:E10 elapsed=195s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091647741.log
+[gbx] … still running executor:E10 elapsed=210s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091647741.log
+[gbx] … still running executor:E10 elapsed=225s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091647741.log
+[gbx] … still running executor:E10 elapsed=240s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091647741.log
+[gbx] … still running executor:E10 elapsed=255s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091647741.log
+[gbx] … still running executor:E10 elapsed=270s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091647741.log
+[gbx] … still running executor:E10 elapsed=285s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091647741.log
+[gbx] … still running executor:E10 elapsed=300s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091647741.log
+[gbx] … still running executor:E10 elapsed=315s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091647741.log
+[gbx] … still running executor:E10 elapsed=330s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091647741.log
+[gbx] … still running executor:E10 elapsed=345s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091647741.log
+[gbx] … still running executor:E10 elapsed=360s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091647741.log
+[gbx] … still running executor:E10 elapsed=375s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091647741.log
+[gbx] … still running executor:E10 elapsed=390s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091647741.log
+[gbx] … still running executor:E10 elapsed=405s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091647741.log
+[gbx] … still running executor:E10 elapsed=420s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091647741.log
+[gbx] … still running executor:E10 elapsed=435s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091647741.log
+[gbx] … still running executor:E10 elapsed=450s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091647741.log
+E10 实现已落地；**verify NOT run**（本环境 Shell 连续被拒，无法跑 `npm run typecheck` / Vitest），因此任务表 **E10 仍为 ⬜**，未勾 ✅。
+
+### 已完成
+
+| 能力 | 落点 |
+|------|------|
+| 存储短注 | `19 §14`、`40 §4`；引擎 `WET_STORAGE_NOTE`（ring + jsonl 旁路，不进 Profile） |
+| 查询 | Host `queryWet`；`GET /api/wet`；世界台按 type／session／时间过滤 |
+| 受控追加 | 仅 `wet.annotation`／`wet.compensation`；`POST /api/wet`；禁改写／`effectLedger` |
+| 重放 | Host `getWetReplay`；`GET /api/wet/replay`；挂接 exit／effect plan／ledger keys |
+| 测试 | `packages/rpg-engine/tests/host/wet.test.ts` |
+
+世界台 `/world` 新增 **WET** 区：查询、追加、重放。
+
+### 请本地补跑（通过后可 ⬜→✅）
+
+```bash
+cd /Users/bolbiao/workspace/airpc-engine
+npm run typecheck
+npm test --workspace=@airpc/rpg-engine -- tests/host/wet.test.ts
+```
+
+两绿后再改任务表 E10，或批准 Shell 后让我重跑并勾选。
+[gbx] ■ executor:E10 done exit=0 elapsed=463s

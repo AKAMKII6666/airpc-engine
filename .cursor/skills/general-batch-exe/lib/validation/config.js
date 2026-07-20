@@ -68,10 +68,15 @@ function validateConfig(config, workdir) {
   assertInteger(config, 'max_rounds', { min: 1 });
   assertInteger(config, 'max_fix_attempts', { min: 0 });
   assertInteger(config, 'max_full_fix_attempts', { min: 0 });
+  assertInteger(config, 'max_checkbox_fix_attempts', { min: 0 });
   assertBoolean(config, 'stop_on_fail');
   assertBoolean(config, 'enable_checkpoint');
   assertBoolean(config, 'checkpoint_require_clean');
   assertBoolean(config, 'continue_on_executor_fail');
+  assertBoolean(config, 'quiet');
+  assertInteger(config, 'heartbeat_ms', { min: 5000 });
+  assertInteger(config, 'max_ineffective_fixes', { min: 1 });
+  assertInteger(config, 'verify_capture_max_bytes', { min: 4096 });
   assertStringArray(config, 'verify_default');
   assertStringArray(config, 'read_first');
   assertStringArray(config, 'hard_stop_patterns');

@@ -1,0 +1,47 @@
+@use "../../../../typeFiles/theme/tokens.scss" as t;
+
+.shell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.labelRow {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: t.$text-secondary;
+}
+
+.required {
+  color: t.$state-danger;
+}
+
+.watchValue {
+  min-height: 36px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: t.$bg-input;
+  border: 1px solid t.$border-subtle;
+  color: t.$text-primary;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.helper {
+  font-size: 0.75rem;
+  color: t.$text-muted;
+}
+
+.error {
+  font-size: 0.75rem;
+  color: t.$state-danger;
+}

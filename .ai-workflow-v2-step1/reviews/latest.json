@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "reviewRunId": "final-reviewer-final-aff032f1-8eae-4855-b5ea-d5298bcc6c2e",
+  "role": "final-reviewer",
+  "batchId": "final",
+  "result": "pass",
+  "blocker": 0,
+  "critical": 0,
+  "major": 0,
+  "minor": 0,
+  "recommendedNextState": "READY_FOR_MANUAL_QA",
+  "summary": "mock final review pass",
+  "issues": []
+}

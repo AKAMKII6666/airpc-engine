@@ -1,0 +1,18 @@
+[gbx] ▶ verify:npm run typecheck start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+
+> typecheck
+> npm run build -w @airpc/rpg-engine && npm run typecheck -w @airpc/rpg-engine && npm run typecheck -w @airpc/studio
+
+
+> @airpc/rpg-engine@0.0.1 build
+> tsc -p tsconfig.build.json
+
+
+> @airpc/rpg-engine@0.0.1 typecheck
+> tsc -p tsconfig.json --noEmit
+
+
+> @airpc/studio@0.0.1 typecheck
+> tsc -p tsconfig.json --noEmit
+
+[gbx] ■ verify:npm run typecheck done exit=0 elapsed=8s

@@ -1,0 +1,33 @@
+[gbx] ▶ verify:npm run check:studio-structure start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+
+> check:studio-structure
+> node scripts/studio-quality/check-studio-structure.mjs && node --test scripts/studio-quality/tests/check-studio-structure.test.mjs
+
+check:studio-structure ok (27 files, 0 warnings)
+▶ check:studio-structure
+  ✔ 有效行数忽略空行但不忽略注释 (0.601042ms)
+  ✔ page.tsx 分类正确 (0.176833ms)
+  ✔ 圈复杂度统计分支 (4.168417ms)
+  ✔ 合格基线通过，且排除 generated (8.557833ms)
+  ✔ page 行数硬上限失败 (2.18875ms)
+  ✔ 函数复杂度硬上限失败 (1.527292ms)
+  ✔ client 引擎写口失败 (1.724625ms)
+  ✔ 业务旁平放测试失败 (2.163417ms)
+  ✔ 深挖引擎内部路径失败 (2.2845ms)
+  ✔ 目录异责平铺失败 (3.836459ms)
+  ✔ 业务 barrel index 失败 (1.004625ms)
+  ✔ UI 组件裸 fetch 失败 (1.051667ms)
+  ✔ 大范围豁免被拒绝 (0.978ms)
+  ✔ 精确豁免生效 (1.020417ms)
+  ✔ validateAllowlist 拒绝 apps/** (0.084291ms)
+  ✔ 输出格式含规则编号与位置（路径可定位） (1.052833ms)
+✔ check:studio-structure (33.41ms)
+ℹ tests 16
+ℹ suites 1
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 176.3435
+[gbx] ■ verify:npm run check:studio-structure done exit=0 elapsed=1s

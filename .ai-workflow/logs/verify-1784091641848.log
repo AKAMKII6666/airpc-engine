@@ -1,0 +1,50 @@
+[gbx] ▶ verify:npm test start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+
+> test
+> npm run check:engine-imports && npm run test -w @airpc/rpg-engine
+
+
+> check:engine-imports
+> node scripts/check-engine-imports.mjs
+
+check:engine-imports ok (42 files)
+
+> @airpc/rpg-engine@0.0.1 test
+> vitest run
+
+
+ RUN  v3.2.7 /Users/bolbiao/workspace/airpc-engine/packages/rpg-engine
+
+ ✓ tests/host/isolation-recurring-e2e.test.ts (2 tests) 120ms
+ ✓ tests/host/content-reload-preserves-session.test.ts (2 tests) 124ms
+ ✓ tests/host/manual-story-loop.test.ts (2 tests) 142ms
+ ✓ tests/host/free-call-pipeline.test.ts (4 tests) 174ms
+ ✓ tests/host/active-story-lock.test.ts (3 tests) 173ms
+ ✓ tests/host/clock-tick-e2e.test.ts (4 tests) 215ms
+ ✓ tests/host/schedule-outbound.test.ts (2 tests) 73ms
+ ✓ tests/host/playback-phase.test.ts (1 test) 75ms
+ ✓ tests/host/golden-handoff.test.ts (2 tests) 145ms
+ ✓ tests/host/night-layer-e2e.test.ts (2 tests) 115ms
+ ✓ tests/validation/golden-handoff.validate.test.ts (10 tests) 591ms
+ ✓ tests/host/chat-turns-e2e.test.ts (2 tests) 200ms
+ ✓ tests/host/a-to-b-memory-e2e.test.ts (1 test) 327ms
+   ✓ E4b A→B knowledge／memory > doubao-sister exit writes xiaoyu knowledge + semantic memory  326ms
+ ✓ tests/lore/bootstrap-fallback.test.ts (6 tests) 34ms
+ ✓ tests/runtime/effect-s11.test.ts (5 tests) 6ms
+ ✓ tests/memory/sqlite-memory.test.ts (8 tests) 62ms
+ ✓ tests/runtime/composer.test.ts (10 tests) 7ms
+ ✓ tests/runtime/effect-sink-plan-status.test.ts (3 tests) 5ms
+ ✓ tests/host/refer-to-expert-e2e.test.ts (1 test) 146ms
+ ✓ tests/runtime/pick-pending-entry-mode.test.ts (4 tests) 6ms
+ ✓ tests/schema/callcard-schema-tighten.test.ts (4 tests) 4ms
+ ✓ tests/host/log-redact.test.ts (1 test) 1ms
+ ✓ tests/runtime/select-call-flow-prompt.test.ts (2 tests) 2ms
+ ✓ tests/index.smoke.test.ts (1 test) 2ms
+ ✓ tests/runtime/exit-selector.test.ts (3 tests) 2ms
+
+ Test Files  25 passed (25)
+      Tests  85 passed (85)
+   Start at  13:00:42
+   Duration  1.78s (transform 457ms, setup 0ms, collect 4.39s, tests 2.75s, environment 3ms, prepare 1.31s)
+
+[gbx] ■ verify:npm test done exit=0 elapsed=2s

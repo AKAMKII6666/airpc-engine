@@ -1,0 +1,48 @@
+[gbx] ▶ executor:E6 start cmd=agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … still running executor:E6 elapsed=15s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089178102.log
+[gbx] … still running executor:E6 elapsed=30s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089178102.log
+[gbx] … still running executor:E6 elapsed=45s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089178102.log
+[gbx] … still running executor:E6 elapsed=60s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089178102.log
+[gbx] … still running executor:E6 elapsed=75s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089178102.log
+[gbx] … still running executor:E6 elapsed=90s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089178102.log
+[gbx] … still running executor:E6 elapsed=105s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089178102.log
+[gbx] … still running executor:E6 elapsed=120s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089178102.log
+[gbx] … still running executor:E6 elapsed=135s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089178102.log
+[gbx] … still running executor:E6 elapsed=150s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089178102.log
+[gbx] … still running executor:E6 elapsed=165s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089178102.log
+[gbx] … still running executor:E6 elapsed=180s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089178102.log
+[gbx] … still running executor:E6 elapsed=195s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089178102.log
+[gbx] … still running executor:E6 elapsed=210s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089178102.log
+[gbx] … still running executor:E6 elapsed=225s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089178102.log
+[gbx] … still running executor:E6 elapsed=240s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089178102.log
+[gbx] … still running executor:E6 elapsed=255s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089178102.log
+E6（Lore 真 LLM bootstrap）实现已落地；**verify NOT run**（本环境 Shell 命令全部被拒绝），因此任务表 **E6 仍为 ⬜**，未擅自勾 ✅。
+
+### 已完成
+
+1. **Studio server LLM 端口** `apps/studio/server/loreBootstrapLlm.server.ts`  
+   - 读 `AIRPC_LORE_LLM_*` / `OPENAI_API_KEY`  
+   - 无 Key 或 `ENABLED=false` → 返回 `null`（Host 直接 fallback）  
+   - 成功解析并强制 `source: "llm"`；HTTP/JSON 失败抛错 → Host 降级  
+
+2. **注入 Host**  
+   - `getEngineHost(options?)` 首次创建可注入 `loreBootstrap`  
+   - `engineHost.server.ts` / `reloadStudioWorkspace` 注入 `createLlmLoreBootstrapPortFromEnv()`  
+   - Key 仅 server，client 不碰  
+
+3. **测（mock port）** `packages/rpg-engine/tests/lore/bootstrap-fallback.test.ts`  
+   - mock 成功 → `source=llm`  
+   - 抛错 → fallback 仍写入 Profile  
+   - Host 注入 mock LLM / 失败港  
+
+4. **文档** 技术设计 `19 §12` 补了 LLM port / env 口径  
+
+### 请你本地跑通后勾选
+
+```bash
+npm test
+```
+
+绿了再把任务表 E6 的 ⬜→✅（或放行 Shell 后让下轮 Executor/Fixer 勾）。
+[gbx] … still running executor:E6 elapsed=270s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089178102.log
+[gbx] ■ executor:E6 done exit=0 elapsed=271s

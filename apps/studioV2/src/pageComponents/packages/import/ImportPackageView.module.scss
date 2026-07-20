@@ -1,0 +1,111 @@
+@use "../../../../typeFiles/theme/tokens.scss" as t;
+
+.root {
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  color: t.$text-primary;
+}
+
+.title {
+  font-weight: 600;
+}
+
+.sub {
+  color: t.$text-muted;
+}
+
+.steps {
+  display: flex;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.step,
+.stepActive {
+  flex: 1;
+  text-align: center;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 13px;
+  border: 1px solid t.$border-subtle;
+  color: t.$text-muted;
+}
+
+.stepActive {
+  color: t.$text-primary;
+  border-color: rgba(91, 108, 255, 0.45);
+  background: rgba(91, 108, 255, 0.12);
+}
+
+.panel {
+  padding: 18px;
+  background: t.$bg-panel;
+  border: 1px solid t.$border-panel;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.panelHeading {
+  font-weight: 600;
+}
+
+.metaLine {
+  margin: 0;
+  color: t.$text-secondary;
+  font-size: 13px;
+}
+
+.verdict {
+  margin: 4px 0;
+  font-weight: 600;
+  color: t.$state-warning;
+}
+
+.msgList {
+  margin: 0;
+  padding-left: 18px;
+  color: t.$text-secondary;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 36px 20px;
+  border: 1px dashed t.$border-node;
+  border-radius: 12px;
+  background: t.$bg-input;
+  color: t.$text-secondary;
+  cursor: pointer;
+  font: inherit;
+
+  &:hover {
+    border-color: t.$brand-primary;
+    color: t.$text-primary;
+  }
+}
+
+.dropTitle {
+  font-weight: 600;
+  color: t.$text-primary;
+}
+
+.dropHint {
+  font-size: 13px;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}

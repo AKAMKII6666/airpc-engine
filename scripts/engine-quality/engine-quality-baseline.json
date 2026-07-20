@@ -1,0 +1,307 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-07-16",
+  "notes": "第一步休整止血。未触碰可保持现状；触碰后 effectiveLines/maxFnLines/maxComplexity 不得高于本基线。下降后可下调或移除，移除后不得再加回。",
+  "files": [
+    {
+      "file": "packages/rpg-engine/src/host/createEngineHost.ts",
+      "effectiveLines": 1316,
+      "maxFnLines": 1068,
+      "maxComplexity": 149,
+      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
+      "owner": "rpg-engine/host",
+      "recordedAt": "2026-07-16",
+      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
+    },
+    {
+      "file": "packages/rpg-engine/src/memory/sqliteMemoryPort.ts",
+      "effectiveLines": 607,
+      "maxFnLines": 473,
+      "maxComplexity": 64,
+      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
+      "owner": "rpg-engine",
+      "recordedAt": "2026-07-16",
+      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
+    },
+    {
+      "file": "packages/rpg-engine/src/runtime/composer.ts",
+      "effectiveLines": 203,
+      "maxFnLines": 68,
+      "maxComplexity": 23,
+      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
+      "owner": "rpg-engine",
+      "recordedAt": "2026-07-16",
+      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
+    },
+    {
+      "file": "packages/rpg-engine/src/runtime/effectExecutor.ts",
+      "effectiveLines": 642,
+      "maxFnLines": 369,
+      "maxComplexity": 104,
+      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
+      "owner": "rpg-engine",
+      "recordedAt": "2026-07-16",
+      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
+    },
+    {
+      "file": "packages/rpg-engine/src/runtime/scheduleTick.ts",
+      "effectiveLines": 737,
+      "maxFnLines": 83,
+      "maxComplexity": 39,
+      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
+      "owner": "rpg-engine",
+      "recordedAt": "2026-07-16",
+      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
+    },
+    {
+      "file": "packages/rpg-engine/src/tools/expandExitEffects.ts",
+      "effectiveLines": 190,
+      "maxFnLines": 180,
+      "maxComplexity": 50,
+      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
+      "owner": "rpg-engine",
+      "recordedAt": "2026-07-16",
+      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
+    },
+    {
+      "file": "packages/rpg-engine/src/tools/invokeSessionLocal.ts",
+      "effectiveLines": 138,
+      "maxFnLines": 121,
+      "maxComplexity": 21,
+      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
+      "owner": "rpg-engine",
+      "recordedAt": "2026-07-16",
+      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
+    },
+    {
+      "file": "packages/rpg-engine/src/validation/validatePackage.ts",
+      "effectiveLines": 800,
+      "maxFnLines": 297,
+      "maxComplexity": 47,
+      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
+      "owner": "rpg-engine",
+      "recordedAt": "2026-07-16",
+      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
+    },
+    {
+      "file": "packages/rpg-engine/src/workspace/loadWorkspace.ts",
+      "effectiveLines": 217,
+      "maxFnLines": 85,
+      "maxComplexity": 17,
+      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
+      "owner": "rpg-engine",
+      "recordedAt": "2026-07-16",
+      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
+    },
+    {
+      "file": "packages/rpg-engine/tests/host/active-story-lock.test.ts",
+      "effectiveLines": 132,
+      "maxFnLines": 101,
+      "maxComplexity": 7,
+      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
+      "owner": "rpg-engine/tests",
+      "recordedAt": "2026-07-16",
+      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
+    },
+    {
+      "file": "packages/rpg-engine/tests/host/clock-tick-e2e.test.ts",
+      "effectiveLines": 299,
+      "maxFnLines": 223,
+      "maxComplexity": 30,
+      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
+      "owner": "rpg-engine/tests",
+      "recordedAt": "2026-07-16",
+      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
+    },
+    {
+      "file": "packages/rpg-engine/tests/host/end-story-free-e2e.test.ts",
+      "effectiveLines": 148,
+      "maxFnLines": 129,
+      "maxComplexity": 11,
+      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
+      "owner": "rpg-engine/tests",
+      "recordedAt": "2026-07-16",
+      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
+    },
+    {
+      "file": "packages/rpg-engine/tests/host/end-story-next-e2e.test.ts",
+      "effectiveLines": 144,
+      "maxFnLines": 125,
+      "maxComplexity": 7,
+      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
+      "owner": "rpg-engine/tests",
+      "recordedAt": "2026-07-16",
+      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
+    },
+    {
+      "file": "packages/rpg-engine/tests/host/engine-plan-7.1-7.3.test.ts",
+      "effectiveLines": 278,
+      "maxFnLines": 255,
+      "maxComplexity": 27,
+      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
+      "owner": "rpg-engine/tests",
+      "recordedAt": "2026-07-16",
+      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
+    },
+    {
+      "file": "packages/rpg-engine/tests/host/engine-plan-7.4-7.5.test.ts",
+      "effectiveLines": 602,
+      "maxFnLines": 489,
+      "maxComplexity": 32,
+      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
+      "owner": "rpg-engine/tests",
+      "recordedAt": "2026-07-16",
+      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
+    },
+    {
+      "file": "packages/rpg-engine/tests/host/free-call-pipeline.test.ts",
+      "effectiveLines": 146,
+      "maxFnLines": 127,
+      "maxComplexity": 9,
+      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
+      "owner": "rpg-engine/tests",
+      "recordedAt": "2026-07-16",
+      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
+    },
+    {
+      "file": "packages/rpg-engine/tests/host/golden-handoff.test.ts",
+      "effectiveLines": 148,
+      "maxFnLines": 127,
+      "maxComplexity": 12,
+      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
+      "owner": "rpg-engine/tests",
+      "recordedAt": "2026-07-16",
+      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
+    },
+    {
+      "file": "packages/rpg-engine/tests/host/isolation-recurring-e2e.test.ts",
+      "effectiveLines": 264,
+      "maxFnLines": 183,
+      "maxComplexity": 24,
+      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
+      "owner": "rpg-engine/tests",
+      "recordedAt": "2026-07-16",
+      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
+    },
+    {
+      "file": "packages/rpg-engine/tests/host/refer-to-expert-e2e.test.ts",
+      "effectiveLines": 133,
+      "maxFnLines": 119,
+      "maxComplexity": 17,
+      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
+      "owner": "rpg-engine/tests",
+      "recordedAt": "2026-07-16",
+      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
+    },
+    {
+      "file": "packages/rpg-engine/tests/host/schedule-card-recurring.test.ts",
+      "effectiveLines": 272,
+      "maxFnLines": 248,
+      "maxComplexity": 7,
+      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
+      "owner": "rpg-engine/tests",
+      "recordedAt": "2026-07-16",
+      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
+    },
+    {
+      "file": "packages/rpg-engine/tests/host/schedule-once-early-dial.test.ts",
+      "effectiveLines": 164,
+      "maxFnLines": 149,
+      "maxComplexity": 22,
+      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
+      "owner": "rpg-engine/tests",
+      "recordedAt": "2026-07-16",
+      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
+    },
+    {
+      "file": "packages/rpg-engine/tests/host/schedule-outbound.test.ts",
+      "effectiveLines": 120,
+      "maxFnLines": 102,
+      "maxComplexity": 12,
+      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
+      "owner": "rpg-engine/tests",
+      "recordedAt": "2026-07-16",
+      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
+    },
+    {
+      "file": "packages/rpg-engine/tests/host/wet.test.ts",
+      "effectiveLines": 216,
+      "maxFnLines": 110,
+      "maxComplexity": 4,
+      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
+      "owner": "rpg-engine/tests",
+      "recordedAt": "2026-07-16",
+      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
+    },
+    {
+      "file": "packages/rpg-engine/tests/lore/bootstrap-fallback.test.ts",
+      "effectiveLines": 206,
+      "maxFnLines": 155,
+      "maxComplexity": 4,
+      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
+      "owner": "rpg-engine/tests",
+      "recordedAt": "2026-07-16",
+      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
+    },
+    {
+      "file": "packages/rpg-engine/tests/memory/sqlite-memory.test.ts",
+      "effectiveLines": 304,
+      "maxFnLines": 290,
+      "maxComplexity": 12,
+      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
+      "owner": "rpg-engine/tests",
+      "recordedAt": "2026-07-16",
+      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
+    },
+    {
+      "file": "packages/rpg-engine/tests/runtime/composer.test.ts",
+      "effectiveLines": 334,
+      "maxFnLines": 263,
+      "maxComplexity": 26,
+      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
+      "owner": "rpg-engine/tests",
+      "recordedAt": "2026-07-16",
+      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
+    },
+    {
+      "file": "packages/rpg-engine/tests/runtime/effect-s11.test.ts",
+      "effectiveLines": 186,
+      "maxFnLines": 142,
+      "maxComplexity": 1,
+      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
+      "owner": "rpg-engine/tests",
+      "recordedAt": "2026-07-16",
+      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
+    },
+    {
+      "file": "packages/rpg-engine/tests/runtime/effect-sink-plan-status.test.ts",
+      "effectiveLines": 284,
+      "maxFnLines": 199,
+      "maxComplexity": 1,
+      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
+      "owner": "rpg-engine/tests",
+      "recordedAt": "2026-07-16",
+      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
+    },
+    {
+      "file": "packages/rpg-engine/tests/runtime/end-story-cleanup.test.ts",
+      "effectiveLines": 342,
+      "maxFnLines": 127,
+      "maxComplexity": 8,
+      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
+      "owner": "rpg-engine/tests",
+      "recordedAt": "2026-07-16",
+      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
+    },
+    {
+      "file": "packages/rpg-engine/tests/validation/golden-handoff.validate.test.ts",
+      "effectiveLines": 202,
+      "maxFnLines": 183,
+      "maxComplexity": 4,
+      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
+      "owner": "rpg-engine/tests",
+      "recordedAt": "2026-07-16",
+      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
+    }
+  ]
+}

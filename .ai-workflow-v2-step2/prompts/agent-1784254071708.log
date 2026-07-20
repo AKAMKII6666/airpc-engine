@@ -1,0 +1,23 @@
+[gbx] ▶ batch-reviewer:V2-E3+V2-E4+V2-E5 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … batch-reviewer:V2-E3+V2-E4+V2-E5 still running (15s elapsed, no output for 15s)
+[gbx] … batch-reviewer:V2-E3+V2-E4+V2-E5 still running (30s elapsed, no output for 30s)
+[gbx] … batch-reviewer:V2-E3+V2-E4+V2-E5 still running (45s elapsed, no output for 45s)
+[gbx] … batch-reviewer:V2-E3+V2-E4+V2-E5 still running (60s elapsed, no output for 60s)
+Batch 8 审查已写入 `.ai-workflow-v2-step2/reviews/latest.json`。
+
+**结论：`fail` → 建议 `FIX_BATCH`**
+
+| 计数 | 值 |
+|------|-----|
+| critical | 1 |
+| major | 2 |
+| minor | 1 |
+
+**原因摘要**
+1. **critical**：执行器写明 `verify NOT run`；`@mui/icons-material` 只在 `package.json`，未进 lockfile。
+2. **major**：索引中 V2-E3/E4/E5 仍为 ⬜。
+3. **major**：依赖未实际安装，门禁无法过。
+4. **minor**：未使用的 `DockToolIcons.tsx` 死代码。
+
+**实现面（behaviorChecks=pass）**：底栏 icon dock、角色轨画布内浮层、添加角色 FormModal + mock，对照 §4.1 基本达标；未接 Host、未改调试器。
+[gbx] ■ batch-reviewer:V2-E3+V2-E4+V2-E5 done exit=0 elapsed=71s

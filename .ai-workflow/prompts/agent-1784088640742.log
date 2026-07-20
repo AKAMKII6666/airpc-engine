@@ -1,0 +1,21 @@
+[gbx] ▶ batch-reviewer:E5 start cmd=agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … still running batch-reviewer:E5 elapsed=15s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088640742.log
+[gbx] … still running batch-reviewer:E5 elapsed=30s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088640742.log
+[gbx] … still running batch-reviewer:E5 elapsed=45s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088640742.log
+[gbx] … still running batch-reviewer:E5 elapsed=60s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088640742.log
+[gbx] … still running batch-reviewer:E5 elapsed=75s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088640742.log
+[gbx] … still running batch-reviewer:E5 elapsed=90s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088640742.log
+[gbx] … still running batch-reviewer:E5 elapsed=105s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088640742.log
+[gbx] … still running batch-reviewer:E5 elapsed=120s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088640742.log
+Batch 6（E5）审查完成：`result=fail`，已写入 `.ai-workflow/reviews/latest.json`。
+
+**结论：** vignette 写入/投影与 `rollupIfNeeded` 实现+测静态上基本对齐 E5，但任务表已 ✅ 而本批未跑 `npm test`（verify 仍停在 E4d）——记为 **critical**。
+
+| 严重度 | 问题 |
+|--------|------|
+| critical | 未测却宣称 E5 闭合 |
+| major | 跨季缺少上一季补算 |
+| minor | Free 管线未传 `vignettes` |
+
+建议下一状态：`FIX_BATCH`。
+[gbx] ■ batch-reviewer:E5 done exit=0 elapsed=126s

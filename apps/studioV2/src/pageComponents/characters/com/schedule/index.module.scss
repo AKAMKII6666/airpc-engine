@@ -1,0 +1,86 @@
+@use "../../../../../typeFiles/theme/tokens.scss" as t;
+
+.list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.row {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 12px 14px;
+	border-radius: t.$radius-control;
+	border: 1px solid t.$border-panel;
+	background: t.$bg-panel-elevated;
+}
+
+.main {
+	min-width: 0;
+	flex: 1;
+}
+
+.title {
+	font-size: 0.875rem;
+	font-weight: 600;
+	color: t.$text-primary;
+}
+
+.meta {
+	margin-top: 4px;
+	font-size: 0.75rem;
+	color: t.$text-muted;
+	line-height: 1.4;
+}
+
+.side {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 8px;
+	flex-shrink: 0;
+}
+
+.actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	justify-content: flex-end;
+}
+
+.toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+	margin-bottom: 12px;
+}
+
+.emptyBlock {
+	padding: 28px 20px;
+	text-align: center;
+	border-radius: t.$radius-control;
+	border: 1px dashed t.$border-panel;
+	background: t.$bg-panel-elevated;
+	color: t.$text-secondary;
+}
+
+.emptyTitle {
+	font-size: 0.9375rem;
+	font-weight: 600;
+	color: t.$text-primary;
+	margin-bottom: 6px;
+}
+
+.emptyHint {
+	margin: 0;
+	font-size: 0.8125rem;
+	line-height: 1.45;
+	color: t.$text-muted;
+}

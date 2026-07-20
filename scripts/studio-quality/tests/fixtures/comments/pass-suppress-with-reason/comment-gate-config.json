@@ -1,0 +1,5 @@
+{
+  "studioRoot": ".",
+  "strictContractDirs": [],
+  "excludeDirNames": ["node_modules"]
+}

@@ -1,0 +1,30 @@
+{
+  "studioRoot": "apps/studioV2",
+  "excludeDirNames": ["node_modules", ".next", "tests", "dist", "public", "scripts"],
+  "allowedBusinessRootDirs": ["app", "src", "typeFiles", "tests", "public", "scripts"],
+  "legacyBusinessRootDirs": ["features", "domain", "services", "commands", "store"],
+  "allowedPageComponentIndexPattern": "src/pageComponents/",
+  "thresholds": {
+    "page": { "warnLines": 120, "hardLines": 200 },
+    "uiComponent": { "warnLines": 250, "hardLines": 400 },
+    "hookOrCommand": { "warnLines": 250, "hardLines": 400 },
+    "other": { "warnLines": 350, "hardLines": 500 },
+    "function": { "warnLines": 60, "hardLines": 100 },
+    "complexity": { "warn": 10, "hard": 15 }
+  },
+  "bannedClientEngineWriteSymbols": [
+    "createEngineHost",
+    "getEngineHost",
+    "resetEngineHostForTests",
+    "createSqliteMemoryPort",
+    "executeEffects",
+    "beginCall",
+    "endCall"
+  ],
+  "bannedImportPatterns": [
+    "@airpc/rpg-engine/",
+    "packages/rpg-engine/",
+    "rpg-engine/src/"
+  ],
+  "allowlist": []
+}

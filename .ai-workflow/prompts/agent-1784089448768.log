@@ -1,0 +1,16 @@
+[gbx] ▶ batch-reviewer:E6 start cmd=agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … still running batch-reviewer:E6 elapsed=15s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089448768.log
+[gbx] … still running batch-reviewer:E6 elapsed=30s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089448768.log
+[gbx] … still running batch-reviewer:E6 elapsed=45s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089448768.log
+[gbx] … still running batch-reviewer:E6 elapsed=60s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089448768.log
+[gbx] … still running batch-reviewer:E6 elapsed=75s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089448768.log
+[gbx] … still running batch-reviewer:E6 elapsed=90s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089448768.log
+**E6 批审查：pass** → 建议 `VERIFY_BATCH`
+
+对照执行索引 E6 完成标准做了只读静态审查；已写入 `.ai-workflow/reviews/latest.json`（`reviewRunId` 与 prompt 一致）。
+
+要点：
+- Server LLM port + Host 注入、mock 成功 `source=llm`、抛错 → fallback 写入 Profile 均已落地
+- Key 仅 server；世界台可区分 llm/fallback；未误勾 E6 ✅
+- blocker/critical/major/minor 均为 0；未见引擎边界破坏或 client 持 Key
+[gbx] ■ batch-reviewer:E6 done exit=0 elapsed=105s

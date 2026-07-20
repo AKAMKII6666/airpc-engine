@@ -1,0 +1,12 @@
+@use "../../../../../typeFiles/theme/tokens.scss" as t;
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.errorBanner {
+  margin: 0;
+}

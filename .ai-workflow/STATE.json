@@ -1,0 +1,21 @@
+{
+  "status": "BLOCKED",
+  "currentBatch": 12,
+  "batchFixAttempts": 0,
+  "fullFixAttempts": 0,
+  "iteration": 2,
+  "lastSuccessfulCommit": null,
+  "manualQaRequired": false,
+  "blockedReason": "review report batchId must be final",
+  "activeTaskIds": [],
+  "exFile": "/Users/bolbiao/workspace/airpc-engine/docs/AI和人类/里程碑/对照本仓库文档的工程落地_100计划.md",
+  "fixTrigger": null,
+  "lastVerifyOk": true,
+  "lastVerifySummary": "verify ok",
+  "lastVerifyFingerprint": null,
+  "lastVerifyReportPath": "/Users/bolbiao/workspace/airpc-engine/.ai-workflow/reports/latest-verify.json",
+  "ineffectiveFixStreak": 0,
+  "updatedAt": "2026-07-15T09:08:49.158Z",
+  "lastAgentStdout": "[gbx] ▶ final-reviewer start cmd=agent cwd=/Users/bolbiao/workspace/airpc-engine\n[gbx] … still running final-reviewer elapsed=15s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784106433014.log\n[gbx] … still running final-reviewer elapsed=30s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784106433014.log\n[gbx] … still running final-reviewer elapsed=45s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784106433014.log\n[gbx] … still running final-reviewer elapsed=60s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784106433014.log\n[gbx] … still running final-reviewer elapsed=75s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784106433014.log\n[gbx] … still running final-reviewer elapsed=90s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784106433014.log\n终审完成：`.ai-workflow/reviews/latest.json` 已写入。\n\n**结果：`pass`** · blocker/critical = 0 · 建议下一状态：`READY_FOR_MANUAL_QA`\n\nE0–E11 完成标准与边界核对通过（引擎无 React、通话中仅登记 exit、client 无 Key、E4/E5/E6 有测且历史 verify 绿）。两条 **minor**：E10 的 `wet.test` 未进 gbx `npm test` 绿报；死代码占位 `studioFetch.ts`。未改业务代码与 `STATE.json`。\n[gbx] ■ final-reviewer done exit=0 elapsed=96s\n",
+  "lastAgentStderr": ""
+}

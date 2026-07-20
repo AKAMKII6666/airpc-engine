@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "label": "batch-1",
+  "at": "2026-07-16T10:29:40.844Z",
+  "ok": true,
+  "phase": "batch",
+  "activeTaskIds": [
+    "V2-S1",
+    "V2-S2",
+    "V2-S3"
+  ],
+  "reason": "all commands passed",
+  "failedCommand": null,
+  "exitCode": 0,
+  "results": [
+    {
+      "command": "npm run quality:studio",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> quality:studio\n> node scripts/studio-quality/quality-studio.mjs\n\n\n==> lint (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 lint\n> node ./scripts/run-eslint.mjs . --max-warnings 0\n\n\n==> typecheck (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n==> check:comments\ncheck:comments ok (101 files)\n\n==> check:studio-structure\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/debugger/com/CallRunPanel.tsx:43:52  函数 CallRunPanel 有效行数 72 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/home/WorkbenchSideCol.tsx:21:37  函数 WorkbenchSideCol 有效行数 78 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/packages/create/CreatePackageView.tsx:22:38  函数 CreatePackageView 有效行数 87 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/packages/export/ExportPackageForm.tsx:33:45  函数 ExportPackageForm 有效行数 65 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/packages/list/PackageListView.tsx:24:36  函数 PackageListView 有效行数 80 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/settings/com/SettingsEnginePanels.tsx:92:62  函数 SchemaEnginePanel 有效行数 65 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/users/UserLibraryDetail.tsx:26:62  函数 UserLibraryDetail 有效行数 66 超过告警线 60  考虑拆分以保持可测性\ncheck:studio-structure ok (101 files, 7 warnings)\n\n==> test:studio\n\n> test:studio\n> npm run test -w @airpc/studio-v2\n\n\n> @airpc/studio-v2@0.0.1 test\n> vitest run\n\n\n RUN  v3.2.7 /Users/bolbiao/workspace/airpc-engine/apps/studioV2\n\n ✓ tests/domain/createStudioId.test.ts (2 tests) 2ms\n ✓ tests/commonUi/formFieldConfig.test.ts (4 tests) 2ms\n\n Test Files  2 passed (2)\n      Tests  6 passed (6)\n   Start at  18:29:40\n   Duration  266ms (transform 55ms, setup 0ms, collect 53ms, tests 4ms, environment 0ms, prepare 94ms)\n\n\n==> gate self-tests (comments + structure)\n▶ check:comments\n  ✔ 合格契约通过 (13.31125ms)\n  ✔ 缺失导出意图注释失败 (2.508208ms)\n  ✔ 缺失字段说明失败 (1.539416ms)\n  ✔ 复述占位注释失败 (1.926833ms)\n  ✔ 无原因抑制失败（含裸 eslint-disable） (3.979334ms)\n  ✔ 带原因抑制通过 (3.607958ms)\n  ✔ 输出格式含规则编号与位置 (1.421458ms)\n✔ check:comments (29.071917ms)\n▶ check:studio-structure\n  ✔ 有效行数忽略空行但不忽略注释 (0.512375ms)\n  ✔ page.tsx 分类正确 (0.1615ms)\n  ✔ 圈复杂度统计分支 (3.878791ms)\n  ✔ 合格基线通过，且排除 generated (13.221625ms)\n  ✔ page 行数硬上限失败 (3.270333ms)\n  ✔ 函数复杂度硬上限失败 (4.212084ms)\n  ✔ client 引擎写口失败 (6.130834ms)\n  ✔ 业务旁平放测试失败 (5.309583ms)\n  ✔ 深挖引擎内部路径失败 (2.773834ms)\n  ✔ 目录异责平铺失败 (5.093375ms)\n  ✔ 业务 barrel index 失败 (1.56025ms)\n  ✔ 旧式顶层业务目录失败 (1.500208ms)\n  ✔ 兼容转发壳失败 (2.733875ms)\n  ✔ 同一语义区重复入口失败 (2.13975ms)\n  ✔ UI 组件裸 fetch 失败 (1.393708ms)\n  ✔ 大范围豁免被拒绝 (1.492375ms)\n  ✔ 精确豁免生效 (1.89125ms)\n  ✔ validateAllowlist 拒绝 apps/** (0.312334ms)\n  ✔ 输出格式含规则编号与位置（路径可定位） (2.410291ms)\n✔ check:studio-structure (61.224ms)\nℹ tests 26\nℹ suites 2\nℹ pass 26\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 217.800666\n\nquality:studio ok\n[gbx] ■ verify:npm run quality:studio done exit=0 elapsed=5s\n",
+      "stderr": "",
+      "stdoutTail": "ackageListView.tsx:24:36  函数 PackageListView 有效行数 80 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/settings/com/SettingsEnginePanels.tsx:92:62  函数 SchemaEnginePanel 有效行数 65 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/users/UserLibraryDetail.tsx:26:62  函数 UserLibraryDetail 有效行数 66 超过告警线 60  考虑拆分以保持可测性\ncheck:studio-structure ok (101 files, 7 warnings)\n\n==> test:studio\n\n> test:studio\n> npm run test -w @airpc/studio-v2\n\n\n> @airpc/studio-v2@0.0.1 test\n> vitest run\n\n\n RUN  v3.2.7 /Users/bolbiao/workspace/airpc-engine/apps/studioV2\n\n ✓ tests/domain/createStudioId.test.ts (2 tests) 2ms\n ✓ tests/commonUi/formFieldConfig.test.ts (4 tests) 2ms\n\n Test Files  2 passed (2)\n      Tests  6 passed (6)\n   Start at  18:29:40\n   Duration  266ms (transform 55ms, setup 0ms, collect 53ms, tests 4ms, environment 0ms, prepare 94ms)\n\n\n==> gate self-tests (comments + structure)\n▶ check:comments\n  ✔ 合格契约通过 (13.31125ms)\n  ✔ 缺失导出意图注释失败 (2.508208ms)\n  ✔ 缺失字段说明失败 (1.539416ms)\n  ✔ 复述占位注释失败 (1.926833ms)\n  ✔ 无原因抑制失败（含裸 eslint-disable） (3.979334ms)\n  ✔ 带原因抑制通过 (3.607958ms)\n  ✔ 输出格式含规则编号与位置 (1.421458ms)\n✔ check:comments (29.071917ms)\n▶ check:studio-structure\n  ✔ 有效行数忽略空行但不忽略注释 (0.512375ms)\n  ✔ page.tsx 分类正确 (0.1615ms)\n  ✔ 圈复杂度统计分支 (3.878791ms)\n  ✔ 合格基线通过，且排除 generated (13.221625ms)\n  ✔ page 行数硬上限失败 (3.270333ms)\n  ✔ 函数复杂度硬上限失败 (4.212084ms)\n  ✔ client 引擎写口失败 (6.130834ms)\n  ✔ 业务旁平放测试失败 (5.309583ms)\n  ✔ 深挖引擎内部路径失败 (2.773834ms)\n  ✔ 目录异责平铺失败 (5.093375ms)\n  ✔ 业务 barrel index 失败 (1.56025ms)\n  ✔ 旧式顶层业务目录失败 (1.500208ms)\n  ✔ 兼容转发壳失败 (2.733875ms)\n  ✔ 同一语义区重复入口失败 (2.13975ms)\n  ✔ UI 组件裸 fetch 失败 (1.393708ms)\n  ✔ 大范围豁免被拒绝 (1.492375ms)\n  ✔ 精确豁免生效 (1.89125ms)\n  ✔ validateAllowlist 拒绝 apps/** (0.312334ms)\n  ✔ 输出格式含规则编号与位置（路径可定位） (2.410291ms)\n✔ check:studio-structure (61.224ms)\nℹ tests 26\nℹ suites 2\nℹ pass 26\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 217.800666\n\nquality:studio ok\n[gbx] ■ verify:npm run quality:studio done exit=0 elapsed=5s\n",
+      "stderrTail": "",
+      "errorLocations": []
+    }
+  ],
+  "errorLocations": [],
+  "historyFile": "batch-1-1784197780844.json"
+}

@@ -1,0 +1,15 @@
+[gbx] ▶ batch-reviewer:E4d start cmd=agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … still running batch-reviewer:E4d elapsed=15s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088368628.log
+[gbx] … still running batch-reviewer:E4d elapsed=30s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088368628.log
+[gbx] … still running batch-reviewer:E4d elapsed=45s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088368628.log
+**E4d 批审结果：`pass`**（`recommendedNextState`: `VERIFY_BATCH`）
+
+已写入 `.ai-workflow/reviews/latest.json`（`reviewRunId`: `batch-reviewer-5-ee0c29c2-906f-480a-900f-f3c5c211c925`）。
+
+对照完成标准：
+- 样例卡含 `night`／`late_night` 层
+- Composer + host 测通过改 `localNowIso` 命中
+- 无引擎边界／通话中 Effect／client Key 问题；未误标 E5/E6
+
+未跑本批 `npm test`（编排器下一步 VERIFY）；`latest-verify.json` 仍是 E4c 的 batch-4。
+[gbx] ■ batch-reviewer:E4d done exit=0 elapsed=60s

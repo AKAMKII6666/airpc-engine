@@ -1,0 +1,11 @@
+{
+  "command": "/bin/sh",
+  "args": [
+    "-c",
+    "npm run check:studio-structure"
+  ],
+  "workdir": "/Users/bolbiao/workspace/airpc-engine",
+  "logFile": "/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/logs/verify-1784167167529.log",
+  "heartbeatMs": 30000,
+  "label": "verify:npm run check:studio-structure"
+}

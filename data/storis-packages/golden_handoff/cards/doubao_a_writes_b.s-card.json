@@ -1,0 +1,70 @@
+{
+  "cardId": "doubao_a_writes_b",
+  "cardKind": "story",
+  "title": "E4b：澜星出口写小雨 knowledge／memory",
+  "ownerAgentId": "doubao-sister",
+  "entryMode": "inbound_user_dial",
+  "interactionMode": "realtime_dialogue",
+  "context": {
+    "privateBrief": "本通仅为 A→B 样例：挂机后写小雨侧 knowledge 与 semantic 记忆。",
+    "speakableBrief": "跟你说一声，小雨那边也会记得。",
+    "background": "",
+    "premise": "通话方是澜星；出口 Effect 写小雨。",
+    "emotion": "认真",
+    "objective": "挂机后断言跨角色写入",
+    "forbidden": [],
+    "promptScenes": []
+  },
+  "objectives": {
+    "requiredBeats": ["told_cross_agent"]
+  },
+  "toolPolicy": {
+    "mode": "deny_all",
+    "allowedToolIds": []
+  },
+  "exits": [
+    {
+      "exitId": "a_writes_b_ok",
+      "exitKind": "terminal",
+      "title": "挂机：写小雨 knowledge＋memory",
+      "priority": 100,
+      "condition": {
+        "op": "and",
+        "items": [
+          {
+            "op": "outcome_flag",
+            "flag": "answered_completed",
+            "equals": true
+          },
+          {
+            "op": "beat_completed",
+            "beatId": "told_cross_agent"
+          }
+        ]
+      },
+      "effects": [
+        {
+          "id": "fact_cross_topic",
+          "effect": "set_world_fact",
+          "factId": "doubao_shared_xiaoyu_topic",
+          "value": true
+        },
+        {
+          "id": "know_xiaoyu_topic",
+          "effect": "update_npc_knowledge",
+          "agentId": "xiaoyu",
+          "factId": "doubao_shared_xiaoyu_topic",
+          "known": true
+        },
+        {
+          "id": "mem_xiaoyu_topic",
+          "effect": "patch_memory",
+          "agentId": "xiaoyu",
+          "layer": "semantic",
+          "kind": "semantic",
+          "text": "澜星转告：用户可能拨过来聊 doubao_shared_xiaoyu_topic。"
+        }
+      ]
+    }
+  ]
+}

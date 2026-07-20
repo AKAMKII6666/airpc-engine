@@ -53,6 +53,7 @@ export default function DebuggerPage() {
   const [logsPayload, setLogsPayload] = useState<unknown>(null);
   const [tools, setTools] = useState<ToolRow[]>([]);
   const [toolsSource, setToolsSource] = useState("registry");
+  const [clockJumpMs, setClockJumpMs] = useState(0);
   const userId = useStudioStoreShallow((s) => s.layout.userId);
 
   useEffect(
@@ -70,7 +71,10 @@ export default function DebuggerPage() {
     completePlayback,
     simEvent,
     advanceClock,
+    setClockMs,
+    advanceClockToNextIntent,
     bootstrapLore,
+    sendChat,
   } = useDebuggerManualCallBis();
 
   const {
@@ -83,6 +87,9 @@ export default function DebuggerPage() {
     lastEndResult,
     lastToolResult,
     lastSimEvent,
+    chatTurns,
+    chatDraft,
+    chatStreaming,
     loading,
     error,
     answeredCompleted,
@@ -108,6 +115,9 @@ export default function DebuggerPage() {
       lastEndResult: s.debugger.lastEndResult,
       lastToolResult: s.debugger.lastToolResult,
       lastSimEvent: s.debugger.lastSimEvent,
+      chatTurns: s.debugger.chatTurns,
+      chatDraft: s.debugger.chatDraft,
+      chatStreaming: s.debugger.chatStreaming,
       loading: s.debugger.loading,
       error: s.debugger.error,
       answeredCompleted: s.debugger.answeredCompleted,
@@ -142,6 +152,7 @@ export default function DebuggerPage() {
   );
   const setDebuggerLocalTime = useStudioStore((s) => s.setDebuggerLocalTime);
   const setDebuggerToolFields = useStudioStore((s) => s.setDebuggerToolFields);
+  const setDebuggerChatDraft = useStudioStore((s) => s.setDebuggerChatDraft);
   const bumpDebuggerRefreshStamp = useStudioStore(
     (s) => s.bumpDebuggerRefreshStamp,
   );
@@ -242,7 +253,8 @@ export default function DebuggerPage() {
       <Typography variant="h5">调试器</Typography>
       <Alert severity="info">
         Story：simulate_start → Outcome → Exit。Free：free_call（__free__）→
-        MemoryCommit。SSE 仍后置（refreshStamp 拉取）；日志写入
+        MemoryCommit。文本 chat 经 `/api/debug/chat` SSE（server
+        Adapter；refreshStamp 仍可兜底重拉 snapshot）。日志写入
         data/logs/engine-*.jsonl（已脱敏 private）。
       </Alert>
 
@@ -489,6 +501,81 @@ export default function DebuggerPage() {
             </Button>
 
             <Typography variant="subtitle2" sx={{ pt: 1 }}>
+              文本对话（server Adapter）
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              多轮 chat（SSE）→ 挂机仍走 Outcome／Free；无 Key 时 mock 回执。工具仍用下方
+              invoke。
+              {chatStreaming ? " 流式推送中…" : ""}
+            </Typography>
+            <div className={styles.chatLog}>
+              {chatTurns.length === 0 ? (
+                <Typography variant="caption" color="text.secondary">
+                  （尚无轮次）
+                </Typography>
+              ) : (
+                chatTurns.map(function (t, i) {
+                  return (
+                    <div
+                      key={`${t.at}-${i}`}
+                      className={
+                        t.role === "user"
+                          ? styles.chatBubbleUser
+                          : styles.chatBubbleAssistant
+                      }
+                    >
+                      <Typography variant="caption" component="div">
+                        {t.role === "user"
+                          ? "用户"
+                          : t.role === "assistant"
+                            ? "助手"
+                            : "系统"}
+                      </Typography>
+                      <Typography variant="body2">{t.text}</Typography>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+            <TextField
+              size="small"
+              multiline
+              minRows={2}
+              label="发送给 NPC"
+              value={chatDraft}
+              disabled={
+                !sessionId ||
+                loading ||
+                active?.interactionPhase === "playback" ||
+                active?.interactionPhase === "done"
+              }
+              onChange={function (e): void {
+                setDebuggerChatDraft(e.target.value);
+              }}
+              onKeyDown={function (e): void {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  void sendChat();
+                }
+              }}
+            />
+            <Button
+              variant="contained"
+              color="secondary"
+              disabled={
+                !sessionId ||
+                loading ||
+                !chatDraft.trim() ||
+                active?.interactionPhase === "playback"
+              }
+              onClick={function (): void {
+                void sendChat();
+              }}
+            >
+              发送
+            </Button>
+
+            <Typography variant="subtitle2" sx={{ pt: 1 }}>
               过程话术模拟（不计时）
             </Typography>
             <Stack direction="row" flexWrap="wrap" gap={0.75}>
@@ -532,9 +619,12 @@ export default function DebuggerPage() {
             ) : null}
 
             <Typography variant="subtitle2" sx={{ pt: 1 }}>
-              时钟快进（schedule）
+              时钟 Tick（schedule 模拟器）
             </Typography>
-            <Stack direction="row" spacing={1} alignItems="center">
+            <Typography variant="caption" color="text.secondary">
+              快进／跳到时刻／推到下一意图；recurring 到期会生成可观测 once 实例（非真闹钟）。
+            </Typography>
+            <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
               <TextField
                 size="small"
                 type="number"
@@ -553,7 +643,37 @@ export default function DebuggerPage() {
                   void advanceClock();
                 }}
               >
-                advanceClock
+                快进
+              </Button>
+              <TextField
+                size="small"
+                type="number"
+                label="toClockMs"
+                value={clockJumpMs}
+                onChange={function (e): void {
+                  setClockJumpMs(Number(e.target.value) || 0);
+                }}
+                sx={{ width: "9rem" }}
+              />
+              <Button
+                size="small"
+                variant="outlined"
+                disabled={!userId || loading}
+                onClick={function (): void {
+                  void setClockMs(Math.max(0, clockJumpMs));
+                }}
+              >
+                跳到时刻
+              </Button>
+              <Button
+                size="small"
+                variant="outlined"
+                disabled={!userId || loading}
+                onClick={function (): void {
+                  void advanceClockToNextIntent();
+                }}
+              >
+                推到下一意图
               </Button>
               <Button
                 size="small"

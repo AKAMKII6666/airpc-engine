@@ -1,10 +1,12 @@
 /**
- * 模块名称：EffectSink 时序 + completed_with_errors（T2）
+ * V1-E8：EffectSink 确认语义 — await Sink、失败不写 ledger、critical 中止、plan status
  */
 import { describe, expect, it } from "vitest";
 import {
   PlayerProfileSchema,
   createRecordingEffectSink,
+  type EffectSink,
+  type EffectSinkResult,
 } from "../../src/index.js";
 import { executeEffects } from "../../src/runtime/effectExecutor.js";
 import type { CallSession } from "../../src/host/types.js";
@@ -52,7 +54,6 @@ function baseSession(): CallSession {
       callDirection: "inbound",
       localTime: {
         isoWithOffset: "2026-01-01T12:00:00+08:00",
-        bucket: "noon",
         localHour: 12,
       },
       timeMentionPolicy: "allow_casual",
@@ -67,8 +68,27 @@ function baseSession(): CallSession {
   };
 }
 
-describe("effect plan status + EffectSink (T2)", () => {
-  it("non-critical mid failure → completed_with_errors; continues later effects", () => {
+function failingSink(error = "sink boom"): EffectSink {
+  return {
+    applyMediaEffect() {
+      return { ok: false, error };
+    },
+  };
+}
+
+function delayedOkSink(ms: number): EffectSink & { resolvedAt?: number } {
+  const sink: EffectSink & { resolvedAt?: number } = {
+    async applyMediaEffect(): Promise<EffectSinkResult> {
+      await new Promise((r) => setTimeout(r, ms));
+      sink.resolvedAt = Date.now();
+      return { ok: true };
+    },
+  };
+  return sink;
+}
+
+describe("effect plan status + EffectSink (V1-E8)", () => {
+  it("non-critical mid failure → completed_with_errors; continues later effects", async () => {
     const profile = baseProfile();
     const session = baseSession();
     const effects: Effect[] = [
@@ -90,7 +110,7 @@ describe("effect plan status + EffectSink (T2)", () => {
         value: true,
       },
     ];
-    const plan = executeEffects(effects, {
+    const plan = await executeEffects(effects, {
       profile,
       session,
       nowIso: "2026-07-14T00:00:00.000Z",
@@ -107,7 +127,7 @@ describe("effect plan status + EffectSink (T2)", () => {
     expect(facts.some((f) => f.factId === "after_error")).toBe(true);
   });
 
-  it("critical failure → aborted; skips subsequent", () => {
+  it("critical failure → aborted; skips subsequent", async () => {
     const profile = baseProfile();
     const session = baseSession();
     const effects: Effect[] = [
@@ -123,7 +143,7 @@ describe("effect plan status + EffectSink (T2)", () => {
         value: true,
       },
     ];
-    const plan = executeEffects(effects, {
+    const plan = await executeEffects(effects, {
       profile,
       session,
       nowIso: "2026-07-14T00:00:00.000Z",
@@ -136,7 +156,7 @@ describe("effect plan status + EffectSink (T2)", () => {
     expect(facts.some((f) => f.factId === "should_skip")).toBe(false);
   });
 
-  it("media effect: WET then EffectSink (Executor → Sink order)", () => {
+  it("media effect: WET then EffectSink；成功才写 ledger executed", async () => {
     const profile = baseProfile();
     const session = baseSession();
     const sink = createRecordingEffectSink();
@@ -147,7 +167,7 @@ describe("effect plan status + EffectSink (T2)", () => {
         clipId: "clip_hello",
       },
     ];
-    const plan = executeEffects(effects, {
+    const plan = await executeEffects(effects, {
       profile,
       session,
       nowIso: "2026-07-14T00:00:00.000Z",
@@ -155,12 +175,120 @@ describe("effect plan status + EffectSink (T2)", () => {
     });
     expect(plan.status).toBe("completed");
     expect(plan.results[0]?.status).toBe("executed");
-    // WET：meta.mediaStubs
     const stubs = profile.meta?.mediaStubs as Array<{ clipId?: string }>;
     expect(stubs?.[0]?.clipId).toBe("clip_hello");
-    // Sink after WET
     expect(sink.calls).toHaveLength(1);
     expect(sink.calls[0]?.effect.effect).toBe("play_system_prompt");
-    expect(sink.calls[0]?.userId).toBe("u1");
+    const ledgerVals = Object.values(session.effectLedger);
+    expect(ledgerVals.some((v) => v.status === "executed")).toBe(true);
+  });
+
+  it("Sink 非 critical 失败：effect=failed，不写 ledger executed，plan=completed_with_errors", async () => {
+    const profile = baseProfile();
+    const session = baseSession();
+    const plan = await executeEffects(
+      [
+        {
+          id: "m-fail",
+          effect: "play_system_prompt",
+          clipId: "x",
+        },
+        {
+          id: "later",
+          effect: "set_world_fact",
+          factId: "after_sink_fail",
+          value: true,
+        },
+      ],
+      {
+        profile,
+        session,
+        nowIso: "2026-07-14T00:00:00.000Z",
+        effectSink: failingSink("media denied"),
+      },
+    );
+    expect(plan.status).toBe("completed_with_errors");
+    expect(plan.results.map((r) => r.status)).toEqual(["failed", "executed"]);
+    expect(plan.results[0]?.error).toBe("media denied");
+    // WET 仍发生（无自动回滚），但 ledger 不得记 executed
+    expect(Object.keys(session.effectLedger)).toHaveLength(1);
+    const executedKeys = Object.entries(session.effectLedger).filter(
+      ([, v]) => v.status === "executed",
+    );
+    expect(executedKeys).toHaveLength(1);
+    expect(executedKeys[0]?.[0].endsWith(":later")).toBe(true);
+    const facts = profile.world.facts as Array<{ factId: string }>;
+    expect(facts.some((f) => f.factId === "after_sink_fail")).toBe(true);
+  });
+
+  it("Sink critical 失败：aborted，后续 skipped，不写失败项 ledger executed", async () => {
+    const profile = baseProfile();
+    const session = baseSession();
+    const plan = await executeEffects(
+      [
+        {
+          id: "m-crit",
+          effect: "create_voicemail",
+          agentId: "agent_a",
+          critical: true,
+        },
+        {
+          id: "skip-me",
+          effect: "set_world_fact",
+          factId: "nope",
+          value: true,
+        },
+      ],
+      {
+        profile,
+        session,
+        nowIso: "2026-07-14T00:00:00.000Z",
+        effectSink: failingSink("hw down"),
+      },
+    );
+    expect(plan.status).toBe("aborted");
+    expect(plan.aborted).toBe(true);
+    expect(plan.results.map((r) => r.status)).toEqual(["failed", "skipped"]);
+    expect(Object.keys(session.effectLedger)).toHaveLength(0);
+  });
+
+  it("Sink Promise 延迟 resolve：executeEffects 须等待", async () => {
+    const sink = delayedOkSink(40);
+    const started = Date.now();
+    const plan = await executeEffects(
+      [{ id: "m-delay", effect: "play_system_prompt", clipId: "d" }],
+      {
+        profile: baseProfile(),
+        session: baseSession(),
+        nowIso: "2026-07-14T00:00:00.000Z",
+        effectSink: sink,
+      },
+    );
+    const elapsed = Date.now() - started;
+    expect(plan.status).toBe("completed");
+    expect(elapsed).toBeGreaterThanOrEqual(35);
+    expect(sink.resolvedAt).toBeTruthy();
+  });
+
+  it("Sink Promise reject：effect=failed", async () => {
+    const sink: EffectSink = {
+      applyMediaEffect() {
+        return Promise.reject(new Error("reject boom"));
+      },
+    };
+    const session = baseSession();
+    const plan = await executeEffects(
+      [{ id: "m-rej", effect: "play_system_prompt", clipId: "r" }],
+      {
+        profile: baseProfile(),
+        session,
+        nowIso: "2026-07-14T00:00:00.000Z",
+        effectSink: sink,
+      },
+    );
+    expect(plan.status).toBe("completed_with_errors");
+    expect(plan.results[0]?.status).toBe("failed");
+    expect(plan.results[0]?.error).toContain("reject boom");
+    expect(Object.keys(session.effectLedger)).toHaveLength(0);
   });
 });

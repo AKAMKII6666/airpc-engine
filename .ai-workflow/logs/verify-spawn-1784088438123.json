@@ -1,0 +1,11 @@
+{
+  "command": "/bin/sh",
+  "args": [
+    "-c",
+    "npm run typecheck"
+  ],
+  "workdir": "/Users/bolbiao/workspace/airpc-engine",
+  "logFile": "/Users/bolbiao/workspace/airpc-engine/.ai-workflow/logs/verify-1784088438123.log",
+  "heartbeatMs": 30000,
+  "label": "verify:npm run typecheck"
+}

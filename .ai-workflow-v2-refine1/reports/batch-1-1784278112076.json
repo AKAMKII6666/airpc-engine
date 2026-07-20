@@ -1,0 +1,400 @@
+{
+  "schemaVersion": 1,
+  "label": "batch-1",
+  "at": "2026-07-17T08:48:32.076Z",
+  "ok": true,
+  "phase": "batch",
+  "activeTaskIds": [
+    "V2-R2-3",
+    "V2-R2-4",
+    "V2-R3-1"
+  ],
+  "reason": "all commands passed",
+  "failedCommand": null,
+  "exitCode": 0,
+  "results": [
+    {
+      "command": "npm run quality:studio",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> quality:studio\n> node scripts/studio-quality/quality-studio.mjs\n\n\n==> ensure-modal-layout (pre-typecheck)\nensure-modal-layout: nothing to remove\n\n==> ensure-migrated-layout (pre-typecheck)\nensure-migrated-layout: nothing to remove\n\n==> lint (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 lint\n> node ./scripts/run-eslint.mjs . --max-warnings 0\n\n\n==> typecheck (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n==> check:comments\ncheck:comments ok (172 files)\n\n==> check:studio-structure\nWARN STUDIO-STRUCT-002  apps/studioV2/src/bis/pageBis/characters/detail/characterDetailForm.ts:93:1  函数 applyCharacterDetailForm 有效行数 67 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-003  apps/studioV2/src/bis/pageBis/characters/detail/characterDetailFormValidate.ts:125:1  函数 validateScenes 圈复杂度 13 超过告警线 10  重构条件分支，避免继续堆叠\nWARN STUDIO-STRUCT-002  apps/studioV2/src/commonUiComponents/form/blocks/AvatarUpload/index.tsx:19:5  函数 FormAvatarUpload 有效行数 72 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/commonUiComponents/form/blocks/LocalHourRangeField/index.tsx:38:5  函数 FormLocalHourRangeField 有效行数 72 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/commonUiComponents/form/blocks/PromptSceneListEditor/com/PromptSceneCardBody/index.tsx:34:2  函数 PromptSceneCardBody 有效行数 72 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/commonUiComponents/form/blocks/PromptSceneListEditor/index.tsx:26:5  函数 FormPromptSceneListEditor 有效行数 65 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-003  apps/studioV2/src/commonUiComponents/form/blocks/PromptSceneListEditor/promptSceneListHelpers.ts:26:1  函数 asPromptSceneList 圈复杂度 11 超过告警线 10  重构条件分支，避免继续堆叠\nWARN STUDIO-STRUCT-002  apps/studioV2/src/commonUiComponents/form/blocks/PromptVariantListEditor/index.tsx:36:5  函数 FormPromptVariantListEditor 有效行数 96 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/commonUiComponents/form/blocks/StringListEditor/index.tsx:24:5  函数 FormStringListEditor 有效行数 72 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/assets/hooks/useAssetLibraryPage.ts:19:1  函数 useAssetLibraryPage 有效行数 78 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-003  apps/studioV2/src/pageComponents/assets/hooks/useAssetLibraryPage.ts:19:1  函数 useAssetLibraryPage 圈复杂度 11 超过告警线 10  重构条件分支，避免继续堆叠\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/characters/com/CharacterDetailEditForm.tsx:39:2  函数 CharacterDetailEditForm 有效行数 67 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/characters/hooks/useCharacterLibraryPage.ts:18:1  函数 useCharacterLibraryPage 有效行数 71 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/debugger/com/CallRunPanel.tsx:43:52  函数 CallRunPanel 有效行数 72 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/home/WorkbenchSideCol.tsx:21:37  函数 WorkbenchSideCol 有效行数 78 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/packages/create/CreatePackageView.tsx:22:38  函数 CreatePackageView 有效行数 63 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/packages/export/ExportPackageForm.tsx:33:45  函数 ExportPackageForm 有效行数 65 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/packages/list/PackageListView.tsx:30:36  函数 PackageListView 有效行数 84 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/settings/com/SettingsEnginePanels.tsx:92:62  函数 SchemaEnginePanel 有效行数 65 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/storyEditor/StoryEditorShell.tsx:36:60  函数 StoryEditorShell 有效行数 95 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/storyEditor/canvas/useStoryCanvasGraph.ts:54:1  函数 useStoryCanvasGraph 有效行数 98 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/storyEditor/com/panel/NodePropertyForm.tsx:39:60  函数 NodePropertyForm 有效行数 77 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/users/hooks/useUserLibraryPage.ts:18:1  函数 useUserLibraryPage 有效行数 69 超过告警线 60  考虑拆分以保持可测性\ncheck:studio-structure ok (172 files, 23 warnings)\n\n==> test:studio\n\n> test:studio\n> npm run test -w @airpc/studio-v2\n\n\n> @airpc/studio-v2@0.0.1 test\n> vitest run\n\n\n RUN  v3.2.7 /Users/bolbiao/workspace/airpc-engine/apps/studioV2\n\n ✓ tests/commonUi/modalContract.test.ts (4 tests) 2ms\n ✓ tests/storyEditor/nodePropertyAndRole.test.ts (4 tests) 3ms\n ✓ tests/storyEditor/mockEditorCharacters.test.ts (5 tests) 3ms\n ✓ tests/users/userForm.test.ts (7 tests) 7ms\n ✓ tests/characters/characterForm.test.ts (5 tests) 5ms\n ✓ tests/assets/assetForm.test.ts (8 tests) 3ms\n ✓ tests/commonUi/paginationSlice.test.ts (5 tests) 4ms\n ✓ tests/commonUi/formFieldConfig.test.ts (5 tests) 2ms\n ✓ tests/packages/createPackageForm.test.ts (2 tests) 3ms\n ✓ tests/domain/createStudioId.test.ts (2 tests) 3ms\n ↓ tests/tmp-remove-flat-prompt-scene.test.ts (1 test | 1 skipped)\n ✓ tests/commonUi/autoFormContract.test.ts (9 tests) 4ms\n\n Test Files  11 passed | 1 skipped (12)\n      Tests  56 passed | 1 skipped (57)\n   Start at  16:48:30\n   Duration  904ms (transform 595ms, setup 0ms, collect 1.40s, tests 40ms, environment 2ms, prepare 686ms)\n\n\n==> gate self-tests (comments + structure)\n▶ check:comments\n  ✔ 合格契约通过 (9.778208ms)\n  ✔ 缺失导出意图注释失败 (1.915417ms)\n  ✔ 缺失字段说明失败 (1.362208ms)\n  ✔ 复述占位注释失败 (1.25625ms)\n  ✔ 无原因抑制失败（含裸 eslint-disable） (2.760541ms)\n  ✔ 带原因抑制通过 (1.937666ms)\n  ✔ 输出格式含规则编号与位置 (0.998875ms)\n✔ check:comments (20.735333ms)\n▶ check:studio-structure\n  ✔ 有效行数忽略空行但不忽略注释 (0.531875ms)\n  ✔ page.tsx 分类正确 (0.158041ms)\n  ✔ 圈复杂度统计分支 (3.465667ms)\n  ✔ 合格基线通过，且排除 generated (9.8455ms)\n  ✔ page 行数硬上限失败 (4.29325ms)\n  ✔ 函数复杂度硬上限失败 (3.165792ms)\n  ✔ client 引擎写口失败 (3.510875ms)\n  ✔ 业务旁平放测试失败 (4.268458ms)\n  ✔ 深挖引擎内部路径失败 (1.630208ms)\n  ✔ 目录异责平铺失败 (3.191458ms)\n  ✔ 业务 barrel index 失败 (1.299917ms)\n  ✔ 旧式顶层业务目录失败 (1.616666ms)\n  ✔ 兼容转发壳失败 (2.465875ms)\n  ✔ 同一语义区重复入口失败 (2.556916ms)\n  ✔ commonUiComponents 平铺组件失败 (3.237208ms)\n  ✔ 新增或修改代码使用空格缩进失败 (3.57875ms)\n  ✔ 自定义组件引用缺少用途注释失败 (1.997875ms)\n  ✔ 组件 props 未在入口显式解构失败 (1.798375ms)\n  ✔ 入口格式合格通过 (2.254542ms)\n  ✔ UI 组件裸 fetch 失败 (1.645875ms)\n  ✔ 大范围豁免被拒绝 (1.364959ms)\n  ✔ 精确豁免生效 (2.056208ms)\n  ✔ validateAllowlist 拒绝 apps/** (0.086ms)\n  ✔ 输出格式含规则编号与位置（路径可定位） (1.770959ms)\n✔ check:studio-structure (62.918875ms)\nℹ tests 31\nℹ suites 2\nℹ pass 31\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 206.772416\n\nquality:studio ok\n[gbx] ■ verify:npm run quality:studio done exit=0 elapsed=6s\n",
+      "stderr": "",
+      "stdoutTail": "  apps/studioV2/src/pageComponents/assets/hooks/useAssetLibraryPage.ts:19:1  函数 useAssetLibraryPage 有效行数 78 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-003  apps/studioV2/src/pageComponents/assets/hooks/useAssetLibraryPage.ts:19:1  函数 useAssetLibraryPage 圈复杂度 11 超过告警线 10  重构条件分支，避免继续堆叠\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/characters/com/CharacterDetailEditForm.tsx:39:2  函数 CharacterDetailEditForm 有效行数 67 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/characters/hooks/useCharacterLibraryPage.ts:18:1  函数 useCharacterLibraryPage 有效行数 71 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/debugger/com/CallRunPanel.tsx:43:52  函数 CallRunPanel 有效行数 72 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/home/WorkbenchSideCol.tsx:21:37  函数 WorkbenchSideCol 有效行数 78 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/packages/create/CreatePackageView.tsx:22:38  函数 CreatePackageView 有效行数 63 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/packages/export/ExportPackageForm.tsx:33:45  函数 ExportPackageForm 有效行数 65 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/packages/list/PackageListView.tsx:30:36  函数 PackageListView 有效行数 84 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/settings/com/SettingsEnginePanels.tsx:92:62  函数 SchemaEnginePanel 有效行数 65 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/storyEditor/StoryEditorShell.tsx:36:60  函数 StoryEditorShell 有效行数 95 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/storyEditor/canvas/useStoryCanvasGraph.ts:54:1  函数 useStoryCanvasGraph 有效行数 98 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/storyEditor/com/panel/NodePropertyForm.tsx:39:60  函数 NodePropertyForm 有效行数 77 超过告警线 60  考虑拆分以保持可测性\nWARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/users/hooks/useUserLibraryPage.ts:18:1  函数 useUserLibraryPage 有效行数 69 超过告警线 60  考虑拆分以保持可测性\ncheck:studio-structure ok (172 files, 23 warnings)\n\n==> test:studio\n\n> test:studio\n> npm run test -w @airpc/studio-v2\n\n\n> @airpc/studio-v2@0.0.1 test\n> vitest run\n\n\n RUN  v3.2.7 /Users/bolbiao/workspace/airpc-engine/apps/studioV2\n\n ✓ tests/commonUi/modalContract.test.ts (4 tests) 2ms\n ✓ tests/storyEditor/nodePropertyAndRole.test.ts (4 tests) 3ms\n ✓ tests/storyEditor/mockEditorCharacters.test.ts (5 tests) 3ms\n ✓ tests/users/userForm.test.ts (7 tests) 7ms\n ✓ tests/characters/characterForm.test.ts (5 tests) 5ms\n ✓ tests/assets/assetForm.test.ts (8 tests) 3ms\n ✓ tests/commonUi/paginationSlice.test.ts (5 tests) 4ms\n ✓ tests/commonUi/formFieldConfig.test.ts (5 tests) 2ms\n ✓ tests/packages/createPackageForm.test.ts (2 tests) 3ms\n ✓ tests/domain/createStudioId.test.ts (2 tests) 3ms\n ↓ tests/tmp-remove-flat-prompt-scene.test.ts (1 test | 1 skipped)\n ✓ tests/commonUi/autoFormContract.test.ts (9 tests) 4ms\n\n Test Files  11 passed | 1 skipped (12)\n      Tests  56 passed | 1 skipped (57)\n   Start at  16:48:30\n   Duration  904ms (transform 595ms, setup 0ms, collect 1.40s, tests 40ms, environment 2ms, prepare 686ms)\n\n\n==> gate self-tests (comments + structure)\n▶ check:comments\n  ✔ 合格契约通过 (9.778208ms)\n  ✔ 缺失导出意图注释失败 (1.915417ms)\n  ✔ 缺失字段说明失败 (1.362208ms)\n  ✔ 复述占位注释失败 (1.25625ms)\n  ✔ 无原因抑制失败（含裸 eslint-disable） (2.760541ms)\n  ✔ 带原因抑制通过 (1.937666ms)\n  ✔ 输出格式含规则编号与位置 (0.998875ms)\n✔ check:comments (20.735333ms)\n▶ check:studio-structure\n  ✔ 有效行数忽略空行但不忽略注释 (0.531875ms)\n  ✔ page.tsx 分类正确 (0.158041ms)\n  ✔ 圈复杂度统计分支 (3.465667ms)\n  ✔ 合格基线通过，且排除 generated (9.8455ms)\n  ✔ page 行数硬上限失败 (4.29325ms)\n  ✔ 函数复杂度硬上限失败 (3.165792ms)\n  ✔ client 引擎写口失败 (3.510875ms)\n  ✔ 业务旁平放测试失败 (4.268458ms)\n  ✔ 深挖引擎内部路径失败 (1.630208ms)\n  ✔ 目录异责平铺失败 (3.191458ms)\n  ✔ 业务 barrel index 失败 (1.299917ms)\n  ✔ 旧式顶层业务目录失败 (1.616666ms)\n  ✔ 兼容转发壳失败 (2.465875ms)\n  ✔ 同一语义区重复入口失败 (2.556916ms)\n  ✔ commonUiComponents 平铺组件失败 (3.237208ms)\n  ✔ 新增或修改代码使用空格缩进失败 (3.57875ms)\n  ✔ 自定义组件引用缺少用途注释失败 (1.997875ms)\n  ✔ 组件 props 未在入口显式解构失败 (1.798375ms)\n  ✔ 入口格式合格通过 (2.254542ms)\n  ✔ UI 组件裸 fetch 失败 (1.645875ms)\n  ✔ 大范围豁免被拒绝 (1.364959ms)\n  ✔ 精确豁免生效 (2.056208ms)\n  ✔ validateAllowlist 拒绝 apps/** (0.086ms)\n  ✔ 输出格式含规则编号与位置（路径可定位） (1.770959ms)\n✔ check:studio-structure (62.918875ms)\nℹ tests 31\nℹ suites 2\nℹ pass 31\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 206.772416\n\nquality:studio ok\n[gbx] ■ verify:npm run quality:studio done exit=0 elapsed=6s\n",
+      "stderrTail": "",
+      "errorLocations": [
+        {
+          "file": "apps/studioV2/src/bis/pageBis/characters/detail/characterDetailForm.ts",
+          "line": 93,
+          "column": 1,
+          "code": "STUDIO-STRUCT-002",
+          "message": "函数 applyCharacterDetailForm 有效行数 67 超过告警线 60  考虑拆分以保持可测性",
+          "severity": "warn"
+        },
+        {
+          "file": "apps/studioV2/src/bis/pageBis/characters/detail/characterDetailFormValidate.ts",
+          "line": 125,
+          "column": 1,
+          "code": "STUDIO-STRUCT-003",
+          "message": "函数 validateScenes 圈复杂度 13 超过告警线 10  重构条件分支，避免继续堆叠",
+          "severity": "warn"
+        },
+        {
+          "file": "apps/studioV2/src/commonUiComponents/form/blocks/AvatarUpload/index.tsx",
+          "line": 19,
+          "column": 5,
+          "code": "STUDIO-STRUCT-002",
+          "message": "函数 FormAvatarUpload 有效行数 72 超过告警线 60  考虑拆分以保持可测性",
+          "severity": "warn"
+        },
+        {
+          "file": "apps/studioV2/src/commonUiComponents/form/blocks/LocalHourRangeField/index.tsx",
+          "line": 38,
+          "column": 5,
+          "code": "STUDIO-STRUCT-002",
+          "message": "函数 FormLocalHourRangeField 有效行数 72 超过告警线 60  考虑拆分以保持可测性",
+          "severity": "warn"
+        },
+        {
+          "file": "apps/studioV2/src/commonUiComponents/form/blocks/PromptSceneListEditor/com/PromptSceneCardBody/index.tsx",
+          "line": 34,
+          "column": 2,
+          "code": "STUDIO-STRUCT-002",
+          "message": "函数 PromptSceneCardBody 有效行数 72 超过告警线 60  考虑拆分以保持可测性",
+          "severity": "warn"
+        },
+        {
+          "file": "apps/studioV2/src/commonUiComponents/form/blocks/PromptSceneListEditor/index.tsx",
+          "line": 26,
+          "column": 5,
+          "code": "STUDIO-STRUCT-002",
+          "message": "函数 FormPromptSceneListEditor 有效行数 65 超过告警线 60  考虑拆分以保持可测性",
+          "severity": "warn"
+        },
+        {
+          "file": "apps/studioV2/src/commonUiComponents/form/blocks/PromptSceneListEditor/promptSceneListHelpers.ts",
+          "line": 26,
+          "column": 1,
+          "code": "STUDIO-STRUCT-003",
+          "message": "函数 asPromptSceneList 圈复杂度 11 超过告警线 10  重构条件分支，避免继续堆叠",
+          "severity": "warn"
+        },
+        {
+          "file": "apps/studioV2/src/commonUiComponents/form/blocks/PromptVariantListEditor/index.tsx",
+          "line": 36,
+          "column": 5,
+          "code": "STUDIO-STRUCT-002",
+          "message": "函数 FormPromptVariantListEditor 有效行数 96 超过告警线 60  考虑拆分以保持可测性",
+          "severity": "warn"
+        },
+        {
+          "file": "apps/studioV2/src/commonUiComponents/form/blocks/StringListEditor/index.tsx",
+          "line": 24,
+          "column": 5,
+          "code": "STUDIO-STRUCT-002",
+          "message": "函数 FormStringListEditor 有效行数 72 超过告警线 60  考虑拆分以保持可测性",
+          "severity": "warn"
+        },
+        {
+          "file": "apps/studioV2/src/pageComponents/assets/hooks/useAssetLibraryPage.ts",
+          "line": 19,
+          "column": 1,
+          "code": "STUDIO-STRUCT-002",
+          "message": "函数 useAssetLibraryPage 有效行数 78 超过告警线 60  考虑拆分以保持可测性",
+          "severity": "warn"
+        },
+        {
+          "file": "apps/studioV2/src/pageComponents/assets/hooks/useAssetLibraryPage.ts",
+          "line": 19,
+          "column": 1,
+          "code": "STUDIO-STRUCT-003",
+          "message": "函数 useAssetLibraryPage 圈复杂度 11 超过告警线 10  重构条件分支，避免继续堆叠",
+          "severity": "warn"
+        },
+        {
+          "file": "apps/studioV2/src/pageComponents/characters/com/CharacterDetailEditForm.tsx",
+          "line": 39,
+          "column": 2,
+          "code": "STUDIO-STRUCT-002",
+          "message": "函数 CharacterDetailEditForm 有效行数 67 超过告警线 60  考虑拆分以保持可测性",
+          "severity": "warn"
+        },
+        {
+          "file": "apps/studioV2/src/pageComponents/characters/hooks/useCharacterLibraryPage.ts",
+          "line": 18,
+          "column": 1,
+          "code": "STUDIO-STRUCT-002",
+          "message": "函数 useCharacterLibraryPage 有效行数 71 超过告警线 60  考虑拆分以保持可测性",
+          "severity": "warn"
+        },
+        {
+          "file": "apps/studioV2/src/pageComponents/debugger/com/CallRunPanel.tsx",
+          "line": 43,
+          "column": 52,
+          "code": "STUDIO-STRUCT-002",
+          "message": "函数 CallRunPanel 有效行数 72 超过告警线 60  考虑拆分以保持可测性",
+          "severity": "warn"
+        },
+        {
+          "file": "apps/studioV2/src/pageComponents/home/WorkbenchSideCol.tsx",
+          "line": 21,
+          "column": 37,
+          "code": "STUDIO-STRUCT-002",
+          "message": "函数 WorkbenchSideCol 有效行数 78 超过告警线 60  考虑拆分以保持可测性",
+          "severity": "warn"
+        },
+        {
+          "file": "apps/studioV2/src/pageComponents/packages/create/CreatePackageView.tsx",
+          "line": 22,
+          "column": 38,
+          "code": "STUDIO-STRUCT-002",
+          "message": "函数 CreatePackageView 有效行数 63 超过告警线 60  考虑拆分以保持可测性",
+          "severity": "warn"
+        },
+        {
+          "file": "apps/studioV2/src/pageComponents/packages/export/ExportPackageForm.tsx",
+          "line": 33,
+          "column": 45,
+          "code": "STUDIO-STRUCT-002",
+          "message": "函数 ExportPackageForm 有效行数 65 超过告警线 60  考虑拆分以保持可测性",
+          "severity": "warn"
+        },
+        {
+          "file": "apps/studioV2/src/pageComponents/packages/list/PackageListView.tsx",
+          "line": 30,
+          "column": 36,
+          "code": "STUDIO-STRUCT-002",
+          "message": "函数 PackageListView 有效行数 84 超过告警线 60  考虑拆分以保持可测性",
+          "severity": "warn"
+        },
+        {
+          "file": "apps/studioV2/src/pageComponents/settings/com/SettingsEnginePanels.tsx",
+          "line": 92,
+          "column": 62,
+          "code": "STUDIO-STRUCT-002",
+          "message": "函数 SchemaEnginePanel 有效行数 65 超过告警线 60  考虑拆分以保持可测性",
+          "severity": "warn"
+        },
+        {
+          "file": "apps/studioV2/src/pageComponents/storyEditor/StoryEditorShell.tsx",
+          "line": 36,
+          "column": 60,
+          "code": "STUDIO-STRUCT-002",
+          "message": "函数 StoryEditorShell 有效行数 95 超过告警线 60  考虑拆分以保持可测性",
+          "severity": "warn"
+        },
+        {
+          "file": "apps/studioV2/src/pageComponents/storyEditor/canvas/useStoryCanvasGraph.ts",
+          "line": 54,
+          "column": 1,
+          "code": "STUDIO-STRUCT-002",
+          "message": "函数 useStoryCanvasGraph 有效行数 98 超过告警线 60  考虑拆分以保持可测性",
+          "severity": "warn"
+        },
+        {
+          "file": "apps/studioV2/src/pageComponents/storyEditor/com/panel/NodePropertyForm.tsx",
+          "line": 39,
+          "column": 60,
+          "code": "STUDIO-STRUCT-002",
+          "message": "函数 NodePropertyForm 有效行数 77 超过告警线 60  考虑拆分以保持可测性",
+          "severity": "warn"
+        },
+        {
+          "file": "apps/studioV2/src/pageComponents/users/hooks/useUserLibraryPage.ts",
+          "line": 18,
+          "column": 1,
+          "code": "STUDIO-STRUCT-002",
+          "message": "函数 useUserLibraryPage 有效行数 69 超过告警线 60  考虑拆分以保持可测性",
+          "severity": "warn"
+        }
+      ]
+    }
+  ],
+  "errorLocations": [
+    {
+      "file": "apps/studioV2/src/bis/pageBis/characters/detail/characterDetailForm.ts",
+      "line": 93,
+      "column": 1,
+      "code": "STUDIO-STRUCT-002",
+      "message": "函数 applyCharacterDetailForm 有效行数 67 超过告警线 60  考虑拆分以保持可测性",
+      "severity": "warn"
+    },
+    {
+      "file": "apps/studioV2/src/bis/pageBis/characters/detail/characterDetailFormValidate.ts",
+      "line": 125,
+      "column": 1,
+      "code": "STUDIO-STRUCT-003",
+      "message": "函数 validateScenes 圈复杂度 13 超过告警线 10  重构条件分支，避免继续堆叠",
+      "severity": "warn"
+    },
+    {
+      "file": "apps/studioV2/src/commonUiComponents/form/blocks/AvatarUpload/index.tsx",
+      "line": 19,
+      "column": 5,
+      "code": "STUDIO-STRUCT-002",
+      "message": "函数 FormAvatarUpload 有效行数 72 超过告警线 60  考虑拆分以保持可测性",
+      "severity": "warn"
+    },
+    {
+      "file": "apps/studioV2/src/commonUiComponents/form/blocks/LocalHourRangeField/index.tsx",
+      "line": 38,
+      "column": 5,
+      "code": "STUDIO-STRUCT-002",
+      "message": "函数 FormLocalHourRangeField 有效行数 72 超过告警线 60  考虑拆分以保持可测性",
+      "severity": "warn"
+    },
+    {
+      "file": "apps/studioV2/src/commonUiComponents/form/blocks/PromptSceneListEditor/com/PromptSceneCardBody/index.tsx",
+      "line": 34,
+      "column": 2,
+      "code": "STUDIO-STRUCT-002",
+      "message": "函数 PromptSceneCardBody 有效行数 72 超过告警线 60  考虑拆分以保持可测性",
+      "severity": "warn"
+    },
+    {
+      "file": "apps/studioV2/src/commonUiComponents/form/blocks/PromptSceneListEditor/index.tsx",
+      "line": 26,
+      "column": 5,
+      "code": "STUDIO-STRUCT-002",
+      "message": "函数 FormPromptSceneListEditor 有效行数 65 超过告警线 60  考虑拆分以保持可测性",
+      "severity": "warn"
+    },
+    {
+      "file": "apps/studioV2/src/commonUiComponents/form/blocks/PromptSceneListEditor/promptSceneListHelpers.ts",
+      "line": 26,
+      "column": 1,
+      "code": "STUDIO-STRUCT-003",
+      "message": "函数 asPromptSceneList 圈复杂度 11 超过告警线 10  重构条件分支，避免继续堆叠",
+      "severity": "warn"
+    },
+    {
+      "file": "apps/studioV2/src/commonUiComponents/form/blocks/PromptVariantListEditor/index.tsx",
+      "line": 36,
+      "column": 5,
+      "code": "STUDIO-STRUCT-002",
+      "message": "函数 FormPromptVariantListEditor 有效行数 96 超过告警线 60  考虑拆分以保持可测性",
+      "severity": "warn"
+    },
+    {
+      "file": "apps/studioV2/src/commonUiComponents/form/blocks/StringListEditor/index.tsx",
+      "line": 24,
+      "column": 5,
+      "code": "STUDIO-STRUCT-002",
+      "message": "函数 FormStringListEditor 有效行数 72 超过告警线 60  考虑拆分以保持可测性",
+      "severity": "warn"
+    },
+    {
+      "file": "apps/studioV2/src/pageComponents/assets/hooks/useAssetLibraryPage.ts",
+      "line": 19,
+      "column": 1,
+      "code": "STUDIO-STRUCT-002",
+      "message": "函数 useAssetLibraryPage 有效行数 78 超过告警线 60  考虑拆分以保持可测性",
+      "severity": "warn"
+    },
+    {
+      "file": "apps/studioV2/src/pageComponents/assets/hooks/useAssetLibraryPage.ts",
+      "line": 19,
+      "column": 1,
+      "code": "STUDIO-STRUCT-003",
+      "message": "函数 useAssetLibraryPage 圈复杂度 11 超过告警线 10  重构条件分支，避免继续堆叠",
+      "severity": "warn"
+    },
+    {
+      "file": "apps/studioV2/src/pageComponents/characters/com/CharacterDetailEditForm.tsx",
+      "line": 39,
+      "column": 2,
+      "code": "STUDIO-STRUCT-002",
+      "message": "函数 CharacterDetailEditForm 有效行数 67 超过告警线 60  考虑拆分以保持可测性",
+      "severity": "warn"
+    },
+    {
+      "file": "apps/studioV2/src/pageComponents/characters/hooks/useCharacterLibraryPage.ts",
+      "line": 18,
+      "column": 1,
+      "code": "STUDIO-STRUCT-002",
+      "message": "函数 useCharacterLibraryPage 有效行数 71 超过告警线 60  考虑拆分以保持可测性",
+      "severity": "warn"
+    },
+    {
+      "file": "apps/studioV2/src/pageComponents/debugger/com/CallRunPanel.tsx",
+      "line": 43,
+      "column": 52,
+      "code": "STUDIO-STRUCT-002",
+      "message": "函数 CallRunPanel 有效行数 72 超过告警线 60  考虑拆分以保持可测性",
+      "severity": "warn"
+    },
+    {
+      "file": "apps/studioV2/src/pageComponents/home/WorkbenchSideCol.tsx",
+      "line": 21,
+      "column": 37,
+      "code": "STUDIO-STRUCT-002",
+      "message": "函数 WorkbenchSideCol 有效行数 78 超过告警线 60  考虑拆分以保持可测性",
+      "severity": "warn"
+    },
+    {
+      "file": "apps/studioV2/src/pageComponents/packages/create/CreatePackageView.tsx",
+      "line": 22,
+      "column": 38,
+      "code": "STUDIO-STRUCT-002",
+      "message": "函数 CreatePackageView 有效行数 63 超过告警线 60  考虑拆分以保持可测性",
+      "severity": "warn"
+    },
+    {
+      "file": "apps/studioV2/src/pageComponents/packages/export/ExportPackageForm.tsx",
+      "line": 33,
+      "column": 45,
+      "code": "STUDIO-STRUCT-002",
+      "message": "函数 ExportPackageForm 有效行数 65 超过告警线 60  考虑拆分以保持可测性",
+      "severity": "warn"
+    },
+    {
+      "file": "apps/studioV2/src/pageComponents/packages/list/PackageListView.tsx",
+      "line": 30,
+      "column": 36,
+      "code": "STUDIO-STRUCT-002",
+      "message": "函数 PackageListView 有效行数 84 超过告警线 60  考虑拆分以保持可测性",
+      "severity": "warn"
+    },
+    {
+      "file": "apps/studioV2/src/pageComponents/settings/com/SettingsEnginePanels.tsx",
+      "line": 92,
+      "column": 62,
+      "code": "STUDIO-STRUCT-002",
+      "message": "函数 SchemaEnginePanel 有效行数 65 超过告警线 60  考虑拆分以保持可测性",
+      "severity": "warn"
+    },
+    {
+      "file": "apps/studioV2/src/pageComponents/storyEditor/StoryEditorShell.tsx",
+      "line": 36,
+      "column": 60,
+      "code": "STUDIO-STRUCT-002",
+      "message": "函数 StoryEditorShell 有效行数 95 超过告警线 60  考虑拆分以保持可测性",
+      "severity": "warn"
+    },
+    {
+      "file": "apps/studioV2/src/pageComponents/storyEditor/canvas/useStoryCanvasGraph.ts",
+      "line": 54,
+      "column": 1,
+      "code": "STUDIO-STRUCT-002",
+      "message": "函数 useStoryCanvasGraph 有效行数 98 超过告警线 60  考虑拆分以保持可测性",
+      "severity": "warn"
+    },
+    {
+      "file": "apps/studioV2/src/pageComponents/storyEditor/com/panel/NodePropertyForm.tsx",
+      "line": 39,
+      "column": 60,
+      "code": "STUDIO-STRUCT-002",
+      "message": "函数 NodePropertyForm 有效行数 77 超过告警线 60  考虑拆分以保持可测性",
+      "severity": "warn"
+    },
+    {
+      "file": "apps/studioV2/src/pageComponents/users/hooks/useUserLibraryPage.ts",
+      "line": 18,
+      "column": 1,
+      "code": "STUDIO-STRUCT-002",
+      "message": "函数 useUserLibraryPage 有效行数 69 超过告警线 60  考虑拆分以保持可测性",
+      "severity": "warn"
+    }
+  ],
+  "historyFile": "batch-1-1784278112076.json"
+}

@@ -1,0 +1,6 @@
+[gbx] ▶ verify:npm run lint -w @airpc/studio-v2 start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+
+> @airpc/studio-v2@0.0.1 lint
+> node ./scripts/run-eslint.mjs . --max-warnings 0
+
+[gbx] ■ verify:npm run lint -w @airpc/studio-v2 done exit=0 elapsed=1s

@@ -1,0 +1,37 @@
+[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+
+> quality:studio
+> node scripts/studio-quality/quality-studio.mjs
+
+
+==> ensure-modal-layout (pre-typecheck)
+ensure-modal-layout: nothing to remove
+
+==> ensure-migrated-layout (pre-typecheck)
+ensure-migrated-layout: nothing to remove
+
+==> lint (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 lint
+> node ./scripts/run-eslint.mjs . --max-warnings 0
+
+
+==> typecheck (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 typecheck
+> tsc -p tsconfig.json --noEmit
+
+
+==> check:comments
+STUDIO-COMMENT-001  apps/studioV2/src/bis/pageBis/characters/create/createCharacter_bis.ts:13:1  严格契约目录中的导出「CreateCharacterResult」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用
+STUDIO-COMMENT-002  apps/studioV2/src/bis/pageBis/characters/create/createCharacter_bis.ts:16:2  严格契约字段「CreateCharacterResult.summary」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-001  apps/studioV2/src/bis/pageBis/characters/delete/deleteCharacter_bis.ts:6:1  严格契约目录中的导出「DeleteCharacterResult」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用
+STUDIO-COMMENT-002  apps/studioV2/src/bis/pageBis/characters/delete/deleteCharacter_bis.ts:7:2  严格契约字段「DeleteCharacterResult.agentId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-001  apps/studioV2/src/bis/pageBis/characters/delete/deleteCharacter_bis.ts:10:1  严格契约目录中的导出「commitDeleteCharacter」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/memoryReadModel.ts:23:2  严格契约字段「MemoryListPageDto.items」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/memoryReadModel.ts:28:2  严格契约字段「MemoryListPageDto.pageSize」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+check:comments failed (7 issues, 190 files)
+check:comments failed (exit 1)
+
+quality:studio FAILED
+[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=4s

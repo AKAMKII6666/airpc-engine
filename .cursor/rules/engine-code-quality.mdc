@@ -1,0 +1,43 @@
+---
+description: 引擎代码结构、注释与高风险落点硬规则（本库门禁真源）
+globs:
+  - packages/rpg-engine/**
+  - scripts/engine-quality/**
+alwaysApply: false
+---
+
+# 引擎代码质量规则
+
+本规则适用于 `packages/rpg-engine` 与引擎质量门禁脚本。机器门禁入口为本库根命令 `npm run quality:engine`（**不在** `general-batch-exe` skill 内实现结构检查）。
+
+与 [engine-boundaries.mdc](./engine-boundaries.mdc)（纯度 / Host 边界）互补：本文件管可读性、规模止血与高风险落点声明。
+
+## 必须执行
+
+- 公共契约、Port、状态转换、幂等 / 事务 / 时序逻辑必须有意图注释或 JSDoc（解释为什么、约束或副作用，禁止复述代码）。
+- `createEngineHost` / Host 装配层只做装配与会话协调，不新增可独立命名的领域算法；新算法落到 `runtime/`、`schedule/`、`workspace/` 等明确模块。
+- `effectExecutor` 只做 Effect 调度；复杂 effect 委派 handler / 领域服务，禁止继续无边界堆叠。
+- Schedule once、recurring、clock、card reference、chapter cleanup 是可分离职责；禁止把新规则只塞进 `scheduleTick.ts`。
+- 高风险功能任务必须在执行索引中声明：目标模块、允许修改、禁止落点、状态不变量、负向测试、`verify: npm run quality:engine`、结构预算。
+- 新文件 / 新函数执行硬上限；已超限遗留文件以 `scripts/engine-quality/engine-quality-baseline.json` 止血——触碰后受控指标不得净增长。
+- `eslint-disable`、`@ts-ignore`、`@ts-expect-error`、门禁豁免必须在同处写明原因；临时豁免写清退出条件。
+- 引擎合并前必须通过 `npm run quality:engine`；不得以人工承诺替代机器门禁。
+
+## 阈值（与 check:engine-structure 一致）
+
+| 对象 | 告警线 | 硬上限 |
+|---|---:|---:|
+| 普通引擎源码文件 | 350 | 500 |
+| Host / composition 文件 | 400 | 600 |
+| 单个函数 | 60 | 100 |
+| 圈复杂度 | 10 | 15 |
+| 测试文件（`packages/rpg-engine/tests/**`） | 450 | 700 |
+
+不得为迁就遗留超大文件抬高全局硬上限。
+
+## 禁止事项
+
+- 用注释密度、压行、删注释、任意 disable 或大范围 allowlist / 目录通配基线制造“门禁通过”。
+- 在 `src/**` 平放 `*.test.ts`。
+- 引擎导入 `react` / `react-dom` / `next` / `@xyflow/*` / 浏览器 DOM。
+- 把结构门禁实现放进 gbx skill；gbx 只消费本库 `quality:engine` 结果。

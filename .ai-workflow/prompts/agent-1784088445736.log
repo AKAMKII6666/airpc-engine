@@ -1,0 +1,41 @@
+[gbx] ▶ executor:E5 start cmd=agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … still running executor:E5 elapsed=15s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088445736.log
+[gbx] … still running executor:E5 elapsed=30s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088445736.log
+[gbx] … still running executor:E5 elapsed=45s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088445736.log
+[gbx] … still running executor:E5 elapsed=60s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088445736.log
+[gbx] … still running executor:E5 elapsed=75s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088445736.log
+[gbx] … still running executor:E5 elapsed=90s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088445736.log
+[gbx] … still running executor:E5 elapsed=105s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088445736.log
+[gbx] … still running executor:E5 elapsed=120s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088445736.log
+[gbx] … still running executor:E5 elapsed=135s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088445736.log
+[gbx] … still running executor:E5 elapsed=150s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088445736.log
+[gbx] … still running executor:E5 elapsed=165s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088445736.log
+[gbx] … still running executor:E5 elapsed=180s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088445736.log
+E5 已落地（任务表已 ⬜→✅）。**verify NOT run**（本环境 Shell 全部被拒，未能执行 `npm test`）。
+
+### 完成内容
+
+1. **vignette 写入 + 投影**
+   - `MemoryCommitInput.vignettes?: string[]`
+   - `commitAfterCall` 除 `call_summary` 外写入 `kind=vignette`
+   - 测：写入 → search(`kinds: vignette`) → `projectForCall` 含 vignette
+
+2. **真 `rollupIfNeeded`**
+   - 上月补算（无 rollup 则建）+ 当前月/季有界聚合 UPSERT
+   - 抽取式摘要（无 LLM / 无向量），预算见 `MEMORY_ROLLUP_DEFAULTS`
+   - 测：触发前无 rollup → 触发后有；再写当前月可刷新；幂等不崩
+
+### 主要改动
+
+- `packages/rpg-engine/src/memory/sqliteMemoryPort.ts` / `types.ts` / `constants.ts` / `index.ts`
+- `packages/rpg-engine/tests/memory/sqlite-memory.test.ts`
+- 任务表 E5 ✅；技术设计 20 验收项「增量 rollup」已勾
+
+### 请你本地补跑
+
+```bash
+npm test
+```
+
+绿了才算 E5 verify 闭合；若失败把输出贴回即可修。
+[gbx] ■ executor:E5 done exit=0 elapsed=195s

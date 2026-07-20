@@ -1,0 +1,90 @@
+[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+
+> quality:studio
+> node scripts/studio-quality/quality-studio.mjs
+
+
+==> lint (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 lint
+> node ./scripts/run-eslint.mjs . --max-warnings 0
+
+
+==> typecheck (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 typecheck
+> tsc -p tsconfig.json --noEmit
+
+
+==> check:comments
+check:comments ok (131 files)
+
+==> check:studio-structure
+WARN STUDIO-STRUCT-002  apps/studioV2/features/debugger/panels/CallRunPanel.tsx:43:52  函数 CallRunPanel 有效行数 72 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/features/home/workbench/shell/WorkbenchSideCol.tsx:21:37  函数 WorkbenchSideCol 有效行数 78 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/features/packages/create/CreatePackageView.tsx:22:38  函数 CreatePackageView 有效行数 87 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/features/packages/export/ExportPackageForm.tsx:33:45  函数 ExportPackageForm 有效行数 65 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/features/packages/list/PackageListView.tsx:24:36  函数 PackageListView 有效行数 80 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/features/settings/panels/SettingsEnginePanels.tsx:92:62  函数 SchemaEnginePanel 有效行数 65 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/features/users/UserLibraryDetail.tsx:26:62  函数 UserLibraryDetail 有效行数 66 超过告警线 60  考虑拆分以保持可测性
+check:studio-structure ok (131 files, 7 warnings)
+
+==> test:studio
+
+> test:studio
+> npm run test -w @airpc/studio-v2
+
+
+> @airpc/studio-v2@0.0.1 test
+> vitest run
+
+
+ RUN  v3.2.7 /Users/bolbiao/workspace/airpc-engine/apps/studioV2
+
+ ✓ tests/domain/createStudioId.test.ts (2 tests) 1ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  11:20:27
+   Duration  240ms (transform 26ms, setup 0ms, collect 21ms, tests 1ms, environment 0ms, prepare 47ms)
+
+
+==> gate self-tests (comments + structure)
+▶ check:comments
+  ✔ 合格契约通过 (10.962333ms)
+  ✔ 缺失导出意图注释失败 (1.840625ms)
+  ✔ 缺失字段说明失败 (1.1465ms)
+  ✔ 复述占位注释失败 (1.320417ms)
+  ✔ 无原因抑制失败（含裸 eslint-disable） (2.919333ms)
+  ✔ 带原因抑制通过 (2.481375ms)
+  ✔ 输出格式含规则编号与位置 (1.052542ms)
+✔ check:comments (22.467791ms)
+▶ check:studio-structure
+  ✔ 有效行数忽略空行但不忽略注释 (0.631917ms)
+  ✔ page.tsx 分类正确 (0.160458ms)
+  ✔ 圈复杂度统计分支 (4.703042ms)
+  ✔ 合格基线通过，且排除 generated (6.643916ms)
+  ✔ page 行数硬上限失败 (2.916083ms)
+  ✔ 函数复杂度硬上限失败 (1.706417ms)
+  ✔ client 引擎写口失败 (2.499542ms)
+  ✔ 业务旁平放测试失败 (2.815708ms)
+  ✔ 深挖引擎内部路径失败 (1.598417ms)
+  ✔ 目录异责平铺失败 (2.919666ms)
+  ✔ 业务 barrel index 失败 (1.149375ms)
+  ✔ UI 组件裸 fetch 失败 (1.094917ms)
+  ✔ 大范围豁免被拒绝 (0.904083ms)
+  ✔ 精确豁免生效 (1.136959ms)
+  ✔ validateAllowlist 拒绝 apps/** (0.080625ms)
+  ✔ 输出格式含规则编号与位置（路径可定位） (1.102625ms)
+✔ check:studio-structure (33.022084ms)
+ℹ tests 23
+ℹ suites 2
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 232.57825
+
+quality:studio ok
+[gbx] ■ verify:npm run quality:studio done exit=0 elapsed=7s

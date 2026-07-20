@@ -1,0 +1,109 @@
+@use "../../../typeFiles/theme/tokens.scss" as t;
+
+.root {
+  display: flex;
+  min-height: 100vh;
+  background: t.$bg-app;
+  color: t.$text-primary;
+}
+
+.fullscreen {
+  min-height: 100vh;
+  background: t.$bg-canvas;
+  color: t.$text-primary;
+}
+
+.nav {
+  width: t.$nav-width;
+  flex-shrink: 0;
+  padding: 20px 12px;
+  border-right: 1px solid t.$border-panel;
+  background: t.$bg-panel;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 8px;
+}
+
+.logoMark {
+  flex-shrink: 0;
+  display: block;
+}
+
+.brandTextBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.brandText {
+  color: t.$text-primary;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+.brandBadge {
+  display: inline-block;
+  align-self: flex-start;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: t.$text-secondary;
+  background: t.$bg-panel-elevated;
+  border: 1px solid t.$border-panel;
+}
+
+.navList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.navLink,
+.navLinkActive {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 14px;
+  line-height: 1.3;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.navLink {
+  color: t.$text-secondary;
+
+  &:hover {
+    background: rgba(28, 42, 61, 0.85);
+    color: t.$text-primary;
+  }
+}
+
+.navLinkActive {
+  color: t.$text-primary;
+  background: rgba(91, 108, 255, 0.18);
+  border: 1px solid rgba(91, 108, 255, 0.35);
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  padding: 28px 32px;
+  background:
+    radial-gradient(
+      ellipse 80% 50% at 10% -10%,
+      rgba(91, 108, 255, 0.08),
+      transparent 55%
+    ),
+    t.$bg-app;
+}

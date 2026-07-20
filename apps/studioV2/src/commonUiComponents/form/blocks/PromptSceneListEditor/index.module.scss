@@ -1,0 +1,60 @@
+@use "../../../../../typeFiles/theme/tokens.scss" as t;
+
+.list {
+	list-style: none;
+	margin: 0 0 8px;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	width: 100%;
+}
+
+.card {
+	border: 1px solid t.$border-panel;
+	border-radius: t.$radius-control;
+	background: t.$bg-panel-elevated;
+	overflow: hidden;
+}
+
+.cardHead {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 10px;
+	background: t.$bg-hover;
+	border-bottom: 1px solid t.$border-subtle;
+}
+
+.dragHandle {
+	border: 0;
+	background: transparent;
+	cursor: grab;
+	color: t.$text-muted;
+	padding: 0 4px;
+	font-size: 0.875rem;
+}
+
+.priority {
+	font-size: 0.75rem;
+	font-weight: 600;
+	color: t.$text-secondary;
+	min-width: 2.5rem;
+}
+
+.layerId {
+	flex: 1 1 auto;
+	font-size: 0.8125rem;
+	color: t.$text-primary;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.body {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding: 12px;
+}

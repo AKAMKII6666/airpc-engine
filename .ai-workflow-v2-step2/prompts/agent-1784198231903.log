@@ -1,0 +1,61 @@
+[gbx] ▶ fixer:V2-S4+V2-S5+V2-S6 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (30s elapsed, no output for 30s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (45s elapsed, no output for 45s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (60s elapsed, no output for 60s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (75s elapsed, no output for 75s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (90s elapsed, no output for 90s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (105s elapsed, no output for 105s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (120s elapsed, no output for 120s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (135s elapsed, no output for 135s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (150s elapsed, no output for 150s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (165s elapsed, no output for 165s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (180s elapsed, no output for 180s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (195s elapsed, no output for 195s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (210s elapsed, no output for 210s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (225s elapsed, no output for 225s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (240s elapsed, no output for 240s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (255s elapsed, no output for 255s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (270s elapsed, no output for 270s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (285s elapsed, no output for 285s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (300s elapsed, no output for 300s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (315s elapsed, no output for 315s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (330s elapsed, no output for 330s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (345s elapsed, no output for 345s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (360s elapsed, no output for 360s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (375s elapsed, no output for 375s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (390s elapsed, no output for 390s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (405s elapsed, no output for 405s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (420s elapsed, no output for 420s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (435s elapsed, no output for 435s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (450s elapsed, no output for 450s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (465s elapsed, no output for 465s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (480s elapsed, no output for 480s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (495s elapsed, no output for 495s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (510s elapsed, no output for 510s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (525s elapsed, no output for 525s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (540s elapsed, no output for 540s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (555s elapsed, no output for 555s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (570s elapsed, no output for 570s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (585s elapsed, no output for 585s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (600s elapsed, no output for 600s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (615s elapsed, no output for 615s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (630s elapsed, no output for 630s)
+[gbx] … fixer:V2-S4+V2-S5+V2-S6 still running (645s elapsed, no output for 645s)
+已按 `latest-verify.json` 的硬失败处理：**STUDIO-STRUCT-008**（`modal/` 平铺异责）。
+
+### 修复内容
+1. **拆分目录**（消除 STRUCT-008）  
+   - `modal/app/AppModal.tsx`  
+   - `modal/form/FormModal.tsx`  
+   - `modal/shared/modalTypes.ts` + `modalSlot.ts`
+2. **更新引用**：测试改为 `modal/shared/modalTypes`；同步 `09` 与 `第二步需求.md` 落点示意。
+3. **迁移清理**：本环境无法直接 `rm`，在结构门禁扫描前调用 `ensureModalNestedLayout`——若嵌套副本已存在则删除旧平铺文件，避免 **STRUCT-014** 同名冲突。首次 `quality:studio` 会清掉平铺残留，之后为 no-op。
+
+### 说明
+- 索引里 V2-S4/S5/S6 已是 ✅，未改勾选。
+- 未写 `STATE.json`。
+- 本地 Shell 无法跑 `npm run quality:studio`；下一次 gbx verify 应会执行清理并过门禁。
+
+若 verify 仍红，把新的 `latest-verify.json` 尾巴发来即可。
+[gbx] ■ fixer:V2-S4+V2-S5+V2-S6 done exit=0 elapsed=656s

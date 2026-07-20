@@ -41,6 +41,8 @@ export interface MemoryCommitInput {
   endedAt: string;
   /** Manual / 无 LLM 时的摘要文本 */
   summaryText?: string;
+  /** 生活边角碎片；写入 kind=vignette（可选） */
+  vignettes?: string[];
 }
 
 export interface MemoryCommitResult {

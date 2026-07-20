@@ -1,0 +1,9 @@
+@use "../../../../../typeFiles/theme/tokens.scss" as t;
+
+.refList {
+  margin: 0;
+  padding-left: 18px;
+  color: t.$text-secondary;
+  font-size: 13px;
+  line-height: 1.5;
+}

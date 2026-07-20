@@ -1,0 +1,144 @@
+{
+  "schemaVersion": 1,
+  "label": "batch-2",
+  "at": "2026-07-17T09:02:37.888Z",
+  "ok": false,
+  "phase": "batch",
+  "activeTaskIds": [
+    "V2-R3-2",
+    "V2-R3-3",
+    "V2-R4-1"
+  ],
+  "reason": "command failed",
+  "failedCommand": "npm run quality:studio",
+  "exitCode": 1,
+  "results": [
+    {
+      "command": "npm run quality:studio",
+      "exitCode": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> quality:studio\n> node scripts/studio-quality/quality-studio.mjs\n\n\n==> ensure-modal-layout (pre-typecheck)\nensure-modal-layout: nothing to remove\n\n==> ensure-migrated-layout (pre-typecheck)\nensure-migrated-layout: nothing to remove\n\n==> lint (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 lint\n> node ./scripts/run-eslint.mjs . --max-warnings 0\n\n\n==> typecheck (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n==> check:comments\nSTUDIO-COMMENT-001  apps/studioV2/src/bis/pageBis/characters/create/createCharacter_bis.ts:13:1  严格契约目录中的导出「CreateCharacterResult」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用\nSTUDIO-COMMENT-002  apps/studioV2/src/bis/pageBis/characters/create/createCharacter_bis.ts:16:2  严格契约字段「CreateCharacterResult.summary」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-001  apps/studioV2/src/bis/pageBis/characters/delete/deleteCharacter_bis.ts:6:1  严格契约目录中的导出「DeleteCharacterResult」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用\nSTUDIO-COMMENT-002  apps/studioV2/src/bis/pageBis/characters/delete/deleteCharacter_bis.ts:7:2  严格契约字段「DeleteCharacterResult.agentId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-001  apps/studioV2/src/bis/pageBis/characters/delete/deleteCharacter_bis.ts:10:1  严格契约目录中的导出「commitDeleteCharacter」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/memoryReadModel.ts:23:2  严格契约字段「MemoryListPageDto.items」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/memoryReadModel.ts:28:2  严格契约字段「MemoryListPageDto.pageSize」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\ncheck:comments failed (7 issues, 190 files)\ncheck:comments failed (exit 1)\n\nquality:studio FAILED\n[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=4s\n",
+      "stderr": "",
+      "stdoutTail": "[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> quality:studio\n> node scripts/studio-quality/quality-studio.mjs\n\n\n==> ensure-modal-layout (pre-typecheck)\nensure-modal-layout: nothing to remove\n\n==> ensure-migrated-layout (pre-typecheck)\nensure-migrated-layout: nothing to remove\n\n==> lint (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 lint\n> node ./scripts/run-eslint.mjs . --max-warnings 0\n\n\n==> typecheck (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n==> check:comments\nSTUDIO-COMMENT-001  apps/studioV2/src/bis/pageBis/characters/create/createCharacter_bis.ts:13:1  严格契约目录中的导出「CreateCharacterResult」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用\nSTUDIO-COMMENT-002  apps/studioV2/src/bis/pageBis/characters/create/createCharacter_bis.ts:16:2  严格契约字段「CreateCharacterResult.summary」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-001  apps/studioV2/src/bis/pageBis/characters/delete/deleteCharacter_bis.ts:6:1  严格契约目录中的导出「DeleteCharacterResult」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用\nSTUDIO-COMMENT-002  apps/studioV2/src/bis/pageBis/characters/delete/deleteCharacter_bis.ts:7:2  严格契约字段「DeleteCharacterResult.agentId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-001  apps/studioV2/src/bis/pageBis/characters/delete/deleteCharacter_bis.ts:10:1  严格契约目录中的导出「commitDeleteCharacter」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/memoryReadModel.ts:23:2  严格契约字段「MemoryListPageDto.items」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/memoryReadModel.ts:28:2  严格契约字段「MemoryListPageDto.pageSize」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\ncheck:comments failed (7 issues, 190 files)\ncheck:comments failed (exit 1)\n\nquality:studio FAILED\n[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=4s\n",
+      "stderrTail": "",
+      "errorLocations": [
+        {
+          "file": "apps/studioV2/src/bis/pageBis/characters/create/createCharacter_bis.ts",
+          "line": 13,
+          "column": 1,
+          "code": "STUDIO-COMMENT-001",
+          "message": "严格契约目录中的导出「CreateCharacterResult」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/src/bis/pageBis/characters/create/createCharacter_bis.ts",
+          "line": 16,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「CreateCharacterResult.summary」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/src/bis/pageBis/characters/delete/deleteCharacter_bis.ts",
+          "line": 6,
+          "column": 1,
+          "code": "STUDIO-COMMENT-001",
+          "message": "严格契约目录中的导出「DeleteCharacterResult」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/src/bis/pageBis/characters/delete/deleteCharacter_bis.ts",
+          "line": 7,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「DeleteCharacterResult.agentId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/src/bis/pageBis/characters/delete/deleteCharacter_bis.ts",
+          "line": 10,
+          "column": 1,
+          "code": "STUDIO-COMMENT-001",
+          "message": "严格契约目录中的导出「commitDeleteCharacter」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/library/characters/memoryReadModel.ts",
+          "line": 23,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「MemoryListPageDto.items」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/library/characters/memoryReadModel.ts",
+          "line": 28,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「MemoryListPageDto.pageSize」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        }
+      ]
+    }
+  ],
+  "errorLocations": [
+    {
+      "file": "apps/studioV2/src/bis/pageBis/characters/create/createCharacter_bis.ts",
+      "line": 13,
+      "column": 1,
+      "code": "STUDIO-COMMENT-001",
+      "message": "严格契约目录中的导出「CreateCharacterResult」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/src/bis/pageBis/characters/create/createCharacter_bis.ts",
+      "line": 16,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「CreateCharacterResult.summary」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/src/bis/pageBis/characters/delete/deleteCharacter_bis.ts",
+      "line": 6,
+      "column": 1,
+      "code": "STUDIO-COMMENT-001",
+      "message": "严格契约目录中的导出「DeleteCharacterResult」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/src/bis/pageBis/characters/delete/deleteCharacter_bis.ts",
+      "line": 7,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「DeleteCharacterResult.agentId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/src/bis/pageBis/characters/delete/deleteCharacter_bis.ts",
+      "line": 10,
+      "column": 1,
+      "code": "STUDIO-COMMENT-001",
+      "message": "严格契约目录中的导出「commitDeleteCharacter」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/library/characters/memoryReadModel.ts",
+      "line": 23,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「MemoryListPageDto.items」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/library/characters/memoryReadModel.ts",
+      "line": 28,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「MemoryListPageDto.pageSize」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    }
+  ],
+  "historyFile": "batch-2-1784278957888.json"
+}

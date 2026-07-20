@@ -1,0 +1,11 @@
+{
+  "command": "/bin/sh",
+  "args": [
+    "-c",
+    "npm test"
+  ],
+  "workdir": "/Users/bolbiao/workspace/airpc-engine",
+  "logFile": "/Users/bolbiao/workspace/airpc-engine/.ai-workflow/logs/verify-1784089553814.log",
+  "heartbeatMs": 30000,
+  "label": "verify:npm test"
+}

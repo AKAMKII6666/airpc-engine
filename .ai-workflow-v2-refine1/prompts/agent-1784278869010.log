@@ -1,0 +1,21 @@
+[gbx] ▶ fixer:V2-R3-2+V2-R3-3+V2-R4-1 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-R3-2+V2-R3-3+V2-R4-1 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-R3-2+V2-R3-3+V2-R4-1 still running (30s elapsed, no output for 30s)
+[gbx] … fixer:V2-R3-2+V2-R3-3+V2-R4-1 still running (45s elapsed, no output for 45s)
+[gbx] … fixer:V2-R3-2+V2-R3-3+V2-R4-1 still running (60s elapsed, no output for 60s)
+[gbx] … fixer:V2-R3-2+V2-R3-3+V2-R4-1 still running (75s elapsed, no output for 75s)
+已按审查报告修了确认成立的代码问题；门禁因 Shell 不可用未能重跑。
+
+### 已修（B2-2 major）
+记忆区不再用 `listMockUserProfiles()`（`user_demo_a` 等假键），改为读 `data/users`：
+
+- `GET /api/users` + `usersFs.server.ts`（读 `index.json`）
+- `usersApi.fetchDiskUserSummaries`
+- `CharacterMemoryPanel` 异步加载磁盘用户；可选到 `demo-user` 等真实 Memory 键
+
+### 未勾选（B2-1 / B2-3）
+索引中 `V2-R3-2` / `V2-R3-3` / `V2-R4-1` 仍保持 ⬜——审查要求 `quality:studio` exit 0 后再勾选。
+
+### 自验
+**未自验**（本环境 Shell 全部被拒，无法执行 `npm run quality:studio`）。请在本机跑通后再勾选三行任务。
+[gbx] ■ fixer:V2-R3-2+V2-R3-3+V2-R4-1 done exit=0 elapsed=84s

@@ -1,0 +1,14 @@
+[gbx] ▶ fixer:V2-P1-1+V2-P1-2+V2-P2-1 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-P1-1+V2-P1-2+V2-P2-1 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-P1-1+V2-P1-2+V2-P2-1 still running (30s elapsed, no output for 30s)
+**本轮动作：** `checkbox_missing` — 仅在执行索引将本批活跃任务标为 ✅，未改业务代码、未写 `STATE.json`。
+
+**已勾选：**
+- `V2-P1-1`
+- `V2-P1-2`
+- `V2-P2-1`
+
+**未动：** `V2-P2-2`、`V2-P3-*` 仍为 ⬜。
+
+**自验：** 触发为 `checkbox_missing`（prompt 写明 verify 已通过），本轮未重跑 verify。
+[gbx] ■ fixer:V2-P1-1+V2-P1-2+V2-P2-1 done exit=0 elapsed=31s

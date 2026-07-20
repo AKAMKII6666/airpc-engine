@@ -1,0 +1,110 @@
+[gbx] ▶ executor:V1-E10+V1-P1+V1-P2 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=15s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=30s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=45s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+Connection lost, reconnecting to https://agentn.global.api5.cursor.sh (attempt 1)...
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=1063s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+Retry attempt 1...
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=1078s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=1093s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=1108s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+Connection lost, reconnecting to https://agentn.global.api5.cursor.sh (attempt 2)...
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=2077s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+Retry attempt 2...
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=2092s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=2107s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=3115s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+Connection lost, reconnecting to https://agentn.global.api5.cursor.sh (attempt 3)...
+Retry attempt 3...
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=3130s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=3145s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=3160s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=3175s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+Connection lost, reconnecting to https://agentn.global.api5.cursor.sh (attempt 4)...
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=4131s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=4146s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+Retry attempt 4...
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=4161s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=4176s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=4191s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+Connection lost, reconnecting to https://agentn.global.api5.cursor.sh (attempt 5)...
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=5127s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=5142s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=5157s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+Retry attempt 5...
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=5172s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+Connection lost, reconnecting to https://agentn.global.api5.cursor.sh (attempt 6)...
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=6074s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=6089s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=6104s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=6119s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+Retry attempt 6...
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=7039s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=7054s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=7069s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=7084s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+Connection lost, reconnecting to https://agentn.global.api5.cursor.sh (attempt 7)...
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=8073s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=8088s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=8103s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=8118s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+Retry attempt 7...
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=9098s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=9114s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=9129s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=9144s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+Connection lost, reconnecting to https://agentn.global.api5.cursor.sh (attempt 8)...
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=10073s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=10088s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=10103s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=10118s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+Retry attempt 8...
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=11058s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=11073s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=11088s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=11103s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=11118s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+Connection lost, reconnecting to https://agentn.global.api5.cursor.sh (attempt 9)...
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=12099s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=12114s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=12129s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=12144s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+Retry attempt 9...
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=13158s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=13173s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=13189s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=13204s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+Connection lost, reconnecting to https://agentn.global.api5.cursor.sh (attempt 10)...
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=14198s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=14213s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=14228s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=14243s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+Retry attempt 10...
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=15237s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=15252s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=15267s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=15282s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+Connection lost, reconnecting to https://agentn.global.api5.cursor.sh (attempt 11)...
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=16224s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=16239s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=16254s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=16269s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+Retry attempt 11...
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=17205s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=17220s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=17235s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=17250s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+Connection lost, reconnecting to https://agentn.global.api5.cursor.sh (attempt 12)...
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=17403s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=17418s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=17433s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=17448s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+Retry attempt 12...
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=18382s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=18397s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=18412s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=18427s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=18442s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+RetriableError: Connection stalled repeatedly
+[gbx] … still running executor:V1-E10+V1-P1+V1-P2 elapsed=19456s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126522987.log
+[gbx] ■ executor:V1-E10+V1-P1+V1-P2 done exit=1 elapsed=19457s

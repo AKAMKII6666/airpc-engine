@@ -1,0 +1,29 @@
+[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+
+> quality:studio
+> node scripts/studio-quality/quality-studio.mjs
+
+
+==> lint (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 lint
+> node ./scripts/run-eslint.mjs . --max-warnings 0
+
+
+==> typecheck (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 typecheck
+> tsc -p tsconfig.json --noEmit
+
+src/commonUiComponents/modal/FormModal.tsx(12,26): error TS2306: File '/Users/bolbiao/workspace/airpc-engine/apps/studioV2/src/commonUiComponents/modal/AppModal.tsx' is not a module.
+npm error Lifecycle script `typecheck` failed with error:
+npm error code 2
+npm error path /Users/bolbiao/workspace/airpc-engine/apps/studioV2
+npm error workspace @airpc/studio-v2@0.0.1
+npm error location /Users/bolbiao/workspace/airpc-engine/apps/studioV2
+npm error command failed
+npm error command sh -c tsc -p tsconfig.json --noEmit
+typecheck (@airpc/studio-v2) failed (exit 2)
+
+quality:studio FAILED
+[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=3s

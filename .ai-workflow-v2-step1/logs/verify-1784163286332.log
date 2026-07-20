@@ -1,0 +1,6 @@
+[gbx] ▶ verify:npm run typecheck -w @airpc/studio-v2 start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+
+> @airpc/studio-v2@0.0.1 typecheck
+> tsc -p tsconfig.json --noEmit
+
+[gbx] ■ verify:npm run typecheck -w @airpc/studio-v2 done exit=0 elapsed=1s

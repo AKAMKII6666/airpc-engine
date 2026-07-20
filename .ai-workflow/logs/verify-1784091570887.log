@@ -1,0 +1,49 @@
+[gbx] ▶ verify:npm test start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+
+> test
+> npm run check:engine-imports && npm run test -w @airpc/rpg-engine
+
+
+> check:engine-imports
+> node scripts/check-engine-imports.mjs
+
+check:engine-imports ok (42 files)
+
+> @airpc/rpg-engine@0.0.1 test
+> vitest run
+
+
+ RUN  v3.2.7 /Users/bolbiao/workspace/airpc-engine/packages/rpg-engine
+
+ ✓ tests/host/refer-to-expert-e2e.test.ts (1 test) 91ms
+ ✓ tests/host/night-layer-e2e.test.ts (2 tests) 105ms
+ ✓ tests/host/golden-handoff.test.ts (2 tests) 137ms
+ ✓ tests/host/content-reload-preserves-session.test.ts (2 tests) 154ms
+ ✓ tests/host/free-call-pipeline.test.ts (4 tests) 181ms
+ ✓ tests/host/clock-tick-e2e.test.ts (4 tests) 214ms
+ ✓ tests/validation/golden-handoff.validate.test.ts (10 tests) 467ms
+ ✓ tests/memory/sqlite-memory.test.ts (8 tests) 49ms
+ ✓ tests/host/a-to-b-memory-e2e.test.ts (1 test) 120ms
+ ✓ tests/host/chat-turns-e2e.test.ts (2 tests) 134ms
+ ✓ tests/host/manual-story-loop.test.ts (2 tests) 188ms
+ ✓ tests/host/isolation-recurring-e2e.test.ts (2 tests) 256ms
+ ✓ tests/host/active-story-lock.test.ts (3 tests) 236ms
+ ✓ tests/lore/bootstrap-fallback.test.ts (6 tests) 34ms
+ ✓ tests/runtime/effect-sink-plan-status.test.ts (3 tests) 5ms
+ ✓ tests/host/schedule-outbound.test.ts (2 tests) 147ms
+ ✓ tests/runtime/composer.test.ts (10 tests) 10ms
+ ✓ tests/host/playback-phase.test.ts (1 test) 107ms
+ ✓ tests/schema/callcard-schema-tighten.test.ts (4 tests) 4ms
+ ✓ tests/runtime/effect-s11.test.ts (5 tests) 17ms
+ ✓ tests/runtime/select-call-flow-prompt.test.ts (2 tests) 1ms
+ ✓ tests/runtime/pick-pending-entry-mode.test.ts (4 tests) 3ms
+ ✓ tests/host/log-redact.test.ts (1 test) 1ms
+ ✓ tests/index.smoke.test.ts (1 test) 2ms
+ ✓ tests/runtime/exit-selector.test.ts (3 tests) 2ms
+
+ Test Files  25 passed (25)
+      Tests  85 passed (85)
+   Start at  12:59:31
+   Duration  1.76s (transform 430ms, setup 0ms, collect 4.19s, tests 2.67s, environment 3ms, prepare 1.29s)
+
+[gbx] ■ verify:npm test done exit=0 elapsed=2s

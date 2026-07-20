@@ -1,0 +1,131 @@
+[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+
+> quality:studio
+> node scripts/studio-quality/quality-studio.mjs
+
+
+==> ensure-modal-layout (pre-typecheck)
+ensure-modal-layout: nothing to remove
+
+==> ensure-migrated-layout (pre-typecheck)
+ensure-migrated-layout: nothing to remove
+
+==> lint (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 lint
+> node ./scripts/run-eslint.mjs . --max-warnings 0
+
+
+==> typecheck (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 typecheck
+> tsc -p tsconfig.json --noEmit
+
+
+==> check:comments
+check:comments ok (172 files)
+
+==> check:studio-structure
+WARN STUDIO-STRUCT-002  apps/studioV2/src/bis/pageBis/characters/detail/characterDetailForm.ts:93:1  函数 applyCharacterDetailForm 有效行数 67 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-003  apps/studioV2/src/bis/pageBis/characters/detail/characterDetailFormValidate.ts:125:1  函数 validateScenes 圈复杂度 13 超过告警线 10  重构条件分支，避免继续堆叠
+WARN STUDIO-STRUCT-002  apps/studioV2/src/commonUiComponents/form/blocks/AvatarUpload/index.tsx:19:5  函数 FormAvatarUpload 有效行数 72 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/commonUiComponents/form/blocks/LocalHourRangeField/index.tsx:38:5  函数 FormLocalHourRangeField 有效行数 72 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/commonUiComponents/form/blocks/PromptSceneListEditor/com/PromptSceneCardBody/index.tsx:34:2  函数 PromptSceneCardBody 有效行数 72 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/commonUiComponents/form/blocks/PromptSceneListEditor/index.tsx:26:5  函数 FormPromptSceneListEditor 有效行数 65 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-003  apps/studioV2/src/commonUiComponents/form/blocks/PromptSceneListEditor/promptSceneListHelpers.ts:26:1  函数 asPromptSceneList 圈复杂度 11 超过告警线 10  重构条件分支，避免继续堆叠
+WARN STUDIO-STRUCT-002  apps/studioV2/src/commonUiComponents/form/blocks/PromptVariantListEditor/index.tsx:36:5  函数 FormPromptVariantListEditor 有效行数 96 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/commonUiComponents/form/blocks/StringListEditor/index.tsx:24:5  函数 FormStringListEditor 有效行数 72 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/assets/hooks/useAssetLibraryPage.ts:19:1  函数 useAssetLibraryPage 有效行数 78 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-003  apps/studioV2/src/pageComponents/assets/hooks/useAssetLibraryPage.ts:19:1  函数 useAssetLibraryPage 圈复杂度 11 超过告警线 10  重构条件分支，避免继续堆叠
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/characters/com/CharacterDetailEditForm.tsx:39:2  函数 CharacterDetailEditForm 有效行数 67 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/characters/hooks/useCharacterLibraryPage.ts:18:1  函数 useCharacterLibraryPage 有效行数 71 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/debugger/com/CallRunPanel.tsx:43:52  函数 CallRunPanel 有效行数 72 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/home/WorkbenchSideCol.tsx:21:37  函数 WorkbenchSideCol 有效行数 78 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/packages/create/CreatePackageView.tsx:22:38  函数 CreatePackageView 有效行数 63 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/packages/export/ExportPackageForm.tsx:33:45  函数 ExportPackageForm 有效行数 65 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/packages/list/PackageListView.tsx:30:36  函数 PackageListView 有效行数 84 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/settings/com/SettingsEnginePanels.tsx:92:62  函数 SchemaEnginePanel 有效行数 65 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/storyEditor/StoryEditorShell.tsx:36:60  函数 StoryEditorShell 有效行数 95 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/storyEditor/canvas/useStoryCanvasGraph.ts:54:1  函数 useStoryCanvasGraph 有效行数 98 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/storyEditor/com/panel/NodePropertyForm.tsx:39:60  函数 NodePropertyForm 有效行数 77 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/users/hooks/useUserLibraryPage.ts:18:1  函数 useUserLibraryPage 有效行数 69 超过告警线 60  考虑拆分以保持可测性
+check:studio-structure ok (172 files, 23 warnings)
+
+==> test:studio
+
+> test:studio
+> npm run test -w @airpc/studio-v2
+
+
+> @airpc/studio-v2@0.0.1 test
+> vitest run
+
+
+ RUN  v3.2.7 /Users/bolbiao/workspace/airpc-engine/apps/studioV2
+
+ ✓ tests/domain/createStudioId.test.ts (2 tests) 1ms
+ ✓ tests/packages/createPackageForm.test.ts (2 tests) 2ms
+ ✓ tests/storyEditor/mockEditorCharacters.test.ts (5 tests) 4ms
+ ✓ tests/commonUi/formFieldConfig.test.ts (5 tests) 3ms
+ ✓ tests/users/userForm.test.ts (7 tests) 3ms
+ ✓ tests/characters/characterForm.test.ts (5 tests) 5ms
+ ✓ tests/assets/assetForm.test.ts (8 tests) 6ms
+ ✓ tests/commonUi/paginationSlice.test.ts (5 tests) 2ms
+ ✓ tests/commonUi/modalContract.test.ts (4 tests) 3ms
+ ↓ tests/tmp-remove-flat-prompt-scene.test.ts (1 test | 1 skipped)
+ ✓ tests/storyEditor/nodePropertyAndRole.test.ts (4 tests) 4ms
+ ✓ tests/commonUi/autoFormContract.test.ts (9 tests) 4ms
+
+ Test Files  11 passed | 1 skipped (12)
+      Tests  56 passed | 1 skipped (57)
+   Start at  16:48:00
+   Duration  1.02s (transform 550ms, setup 0ms, collect 1.22s, tests 37ms, environment 1ms, prepare 603ms)
+
+
+==> gate self-tests (comments + structure)
+▶ check:comments
+  ✔ 合格契约通过 (10.033958ms)
+  ✔ 缺失导出意图注释失败 (2.232958ms)
+  ✔ 缺失字段说明失败 (1.550417ms)
+  ✔ 复述占位注释失败 (1.380666ms)
+  ✔ 无原因抑制失败（含裸 eslint-disable） (2.927667ms)
+  ✔ 带原因抑制通过 (1.584125ms)
+  ✔ 输出格式含规则编号与位置 (0.844375ms)
+✔ check:comments (21.291ms)
+▶ check:studio-structure
+  ✔ 有效行数忽略空行但不忽略注释 (0.545584ms)
+  ✔ page.tsx 分类正确 (0.152584ms)
+  ✔ 圈复杂度统计分支 (3.71425ms)
+  ✔ 合格基线通过，且排除 generated (10.191709ms)
+  ✔ page 行数硬上限失败 (3.76975ms)
+  ✔ 函数复杂度硬上限失败 (2.520041ms)
+  ✔ client 引擎写口失败 (2.64425ms)
+  ✔ 业务旁平放测试失败 (2.726209ms)
+  ✔ 深挖引擎内部路径失败 (2.682333ms)
+  ✔ 目录异责平铺失败 (3.155333ms)
+  ✔ 业务 barrel index 失败 (1.263834ms)
+  ✔ 旧式顶层业务目录失败 (1.570208ms)
+  ✔ 兼容转发壳失败 (2.7305ms)
+  ✔ 同一语义区重复入口失败 (2.06675ms)
+  ✔ commonUiComponents 平铺组件失败 (3.406583ms)
+  ✔ 新增或修改代码使用空格缩进失败 (3.987833ms)
+  ✔ 自定义组件引用缺少用途注释失败 (1.891958ms)
+  ✔ 组件 props 未在入口显式解构失败 (1.800416ms)
+  ✔ 入口格式合格通过 (2.329375ms)
+  ✔ UI 组件裸 fetch 失败 (1.757458ms)
+  ✔ 大范围豁免被拒绝 (1.288959ms)
+  ✔ 精确豁免生效 (2.185083ms)
+  ✔ validateAllowlist 拒绝 apps/** (0.092417ms)
+  ✔ 输出格式含规则编号与位置（路径可定位） (1.61775ms)
+✔ check:studio-structure (61.160291ms)
+ℹ tests 31
+ℹ suites 2
+ℹ pass 31
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 208.868708
+
+quality:studio ok
+[gbx] ■ verify:npm run quality:studio done exit=0 elapsed=6s

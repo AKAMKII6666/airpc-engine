@@ -5,6 +5,7 @@ import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { engineError, isEngineError, type EngineError } from "./errors.js";
 import type {
+  ActualCallEntry,
   BeginCallOpts,
   CallIntent,
   CallSession,
@@ -19,6 +20,7 @@ import { OutcomeSchema } from "../schema/outcome.js";
 import {
   getFreeCard,
   loadCard,
+  lookupCharacterSideCard,
   loadWorkspaceState,
   readProfile,
   type WorkspaceState,
@@ -32,12 +34,15 @@ import { runFreeCallPostPipeline } from "../runtime/freeCallPostPipeline.js";
 import { isEffectiveDialable } from "../schema/character.js";
 import { pickPendingForIntent } from "../runtime/pickPendingForUserDial.js";
 import {
-  activateStoryOnBegin,
   evaluateStoryLockGate,
   findActiveStoryLock,
   type StoryLockIntentKind,
 } from "../runtime/activeStoryLock.js";
-import { FREE_PACKAGE_ID } from "../constants.js";
+import {
+  maybeActivateStoryOnBegin,
+  sessionIsFreeLike,
+} from "./callNarrativeGate.js";
+import { FREE_PACKAGE_ID, SCHEDULE_PACKAGE_ID } from "../constants.js";
 import { createSqliteMemoryPort } from "../memory/sqliteMemoryPort.js";
 import type { MemoryPort } from "../memory/types.js";
 import { invokeSessionTool } from "../tools/invokeSessionLocal.js";
@@ -46,10 +51,12 @@ import {
   validatePackage as runValidatePackage,
 } from "../validation/validatePackage.js";
 import type { ValidationReport } from "../validation/types.js";
-import {
-  advanceProfileClock,
-  type FiredScheduleItem,
+import type {
+  AdvanceToNextResult,
+  FiredScheduleItem,
 } from "../runtime/scheduleTick.js";
+import { createScheduleClockApi } from "./createScheduleClockApi.js";
+import { consumeLinkedOnceIntent } from "../runtime/scheduleTick.js";
 import {
   createNoopEffectSink,
   type EffectSink,
@@ -59,6 +66,17 @@ import {
   readEngineLogJsonlSlice,
   redactLogRecord,
 } from "./engineLogFile.js";
+import {
+  WET_STORAGE_NOTE,
+  buildWetAppendRecord,
+  buildWetReplayView,
+  filterWetRecords,
+  mergeWetSources,
+  validateWetAppend,
+  type WetAppendInput,
+  type WetQueryOpts,
+  type WetReplayView,
+} from "./wet.js";
 import {
   selectCallFlowPrompt,
   type CallFlowSimEventKind,
@@ -133,6 +151,13 @@ export interface EngineHost {
     sessionId: string,
     kind: CallFlowSimEventKind,
   ): CallSession | EngineError;
+  /**
+   * 文本调试轮次登记（通话中）；不跑 Effect、不写 Profile。
+   */
+  recordChatTurn(
+    sessionId: string,
+    turn: { role: "user" | "assistant" | "system"; text: string },
+  ): CallSession | EngineError;
   getActiveSession(userId: string): CallSession | null;
   getSession(sessionId: string): CallSession | null;
   getRecentLogs(opts?: { userId?: string; limit?: number }): LogRecord[];
@@ -145,17 +170,41 @@ export interface EngineHost {
     lines: LogRecord[];
     truncated: boolean;
   } | EngineError>;
+  /**
+   * WET 查询：合并 ring（+可选当日 jsonl），按 type／session／时间过滤。
+   */
+  queryWet(opts?: WetQueryOpts & { includeFile?: boolean }): Promise<{
+    events: LogRecord[];
+    storageNote: string;
+    file?: string;
+    truncated?: boolean;
+  } | EngineError>;
+  /**
+   * 受控追加：仅 wet.annotation／wet.compensation；禁止改写历史／冒充 effect 账本。
+   */
+  appendWet(input: WetAppendInput): LogRecord | EngineError;
+  /** 重放视图：session 相关事件 + exit／effect plan 摘要（只读） */
+  getWetReplay(sessionId: string): Promise<WetReplayView | EngineError>;
   getLoadedCardCount(packageId: string): number;
   getMemoryPort(): MemoryPort | null;
   validatePackage(packageId: string): Promise<ValidationReport>;
   /**
-   * 推进 Profile.schedule.clockMs 并扫描 once 到期 → 挂 outbound pending。
+   * 推进 Profile.schedule.clockMs：物化到期 recurring→once，再 tick once → outbound pending。
    * 返回本拍 fired 列表，供调试台再 resolve(agent_outbound)。
    */
   advanceClock(
     userId: string,
     deltaMs: number,
   ): FiredScheduleItem[] | EngineError;
+  /** 跳到绝对逻辑时刻（仅前进）并 Tick */
+  setClockMs(
+    userId: string,
+    toClockMs: number,
+  ): FiredScheduleItem[] | EngineError;
+  /** 推到下一意图（pending once 或 recurring 下次 occurrence） */
+  advanceClockToNextIntent(
+    userId: string,
+  ): AdvanceToNextResult | EngineError;
   /**
    * Lore bootstrap：有 location 或 force 时写入 Profile.world.lore；
    * port 失败降级 fallback；不阻塞调用方。
@@ -221,6 +270,11 @@ export function createEngineHost(
       throw engineError("ENGINE_INTERNAL", "workspace not loaded");
     }
     return workspace;
+  }
+
+  /** 调度/recurring 只读查卡；注入 Executor 与 clock tick，避免各处读盘。 */
+  function lookupCard(packageId: string, cardId: string) {
+    return lookupCharacterSideCard(requireWorkspace(), packageId, cardId);
   }
 
   function resolveFreeForAgent(
@@ -407,9 +461,16 @@ export function createEngineHost(
 				if (instance.entryMode) {
 					return instance.entryMode;
 				}
-				return ws.packages
-					.get(instance.packageId)
-					?.cards.get(instance.cardId)?.entryMode;
+				return (
+					lookupCharacterSideCard(
+						ws,
+						instance.packageId,
+						instance.cardId,
+					)?.entryMode ??
+					ws.packages
+						.get(instance.packageId)
+						?.cards.get(instance.cardId)?.entryMode
+				);
 			}
 
 			function resolvePendingStory(
@@ -423,9 +484,13 @@ export function createEngineHost(
 				if (!pending) {
 					return null;
 				}
-				const card = ws.packages
-					.get(pending.packageId)
-					?.cards.get(pending.cardId);
+				const card =
+					lookupCharacterSideCard(
+						ws,
+						pending.packageId,
+						pending.cardId,
+					) ??
+					ws.packages.get(pending.packageId)?.cards.get(pending.cardId);
 				if (!card) {
 					return engineError(
 						"NOT_FOUND",
@@ -601,9 +666,16 @@ export function createEngineHost(
 						if (instance.entryMode) {
 							return instance.entryMode;
 						}
-						return ws.packages
-							.get(instance.packageId)
-							?.cards.get(instance.cardId)?.entryMode;
+						return (
+							lookupCharacterSideCard(
+								ws,
+								instance.packageId,
+								instance.cardId,
+							)?.entryMode ??
+							ws.packages
+								.get(instance.packageId)
+								?.cards.get(instance.cardId)?.entryMode
+						);
 					},
 				});
 				if (pending) {
@@ -637,8 +709,18 @@ export function createEngineHost(
 
         const now = new Date().toISOString();
         const sessionId = randomUUID();
+        const actualEntry: ActualCallEntry | undefined =
+          result.intent.kind === "agent_outbound"
+            ? "outbound_auto"
+            : result.intent.kind === "user_dial" ||
+                result.intent.kind === "free_call"
+              ? "inbound_user_dial"
+              : result.intent.kind === "simulate_start"
+                ? undefined
+                : undefined;
         const composeScene = buildComposeScene({
           entryMode: result.card.entryMode,
+          actualEntry,
           packageId: result.packageId,
           localNowIso: opts.localNowIso,
           timeZone: opts.timeZone,
@@ -722,6 +804,7 @@ export function createEngineHost(
             intent: result.intent,
           },
           frozenCard: structuredClone(result.card),
+          actualEntry,
           composeScene,
           renderedPrompt: rendered,
           matchedLayerIds: rendered.matchedLayerIds,
@@ -735,19 +818,32 @@ export function createEngineHost(
           effectLedger: {},
         };
 
-        if (
-          result.packageId !== FREE_PACKAGE_ID &&
-          result.source !== "free"
-        ) {
-          const profileForLock = profiles.get(userId);
-          if (profileForLock) {
-            activateStoryOnBegin(profileForLock, {
-              packageId: result.packageId,
-              instanceId: result.instanceId,
-              nowIso: now,
-            });
+        const profileForBegin = profiles.get(userId);
+        if (profileForBegin && result.source === "story_pending") {
+          // 延迟外呼：mark pending active + 消费 linked once，后续 tick 不重复外呼
+          const board =
+            profileForBegin.callCards.board.byAgent[result.agentId];
+          const pendingItem = board?.pending.find(function (item) {
+            return item.instanceId === result.instanceId;
+          });
+          if (pendingItem && pendingItem.status === "pending") {
+            pendingItem.status = "active";
+            pendingItem.updatedAt = now;
           }
+          consumeLinkedOnceIntent(profileForBegin, {
+            instanceId: result.instanceId,
+            intentId: pendingItem?.scheduledIntentId,
+          });
         }
+
+        maybeActivateStoryOnBegin({
+          profile: profileForBegin,
+          packageId: result.packageId,
+          cardKind: result.card.cardKind,
+          source: result.source,
+          instanceId: result.instanceId,
+          nowIso: now,
+        });
 
         sessions.set(sessionId, session);
         activeByUser.set(userId, sessionId);
@@ -821,6 +917,54 @@ export function createEngineHost(
 			return session;
 		},
 
+    recordChatTurn(
+      sessionId: string,
+      turn: { role: "user" | "assistant" | "system"; text: string },
+    ): CallSession | EngineError {
+      const session = sessions.get(sessionId);
+      if (!session) {
+        return engineError("NOT_FOUND", `session not found: ${sessionId}`);
+      }
+      if (session.status !== "in_call") {
+        return engineError(
+          "ENGINE_INTERNAL",
+          `session not in_call: ${session.status}`,
+        );
+      }
+      if (session.interactionPhase === "playback") {
+        return engineError(
+          "VALIDATION_FAILED",
+          "chat not allowed during playback phase",
+        );
+      }
+      if (session.frozenCard.interactionMode === "playback_only") {
+        return engineError(
+          "VALIDATION_FAILED",
+          "chat not allowed for playback_only cards",
+        );
+      }
+      const text = turn.text.trim();
+      if (!text) {
+        return engineError("VALIDATION_FAILED", "chat turn text required");
+      }
+      const at = new Date().toISOString();
+      if (!session.chatTurns) {
+        session.chatTurns = [];
+      }
+      session.chatTurns.push({ role: turn.role, text, at });
+      if (session.channel === "manual") {
+        session.channel = "text_turn";
+      }
+      pushLog({
+        at,
+        type: "chat.turn",
+        userId: session.userId,
+        sessionId,
+        payload: { role: turn.role, chars: text.length },
+      });
+      return session;
+    },
+
     simEvent(
       sessionId: string,
       kind: CallFlowSimEventKind,
@@ -885,10 +1029,11 @@ export function createEngineHost(
         return engineError("NOT_FOUND", "profile missing for endCall");
       }
 
-      const isFree =
-        session.resolve.source === "free" ||
-        session.frozenCard.cardKind === "free" ||
-        session.packageId === FREE_PACKAGE_ID;
+      const isFree = sessionIsFreeLike({
+        packageId: session.packageId,
+        cardKind: session.frozenCard.cardKind,
+        source: session.resolve.source,
+      });
 
       const nowIso = new Date().toISOString();
 
@@ -902,6 +1047,7 @@ export function createEngineHost(
           nowIso,
           opts: { minTurns: session.channel === "manual" ? 0 : 2 },
           effectSink,
+          lookupCard,
         });
         await host.saveProfile(session.userId, "after_free_pipeline");
         session.status =
@@ -1015,12 +1161,13 @@ export function createEngineHost(
       };
 
       session.status = "executing_effects";
-      const plan = executeEffects(selected.exit.effects, {
+      const plan = await executeEffects(selected.exit.effects, {
         profile,
         session,
         nowIso,
         memory,
         effectSink,
+        lookupCard,
       });
       session.effectPlanResult = plan;
 
@@ -1094,6 +1241,72 @@ export function createEngineHost(
       }
     },
 
+    async queryWet(opts) {
+      try {
+        const includeFile = opts?.includeFile !== false;
+        let fileLines: LogRecord[] = [];
+        let file: string | undefined;
+        let truncated: boolean | undefined;
+        if (includeFile && workspace) {
+          const slice = await readEngineLogJsonlSlice({
+            rootDir: workspace.rootDir,
+            limit: Math.min(opts?.limit ?? 200, 500),
+          });
+          fileLines = slice.lines;
+          file = slice.file;
+          truncated = slice.truncated;
+        }
+        const merged = mergeWetSources(logs, fileLines);
+        const events = filterWetRecords(merged, opts);
+        return {
+          events,
+          storageNote: WET_STORAGE_NOTE,
+          file,
+          truncated,
+        };
+      } catch (err) {
+        if (isEngineError(err)) return err;
+        return engineError(
+          "ENGINE_INTERNAL",
+          err instanceof Error ? err.message : String(err),
+        );
+      }
+    },
+
+    appendWet(input) {
+      const invalid = validateWetAppend(input);
+      if (invalid) return invalid;
+      const record = buildWetAppendRecord(input);
+      pushLog(record);
+      return record;
+    },
+
+    async getWetReplay(sessionId) {
+      try {
+        if (!sessionId) {
+          return engineError("VALIDATION_FAILED", "sessionId required");
+        }
+        const queried = await host.queryWet({
+          sessionId,
+          includeFile: true,
+          limit: 500,
+        });
+        if (isEngineError(queried)) return queried;
+        const session = sessions.get(sessionId) ?? null;
+        return buildWetReplayView({
+          sessionId,
+          events: queried.events,
+          session,
+        });
+      } catch (err) {
+        if (isEngineError(err)) return err;
+        return engineError(
+          "ENGINE_INTERNAL",
+          err instanceof Error ? err.message : String(err),
+        );
+      }
+    },
+
     getLoadedCardCount(packageId: string): number {
       const ws = requireWorkspace();
       return ws.packages.get(packageId)?.cards.size ?? 0;
@@ -1112,30 +1325,7 @@ export function createEngineHost(
       });
     },
 
-		advanceClock(
-			userId: string,
-			deltaMs: number,
-		): FiredScheduleItem[] | EngineError {
-			const profile = profiles.get(userId);
-			if (!profile) {
-				return engineError("USER_REQUIRED", "call ensureProfile first");
-			}
-			try {
-				const fired = advanceProfileClock(profile, deltaMs);
-				pushLog({
-					at: new Date().toISOString(),
-					type: "schedule.advanced",
-					userId,
-					payload: { deltaMs, firedCount: fired.length, fired },
-				});
-				return fired;
-			} catch (err) {
-				return engineError(
-					"VALIDATION_FAILED",
-					err instanceof Error ? err.message : String(err),
-				);
-			}
-		},
+    ...createScheduleClockApi({ profiles, lookupCard, pushLog }),
 
     async bootstrapLore(userId, opts) {
       const profile = profiles.get(userId);
@@ -1176,9 +1366,13 @@ export function createEngineHost(
 /** Studio server 进程单例 */
 let singleton: EngineHost | null = null;
 
-export function getEngineHost(): EngineHost {
+/**
+ * 进程单例。仅首次创建时应用 options（如 loreBootstrap LLM port）；
+ * 已存在时忽略后续 options。
+ */
+export function getEngineHost(options?: CreateEngineHostOptions): EngineHost {
 	if (!singleton) {
-		singleton = createEngineHost();
+		singleton = createEngineHost(options);
 	}
 	return singleton;
 }

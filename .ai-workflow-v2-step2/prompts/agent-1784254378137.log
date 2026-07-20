@@ -1,0 +1,35 @@
+[gbx] ▶ fixer:V2-E3+V2-E4+V2-E5 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-E3+V2-E4+V2-E5 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-E3+V2-E4+V2-E5 still running (30s elapsed, no output for 30s)
+[gbx] … fixer:V2-E3+V2-E4+V2-E5 still running (45s elapsed, no output for 45s)
+[gbx] … fixer:V2-E3+V2-E4+V2-E5 still running (60s elapsed, no output for 60s)
+[gbx] … fixer:V2-E3+V2-E4+V2-E5 still running (75s elapsed, no output for 75s)
+[gbx] … fixer:V2-E3+V2-E4+V2-E5 still running (90s elapsed, no output for 90s)
+[gbx] … fixer:V2-E3+V2-E4+V2-E5 still running (105s elapsed, no output for 105s)
+[gbx] … fixer:V2-E3+V2-E4+V2-E5 still running (120s elapsed, no output for 120s)
+[gbx] … fixer:V2-E3+V2-E4+V2-E5 still running (135s elapsed, no output for 135s)
+已按 `latest-verify.json` 修好本批唯一红灯：`check:comments` 三处。
+
+### 修改
+`apps/studioV2/src/bis/pageBis/storyEditor/addEditorCharacterForm.ts`
+
+1. **STUDIO-COMMENT-002**：为 `EditorCharacterLibraryOption.agentId` / `displayName` 补字段级说明（所有权、可空、是否写盘）
+2. **STUDIO-COMMENT-001**：为 `ADD_EDITOR_CHARACTER_INITIAL_VALUES` 补 JSDoc（会话态 Formik 初值、默认手动哨兵、不写盘）
+
+### 审查项对照
+| 项 | 状态 |
+|---|---|
+| R8-1 verify | 代码已对上 verify 失败点；本环境 **Shell 全部 Rejected**，未能重跑门禁 |
+| R8-2 勾选 | 索引里 V2-E3/E4/E5 **已是 ✅** |
+| R8-3 icons-material | 当前 `package.json` **无**该依赖；底栏用本地 `DockToolIcons`（SvgIcon），与现实现一致 |
+| R8-4 删 DockToolIcons | **仍被** `BottomToolBar` / `CharacterAnchorRail` 引用，未删 |
+
+### 请你本地跑一次
+本会话无法执行任何 shell（含 `echo`）。请在仓库根目录执行：
+
+```bash
+npm run quality:studio
+```
+
+期望 `check:comments` 通过、整体 PASSED。若仍有新失败，把 stdout 贴回来即可继续修。
+[gbx] ■ fixer:V2-E3+V2-E4+V2-E5 done exit=0 elapsed=143s

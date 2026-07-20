@@ -160,19 +160,44 @@ export function createStudioStore(): StoreApi<StudioStore> {
       },
       setDebuggerSessionId: function (sessionId): void {
         set(function (state) {
-          return { debugger: { ...state.debugger, sessionId } };
+          return {
+            debugger: {
+              ...state.debugger,
+              sessionId,
+              ...(sessionId
+                ? {}
+                : { chatTurns: [], chatDraft: "", chatStreaming: false }),
+            },
+          };
         });
       },
       applyDebuggerSnapshot: function (snapshot: IDebuggerSnapshot): void {
         set(function (state) {
+          const turns = snapshot.activeSession?.chatTurns ?? [];
           return {
             debugger: {
               ...state.debugger,
               snapshot,
+              chatTurns: turns,
               loading: false,
               error: null,
             },
           };
+        });
+      },
+      setDebuggerChatTurns: function (turns): void {
+        set(function (state) {
+          return { debugger: { ...state.debugger, chatTurns: turns } };
+        });
+      },
+      setDebuggerChatDraft: function (draft): void {
+        set(function (state) {
+          return { debugger: { ...state.debugger, chatDraft: draft } };
+        });
+      },
+      setDebuggerChatStreaming: function (streaming): void {
+        set(function (state) {
+          return { debugger: { ...state.debugger, chatStreaming: streaming } };
         });
       },
       setDebuggerEndResult: function (result): void {

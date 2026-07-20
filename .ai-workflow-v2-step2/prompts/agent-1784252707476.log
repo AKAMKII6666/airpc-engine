@@ -1,0 +1,33 @@
+[gbx] ▶ fixer:V2-A3+V2-U1+V2-U2 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-A3+V2-U1+V2-U2 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-A3+V2-U1+V2-U2 still running (30s elapsed, no output for 30s)
+[gbx] … fixer:V2-A3+V2-U1+V2-U2 still running (45s elapsed, no output for 45s)
+[gbx] … fixer:V2-A3+V2-U1+V2-U2 still running (60s elapsed, no output for 60s)
+[gbx] … fixer:V2-A3+V2-U1+V2-U2 still running (75s elapsed, no output for 75s)
+[gbx] … fixer:V2-A3+V2-U1+V2-U2 still running (90s elapsed, no output for 90s)
+[gbx] … fixer:V2-A3+V2-U1+V2-U2 still running (105s elapsed, no output for 105s)
+已修 verify 指出的 TS4104；本环境 Shell 全部被拒，未能重跑 `quality:studio`，因此未勾选任务。
+
+### 修复（verify 优先）
+
+`DeleteConfirmModalProps.referenceLines`：`string[]` → `readonly string[]`，与 `assetSummary` / `characterSummary` 的只读投影对齐，消除：
+
+- `AssetLibraryView.tsx:72`
+- `CharacterLibraryView.tsx:80`
+
+### 审查项状态
+
+| ID | 状态 |
+|----|------|
+| R6-2（删确认 Modal 抽 commonUi） | 已落地：`commonUiComponents/modal/confirm/DeleteConfirmModal`；页内复制件已被门禁清理 |
+| R6-1 / verify | **未确认**：Shell 持续 `Rejected`，`npm run quality:studio` 无法执行 |
+| R6-3（V2-A3/U1/U2 ✅） | **未勾选**（须 verify 通过后再勾） |
+
+### 请在本机执行
+
+```bash
+cd /Users/bolbiao/workspace/airpc-engine && npm run quality:studio
+```
+
+通过后把执行索引中 V2-A3 / V2-U1 / V2-U2 改为 ✅，或恢复 Shell 后让 FIXER 再跑一轮。未写 `STATE.json`。
+[gbx] ■ fixer:V2-A3+V2-U1+V2-U2 done exit=0 elapsed=113s

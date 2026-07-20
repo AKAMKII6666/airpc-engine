@@ -1,6 +1,10 @@
 # 全局资产库
 
-元数据：`meta/<assetId>.json`  
-文件：`files/...`
+真源见需求 [14](../../docs/AI和人类/需求/14-资源与媒体资产.md)。
 
-样例包暂无媒体文件；playback 卡接入时再补。见需求 [14](../../docs/AI和人类/需求/14-资源与媒体资产.md)。
+| 路径 | 说明 |
+|------|------|
+| `meta/<assetId>.json` | `AssetMeta` 元数据 |
+| `files/...` | 二进制／旁路文件（`uri` 相对本目录 `assets/`） |
+
+样例：`clip_hello`（`files/clip_hello.wav`），由 `golden_handoff` 卡 `demo_playback_hello` 引用。

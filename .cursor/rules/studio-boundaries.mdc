@@ -18,7 +18,7 @@ alwaysApply: false
 - **禁止** store 发请求 / toast / 导航；**禁止** page/com 裸 `fetch` 拼 BFF URL（走 `ajaxHelper`）。
 - **仅** `*.shell.bis.ts`（及少数 `*Flow.ts`）可碰路由导航 / 首屏数据钩子。
 - **UserGate** 可复用组件（非独立业务页）：进 `/debugger`、进故事列表项/创建故事时弹出；无密码。
-- 路由主路径：`/stories`、`/stories/[packageId]`、`/characters`、`/debugger`。
+- 路由主路径：`/stories`、`/stories/[packageId]`、`/characters`、`/world`、`/assets`、`/debugger`。
 - 真源：Content + 薄 Profile JSON + Memory SQLite；画布为投影；layout 旁车。
 - **调试与编辑分离**：调试器不改卡；发现问题回画布保存后再调试。
 - Zustand **不得**当 Profile/Memory 真源；不得灌十年记忆大数组。

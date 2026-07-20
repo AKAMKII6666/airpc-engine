@@ -1,0 +1,25 @@
+[gbx] ▶ fixer:V2-R1-4+V2-R2-1+V2-R2-2 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-R1-4+V2-R2-1+V2-R2-2 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-R1-4+V2-R2-1+V2-R2-2 still running (30s elapsed, no output for 30s)
+[gbx] … fixer:V2-R1-4+V2-R2-1+V2-R2-2 still running (45s elapsed, no output for 45s)
+[gbx] … fixer:V2-R1-4+V2-R2-1+V2-R2-2 still running (60s elapsed, no output for 60s)
+[gbx] … fixer:V2-R1-4+V2-R2-1+V2-R2-2 still running (75s elapsed, no output for 75s)
+[gbx] … fixer:V2-R1-4+V2-R2-1+V2-R2-2 still running (90s elapsed, no output for 90s)
+已按 `latest-verify.json` 修了仍红的 3 处 typecheck；**未自验**（Shell 两次被拒，未能重跑 `npm run quality:studio`）。
+
+### 修复
+
+1. **`AutoForm/index.tsx:107`（TS2769）**  
+   `merge` 结果是 `Record<string, unknown>`，spread 进 `Field` 丢类型。改为先组 `AutoFormMappedFieldProps`，合并 comProps 后再断言回 Mapped props。
+
+2. **`formFieldConfig.test.ts:90–91`（TS2322）**  
+   `FormikTouched/Errors<Record<string, unknown>>` 把叶子收成 `boolean`/`string`，嵌套 `{ identity: { fullName } }` 不合法。测试桩 `stubFormik` 改为接受 `object` 再断言（嵌套路径本来就靠 `getIn`）。
+
+### 未做
+
+- 未勾选 V2-R1-4 / V2-R2-1 / V2-R2-2（verify 未跑通）
+- 未写 `STATE.json`
+- 未追 review 里已不在 verify 红区的 comProps 行为项（FormTextField 侧已有 escape 实现）
+
+请在可跑 Shell 的环境执行：`npm run quality:studio`。
+[gbx] ■ fixer:V2-R1-4+V2-R2-1+V2-R2-2 done exit=0 elapsed=98s

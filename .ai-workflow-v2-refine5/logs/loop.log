@@ -1,0 +1,42 @@
+[2026-07-20T09:17:21.694Z] checkpoint preflight skipped=true checkpoints disabled (default; pass --checkpoint to enable)
+[2026-07-20T09:17:21.694Z] start status=EXECUTE_BATCH mock=false
+[2026-07-20T09:17:21.697Z] iter=1 status=EXECUTE_BATCH
+[2026-07-20T09:25:58.855Z] iter=2 status=BATCH_REVIEW
+[2026-07-20T09:27:42.620Z] batch review → FIX_BATCH (review fail blocker=0 critical=0)
+[2026-07-20T09:27:42.621Z] iter=3 status=FIX_BATCH
+[2026-07-20T09:31:23.753Z] iter=4 status=VERIFY_BATCH
+[2026-07-20T09:31:29.414Z] checkbox missing: V2-S5-1,V2-S5-2
+[2026-07-20T09:31:29.418Z] verify ok=false checks=false → FIX_BATCH (batch verify failed) fingerprint=de1af57387f6531ac52170f7c71bcd79bc94f239
+[2026-07-20T09:31:29.425Z] iter=5 status=FIX_BATCH
+[2026-07-20T09:40:40.677Z] iter=6 status=VERIFY_BATCH
+[2026-07-20T09:40:47.959Z] checkbox missing: V2-S5-1,V2-S5-2
+[2026-07-20T09:40:47.959Z] verify ok=false checks=false → FIX_BATCH (batch verify failed) fingerprint=c93e5cc572359be043d219492ffd8e1b9790ab0f
+[2026-07-20T09:40:47.960Z] iter=7 status=FIX_BATCH
+[2026-07-20T09:41:47.824Z] iter=8 status=VERIFY_BATCH
+[2026-07-20T09:41:56.186Z] checkbox missing: V2-S5-1,V2-S5-2
+[2026-07-20T09:41:56.186Z] verify ok=true checks=false → FIX_BATCH (checkbox_missing; tasks not checked: V2-S5-1,V2-S5-2) fingerprint=-
+[2026-07-20T09:41:56.187Z] iter=9 status=FIX_BATCH
+[2026-07-20T09:42:32.746Z] iter=10 status=VERIFY_BATCH
+[2026-07-20T09:42:39.635Z] checkpoint skipped=true sha=null checkpoints disabled
+[2026-07-20T09:42:39.635Z] verify ok=true checks=true → EXECUTE_BATCH (batch verify pass; more todos) fingerprint=-
+[2026-07-20T09:42:39.636Z] iter=11 status=EXECUTE_BATCH
+[2026-07-20T09:45:36.450Z] iter=12 status=BATCH_REVIEW
+[2026-07-20T09:47:15.956Z] batch review → FIX_BATCH (review fail blocker=0 critical=0)
+[2026-07-20T09:47:15.975Z] iter=13 status=FIX_BATCH
+[2026-07-20T09:48:12.106Z] iter=14 status=VERIFY_BATCH
+[2026-07-20T09:48:21.777Z] checkbox missing: V2-S5-3,V2-S5-4
+[2026-07-20T09:48:21.777Z] verify ok=true checks=false → FIX_BATCH (checkbox_missing; tasks not checked: V2-S5-3,V2-S5-4) fingerprint=-
+[2026-07-20T09:48:21.778Z] iter=15 status=FIX_BATCH
+[2026-07-20T09:48:58.863Z] iter=16 status=VERIFY_BATCH
+[2026-07-20T09:49:07.657Z] checkpoint skipped=true sha=null checkpoints disabled
+[2026-07-20T09:49:07.657Z] verify ok=true checks=true → EXECUTE_BATCH (batch verify pass; more todos) fingerprint=-
+[2026-07-20T09:49:07.658Z] iter=17 status=EXECUTE_BATCH
+[2026-07-20T09:51:48.849Z] iter=18 status=BATCH_REVIEW
+[2026-07-20T09:53:58.288Z] batch review → FIX_BATCH (review fail blocker=0 critical=0)
+[2026-07-20T09:53:58.289Z] iter=19 status=FIX_BATCH
+[2026-07-20T09:54:52.974Z] iter=20 status=VERIFY_BATCH
+[2026-07-20T09:54:59.978Z] checkpoint skipped=true sha=null checkpoints disabled
+[2026-07-20T09:54:59.978Z] verify ok=true checks=true → FULL_REVIEW (batch verify pass; no todos left) fingerprint=-
+[2026-07-20T09:54:59.978Z] iter=21 status=FULL_REVIEW
+[2026-07-20T09:56:08.236Z] full review → READY_FOR_MANUAL_QA (full review pass)
+[2026-07-20T09:56:08.237Z] iter=22 status=READY_FOR_MANUAL_QA

@@ -1,0 +1,57 @@
+[gbx] ▶ fixer:V2-S5-1+V2-S5-2 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (30s elapsed, no output for 30s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (45s elapsed, no output for 45s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (60s elapsed, no output for 60s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (75s elapsed, no output for 75s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (90s elapsed, no output for 90s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (105s elapsed, no output for 105s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (120s elapsed, no output for 120s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (135s elapsed, no output for 135s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (150s elapsed, no output for 150s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (165s elapsed, no output for 165s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (180s elapsed, no output for 180s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (195s elapsed, no output for 195s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (210s elapsed, no output for 210s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (225s elapsed, no output for 225s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (240s elapsed, no output for 240s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (255s elapsed, no output for 255s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (270s elapsed, no output for 270s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (285s elapsed, no output for 285s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (300s elapsed, no output for 300s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (315s elapsed, no output for 315s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (330s elapsed, no output for 330s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (345s elapsed, no output for 345s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (360s elapsed, no output for 360s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (375s elapsed, no output for 375s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (390s elapsed, no output for 390s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (405s elapsed, no output for 405s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (420s elapsed, no output for 420s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (435s elapsed, no output for 435s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (450s elapsed, no output for 450s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (465s elapsed, no output for 465s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (480s elapsed, no output for 480s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (495s elapsed, no output for 495s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (510s elapsed, no output for 510s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (525s elapsed, no output for 525s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (540s elapsed, no output for 540s)
+已按 `verify_fail` 修完 3 个硬错误（未追 WARN）：
+
+### 修复内容
+1. **STRUCT-008** — `form/` 拆为 `chapter/` · `exitList/` · `node/` · `panel/`，并更新全部 import；在 `ensure-migrated-layout.mjs` 登记平铺→嵌套对，使 `quality:studio` 启动时自动删平铺副本。
+2. **STRUCT-002** — `useStoryCanvasGraph` 抽出 `useStoryCanvasNodeMutations`。
+3. **STRUCT-002** — `ChapterPropertyForm` 抽出 `ChapterEndNextFields`。
+
+### 验证
+本环境 **Shell / Delete 均被拒**，无法执行 `npm run quality:studio`，也未能手工删掉仍残留的 5 个平铺文件。
+
+**未自验**
+
+编排器下次跑 `npm run quality:studio` 时，`ensure-migrated-layout` 应先删平铺再过结构门禁。请在本机执行：
+
+```bash
+cd /Users/bolbiao/workspace/airpc-engine && npm run quality:studio
+```
+
+通过后再将执行索引中 V2-S5-1 / V2-S5-2 勾为 ✅（本轮因未自验未改勾选）。
+[gbx] ■ fixer:V2-S5-1+V2-S5-2 done exit=0 elapsed=551s

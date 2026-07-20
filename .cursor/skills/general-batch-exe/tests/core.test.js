@@ -119,6 +119,61 @@ describe('reviewDecision', () => {
     assert.equal(d.next, STATUSES.EXECUTE_BATCH);
   });
 
+  it('verify ok but unchecked → FIX_BATCH checkbox_missing (does not use hard budget)', () => {
+    const d = decideAfterVerify({
+      verifyOk: true,
+      checksOk: false,
+      phase: 'batch',
+      hasRemainingTodos: true,
+      batchFixAttempts: 5,
+      fullFixAttempts: 0,
+      maxFixAttempts: 5,
+      maxFullFixAttempts: 2,
+      checkboxFixAttempts: 0,
+      maxCheckboxFixAttempts: 2,
+      missingTaskIds: ['V2-R1-4', 'V2-R2-1'],
+    });
+    assert.equal(d.next, STATUSES.FIX_BATCH);
+    assert.match(d.reason, /checkbox_missing/);
+    assert.match(d.reason, /V2-R1-4/);
+  });
+
+  it('checkbox gap over budget → BLOCKED with checkbox_missing reason', () => {
+    const d = decideAfterVerify({
+      verifyOk: true,
+      checksOk: false,
+      phase: 'batch',
+      hasRemainingTodos: true,
+      batchFixAttempts: 0,
+      fullFixAttempts: 0,
+      maxFixAttempts: 5,
+      maxFullFixAttempts: 2,
+      checkboxFixAttempts: 2,
+      maxCheckboxFixAttempts: 2,
+      missingTaskIds: ['A'],
+    });
+    assert.equal(d.next, STATUSES.BLOCKED);
+    assert.match(d.reason, /checkbox_missing/);
+    assert.doesNotMatch(d.reason, /batch verify failed/);
+  });
+
+  it('hard verify fail still uses batchFixAttempts', () => {
+    const d = decideAfterVerify({
+      verifyOk: false,
+      checksOk: false,
+      phase: 'batch',
+      hasRemainingTodos: true,
+      batchFixAttempts: 5,
+      fullFixAttempts: 0,
+      maxFixAttempts: 5,
+      maxFullFixAttempts: 2,
+      checkboxFixAttempts: 0,
+      maxCheckboxFixAttempts: 2,
+    });
+    assert.equal(d.next, STATUSES.BLOCKED);
+    assert.match(d.reason, /batch verify failed/);
+  });
+
   it('full review pass → READY', () => {
     const d = decideAfterReview(
       { result: 'pass', blocker: 0, critical: 0 },
@@ -146,6 +201,18 @@ describe('verify + hardStop', () => {
     const r = checkHardStop('HIT_TOKEN_HERE', ['[invalid', 'HIT_TOKEN']);
     assert.equal(r.hit, true);
     assert.equal(r.pattern, 'HIT_TOKEN');
+  });
+
+  it('skips negated out-of-scope mentions (Realtime / 电话壳)', () => {
+    const doc =
+      '新增非本仓分母节（壳／Realtime／向量／LLM vignette 抽取／体验签字）';
+    const r = checkHardStop(doc, ['电话壳|Realtime|对标迁移旧话机']);
+    assert.equal(r.hit, false, 'should not block documenting out-of-scope');
+    assert.ok(r.skippedNegations >= 1);
+
+    const intent = '下一步我们要实现 Realtime 语音链路';
+    const r2 = checkHardStop(intent, ['实现电话壳|接入 Realtime|Realtime']);
+    assert.equal(r2.hit, true);
   });
 });
 

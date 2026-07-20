@@ -12,6 +12,7 @@ import {
   Position,
   ReactFlow,
   ReactFlowProvider,
+  useReactFlow,
   type Connection,
   type Edge,
   type Node,
@@ -38,6 +39,7 @@ import {
   agentIdForLaneY,
   yForLaneOrder,
 } from "@studio/bis/storyEditor/storyEditorLayout.bis";
+import { subscribeStoryCanvasFocus } from "@studio/bis/storyEditor/storyEditorCanvasP1.bis";
 import { ExitConnectDialog } from "@studio/uiComponents/storyCanvas/ExitConnectDialog";
 import { deriveMediaBadges } from "@studio/bis/storyEditor/storyMediaBadges.bis";
 import styles from "./storyCanvas.module.scss";
@@ -161,7 +163,10 @@ function StoryCanvasInner() {
     undoCanvas,
     redoCanvas,
     initHistoryScope,
+    copySelectedCard,
+    pasteClipboardCard,
   } = useStoryEditorActionsBis();
+  const { fitView, getNode } = useReactFlow();
 
   const [pendingConnect, setPendingConnect] = useState<{
     source: string;
@@ -175,6 +180,28 @@ function StoryCanvasInner() {
       initHistoryScope(conf?.packageId ?? null);
     },
     [conf?.packageId, initHistoryScope],
+  );
+
+  useEffect(
+    function (): (() => void) {
+      return subscribeStoryCanvasFocus(function (cardId: string): void {
+        const node = getNode(cardId);
+        if (!node) {
+          void fitView({
+            nodes: [{ id: cardId }],
+            padding: 0.45,
+            duration: 280,
+          });
+          return;
+        }
+        void fitView({
+          nodes: [node],
+          padding: 0.45,
+          duration: 280,
+        });
+      });
+    },
+    [fitView, getNode],
   );
 
   const sortedLanes = useMemo(
@@ -448,15 +475,22 @@ function StoryCanvasInner() {
         }
         const mod = evt.metaKey || evt.ctrlKey;
         if (!mod) return;
-        if (evt.key === "z" && !evt.shiftKey) {
+        const key = evt.key.toLowerCase();
+        if (key === "z" && !evt.shiftKey) {
           evt.preventDefault();
           void undoCanvas();
-        } else if (evt.key === "z" && evt.shiftKey) {
+        } else if (key === "z" && evt.shiftKey) {
           evt.preventDefault();
           void redoCanvas();
-        } else if (evt.key === "y") {
+        } else if (key === "y") {
           evt.preventDefault();
           void redoCanvas();
+        } else if (key === "c") {
+          evt.preventDefault();
+          copySelectedCard();
+        } else if (key === "v") {
+          evt.preventDefault();
+          void pasteClipboardCard();
         }
       }
       window.addEventListener("keydown", onKey);
@@ -464,7 +498,7 @@ function StoryCanvasInner() {
         window.removeEventListener("keydown", onKey);
       };
     },
-    [undoCanvas, redoCanvas],
+    [undoCanvas, redoCanvas, copySelectedCard, pasteClipboardCard],
   );
 
   useEffect(

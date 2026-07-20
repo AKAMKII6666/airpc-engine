@@ -1,0 +1,290 @@
+@use "../../../typeFiles/theme/tokens.scss" as t;
+
+/* 角色库 / 资源库 / 用户档案共用的左右分栏壳样式 */
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: t.$text-primary;
+  min-height: 0;
+  height: 100%;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.title {
+  font-weight: 600;
+  color: t.$text-primary;
+}
+
+.sub {
+  color: t.$text-muted;
+  margin-top: 4px;
+  max-width: 560px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.search {
+  max-width: 280px;
+}
+
+.split {
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) 1fr;
+  gap: 12px;
+  min-height: 420px;
+  flex: 1;
+}
+
+@media (max-width: 900px) {
+  .split {
+    grid-template-columns: 1fr;
+  }
+}
+
+.listPane,
+.detailPane {
+  background: t.$bg-panel;
+  border: 1px solid t.$border-panel;
+  border-radius: 12px;
+  padding: 12px;
+  min-height: 0;
+  overflow: auto;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.row,
+.rowActive {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: t.$text-primary;
+  cursor: pointer;
+}
+
+.row:hover {
+  background: t.$bg-hover;
+}
+
+.rowActive {
+  background: t.$bg-active;
+  border-color: t.$border-strong;
+}
+
+/* 列表行内：选中区与删除钮拆开，避免误触删除 */
+.rowSelect {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.rowDelete {
+  flex-shrink: 0;
+}
+
+.avatar,
+.avatarLg {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: t.$bg-node;
+  border: 1px solid t.$border-node;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: t.$brand-cyan;
+  flex-shrink: 0;
+}
+
+.avatarLg {
+  width: 48px;
+  height: 48px;
+  font-size: 16px;
+}
+
+.detailHead {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.rowMain {
+  min-width: 0;
+  flex: 1;
+}
+
+.rowTitle {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.rowMeta {
+  margin-top: 2px;
+  font-size: 12px;
+  color: t.$text-muted;
+}
+
+.detailTitle {
+  font-weight: 600;
+  font-size: 18px;
+  margin: 0 0 4px;
+}
+
+.detailMeta {
+  color: t.$text-muted;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.section {
+  margin-top: 14px;
+}
+
+.sectionTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: t.$text-secondary;
+  margin: 0 0 8px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 10px;
+}
+
+.fieldLabel {
+  font-size: 12px;
+  color: t.$text-muted;
+}
+
+.fieldValue {
+  font-size: 14px;
+  color: t.$text-primary;
+}
+
+.refList {
+  margin: 0;
+  padding-left: 18px;
+  color: t.$text-secondary;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.advanced {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid t.$border-subtle;
+}
+
+.advancedId {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  color: t.$text-muted;
+}
+
+.badgeWarn {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: t.$state-warning;
+  background: rgba(255, 176, 32, 0.12);
+}
+
+.badgeOk {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: t.$state-success;
+  background: rgba(98, 210, 111, 0.12);
+}
+
+.badgeMuted {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: t.$text-muted;
+  background: rgba(126, 141, 164, 0.12);
+}
+
+.badgeDanger {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: t.$state-danger;
+  background: rgba(255, 90, 78, 0.12);
+}
+
+.typeFilter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.typeChip,
+.typeChipActive {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid t.$border-panel;
+  background: t.$bg-input;
+  color: t.$text-secondary;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.typeChipActive {
+  border-color: t.$border-strong;
+  color: t.$text-primary;
+  background: t.$bg-active;
+}

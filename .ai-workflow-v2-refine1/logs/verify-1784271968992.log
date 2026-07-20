@@ -1,0 +1,41 @@
+[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+
+> quality:studio
+> node scripts/studio-quality/quality-studio.mjs
+
+
+==> ensure-modal-layout (pre-typecheck)
+ensure-modal-layout: nothing to remove
+
+==> ensure-migrated-layout (pre-typecheck)
+ensure-migrated-layout: nothing to remove
+
+==> lint (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 lint
+> node ./scripts/run-eslint.mjs . --max-warnings 0
+
+
+==> typecheck (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 typecheck
+> tsc -p tsconfig.json --noEmit
+
+src/commonUiComponents/form/AutoForm/index.tsx(107,10): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(props: AutoFormMappedFieldProps, context?: any): string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | ... 4 more ... | undefined', gave the following error.
+    Type '{ key: string; }' is missing the following properties from type 'FormBoundFieldProps<Record<string, unknown>>': name, label, formik, mode
+  Overload 2 of 2, '(props: AutoFormMappedFieldProps): string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | ... 4 more ... | undefined', gave the following error.
+    Type '{ key: string; }' is missing the following properties from type 'FormBoundFieldProps<Record<string, unknown>>': name, label, formik, mode
+tests/commonUi/formFieldConfig.test.ts(90,22): error TS2322: Type '{ fullName: true; }' is not assignable to type 'boolean | undefined'.
+tests/commonUi/formFieldConfig.test.ts(91,21): error TS2322: Type '{ fullName: string; }' is not assignable to type 'string'.
+npm error Lifecycle script `typecheck` failed with error:
+npm error code 2
+npm error path /Users/bolbiao/workspace/airpc-engine/apps/studioV2
+npm error workspace @airpc/studio-v2@0.0.1
+npm error location /Users/bolbiao/workspace/airpc-engine/apps/studioV2
+npm error command failed
+npm error command sh -c tsc -p tsconfig.json --noEmit
+typecheck (@airpc/studio-v2) failed (exit 2)
+
+quality:studio FAILED
+[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=4s

@@ -4,12 +4,15 @@
  */
 import { getEngineHost, isEngineError, type EngineHost } from "@airpc/rpg-engine";
 import { getStudioDataRoot } from "@studio/server/dataRoot.server";
+import { createLlmLoreBootstrapPortFromEnv } from "@studio/server/loreBootstrapLlm.server";
 
 let workspaceLoaded = false;
 let workspaceError: { code: string; message: string } | null = null;
 
 export async function getStudioEngineHost(): Promise<EngineHost> {
-  const host = getEngineHost();
+  const host = getEngineHost({
+    loreBootstrap: createLlmLoreBootstrapPortFromEnv(),
+  });
   if (!workspaceLoaded && !workspaceError) {
     try {
       await host.loadWorkspace(getStudioDataRoot());
@@ -44,7 +47,9 @@ export function getWorkspaceLoadError(): {
  * 默认保留 sessions / profiles / activeByUser（S1）；不得与踢会话绑在一起。
  */
 export async function reloadStudioWorkspace(): Promise<void> {
-  const host = getEngineHost();
+  const host = getEngineHost({
+    loreBootstrap: createLlmLoreBootstrapPortFromEnv(),
+  });
   await host.loadWorkspace(getStudioDataRoot(), { resetRuntime: false });
   workspaceLoaded = true;
   workspaceError = null;

@@ -1,0 +1,32 @@
+[gbx] ▶ executor:E4c start cmd=agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … still running executor:E4c elapsed=15s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784087889053.log
+[gbx] … still running executor:E4c elapsed=30s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784087889053.log
+[gbx] … still running executor:E4c elapsed=45s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784087889053.log
+[gbx] … still running executor:E4c elapsed=60s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784087889053.log
+[gbx] … still running executor:E4c elapsed=75s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784087889053.log
+[gbx] … still running executor:E4c elapsed=90s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784087889053.log
+[gbx] … still running executor:E4c elapsed=105s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784087889053.log
+[gbx] … still running executor:E4c elapsed=120s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784087889053.log
+[gbx] … still running executor:E4c elapsed=135s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784087889053.log
+[gbx] … still running executor:E4c elapsed=150s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784087889053.log
+[gbx] … still running executor:E4c elapsed=165s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784087889053.log
+[gbx] … still running executor:E4c elapsed=180s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784087889053.log
+[gbx] … still running executor:E4c elapsed=195s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784087889053.log
+[gbx] … still running executor:E4c elapsed=210s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784087889053.log
+[gbx] … still running executor:E4c elapsed=225s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784087889053.log
+E4c 已落地：双 userId 隔离 + recurring 定稿写入，任务表已勾 ✅。
+
+### 改动
+1. **`effectExecutor`**：`schedule_recurring_call` 现写入定稿 `kind: "recurring"`（`intentId` / `hour` / `minute` / `scheduleMode` / `status: "active"`），不再写旧形 `kind: "schedule_recurring_call"`。
+2. **新测** `packages/rpg-engine/tests/host/isolation-recurring-e2e.test.ts`
+   - 双 userId：A 的 once 点火与 pending 不影响 B
+   - recurring：工具→挂机写入后，`advanceClock` 不消费 recurring（本仓调试语义；真定时归壳 Sink）
+3. **任务表** E4c：⬜ → ✅
+
+### Verify
+**verify NOT run** — 本环境 Shell 全部被拒（`npm test` / vitest 均未执行）。请在本机跑：
+
+```bash
+cd /Users/bolbiao/workspace/airpc-engine && npm test
+```
+[gbx] ■ executor:E4c done exit=0 elapsed=238s

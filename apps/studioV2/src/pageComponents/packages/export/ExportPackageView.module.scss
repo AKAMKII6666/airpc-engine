@@ -1,0 +1,72 @@
+@use "../../../../typeFiles/theme/tokens.scss" as t;
+
+.root {
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  color: t.$text-primary;
+}
+
+.title {
+  font-weight: 600;
+}
+
+.sub {
+  color: t.$text-muted;
+}
+
+.panel {
+  padding: 18px;
+  background: t.$bg-panel;
+  border: 1px solid t.$border-panel;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.summary {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: t.$bg-panel-elevated;
+  border: 1px solid t.$border-subtle;
+}
+
+.summaryTitle {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.line {
+  margin: 4px 0;
+  font-size: 13px;
+  color: t.$text-secondary;
+}
+
+.warnList {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: t.$state-warning;
+  font-size: 13px;
+}
+
+.errList {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: t.$state-danger;
+  font-size: 13px;
+}
+
+.blockNote {
+  margin: 8px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: t.$state-danger;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}

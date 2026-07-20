@@ -1,0 +1,52 @@
+[gbx] ▶ fixer:V2-S4-1+V2-S4-2 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-S4-1+V2-S4-2 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-S4-1+V2-S4-2 still running (30s elapsed, no output for 30s)
+[gbx] … fixer:V2-S4-1+V2-S4-2 still running (45s elapsed, no output for 45s)
+[gbx] … fixer:V2-S4-1+V2-S4-2 still running (60s elapsed, no output for 60s)
+[gbx] … fixer:V2-S4-1+V2-S4-2 still running (75s elapsed, no output for 75s)
+[gbx] … fixer:V2-S4-1+V2-S4-2 still running (90s elapsed, no output for 90s)
+[gbx] … fixer:V2-S4-1+V2-S4-2 still running (105s elapsed, no output for 105s)
+[gbx] … fixer:V2-S4-1+V2-S4-2 still running (120s elapsed, no output for 120s)
+[gbx] … fixer:V2-S4-1+V2-S4-2 still running (135s elapsed, no output for 135s)
+[gbx] … fixer:V2-S4-1+V2-S4-2 still running (150s elapsed, no output for 150s)
+[gbx] … fixer:V2-S4-1+V2-S4-2 still running (165s elapsed, no output for 165s)
+[gbx] … fixer:V2-S4-1+V2-S4-2 still running (180s elapsed, no output for 180s)
+[gbx] … fixer:V2-S4-1+V2-S4-2 still running (195s elapsed, no output for 195s)
+[gbx] … fixer:V2-S4-1+V2-S4-2 still running (210s elapsed, no output for 210s)
+[gbx] … fixer:V2-S4-1+V2-S4-2 still running (225s elapsed, no output for 225s)
+[gbx] … fixer:V2-S4-1+V2-S4-2 still running (240s elapsed, no output for 240s)
+[gbx] … fixer:V2-S4-1+V2-S4-2 still running (255s elapsed, no output for 255s)
+[gbx] … fixer:V2-S4-1+V2-S4-2 still running (270s elapsed, no output for 270s)
+[gbx] … fixer:V2-S4-1+V2-S4-2 still running (285s elapsed, no output for 285s)
+[gbx] … fixer:V2-S4-1+V2-S4-2 still running (300s elapsed, no output for 300s)
+[gbx] … fixer:V2-S4-1+V2-S4-2 still running (315s elapsed, no output for 315s)
+[gbx] … fixer:V2-S4-1+V2-S4-2 still running (330s elapsed, no output for 330s)
+[gbx] … fixer:V2-S4-1+V2-S4-2 still running (345s elapsed, no output for 345s)
+[gbx] … fixer:V2-S4-1+V2-S4-2 still running (360s elapsed, no output for 360s)
+[gbx] … fixer:V2-S4-1+V2-S4-2 still running (375s elapsed, no output for 375s)
+[gbx] … fixer:V2-S4-1+V2-S4-2 still running (390s elapsed, no output for 390s)
+[gbx] … fixer:V2-S4-1+V2-S4-2 still running (405s elapsed, no output for 405s)
+[gbx] … fixer:V2-S4-1+V2-S4-2 still running (420s elapsed, no output for 420s)
+[gbx] … fixer:V2-S4-1+V2-S4-2 still running (435s elapsed, no output for 435s)
+[gbx] … fixer:V2-S4-1+V2-S4-2 still running (450s elapsed, no output for 450s)
+[gbx] … fixer:V2-S4-1+V2-S4-2 still running (465s elapsed, no output for 465s)
+已按 `latest-verify.json` 硬错误与审查 major 项完成修复；本环境 Shell 不可用，**未自验**。
+
+### 已修（verify 硬红）
+| 规则 | 处理 |
+|------|------|
+| STRUCT-002 | `StoryEditorShell` 改用 `StoryEditorCharacterModals`；`useStoryCanvasGraph` 拆出 `canvasCharacterNodeMutations` + `storyCanvasSelection` |
+| STRUCT-017 | 相关触碰文件改为 tab 缩进（含 JSDoc `\t*`） |
+| STRUCT-018 | BottomToolBar / StoryCanvasStage / DockToolIcons / CharacterAnchorFlowNode 补全组件用途注释 |
+| STRUCT-019 | `DockMdIcon` 入口解构；画布节点/舞台 props 入口解构 |
+
+### 审查侧
+- R1-3 迁移壳：磁盘上已无 `CharacterAnchorRail` / `CharacterPickerFloat` 等 stub
+- R1-4：`storyEditorMock` 注释已是画布锚点语义
+- V2-S4-1 / S4-2 索引行已是 ✅
+
+### 请本地确认
+```bash
+cd /Users/bolbiao/workspace/airpc-engine && npm run quality:studio
+```
+[gbx] ■ fixer:V2-S4-1+V2-S4-2 done exit=0 elapsed=467s

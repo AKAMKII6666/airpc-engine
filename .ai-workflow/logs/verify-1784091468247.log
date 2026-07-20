@@ -1,0 +1,19 @@
+[gbx] ▶ verify:npm run typecheck start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+
+> typecheck
+> npm run build -w @airpc/rpg-engine && npm run typecheck -w @airpc/rpg-engine && npm run typecheck -w @airpc/studio
+
+
+> @airpc/rpg-engine@0.0.1 build
+> tsc -p tsconfig.build.json
+
+src/tools/expandExitEffects.ts(116,15): error TS2322: Type 'Record<string, unknown>' is not assignable to type 'Effect'.
+  Type 'Record<string, unknown>' is missing the following properties from type '{ [x: string]: unknown; id: string; effect: "set_character_unlocked" | "attach_call_card" | "set_redial_slot" | "unmount_call_card" | "keep_card_pending" | "schedule_call_card" | "schedule_recurring_call" | ... 7 more ... | "play_system_prompt"; critical?: boolean | undefined; }': id, effect
+npm error Lifecycle script `build` failed with error:
+npm error code 2
+npm error path /Users/bolbiao/workspace/airpc-engine/packages/rpg-engine
+npm error workspace @airpc/rpg-engine@0.0.1
+npm error location /Users/bolbiao/workspace/airpc-engine/packages/rpg-engine
+npm error command failed
+npm error command sh -c tsc -p tsconfig.build.json
+[gbx] ■ verify:npm run typecheck done exit=2 elapsed=1s

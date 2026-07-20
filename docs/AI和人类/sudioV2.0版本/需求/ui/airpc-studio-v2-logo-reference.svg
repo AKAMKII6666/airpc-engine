@@ -1,0 +1,44 @@
+<svg width="720" height="220" viewBox="0 0 720 220" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">AirPC Studio V2 Logo Reference</title>
+  <desc id="desc">A dark theme AirPC Studio V2 logo reference with a blue violet abstract A mark and wordmark.</desc>
+  <defs>
+    <linearGradient id="markPrimary" x1="90" y1="36" x2="168" y2="170" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7C8CFF"/>
+      <stop offset="0.48" stop-color="#536BFF"/>
+      <stop offset="1" stop-color="#32D6FF"/>
+    </linearGradient>
+    <linearGradient id="markSecondary" x1="45" y1="158" x2="121" y2="52" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#25D0A2"/>
+      <stop offset="0.45" stop-color="#3AA8FF"/>
+      <stop offset="1" stop-color="#7A5CFF"/>
+    </linearGradient>
+    <linearGradient id="halo" x1="0" y1="0" x2="720" y2="220" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0D1724"/>
+      <stop offset="1" stop-color="#070D16"/>
+    </linearGradient>
+    <filter id="softGlow" x="-40%" y="-40%" width="180%" height="180%" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.21 0 0 0 0 0.42 0 0 0 0 1 0 0 0 0.45 0" result="glow"/>
+      <feMerge>
+        <feMergeNode in="glow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="720" height="220" rx="32" fill="url(#halo)"/>
+  <rect x="1" y="1" width="718" height="218" rx="31" stroke="#1E2A3A"/>
+  <circle cx="113" cy="110" r="76" fill="#111A29"/>
+  <circle cx="113" cy="110" r="76" stroke="#253449"/>
+
+  <g filter="url(#softGlow)">
+    <path d="M114.6 48.8C119.2 40.8 130.8 40.8 135.4 48.8L178.6 123.6C183.2 131.6 177.4 141.6 168.2 141.6H145.6C141.3 141.6 137.3 139.3 135.1 135.6L105.8 84.8C103.5 80.8 103.5 75.8 105.8 71.8L114.6 48.8Z" fill="url(#markPrimary)"/>
+    <path d="M90.5 86.7C95.1 78.7 106.7 78.7 111.3 86.7L122.5 106.2C124.8 110.2 124.8 115.1 122.5 119.1L93.1 169.9C91 173.6 87 175.9 82.7 175.9H60.1C50.9 175.9 45.1 165.9 49.7 157.9L90.5 86.7Z" fill="url(#markSecondary)"/>
+    <rect x="128" y="154" width="50" height="22" rx="11" fill="#5B6CFF"/>
+  </g>
+
+  <text x="229" y="102" fill="#F2F6FF" font-family="Inter, SF Pro Display, Arial, sans-serif" font-size="42" font-weight="760" letter-spacing="0">AirPC Studio</text>
+  <rect x="532" y="66" width="72" height="44" rx="14" fill="#151F2D" stroke="#2A3A50"/>
+  <text x="553" y="96" fill="#B9C6DA" font-family="Inter, SF Pro Display, Arial, sans-serif" font-size="20" font-weight="700" letter-spacing="0">V2.0</text>
+  <text x="231" y="140" fill="#7E8DA4" font-family="Inter, SF Pro Text, Arial, sans-serif" font-size="18" font-weight="520" letter-spacing="0">CallCard story engine editor</text>
+</svg>

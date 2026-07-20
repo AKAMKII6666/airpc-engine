@@ -1,0 +1,32 @@
+[gbx] ▶ fixer:E9 start cmd=agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … still running fixer:E9 elapsed=15s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091469393.log
+[gbx] … still running fixer:E9 elapsed=30s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091469393.log
+[gbx] … still running fixer:E9 elapsed=45s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091469393.log
+[gbx] … still running fixer:E9 elapsed=60s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091469393.log
+[gbx] … still running fixer:E9 elapsed=75s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091469393.log
+[gbx] … still running fixer:E9 elapsed=90s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784091469393.log
+verify 红灯已修：`expandExitEffects.ts` 中 `schedule_recurring_call` 分支把 `row` 从 `Record<string, unknown>` 改为 `Effect`，消除 TS2322。
+
+**原因**：`return [row]` 需要 `Effect[]`，而 `Record<string, unknown>` 不保证 `id` / `effect`。
+
+**改动**（仅此）：
+
+```103:116:packages/rpg-engine/src/tools/expandExitEffects.ts
+      const row: Effect = {
+        id: `recurring_${randomUUID().slice(0, 8)}`,
+        effect: "schedule_recurring_call",
+        // ...
+      };
+      if (cardId) row.cardId = cardId;
+      if (packageId) row.packageId = packageId;
+      return [row];
+```
+
+**审查**：`reviews/latest.json` = pass，无 unresolved issue。未改 STATE / 未扩 scope / 未动 E9 勾选。
+
+**验证**：本会话 Shell 被拒，未能本地跑 `npm run typecheck`。请 orchestrator 重跑 verify，或本机执行：
+
+```bash
+npm run typecheck
+```
+[gbx] ■ fixer:E9 done exit=0 elapsed=101s

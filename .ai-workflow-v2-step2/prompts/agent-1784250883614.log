@@ -1,0 +1,34 @@
+[gbx] ▶ fixer:V2-P3+V2-C1+V2-C2 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-P3+V2-C1+V2-C2 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-P3+V2-C1+V2-C2 still running (30s elapsed, no output for 30s)
+[gbx] … fixer:V2-P3+V2-C1+V2-C2 still running (45s elapsed, no output for 45s)
+[gbx] … fixer:V2-P3+V2-C1+V2-C2 still running (60s elapsed, no output for 60s)
+[gbx] … fixer:V2-P3+V2-C1+V2-C2 still running (75s elapsed, no output for 75s)
+[gbx] … fixer:V2-P3+V2-C1+V2-C2 still running (90s elapsed, no output for 90s)
+[gbx] … fixer:V2-P3+V2-C1+V2-C2 still running (105s elapsed, no output for 105s)
+Batch 4 的 `verify_fail` 已按 `latest-verify.json` 修完注释门禁；本环境无法跑 Shell，需你本地复验。
+
+### 已修（11 处 STUDIO-COMMENT）
+
+| 文件 | 改动 |
+|---|---|
+| `characterDetailForm.ts` | 为 5 组字段常量 + `toCharacterDetailFormValues` / `validateCharacterDetailForm` 补意图 JSDoc |
+| `createCharacterForm.ts` | 为 `CREATE_CHARACTER_INITIAL_VALUES` / `FORM_FIELDS` / `validateCreateCharacterForm` 补意图 JSDoc |
+| `characterSummary.ts` | 为 `CharacterIdentityProjection.gender` 补字段级说明 |
+
+写法对齐同目录 `createPackageForm.ts`（说明用途/约束/不写盘，非复述符号名）。
+
+### 审查项状态
+
+- **R4-1（critical）**：代码侧注释问题已修；`npm run quality:studio` 在本会话 **Shell 连续被拒**，未能实测 exit 0
+- **R4-2（major）**：执行索引中 V2-P3 / V2-C1 / V2-C2 **已是 ✅**，无需再改
+- **R4-3（minor）**：导入 demo 文案缺口未改（可选，不影响本批 verify 红项）
+
+### 请本地执行
+
+```bash
+cd /Users/bolbiao/workspace/airpc-engine && npm run quality:studio
+```
+
+未写 `STATE.json`。若 Shell 授权后需要我代跑验证，再说一声。
+[gbx] ■ fixer:V2-P3+V2-C1+V2-C2 done exit=0 elapsed=115s

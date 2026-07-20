@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "label": "batch-2",
+  "at": "2026-07-16T10:48:11.686Z",
+  "ok": false,
+  "phase": "batch",
+  "activeTaskIds": [
+    "V2-S4",
+    "V2-S5",
+    "V2-S6"
+  ],
+  "reason": "command failed",
+  "failedCommand": "npm run quality:studio",
+  "exitCode": 1,
+  "results": [
+    {
+      "command": "npm run quality:studio",
+      "exitCode": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> quality:studio\n> node scripts/studio-quality/quality-studio.mjs\n\n\n==> lint (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 lint\n> node ./scripts/run-eslint.mjs . --max-warnings 0\n\n\n==> typecheck (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\nsrc/commonUiComponents/modal/FormModal.tsx(12,26): error TS2306: File '/Users/bolbiao/workspace/airpc-engine/apps/studioV2/src/commonUiComponents/modal/AppModal.tsx' is not a module.\nnpm error Lifecycle script `typecheck` failed with error:\nnpm error code 2\nnpm error path /Users/bolbiao/workspace/airpc-engine/apps/studioV2\nnpm error workspace @airpc/studio-v2@0.0.1\nnpm error location /Users/bolbiao/workspace/airpc-engine/apps/studioV2\nnpm error command failed\nnpm error command sh -c tsc -p tsconfig.json --noEmit\ntypecheck (@airpc/studio-v2) failed (exit 2)\n\nquality:studio FAILED\n[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=3s\n",
+      "stderr": "",
+      "stdoutTail": "[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> quality:studio\n> node scripts/studio-quality/quality-studio.mjs\n\n\n==> lint (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 lint\n> node ./scripts/run-eslint.mjs . --max-warnings 0\n\n\n==> typecheck (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\nsrc/commonUiComponents/modal/FormModal.tsx(12,26): error TS2306: File '/Users/bolbiao/workspace/airpc-engine/apps/studioV2/src/commonUiComponents/modal/AppModal.tsx' is not a module.\nnpm error Lifecycle script `typecheck` failed with error:\nnpm error code 2\nnpm error path /Users/bolbiao/workspace/airpc-engine/apps/studioV2\nnpm error workspace @airpc/studio-v2@0.0.1\nnpm error location /Users/bolbiao/workspace/airpc-engine/apps/studioV2\nnpm error command failed\nnpm error command sh -c tsc -p tsconfig.json --noEmit\ntypecheck (@airpc/studio-v2) failed (exit 2)\n\nquality:studio FAILED\n[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=3s\n",
+      "stderrTail": "",
+      "errorLocations": [
+        {
+          "file": "src/commonUiComponents/modal/FormModal.tsx",
+          "line": 12,
+          "column": 26,
+          "code": "TS2306",
+          "message": "File '/Users/bolbiao/workspace/airpc-engine/apps/studioV2/src/commonUiComponents/modal/AppModal.tsx' is not a module."
+        }
+      ]
+    }
+  ],
+  "errorLocations": [
+    {
+      "file": "src/commonUiComponents/modal/FormModal.tsx",
+      "line": 12,
+      "column": 26,
+      "code": "TS2306",
+      "message": "File '/Users/bolbiao/workspace/airpc-engine/apps/studioV2/src/commonUiComponents/modal/AppModal.tsx' is not a module."
+    }
+  ],
+  "historyFile": "batch-2-1784198891686.json"
+}

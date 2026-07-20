@@ -1,0 +1,14 @@
+[gbx] ▶ fixer:V2-R2-3+V2-R2-4+V2-R3-1 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-R2-3+V2-R2-4+V2-R3-1 still running (15s elapsed, no output for 15s)
+**完成：** 按 `checkbox_missing` 仅更新执行索引勾选，未改业务代码。
+
+| 任务 | 状态 |
+|------|------|
+| V2-R2-3 | ⬜ → ✅ |
+| V2-R2-4 | ⬜ → ✅ |
+| V2-R3-1 | ⬜ → ✅ |
+
+文件：`docs/AI和人类/里程碑/v2.0/细化修改1_执行索引.md`
+
+**自验：** 未重跑 verify（触发为 checkbox_missing，`latest-verify.json` 已为 `ok=true` / exitCode=0）。
+[gbx] ■ fixer:V2-R2-3+V2-R2-4+V2-R3-1 done exit=0 elapsed=24s

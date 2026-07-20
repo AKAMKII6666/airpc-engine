@@ -1,0 +1,47 @@
+[gbx] ▶ executor:V1-E7+V1-E8+V1-E9 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … still running executor:V1-E7+V1-E8+V1-E9 elapsed=15s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126011301.log
+[gbx] … still running executor:V1-E7+V1-E8+V1-E9 elapsed=30s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126011301.log
+[gbx] … still running executor:V1-E7+V1-E8+V1-E9 elapsed=45s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126011301.log
+[gbx] … still running executor:V1-E7+V1-E8+V1-E9 elapsed=60s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126011301.log
+[gbx] … still running executor:V1-E7+V1-E8+V1-E9 elapsed=75s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126011301.log
+[gbx] … still running executor:V1-E7+V1-E8+V1-E9 elapsed=90s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126011301.log
+[gbx] … still running executor:V1-E7+V1-E8+V1-E9 elapsed=105s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126011301.log
+[gbx] … still running executor:V1-E7+V1-E8+V1-E9 elapsed=120s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126011301.log
+[gbx] … still running executor:V1-E7+V1-E8+V1-E9 elapsed=135s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126011301.log
+[gbx] … still running executor:V1-E7+V1-E8+V1-E9 elapsed=150s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126011301.log
+[gbx] … still running executor:V1-E7+V1-E8+V1-E9 elapsed=165s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126011301.log
+[gbx] … still running executor:V1-E7+V1-E8+V1-E9 elapsed=180s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126011301.log
+[gbx] … still running executor:V1-E7+V1-E8+V1-E9 elapsed=195s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126011301.log
+[gbx] … still running executor:V1-E7+V1-E8+V1-E9 elapsed=210s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126011301.log
+[gbx] … still running executor:V1-E7+V1-E8+V1-E9 elapsed=225s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126011301.log
+[gbx] … still running executor:V1-E7+V1-E8+V1-E9 elapsed=240s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126011301.log
+[gbx] … still running executor:V1-E7+V1-E8+V1-E9 elapsed=255s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126011301.log
+[gbx] … still running executor:V1-E7+V1-E8+V1-E9 elapsed=270s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126011301.log
+[gbx] … still running executor:V1-E7+V1-E8+V1-E9 elapsed=285s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126011301.log
+本批代码已写完（V1-E7 / E8 / E9），但 **verify NOT run**（本环境 Shell 被拒绝，无法执行 `npm test`），因此执行索引中这三项仍保持 **⬜**，未勾选。
+
+### 已实现
+
+**V1-E7 · `end_story.next`**
+- 清场后按 `activation` 挂下一章入口：`immediate` / `delay`（linked pending + once）/ `wait_user_dial`
+- 写入 `stories[next].status=inactive` + `plannedEntry`；默认不加 ActiveStoryLock（`beginCall` 再激活）
+- 测：`tests/runtime/end-story-cleanup.test.ts`、`tests/host/end-story-next-e2e.test.ts`
+
+**V1-E8 · EffectSink 确认语义**
+- `applyMediaEffect` → `EffectSinkResult`；`executeEffects` 改为 `async` 并 await Sink
+- Sink 失败 → effect `failed`，不写 ledger `executed`；`critical` 中止后续
+- `endCall` / FreePostPipeline 已 await
+- 测：`tests/runtime/effect-sink-plan-status.test.ts`
+
+**V1-E9 · §7.1–7.3 回归**
+- `tests/host/engine-plan-7.1-7.3.test.ts`（禁裸 recurring、延迟外呼、提前呼入 + 正常 outbound）
+
+### 请你本地跑
+
+```bash
+cd /Users/bolbiao/workspace/airpc-engine && npm test
+```
+
+通过后再把索引里 V1-E7/E8/E9 改为 ✅，或批准终端权限后让我续跑 verify 并勾选。
+[gbx] … still running executor:V1-E7+V1-E8+V1-E9 elapsed=300s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784126011301.log
+[gbx] ■ executor:V1-E7+V1-E8+V1-E9 done exit=0 elapsed=300s

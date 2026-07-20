@@ -1,6 +1,7 @@
 /**
  * 模块名称：EffectSink（媒介副作用端口）
- * 模块说明：壳／Studio 注入；无硬件时用 Recording／Noop 桩。时序见 19 §6。
+ * 模块说明：壳／Studio 注入；无硬件时用 Recording／Noop 桩。
+ * 时序：Executor 先 WET 逻辑态，再 await Sink；只有 Sink 成功才记 ledger executed。
  */
 import type { Effect } from "../schema/outcome.js";
 import type { CallSession } from "../host/types.js";
@@ -23,20 +24,37 @@ export interface EffectSinkApplyInput {
   userId: string;
 }
 
+/** Sink 成功：可带回壳侧 event id／载荷 */
+export type EffectSinkResultOk = {
+  ok: true;
+  sinkEventId?: string;
+  payload?: Record<string, unknown>;
+};
+
+/** Sink 失败：不得记 ledger executed；critical 时中止后续 effect */
+export type EffectSinkResultErr = {
+  ok: false;
+  error: string;
+  code?: string;
+  retryable?: boolean;
+};
+
+export type EffectSinkResult = EffectSinkResultOk | EffectSinkResultErr;
+
 /**
- * 壳侧媒介执行口。Studio 测可注入 Recording 桩；真硬件在壳仓。
- * 同步／异步均可；Executor 在逻辑成功后再调用。
+ * 壳侧媒介执行口。同步／异步均可；Executor 统一 `await Promise.resolve(...)`。
+ * Studio 测可注入 Recording 桩；真硬件在壳仓。
  */
 export interface EffectSink {
   applyMediaEffect(
     input: EffectSinkApplyInput,
-  ): void | Promise<void>;
+  ): EffectSinkResult | Promise<EffectSinkResult>;
 }
 
 export function createNoopEffectSink(): EffectSink {
   return {
     applyMediaEffect() {
-      /* Studio 默认：无硬件 */
+      return { ok: true };
     },
   };
 }
@@ -53,6 +71,7 @@ export function createRecordingEffectSink(): EffectSink & {
         session: input.session,
         userId: input.userId,
       });
+      return { ok: true };
     },
   };
 }

@@ -1,0 +1,102 @@
+.page {
+  max-width: 56rem;
+}
+
+.title {
+  margin: 0 0 0.5rem;
+  color: #12352c;
+}
+
+.lead {
+  margin: 0 0 1.25rem;
+  color: color-mix(in srgb, #12352c 70%, #5c6b73);
+  line-height: 1.5;
+}
+
+.gateBox {
+  margin: 1rem 0;
+  padding: 1.25rem;
+  border: 1px dashed color-mix(in srgb, #1a5f4a 35%, transparent);
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, #e8f2ee 55%, #fff);
+}
+
+.section {
+  margin-top: 1.25rem;
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, #1a5f4a 22%, transparent);
+  border-radius: 0.5rem;
+  background: #fff;
+}
+
+.sectionTitle {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #12352c;
+}
+
+.meta {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  color: #5c6b73;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+.factCard {
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid color-mix(in srgb, #1a5f4a 18%, transparent);
+  border-radius: 0.4rem;
+  background: color-mix(in srgb, #f7faf8 80%, #fff);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.eventList {
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+  max-height: 22rem;
+  overflow: auto;
+}
+
+.eventItem {
+  margin-bottom: 0.65rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid color-mix(in srgb, #1a5f4a 16%, transparent);
+  border-radius: 0.35rem;
+  background: color-mix(in srgb, #f7faf8 85%, #fff);
+  font-size: 0.85rem;
+}
+
+.eventPayload {
+  margin: 0.35rem 0 0;
+  padding: 0.4rem;
+  max-height: 8rem;
+  overflow: auto;
+  font-size: 0.75rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  background: color-mix(in srgb, #12352c 4%, #fff);
+  border-radius: 0.25rem;
+}
+
+.replayBox {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border: 1px dashed color-mix(in srgb, #1a5f4a 35%, transparent);
+  border-radius: 0.4rem;
+  background: color-mix(in srgb, #e8f2ee 40%, #fff);
+}

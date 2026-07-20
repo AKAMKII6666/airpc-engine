@@ -1,0 +1,17 @@
+@use "../../../../typeFiles/theme/tokens.scss" as t;
+
+.root {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	width: 100%;
+}
+
+.missingCom {
+	padding: 8px 12px;
+	border-radius: t.$radius-control;
+	border: 1px solid t.$state-danger;
+	color: t.$state-danger;
+	background: rgba(255, 90, 78, 0.08);
+	font-size: 0.8125rem;
+}

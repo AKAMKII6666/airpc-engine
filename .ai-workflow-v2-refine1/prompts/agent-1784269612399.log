@@ -1,0 +1,38 @@
+[gbx] ▶ executor:V2-R1-1+V2-R1-2+V2-R1-3 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … executor:V2-R1-1+V2-R1-2+V2-R1-3 still running (15s elapsed, no output for 15s)
+[gbx] … executor:V2-R1-1+V2-R1-2+V2-R1-3 still running (30s elapsed, no output for 30s)
+[gbx] … executor:V2-R1-1+V2-R1-2+V2-R1-3 still running (45s elapsed, no output for 45s)
+[gbx] … executor:V2-R1-1+V2-R1-2+V2-R1-3 still running (60s elapsed, no output for 60s)
+[gbx] … executor:V2-R1-1+V2-R1-2+V2-R1-3 still running (75s elapsed, no output for 75s)
+[gbx] … executor:V2-R1-1+V2-R1-2+V2-R1-3 still running (90s elapsed, no output for 90s)
+[gbx] … executor:V2-R1-1+V2-R1-2+V2-R1-3 still running (105s elapsed, no output for 105s)
+[gbx] … executor:V2-R1-1+V2-R1-2+V2-R1-3 still running (120s elapsed, no output for 120s)
+[gbx] … executor:V2-R1-1+V2-R1-2+V2-R1-3 still running (135s elapsed, no output for 135s)
+[gbx] … executor:V2-R1-1+V2-R1-2+V2-R1-3 still running (150s elapsed, no output for 150s)
+[gbx] … executor:V2-R1-1+V2-R1-2+V2-R1-3 still running (165s elapsed, no output for 165s)
+[gbx] … executor:V2-R1-1+V2-R1-2+V2-R1-3 still running (180s elapsed, no output for 180s)
+[gbx] … executor:V2-R1-1+V2-R1-2+V2-R1-3 still running (195s elapsed, no output for 195s)
+[gbx] … executor:V2-R1-1+V2-R1-2+V2-R1-3 still running (210s elapsed, no output for 210s)
+[gbx] … executor:V2-R1-1+V2-R1-2+V2-R1-3 still running (225s elapsed, no output for 225s)
+[gbx] … executor:V2-R1-1+V2-R1-2+V2-R1-3 still running (240s elapsed, no output for 240s)
+[gbx] … executor:V2-R1-1+V2-R1-2+V2-R1-3 still running (255s elapsed, no output for 255s)
+[gbx] … executor:V2-R1-1+V2-R1-2+V2-R1-3 still running (270s elapsed, no output for 270s)
+[gbx] … executor:V2-R1-1+V2-R1-2+V2-R1-3 still running (285s elapsed, no output for 285s)
+本批 **V2-R1-1 / R1-2 / R1-3** 代码与文档已改完；**verify NOT run**（本环境 Shell 被 Auto-review 拒绝），执行索引三行仍保持 ⬜，未勾选。
+
+### 已完成改动
+
+| 任务 | 落点 |
+|------|------|
+| **V2-R1-1** | 删除 `TimeBucket` / `TimeBucketSchema` / `hourToTimeBucket`；`match` 仅 `localHourRange`（`.strict()`）；`ComposeScene.localTime` 去掉 `bucket`；门面不再导出桶相关符号 |
+| **V2-R1-2** | `composer` 只按半开 `localHourRange` 匹配；时间硬块改为 `本地小时=`；重写 `composer.test.ts`；相关 e2e/夹具去掉 `bucket` |
+| **V2-R1-3** | `doubao_intro_outbound` 样例改为 `localHourRange`；需求 01/11/50 同步；`PROMPT_SCENE_TIME_BUCKETS_REMOVED` 拒载（composer + `validatePackage` 可测） |
+
+### 请你本地跑
+
+```bash
+cd /Users/bolbiao/workspace/airpc-engine && npm run quality:engine
+```
+
+全绿后把执行索引里 V2-R1-1～R1-3 改为 ✅（或再开一轮 executor 勾选）。**未跑通 verify 前不要勾 ✅。**
+[gbx] ■ executor:V2-R1-1+V2-R1-2+V2-R1-3 done exit=0 elapsed=295s

@@ -1,0 +1,87 @@
+[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+
+> quality:studio
+> node scripts/studio-quality/quality-studio.mjs
+
+
+==> lint (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 lint
+> node ./scripts/run-eslint.mjs . --max-warnings 0
+
+
+==> typecheck (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 typecheck
+> tsc -p tsconfig.json --noEmit
+
+
+==> check:comments
+check:comments ok (74 files)
+
+==> check:studio-structure
+WARN STUDIO-STRUCT-002  apps/studioV2/features/home/workbench/shell/WorkbenchSideCol.tsx:21:37  函数 WorkbenchSideCol 有效行数 70 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/features/packages/create/CreatePackageView.tsx:22:38  函数 CreatePackageView 有效行数 87 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/features/packages/export/ExportPackageForm.tsx:33:45  函数 ExportPackageForm 有效行数 65 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/features/packages/list/PackageListView.tsx:24:36  函数 PackageListView 有效行数 80 超过告警线 60  考虑拆分以保持可测性
+check:studio-structure ok (74 files, 4 warnings)
+
+==> test:studio
+
+> test:studio
+> npm run test -w @airpc/studio-v2
+
+
+> @airpc/studio-v2@0.0.1 test
+> vitest run
+
+
+ RUN  v3.2.7 /Users/bolbiao/workspace/airpc-engine/apps/studioV2
+
+ ✓ tests/domain/createStudioId.test.ts (2 tests) 1ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  10:53:51
+   Duration  194ms (transform 22ms, setup 0ms, collect 17ms, tests 1ms, environment 0ms, prepare 41ms)
+
+
+==> gate self-tests (comments + structure)
+▶ check:comments
+  ✔ 合格契约通过 (9.473583ms)
+  ✔ 缺失导出意图注释失败 (2.398875ms)
+  ✔ 缺失字段说明失败 (1.152333ms)
+  ✔ 复述占位注释失败 (1.197833ms)
+  ✔ 无原因抑制失败（含裸 eslint-disable） (2.683542ms)
+  ✔ 带原因抑制通过 (1.569166ms)
+  ✔ 输出格式含规则编号与位置 (0.920792ms)
+✔ check:comments (20.153542ms)
+▶ check:studio-structure
+  ✔ 有效行数忽略空行但不忽略注释 (0.484917ms)
+  ✔ page.tsx 分类正确 (0.148667ms)
+  ✔ 圈复杂度统计分支 (3.625083ms)
+  ✔ 合格基线通过，且排除 generated (7.941792ms)
+  ✔ page 行数硬上限失败 (2.23725ms)
+  ✔ 函数复杂度硬上限失败 (1.609209ms)
+  ✔ client 引擎写口失败 (1.962459ms)
+  ✔ 业务旁平放测试失败 (2.573ms)
+  ✔ 深挖引擎内部路径失败 (1.697917ms)
+  ✔ 目录异责平铺失败 (2.825334ms)
+  ✔ 业务 barrel index 失败 (1.714166ms)
+  ✔ UI 组件裸 fetch 失败 (1.029417ms)
+  ✔ 大范围豁免被拒绝 (0.844083ms)
+  ✔ 精确豁免生效 (1.038708ms)
+  ✔ validateAllowlist 拒绝 apps/** (0.073292ms)
+  ✔ 输出格式含规则编号与位置（路径可定位） (1.066917ms)
+✔ check:studio-structure (31.812083ms)
+ℹ tests 23
+ℹ suites 2
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 168.338458
+
+quality:studio ok
+[gbx] ■ verify:npm run quality:studio done exit=0 elapsed=4s

@@ -1,0 +1,14 @@
+{
+  "command": "cursor-agent",
+  "args": [
+    "-p",
+    "Follow the instructions in the prompt file exactly. Do not skip sections.\nPrompt file (absolute path): /Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/prompt-1784163325252.md\nRead that file now and execute it."
+  ],
+  "workdir": "/Users/bolbiao/workspace/airpc-engine",
+  "logFile": "/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784163325252.log",
+  "heartbeatMs": 15000,
+  "label": "executor:V1-P3+V1-Q1+V1-Q2",
+  "env": {
+    "GBX_PROMPT_FILE": "/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/prompt-1784163325252.md"
+  }
+}

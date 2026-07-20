@@ -1,0 +1,15 @@
+[gbx] ▶ fixer:V2-R1-4+V2-R2-1+V2-R2-2 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-R1-4+V2-R2-1+V2-R2-2 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-R1-4+V2-R2-1+V2-R2-2 still running (30s elapsed, no output for 30s)
+**本批修复（verify_fail）**
+
+`quality:studio` 唯一硬红：`autoFormTypes.ts` 使用了禁止的 `import("formik").FormikProps`（`@typescript-eslint/consistent-type-imports`）。已改为顶层 `import type { FormikProps } from "formik"`，与仓库其它 Formik 用法一致。
+
+按 verify 硬规则，本轮只修 `latest-verify` 仍红项；未顺手改审查里的 comProps 逃生等 major（不在当前 verify 红灯里）。任务勾选未改（verify 未确认通过）。
+
+**自验：** 未自验（Shell 执行被拒，无法重跑 `npm run quality:studio`）。请在本机执行：
+
+```bash
+npm run quality:studio
+```
+[gbx] ■ fixer:V2-R1-4+V2-R2-1+V2-R2-2 done exit=0 elapsed=41s

@@ -1,0 +1,54 @@
+[gbx] ▶ verify:npm test start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+
+> test
+> npm run check:engine-imports && npm run test -w @airpc/rpg-engine
+
+
+> check:engine-imports
+> node scripts/check-engine-imports.mjs
+
+check:engine-imports ok (42 files)
+
+> @airpc/rpg-engine@0.0.1 test
+> vitest run
+
+
+ RUN  v3.2.7 /Users/bolbiao/workspace/airpc-engine/packages/rpg-engine
+
+ ✓ tests/host/playback-phase.test.ts (1 test) 247ms
+ ✓ tests/host/schedule-outbound.test.ts (2 tests) 227ms
+ ✓ tests/host/isolation-recurring-e2e.test.ts (2 tests) 308ms
+ ✓ tests/host/manual-story-loop.test.ts (2 tests) 432ms
+ ✓ tests/host/free-call-pipeline.test.ts (4 tests) 550ms
+ ✓ tests/host/active-story-lock.test.ts (3 tests) 539ms
+ ✓ tests/schema/callcard-schema-tighten.test.ts (4 tests) 32ms
+ ✓ tests/runtime/effect-sink-plan-status.test.ts (3 tests) 21ms
+ ✓ tests/runtime/select-call-flow-prompt.test.ts (2 tests) 8ms
+ ✓ tests/memory/sqlite-memory.test.ts (5 tests) 405ms
+ ✓ tests/host/refer-to-expert-e2e.test.ts (1 test) 1099ms
+   ✓ E4a refer_to_expert E2E > invokeTool(refer_to_expert) → endCall → unlock + schedule → advanceClock pending  1097ms
+ ✓ tests/validation/golden-handoff.validate.test.ts (10 tests) 2396ms
+   ✓ validatePackage > FREE_CARD_MISSING when freeCardId file removed  310ms
+   ✓ validatePackage > ASSET_UNKNOWN when playbackClipId has no meta  632ms
+ ✓ tests/host/golden-handoff.test.ts (2 tests) 1366ms
+   ✓ golden_handoff > layout sidecar exists on disk but is never required by engine  941ms
+   ✓ golden_handoff > full handoff: 澜星 success → 小雨 user_dial → meet_ok unmount  409ms
+ ✓ tests/runtime/pick-pending-entry-mode.test.ts (4 tests) 15ms
+ ✓ tests/runtime/effect-s11.test.ts (5 tests) 4ms
+ ✓ tests/runtime/composer.test.ts (10 tests) 14ms
+ ✓ tests/lore/bootstrap-fallback.test.ts (3 tests) 45ms
+ ✓ tests/host/a-to-b-memory-e2e.test.ts (1 test) 155ms
+ ✓ tests/host/log-redact.test.ts (1 test) 27ms
+ ✓ tests/host/night-layer-e2e.test.ts (2 tests) 609ms
+   ✓ E4d night／late_night layer > night localNowIso hits outbound_night + local time hard block  377ms
+ ✓ tests/host/content-reload-preserves-session.test.ts (2 tests) 726ms
+   ✓ content reload preserves runtime > loadWorkspace({ resetRuntime: true }) 清空活跃 Session  459ms
+ ✓ tests/index.smoke.test.ts (1 test) 6ms
+ ✓ tests/runtime/exit-selector.test.ts (3 tests) 9ms
+
+ Test Files  23 passed (23)
+      Tests  73 passed (73)
+   Start at  12:07:10
+   Duration  7.30s (transform 2.51s, setup 0ms, collect 18.22s, tests 9.24s, environment 6ms, prepare 5.98s)
+
+[gbx] ■ verify:npm test done exit=0 elapsed=10s

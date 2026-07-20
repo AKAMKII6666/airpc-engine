@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "label": "batch-6",
+  "at": "2026-07-17T01:45:07.468Z",
+  "ok": false,
+  "phase": "batch",
+  "activeTaskIds": [
+    "V2-A3",
+    "V2-U1",
+    "V2-U2"
+  ],
+  "reason": "command failed",
+  "failedCommand": "npm run quality:studio",
+  "exitCode": 1,
+  "results": [
+    {
+      "command": "npm run quality:studio",
+      "exitCode": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> quality:studio\n> node scripts/studio-quality/quality-studio.mjs\n\n\n==> ensure-modal-layout (pre-typecheck)\nensure-modal-layout: nothing to remove\n\n==> ensure-migrated-layout (pre-typecheck)\nremoved obsolete flat file: apps/studioV2/src/pageComponents/characters/com/CharacterDeleteConfirmModal.tsx\nremoved obsolete flat file: apps/studioV2/src/pageComponents/assets/com/AssetDeleteConfirmModal.tsx\nensure-migrated-layout: removed 2 file(s)\n\n==> lint (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 lint\n> node ./scripts/run-eslint.mjs . --max-warnings 0\n\n\n==> typecheck (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\nsrc/pageComponents/assets/AssetLibraryView.tsx(72,9): error TS4104: The type 'readonly string[]' is 'readonly' and cannot be assigned to the mutable type 'string[]'.\nsrc/pageComponents/characters/CharacterLibraryView.tsx(80,9): error TS4104: The type 'readonly string[]' is 'readonly' and cannot be assigned to the mutable type 'string[]'.\nnpm error Lifecycle script `typecheck` failed with error:\nnpm error code 2\nnpm error path /Users/bolbiao/workspace/airpc-engine/apps/studioV2\nnpm error workspace @airpc/studio-v2@0.0.1\nnpm error location /Users/bolbiao/workspace/airpc-engine/apps/studioV2\nnpm error command failed\nnpm error command sh -c tsc -p tsconfig.json --noEmit\ntypecheck (@airpc/studio-v2) failed (exit 2)\n\nquality:studio FAILED\n[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=5s\n",
+      "stderr": "",
+      "stdoutTail": "[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> quality:studio\n> node scripts/studio-quality/quality-studio.mjs\n\n\n==> ensure-modal-layout (pre-typecheck)\nensure-modal-layout: nothing to remove\n\n==> ensure-migrated-layout (pre-typecheck)\nremoved obsolete flat file: apps/studioV2/src/pageComponents/characters/com/CharacterDeleteConfirmModal.tsx\nremoved obsolete flat file: apps/studioV2/src/pageComponents/assets/com/AssetDeleteConfirmModal.tsx\nensure-migrated-layout: removed 2 file(s)\n\n==> lint (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 lint\n> node ./scripts/run-eslint.mjs . --max-warnings 0\n\n\n==> typecheck (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\nsrc/pageComponents/assets/AssetLibraryView.tsx(72,9): error TS4104: The type 'readonly string[]' is 'readonly' and cannot be assigned to the mutable type 'string[]'.\nsrc/pageComponents/characters/CharacterLibraryView.tsx(80,9): error TS4104: The type 'readonly string[]' is 'readonly' and cannot be assigned to the mutable type 'string[]'.\nnpm error Lifecycle script `typecheck` failed with error:\nnpm error code 2\nnpm error path /Users/bolbiao/workspace/airpc-engine/apps/studioV2\nnpm error workspace @airpc/studio-v2@0.0.1\nnpm error location /Users/bolbiao/workspace/airpc-engine/apps/studioV2\nnpm error command failed\nnpm error command sh -c tsc -p tsconfig.json --noEmit\ntypecheck (@airpc/studio-v2) failed (exit 2)\n\nquality:studio FAILED\n[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=5s\n",
+      "stderrTail": "",
+      "errorLocations": [
+        {
+          "file": "src/pageComponents/assets/AssetLibraryView.tsx",
+          "line": 72,
+          "column": 9,
+          "code": "TS4104",
+          "message": "The type 'readonly string[]' is 'readonly' and cannot be assigned to the mutable type 'string[]'."
+        },
+        {
+          "file": "src/pageComponents/characters/CharacterLibraryView.tsx",
+          "line": 80,
+          "column": 9,
+          "code": "TS4104",
+          "message": "The type 'readonly string[]' is 'readonly' and cannot be assigned to the mutable type 'string[]'."
+        }
+      ]
+    }
+  ],
+  "errorLocations": [
+    {
+      "file": "src/pageComponents/assets/AssetLibraryView.tsx",
+      "line": 72,
+      "column": 9,
+      "code": "TS4104",
+      "message": "The type 'readonly string[]' is 'readonly' and cannot be assigned to the mutable type 'string[]'."
+    },
+    {
+      "file": "src/pageComponents/characters/CharacterLibraryView.tsx",
+      "line": 80,
+      "column": 9,
+      "code": "TS4104",
+      "message": "The type 'readonly string[]' is 'readonly' and cannot be assigned to the mutable type 'string[]'."
+    }
+  ],
+  "historyFile": "batch-6-1784252707468.json"
+}

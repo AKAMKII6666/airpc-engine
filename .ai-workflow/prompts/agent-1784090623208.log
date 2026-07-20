@@ -1,0 +1,35 @@
+[gbx] ▶ executor:E8 start cmd=agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … still running executor:E8 elapsed=15s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784090623208.log
+[gbx] … still running executor:E8 elapsed=30s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784090623208.log
+[gbx] … still running executor:E8 elapsed=45s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784090623208.log
+[gbx] … still running executor:E8 elapsed=60s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784090623208.log
+[gbx] … still running executor:E8 elapsed=75s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784090623208.log
+[gbx] … still running executor:E8 elapsed=90s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784090623208.log
+[gbx] … still running executor:E8 elapsed=105s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784090623208.log
+[gbx] … still running executor:E8 elapsed=120s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784090623208.log
+[gbx] … still running executor:E8 elapsed=135s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784090623208.log
+[gbx] … still running executor:E8 elapsed=150s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784090623208.log
+[gbx] … still running executor:E8 elapsed=165s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784090623208.log
+[gbx] … still running executor:E8 elapsed=180s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784090623208.log
+[gbx] … still running executor:E8 elapsed=195s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784090623208.log
+[gbx] … still running executor:E8 elapsed=210s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784090623208.log
+[gbx] … still running executor:E8 elapsed=225s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784090623208.log
+[gbx] … still running executor:E8 elapsed=240s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784090623208.log
+[gbx] … still running executor:E8 elapsed=255s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784090623208.log
+**E8（调试 SSE 最小推送）已落地**；任务表已 ⬜→✅。
+
+### 实现
+- `POST /api/debug/chat` 改为 `text/event-stream`：推送 `message`（DialogueEvent）→ `done`／`error`
+- 客户端 `ajaxHelper` 解析 SSE；`chatStreaming` 标志；refreshStamp 仍作兜底重拉
+- 未做完整事件总线（符合防岔）
+
+### 文档
+已去掉「SSE 仅后置／只靠 refreshStamp」表述（06、04、18、第三步索引、调试器页提示）。
+
+### 验证
+**verify NOT run**（本环境 Shell 不可用，未能执行 `npm run typecheck`）。请在仓根自行跑：
+
+```bash
+npm run typecheck
+```
+[gbx] ■ executor:E8 done exit=0 elapsed=262s

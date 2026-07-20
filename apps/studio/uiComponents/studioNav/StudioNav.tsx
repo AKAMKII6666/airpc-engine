@@ -27,6 +27,16 @@ const NAV_ITEMS = [
     match: (p: string) => p.startsWith("/characters"),
   },
   {
+    href: "/world",
+    label: "世界",
+    match: (p: string) => p.startsWith("/world"),
+  },
+  {
+    href: "/assets",
+    label: "资源",
+    match: (p: string) => p.startsWith("/assets"),
+  },
+  {
     href: "/users",
     label: "用户",
     match: (p: string) => p.startsWith("/users"),

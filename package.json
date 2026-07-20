@@ -7,10 +7,19 @@
   ],
   "scripts": {
     "dev": "npm run dev -w @airpc/studio",
+    "dev:v2": "npm run dev -w @airpc/studio-v2",
     "build": "npm run build -w @airpc/rpg-engine && npm run build -w @airpc/studio",
     "test": "npm run check:engine-imports && npm run test -w @airpc/rpg-engine",
     "check:engine-imports": "node scripts/check-engine-imports.mjs",
-    "typecheck": "npm run build -w @airpc/rpg-engine && npm run typecheck -w @airpc/rpg-engine && npm run typecheck -w @airpc/studio"
+    "check:engine-structure": "node scripts/engine-quality/check-engine-structure.mjs && node --test scripts/engine-quality/tests/check-engine-structure.test.mjs",
+    "quality:engine": "node scripts/engine-quality/quality-engine.mjs",
+    "lint": "npm run lint -w @airpc/studio-v2",
+    "check:comments": "node scripts/studio-quality/check-comments.mjs && node --test scripts/studio-quality/tests/check-comments.test.mjs",
+    "check:studio-structure": "node scripts/studio-quality/check-studio-structure.mjs && node --test scripts/studio-quality/tests/check-studio-structure.test.mjs",
+    "test:studio": "npm run test -w @airpc/studio-v2",
+    "quality:studio": "node scripts/studio-quality/quality-studio.mjs",
+    "typecheck": "npm run build -w @airpc/rpg-engine && npm run typecheck -w @airpc/rpg-engine && npm run typecheck -w @airpc/studio && npm run typecheck -w @airpc/studio-v2",
+    "typecheck:studio-v2": "npm run typecheck -w @airpc/studio-v2"
   },
   "engines": {
     "node": ">=20"

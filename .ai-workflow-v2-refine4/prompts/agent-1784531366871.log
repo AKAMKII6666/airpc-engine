@@ -1,0 +1,21 @@
+[gbx] ▶ fixer:V2-S4-3+V2-S4-4 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-S4-3+V2-S4-4 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-S4-3+V2-S4-4 still running (30s elapsed, no output for 30s)
+[gbx] … fixer:V2-S4-3+V2-S4-4 still running (45s elapsed, no output for 45s)
+[gbx] … fixer:V2-S4-3+V2-S4-4 still running (60s elapsed, no output for 60s)
+[gbx] … fixer:V2-S4-3+V2-S4-4 still running (75s elapsed, no output for 75s)
+已按 `latest-verify.json` 的 **STUDIO-COMMENT-001/002** 补齐字段级与导出意图注释，未改业务逻辑。
+
+### 修改
+1. `apps/studioV2/typeFiles/story/callCardLabels.ts`  
+   - `CallCardLabelOption.label` / `value` 补字段说明（UI 生命周期 / Formik 枚举对齐）
+
+2. `apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts`  
+   - 为 verify 标红的全部字段补可空、单位、所有权或生命周期说明  
+   - 为 `EditorChapterNodeData` 补导出意图 JSDoc
+
+### 验证
+**未自验**（Shell 不可用，未能重跑 `npm run quality:studio`）。
+
+执行索引中 `V2-S4-3` / `V2-S4-4` 仍为 ⬜；请本地跑通 `npm run quality:studio` 后再勾选。
+[gbx] ■ fixer:V2-S4-3+V2-S4-4 done exit=0 elapsed=76s

@@ -6,6 +6,7 @@
 import { useCallback } from "react";
 import {
   useStudioStore,
+  useStudioStoreContext,
   useStudioStoreShallow,
 } from "@studio/store/storeContext/studioStoreContext";
 import {
@@ -13,12 +14,14 @@ import {
   postBeginCall,
   postBootstrapLore,
   postCompletePlayback,
+  postDebugChat,
   postEndCall,
   postInvokeTool,
   postSimEvent,
 } from "@studio/utils/ajaxHelper/studio.ajax";
 
 export function useDebuggerManualCallBis() {
+  const storeApi = useStudioStoreContext();
   const {
     callMode,
     packageId,
@@ -35,6 +38,7 @@ export function useDebuggerManualCallBis() {
     toolTargetAgentId,
     memorySearchQuery,
     clockDeltaMinutes,
+    chatDraft,
   } = useStudioStoreShallow(function (s) {
     return {
       callMode: s.debugger.callMode,
@@ -52,6 +56,7 @@ export function useDebuggerManualCallBis() {
       toolTargetAgentId: s.debugger.toolTargetAgentId,
       memorySearchQuery: s.debugger.memorySearchQuery,
       clockDeltaMinutes: s.debugger.clockDeltaMinutes,
+      chatDraft: s.debugger.chatDraft,
     };
   });
   const setDebuggerSessionId = useStudioStore((s) => s.setDebuggerSessionId);
@@ -61,6 +66,11 @@ export function useDebuggerManualCallBis() {
   );
   const setDebuggerLastSimEvent = useStudioStore(
     (s) => s.setDebuggerLastSimEvent,
+  );
+  const setDebuggerChatTurns = useStudioStore((s) => s.setDebuggerChatTurns);
+  const setDebuggerChatDraft = useStudioStore((s) => s.setDebuggerChatDraft);
+  const setDebuggerChatStreaming = useStudioStore(
+    (s) => s.setDebuggerChatStreaming,
   );
   const setDebuggerError = useStudioStore((s) => s.setDebuggerError);
   const setDebuggerLoading = useStudioStore((s) => s.setDebuggerLoading);
@@ -290,6 +300,36 @@ export function useDebuggerManualCallBis() {
     ],
   );
 
+  const setClockMs = useCallback(
+    async function (toClockMs: number): Promise<void> {
+      setDebuggerLoading(true);
+      setDebuggerError(null);
+      const res = await postAdvanceClock({ toClockMs });
+      setDebuggerLoading(false);
+      if (!res.ok || !res.data) {
+        setDebuggerError(res.message ?? "setClockMs failed");
+        return;
+      }
+      bumpDebuggerRefreshStamp();
+    },
+    [setDebuggerLoading, setDebuggerError, bumpDebuggerRefreshStamp],
+  );
+
+  const advanceClockToNextIntent = useCallback(
+    async function (): Promise<void> {
+      setDebuggerLoading(true);
+      setDebuggerError(null);
+      const res = await postAdvanceClock({ toNextIntent: true });
+      setDebuggerLoading(false);
+      if (!res.ok || !res.data) {
+        setDebuggerError(res.message ?? "advanceClockToNextIntent failed");
+        return;
+      }
+      bumpDebuggerRefreshStamp();
+    },
+    [setDebuggerLoading, setDebuggerError, bumpDebuggerRefreshStamp],
+  );
+
   const bootstrapLore = useCallback(
     async function (): Promise<void> {
       setDebuggerLoading(true);
@@ -305,6 +345,79 @@ export function useDebuggerManualCallBis() {
     [setDebuggerLoading, setDebuggerError, bumpDebuggerRefreshStamp],
   );
 
+  const sendChat = useCallback(
+    async function (): Promise<void> {
+      if (!sessionId) {
+        setDebuggerError("no active session");
+        return;
+      }
+      const text = chatDraft.trim();
+      if (!text) {
+        setDebuggerError("请输入要发送的文本");
+        return;
+      }
+      setDebuggerLoading(true);
+      setDebuggerChatStreaming(true);
+      setDebuggerError(null);
+      const res = await postDebugChat(
+        { sessionId, text },
+        {
+          onMessage: function (ev): void {
+            if (!storeApi) return;
+            if (ev.type === "user.transcript") {
+              const prev = storeApi.getState().debugger.chatTurns;
+              setDebuggerChatTurns([
+                ...prev,
+                {
+                  role: "user",
+                  text: ev.text,
+                  at: new Date().toISOString(),
+                },
+              ]);
+              return;
+            }
+            if (ev.type === "assistant.message") {
+              const prev = storeApi.getState().debugger.chatTurns;
+              setDebuggerChatTurns([
+                ...prev,
+                {
+                  role: "assistant",
+                  text: ev.text,
+                  at: new Date().toISOString(),
+                },
+              ]);
+            }
+          },
+        },
+      );
+      setDebuggerChatStreaming(false);
+      setDebuggerLoading(false);
+      if (!res.ok || !res.data) {
+        setDebuggerError(
+          res.message
+            ? `${res.code ?? "ERROR"}: ${res.message}`
+            : "chat failed",
+        );
+        bumpDebuggerRefreshStamp();
+        return;
+      }
+      setDebuggerChatTurns(res.data.turns);
+      setDebuggerChatDraft("");
+      bumpDebuggerRefreshStamp();
+    },
+    [
+      sessionId,
+      chatDraft,
+      storeApi,
+      setDebuggerLoading,
+      setDebuggerChatStreaming,
+      setDebuggerError,
+      setDebuggerChatTurns,
+      setDebuggerChatDraft,
+      bumpDebuggerRefreshStamp,
+    ],
+  );
+
   return {
     beginCall,
     invokeTool,
@@ -312,6 +425,9 @@ export function useDebuggerManualCallBis() {
     completePlayback,
     simEvent,
     advanceClock,
+    setClockMs,
+    advanceClockToNextIntent,
     bootstrapLore,
+    sendChat,
   };
 }

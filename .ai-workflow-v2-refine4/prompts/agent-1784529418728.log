@@ -1,0 +1,71 @@
+[gbx] ▶ executor:V2-S4-1+V2-S4-2 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (15s elapsed, no output for 15s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (30s elapsed, no output for 30s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (45s elapsed, no output for 45s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (60s elapsed, no output for 60s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (75s elapsed, no output for 75s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (90s elapsed, no output for 90s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (105s elapsed, no output for 105s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (120s elapsed, no output for 120s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (135s elapsed, no output for 135s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (150s elapsed, no output for 150s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (165s elapsed, no output for 165s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (180s elapsed, no output for 180s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (195s elapsed, no output for 195s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (210s elapsed, no output for 210s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (225s elapsed, no output for 225s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (240s elapsed, no output for 240s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (255s elapsed, no output for 255s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (270s elapsed, no output for 270s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (285s elapsed, no output for 285s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (300s elapsed, no output for 300s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (315s elapsed, no output for 315s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (330s elapsed, no output for 330s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (345s elapsed, no output for 345s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (360s elapsed, no output for 360s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (375s elapsed, no output for 375s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (390s elapsed, no output for 390s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (405s elapsed, no output for 405s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (420s elapsed, no output for 420s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (435s elapsed, no output for 435s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (450s elapsed, no output for 450s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (465s elapsed, no output for 465s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (480s elapsed, no output for 480s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (495s elapsed, no output for 495s)
+[gbx] … executor:V2-S4-1+V2-S4-2 still running (510s elapsed, no output for 510s)
+本轮 **V2-S4-1 / V2-S4-2** 代码已落地，但 **verify NOT run**（本环境 Shell/`rm`/`Delete` 均被拒绝），执行索引 **保持 ⬜**，未勾选。
+
+### 已完成（代码）
+
+**S4-1 — 去重角色入口**
+- `StoryEditorShell` 不再挂载左侧轨 / 角色浮窗
+- 底栏去掉角色 icon，仅保留资源浮窗
+- 业务代码中已无对 `CharacterAnchorRail` / `CharacterPickerFloat` / `addEditorCharacterForm` 的 import
+
+**S4-2 — 画布角色 A1**
+- 锚点节点 `selectable: true`，点选打开角色库同款编辑 `FormModal`（`characterDetailForm` items + `commitSaveCharacterDetail`）
+- 「添加角色」按钮 → 同款新建 `FormModal`（`createCharacterForm` + `commitCreateCharacter`），落盘后挂画布锚点
+- mock 锚点对齐 `doubao-sister` / `xiaoyu`，便于点选编辑真盘角色
+
+### 需你本地补两步
+
+环境无法删文件，以下 **REMOVED stub** 仍在磁盘（内容已掏空，无引用），请手动删除：
+
+```bash
+cd /Users/bolbiao/workspace/airpc-engine
+rm -f \
+  apps/studioV2/src/pageComponents/storyEditor/CharacterAnchorRail.tsx \
+  apps/studioV2/src/pageComponents/storyEditor/CharacterAnchorRail.module.scss \
+  apps/studioV2/src/pageComponents/storyEditor/library/CharacterPickerFloat.tsx \
+  apps/studioV2/src/pageComponents/storyEditor/hooks/useAddEditorCharacterModal.ts \
+  apps/studioV2/src/bis/pageBis/storyEditor/addEditorCharacterForm.ts \
+  apps/studioV2/src/utils/ajaxProxy/storyEditor/mockEditorCharacters.ts \
+  apps/studioV2/src/pageComponents/storyEditor/com/character/CharacterAnchorList.tsx \
+  apps/studioV2/src/pageComponents/storyEditor/com/character/CharacterAnchorAddControls.tsx \
+  apps/studioV2/src/pageComponents/storyEditor/com/character/CharacterAnchorRailHead.tsx
+
+npm run quality:studio
+```
+
+`quality:studio` 全绿后，再把执行索引里 **V2-S4-1 / V2-S4-2** 改为 ✅（或让 gbx 下一轮 Fixer/`--after-manual` 处理）。
+[gbx] ■ executor:V2-S4-1+V2-S4-2 done exit=0 elapsed=512s

@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "reviewRunId": "batch-reviewer-1-54f6dac2-55e1-4ec5-9131-92ec8c82c796",
+  "role": "batch-reviewer",
+  "batchId": "1",
+  "exFile": "docs/AI和人类/里程碑/v2.0/细化修改4_执行索引.md",
+  "result": "fail",
+  "blocker": 0,
+  "critical": 0,
+  "major": 3,
+  "minor": 1,
+  "recommendedNextState": "FIX_BATCH",
+  "summary": "V2-S4-1/S4-2 功能代码大体落地（壳层去轨/去底栏角色浮窗、画布 A1 复用 characters FormModal+bis），但执行者明确 verify NOT run / Shell denied，执行索引仍为 ⬜，且 9 个 REMOVED 迁移壳文件未物理删除，不满足本批出口。",
+  "issues": [
+    {
+      "id": "R1-1",
+      "severity": "major",
+      "file": ".ai-workflow-v2-refine4/prompts/agent-1784529418728.log",
+      "location": "executor summary",
+      "description": "执行者摘要写明「verify NOT run（本环境 Shell/rm/Delete 均被拒绝）」；本批为实现批（verify=npm run quality:studio），按 reviewer 规则必须 fail，不得 pass。",
+      "expectedBehavior": "本批出口前跑通 npm run quality:studio（exit 0），并在 reviews/latest-verify 或编排 verify 阶段留下可核验结果。",
+      "suggestedVerification": "在仓库根执行 npm run quality:studio；确认 exit 0 且无门禁红项。"
+    },
+    {
+      "id": "R1-2",
+      "severity": "major",
+      "file": "docs/AI和人类/里程碑/v2.0/细化修改4_执行索引.md",
+      "location": "§1 任务表 · V2-S4-1 / V2-S4-2",
+      "description": "执行索引中 V2-S4-1、V2-S4-2 仍为 ⬜；执行者主动未勾选。批次出口要求本批任务行均为 ✅。",
+      "expectedBehavior": "quality:studio 通过且审查通过后，将 V2-S4-1、V2-S4-2 两行改为 ✅。",
+      "suggestedVerification": "对照执行索引表：两行状态均为 ✅。"
+    },
+    {
+      "id": "R1-3",
+      "severity": "major",
+      "file": "apps/studioV2/src/pageComponents/storyEditor/",
+      "location": "REMOVED stubs（见 description）",
+      "description": "业务 import 已断开，但以下迁移壳仍留在磁盘（仅 export {} / 废弃注释）：CharacterAnchorRail.tsx、CharacterAnchorRail.module.scss、library/CharacterPickerFloat.tsx、hooks/useAddEditorCharacterModal.ts、bis/pageBis/storyEditor/addEditorCharacterForm.ts、utils/ajaxProxy/storyEditor/mockEditorCharacters.ts、com/character/CharacterAnchorList.tsx、CharacterAnchorAddControls.tsx、CharacterAnchorRailHead.tsx。违反 studio-v2-quality「禁止保留迁移壳」与细化修改4 §5「无 CharacterAnchorRail / CharacterPickerFloat」物理清理口径。",
+      "expectedBehavior": "物理删除上述 stub 文件；不得保留 REMOVED/export {} 占位。",
+      "suggestedVerification": "rg CharacterAnchorRail|CharacterPickerFloat|addEditorCharacterForm apps/studioV2 无业务命中且无 stub 文件路径；quality:studio 绿。"
+    },
+    {
+      "id": "R1-4",
+      "severity": "minor",
+      "file": "apps/studioV2/typeFiles/story/editor/storyEditorMock.ts",
+      "location": "EditorCharacterAnchor JSDoc ~L15",
+      "description": "类型注释仍写「左侧角色锚点投影」，与 S4-1 已删除左侧轨、锚点仅在画布的口径不一致。",
+      "expectedBehavior": "注释改为画布角色锚点投影语义，去掉「左侧」。",
+      "suggestedVerification": "读 storyEditorMock.ts 注释与 §2.1 一致。"
+    }
+  ],
+  "checks": {
+    "typecheck": "skipped",
+    "lint": "skipped",
+    "tests": "skipped",
+    "behaviorChecks": "pass",
+    "negativeChecks": "pass",
+    "qualityStudio": "not_run"
+  },
+  "notes": "只读审查未改业务代码。行为核对：StoryEditorShell 未挂载 CharacterAnchorRail/CharacterPickerFloat；BottomToolBar 无角色 icon、仅资源浮窗；画布锚点 selectable:true，选中走 useStoryEditorCharacterForms→fetchCharacterDef+characterDetailForm/createCharacterForm；未发现 storis-packages 写盘或 packages/rpg-engine 改动；未发现裸 CSS 单位陷阱（如 sx width: 8rem）。S4-3+ 字段（goalOneLiner/entryLabel 等）仍在 mock 中属后续批，不计入本批 fail。fail 主因：verify 未跑 + 索引未勾选 + stub 未删。"
+}

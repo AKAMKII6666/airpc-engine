@@ -1,0 +1,18 @@
+[gbx] ▶ batch-reviewer:V2-P2-2+V2-P3-1+V2-P3-2 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … batch-reviewer:V2-P2-2+V2-P3-1+V2-P3-2 still running (15s elapsed, no output for 15s)
+[gbx] … batch-reviewer:V2-P2-2+V2-P3-1+V2-P3-2 still running (30s elapsed, no output for 30s)
+[gbx] … batch-reviewer:V2-P2-2+V2-P3-1+V2-P3-2 still running (45s elapsed, no output for 45s)
+[gbx] … batch-reviewer:V2-P2-2+V2-P3-1+V2-P3-2 still running (60s elapsed, no output for 60s)
+[gbx] … batch-reviewer:V2-P2-2+V2-P3-1+V2-P3-2 still running (75s elapsed, no output for 75s)
+**Batch 2 审查结果：`fail`（major×2）→ 建议 `FIX_BATCH`**
+
+已写入 `.ai-workflow-v2-refine2/reviews/latest.json`（`reviewRunId` 已对齐）。
+
+**静态对照需求：** V2-P2-2 / P3-1 / P3-2 代码侧基本到位（无「打开调试器」、AutoForm 含 gender/birthday/age 与四国省市区、新建共用 items[]、无交叉校验与调试偏好主区）。
+
+**不得 pass 的原因：**
+1. 执行者摘要含 **verify NOT run**（Shell denied）
+2. 执行索引三行仍为 **⬜**；`latest-verify` 仍是 batch-1，不能当本批门禁证据
+
+Fixer 下一步：跑通 `npm run quality:studio`，再勾选这三行为 ✅。
+[gbx] ■ batch-reviewer:V2-P2-2+V2-P3-1+V2-P3-2 done exit=0 elapsed=83s

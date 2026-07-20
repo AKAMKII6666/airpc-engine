@@ -82,19 +82,12 @@ interface CallCardContext {
     mustNotReveal: string[]
   }
   /**
-   * 可选：多场景提示词片段（呼入/呼出开场、时段语气等）。
+   * 可选：多场景提示词片段（呼入/呼出开场、本地小时语气等）。
    * 缺省则仅用基线 context + Composer 强制时间注入。
    * 详见 [50](./50-对话与模型适配.md)。
    */
   promptScenes?: PromptSceneLayer[]
 }
-
-type TimeBucket =
-  | "late_night"  // 本地 0–5
-  | "morning"     // 5–11
-  | "afternoon"   // 11–17
-  | "evening"     // 17–22
-  | "night"       // 22–24
 
 interface PromptSceneLayer {
   layerId: string
@@ -103,9 +96,7 @@ interface PromptSceneLayer {
   match: {
     /** 不写 = 任意方向 */
     callDirection?: "inbound" | "outbound" | "either"
-    /** 不写 = 任意时段；可多选 */
-    timeBuckets?: TimeBucket[]
-    /** 可选：比 bucket 更细的本地小时窗 [from, to) */
+    /** 可选：本地小时半开窗 [from, to)；不写 = 任意小时 */
     localHourRange?: { from: number; to: number }
   }
   patch: {
@@ -121,7 +112,8 @@ interface PromptSceneLayer {
 
 **组装口径（定稿）：**
 
-- `context` 基线 = 本通**剧情合同**；`promptScenes` = 声明式「怎么开口/时段语气」，效果对齐老话机呼入呼出/时段切词，但由 Composer 统一组装。
+- `context` 基线 = 本通**剧情合同**；`promptScenes` = 声明式「怎么开口/时段语气」，效果对齐老话机呼入呼出/按时段切词，但由 Composer 统一按 `localHourRange` 组装。
+- **禁止** `match.timeBuckets`（已删除；含该字段的内容 **拒载**）。
 - **禁止** `patch` 覆盖 `objective` / `forbidden`（校验器拒绝此类字段）。
 - 目标相同、仅开场不同 → 一张卡 + `promptScenes`；目标/出口都不同 → 仍拆多卡 + `entryMode`。
 

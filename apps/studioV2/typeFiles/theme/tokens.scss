@@ -1,0 +1,37 @@
+// SCSS 侧 token 镜像（对照 typeFiles/theme/darkTokens.ts / 色板参考.md）
+// 布局与组件样式只消费本文件变量，避免散落硬编码色值。
+
+$bg-app: #070d16;
+$bg-canvas: #0a1320;
+$bg-canvas-grid: #132236;
+$bg-panel: #101824;
+$bg-panel-elevated: #151f2d;
+$bg-node: #182232;
+$bg-input: #0d1522;
+$bg-hover: #1c2a3d;
+$bg-active: #223451;
+
+$border-subtle: #1e2a3a;
+$border-panel: #26364a;
+$border-node: #354760;
+$border-strong: #536bff;
+
+$text-primary: #f2f6ff;
+$text-secondary: #b9c6da;
+$text-muted: #7e8da4;
+$text-disabled: #526073;
+
+$brand-primary: #5b6cff;
+$brand-violet: #8b5cf6;
+$brand-cyan: #32d6ff;
+$brand-teal: #25d0a2;
+
+$state-success: #62d26f;
+$state-warning: #ffb020;
+$state-danger: #ff5a4e;
+
+$radius-control: 8px;
+$nav-width: 168px;
+$shadow-panel: 0 12px 32px rgba(0, 0, 0, 0.28);
+
+$brand-gradient: linear-gradient(135deg, #536bff 0%, #7a5cff 58%, #32d6ff 100%);

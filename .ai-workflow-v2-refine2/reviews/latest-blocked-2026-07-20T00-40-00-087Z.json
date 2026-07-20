@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "reviewRunId": "batch-reviewer-2-d2371f96-34e9-4b73-828a-cdda2fe77956",
+  "role": "batch-reviewer",
+  "batchId": "2",
+  "exFile": "docs/AI和人类/里程碑/v2.0/细化修改2_执行索引.md",
+  "result": "fail",
+  "blocker": 0,
+  "critical": 0,
+  "major": 2,
+  "minor": 0,
+  "recommendedNextState": "FIX_BATCH",
+  "summary": "本批 V2-P2-2/P3-1/P3-2 静态对照需求 §3–§7：代码侧已去掉打开调试器、AutoForm 重编排含 gender/birthday/age 与四国省市区、新建共用同一 items[]、无年龄生日交叉校验与调试偏好主区；但执行者摘要含 verify NOT run（Shell denied），执行索引三行仍为 ⬜，且 latest-verify 仍为 batch-1，本批 quality:studio 未自证。按规则不得 pass。",
+  "issues": [
+    {
+      "id": "R2-1",
+      "severity": "major",
+      "file": ".ai-workflow-v2-refine2/prompts/agent-1784288559218.log",
+      "location": "executor summary",
+      "description": "执行者明确写出「本会话 Shell 仍被拒绝，verify NOT run」；本批为实现任务（verify=npm run quality:studio），不得在未跑门禁时判 pass。",
+      "expectedBehavior": "本批改动后由 Agent 或编排器跑通 npm run quality:studio（exit 0），并在 reports 中形成对本批 activeTaskIds 有效的 verify 记录。",
+      "suggestedVerification": "在可执行 Shell 的环境运行：npm run quality:studio；确认 exit 0。"
+    },
+    {
+      "id": "R2-2",
+      "severity": "major",
+      "file": "docs/AI和人类/里程碑/v2.0/细化修改2_执行索引.md",
+      "location": "任务表 V2-P2-2 / V2-P3-1 / V2-P3-2",
+      "description": "执行索引中本批三行仍为 ⬜；批次出口要求本批任务均为 ✅。代码侧改动已可见，但未在绿验后勾选，批次未收口。",
+      "expectedBehavior": "quality:studio 绿后将 V2-P2-2、V2-P3-1、V2-P3-2 改为 ✅。",
+      "suggestedVerification": "核对执行索引任务表三行均为 ✅，且与本批 verify 报告 activeTaskIds 一致。"
+    }
+  ],
+  "checks": {
+    "typecheck": "skipped",
+    "lint": "skipped",
+    "tests": "skipped",
+    "behaviorChecks": "pass",
+    "negativeChecks": "pass",
+    "structureChecks": "skipped",
+    "baselineDelta": "n/a",
+    "qualityEngine": "n/a",
+    "qualityStudio": "not_run"
+  },
+  "notes": "只读审查；未改业务代码。behaviorChecks：UserLibraryHeader 无「打开调试器」；页头/导航为「玩家配置」；详情/新建走 AutoForm；字段含 gender/birthday/age 与 location 四结构化字段；无年龄↔生日交叉校验；无常用度/调试偏好主区。negativeChecks：未发现本页调试器主入口、地理位置自由文本、缺三字段或未用 AutoForm。checks.qualityStudio=not_run 因执行者 Shell denied；reports/latest-verify.json 仍标注 batch-1（V2-P1-* / V2-P2-1），不可复用为本批门禁证据。本批非引擎批，quality:engine / structureChecks / baselineDelta 记 n/a。"
+}

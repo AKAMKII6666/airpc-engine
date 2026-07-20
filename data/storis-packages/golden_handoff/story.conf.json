@@ -7,6 +7,9 @@
     "xiaoyu"
   ],
   "entryCardId": "doubao_intro_outbound",
+  "assetRefs": [
+    "clip_hello"
+  ],
   "cards": [
     {
       "cardId": "doubao_intro_outbound"
@@ -15,7 +18,10 @@
       "cardId": "xiaoyu_waiting_user"
     },
     {
-      "cardId": "doubao_sister_story_3"
+      "cardId": "demo_playback_hello"
+    },
+    {
+      "cardId": "doubao_a_writes_b"
     }
   ]
 }

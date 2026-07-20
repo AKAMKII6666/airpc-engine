@@ -5,6 +5,8 @@
 | [规则制定原则.mdc](./规则制定原则.mdc) | 元原则、冲突裁决 | always |
 | [codingRole.mdc](./codingRole.mdc) | 核心铁律与规则索引 | always |
 | [testing-and-quality.mdc](./testing-and-quality.mdc) | 测试与门禁 | always |
+| [engine-code-quality.mdc](./engine-code-quality.mdc) | 引擎结构门禁、基线止血、高风险落点 | `packages/rpg-engine/**`、`scripts/engine-quality/**` |
+| [studio-v2-quality.mdc](./studio-v2-quality.mdc) | Studio V2 注释、复杂度与可读性硬规则 | always（仅 V2 任务适用） |
 | [docs-governance.mdc](./docs-governance.mdc) | docs 三层 + 需求/技术分册 | `docs/**` |
 | [docs-execution.mdc](./docs-execution.mdc) | 编码前后读哪份文档 | docs/packages/apps |
 | [studio-boundaries.mdc](./studio-boundaries.mdc) | B/S、MUI、UserGate | `apps/studio/**` |

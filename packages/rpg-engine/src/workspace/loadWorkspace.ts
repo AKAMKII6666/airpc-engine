@@ -1,85 +1,90 @@
 /**
- * 模块名称：工作区加载（storis-packages 分文件）
+ * 模块名称：工作区加载（storis-packages + free/schedule 角色侧卡）
  */
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import {
-	CallCardDefinitionSchema,
-	StoryPackageConfSchema,
-	type CallCardDefinition,
-	type StoryPackageConf,
+  CallCardDefinitionSchema,
+  StoryPackageConfSchema,
+  type CallCardDefinition,
+  type StoryPackageConf,
 } from "../schema/callCard.js";
 import { PlayerProfileSchema, type PlayerProfile } from "../schema/profile.js";
 import {
-	CharacterDefSchema,
-	type CharacterDef,
+  CharacterDefSchema,
+  type CharacterDef,
 } from "../schema/character.js";
 import { engineError, type EngineError } from "../host/errors.js";
+import { FREE_PACKAGE_ID, SCHEDULE_PACKAGE_ID } from "../constants.js";
 
 const SUPPORTED_SCHEMA = 1;
 
 export interface LoadedPackage {
-	conf: StoryPackageConf;
-	dir: string;
-	/** 按需填充；不在 loadWorkspace 时预读全部卡 / layout */
-	cards: Map<string, CallCardDefinition>;
+  conf: StoryPackageConf;
+  dir: string;
+  /** 按需填充；不在 loadWorkspace 时预读全部卡 / layout */
+  cards: Map<string, CallCardDefinition>;
 }
 
 export interface WorkspaceState {
   rootDir: string;
   packages: Map<string, LoadedPackage>;
   characters: Map<string, CharacterDef>;
-  /** characters/free-cards/*.s-card.json，按 cardId */
+  /** characters/free-cards/*.s-card.json */
   freeCards: Map<string, CallCardDefinition>;
+  /** characters/schedule-cards/*.s-card.json */
+  scheduleCards: Map<string, CallCardDefinition>;
 }
 
-export async function loadWorkspaceState(rootDir: string): Promise<WorkspaceState> {
-	const workspacePath = path.join(rootDir, "workspace.json");
-	const raw = JSON.parse(await readFile(workspacePath, "utf8")) as {
-		schemaVersion?: number;
-	};
-	if (raw.schemaVersion !== SUPPORTED_SCHEMA) {
-		throw engineError(
-			"SCHEMA_UNSUPPORTED",
-			`workspace schemaVersion ${String(raw.schemaVersion)} unsupported`,
-		);
-	}
+export async function loadWorkspaceState(
+  rootDir: string,
+): Promise<WorkspaceState> {
+  const workspacePath = path.join(rootDir, "workspace.json");
+  const raw = JSON.parse(await readFile(workspacePath, "utf8")) as {
+    schemaVersion?: number;
+  };
+  if (raw.schemaVersion !== SUPPORTED_SCHEMA) {
+    throw engineError(
+      "SCHEMA_UNSUPPORTED",
+      `workspace schemaVersion ${String(raw.schemaVersion)} unsupported`,
+    );
+  }
 
-	const packages = new Map<string, LoadedPackage>();
-	const packagesRoot = path.join(rootDir, "storis-packages");
-	let entries: string[] = [];
-	try {
-		entries = await readdir(packagesRoot);
-	} catch {
-		entries = [];
-	}
+  const packages = new Map<string, LoadedPackage>();
+  const packagesRoot = path.join(rootDir, "storis-packages");
+  let entries: string[] = [];
+  try {
+    entries = await readdir(packagesRoot);
+  } catch {
+    entries = [];
+  }
 
-	for (const name of entries) {
-		const dir = path.join(packagesRoot, name);
-		const confPath = path.join(dir, "story.conf.json");
-		let confRaw: string;
-		try {
-			confRaw = await readFile(confPath, "utf8");
-		} catch {
-			continue;
-		}
-		const conf = StoryPackageConfSchema.parse(JSON.parse(confRaw));
-		if (conf.schemaVersion !== SUPPORTED_SCHEMA) {
-			throw engineError(
-				"SCHEMA_UNSUPPORTED",
-				`package ${conf.packageId} schemaVersion unsupported`,
-			);
-		}
-		// 故意不读 canvas.layout.json / 不预载 cards/*.s-card.json
-		packages.set(conf.packageId, {
-			conf,
-			dir,
-			cards: new Map(),
-		});
-	}
+  for (const name of entries) {
+    const dir = path.join(packagesRoot, name);
+    const confPath = path.join(dir, "story.conf.json");
+    let confRaw: string;
+    try {
+      confRaw = await readFile(confPath, "utf8");
+    } catch {
+      continue;
+    }
+    const conf = StoryPackageConfSchema.parse(JSON.parse(confRaw));
+    if (conf.schemaVersion !== SUPPORTED_SCHEMA) {
+      throw engineError(
+        "SCHEMA_UNSUPPORTED",
+        `package ${conf.packageId} schemaVersion unsupported`,
+      );
+    }
+    packages.set(conf.packageId, {
+      conf,
+      dir,
+      cards: new Map(),
+    });
+  }
 
   const characters = new Map<string, CharacterDef>();
   const freeCards = new Map<string, CallCardDefinition>();
+  const scheduleCards = new Map<string, CallCardDefinition>();
   const charactersRoot = path.join(rootDir, "characters");
   let charFiles: string[] = [];
   try {
@@ -108,7 +113,21 @@ export async function loadWorkspaceState(rootDir: string): Promise<WorkspaceStat
     freeCards.set(card.cardId, card);
   }
 
-  return { rootDir, packages, characters, freeCards };
+  const scheduleDir = path.join(charactersRoot, "schedule-cards");
+  let scheduleFiles: string[] = [];
+  try {
+    scheduleFiles = await readdir(scheduleDir);
+  } catch {
+    scheduleFiles = [];
+  }
+  for (const name of scheduleFiles) {
+    if (!name.endsWith(".s-card.json") && !name.endsWith(".json")) continue;
+    const text = await readFile(path.join(scheduleDir, name), "utf8");
+    const card = CallCardDefinitionSchema.parse(JSON.parse(text));
+    scheduleCards.set(card.cardId, card);
+  }
+
+  return { rootDir, packages, characters, freeCards, scheduleCards };
 }
 
 export async function loadCard(
@@ -116,11 +135,11 @@ export async function loadCard(
   packageId: string,
   cardId: string,
 ): Promise<CallCardDefinition | EngineError> {
-  if (packageId === "__free__") {
-    return engineError(
-      "INVALID_PACKAGE_ID",
-      "cannot loadPackage/loadCard for free sentinel __free__",
-    );
+  if (packageId === FREE_PACKAGE_ID) {
+    return getFreeCard(ws, cardId);
+  }
+  if (packageId === SCHEDULE_PACKAGE_ID) {
+    return getScheduleCard(ws, cardId);
   }
   const pkg = ws.packages.get(packageId);
   if (!pkg) {
@@ -150,27 +169,65 @@ export function getFreeCard(
   if (!card) {
     return engineError("NOT_FOUND", `free card not found: ${cardId}`);
   }
+  if (card.cardKind !== "free" && card.cardKind !== "schedule") {
+    return engineError(
+      "VALIDATION_FAILED",
+      `free card ${cardId} has invalid cardKind=${card.cardKind}`,
+    );
+  }
   return card;
 }
 
+export function getScheduleCard(
+  ws: WorkspaceState,
+  cardId: string,
+): CallCardDefinition | EngineError {
+  const card = ws.scheduleCards.get(cardId);
+  if (!card) {
+    return engineError("NOT_FOUND", `schedule card not found: ${cardId}`);
+  }
+  if (card.cardKind !== "schedule") {
+    return engineError(
+      "VALIDATION_FAILED",
+      `schedule card ${cardId} must be cardKind=schedule, got ${card.cardKind}`,
+    );
+  }
+  return card;
+}
+
+/** 角色侧（free／schedule）或故事包卡；resolve pending 用 */
+export function lookupCharacterSideCard(
+  ws: WorkspaceState,
+  packageId: string,
+  cardId: string,
+): CallCardDefinition | undefined {
+  if (packageId === FREE_PACKAGE_ID) {
+    return ws.freeCards.get(cardId);
+  }
+  if (packageId === SCHEDULE_PACKAGE_ID) {
+    return ws.scheduleCards.get(cardId);
+  }
+  return ws.packages.get(packageId)?.cards.get(cardId);
+}
+
 export async function readProfile(
-	rootDir: string,
-	userId: string,
+  rootDir: string,
+  userId: string,
 ): Promise<PlayerProfile | EngineError> {
-	const profilePath = path.join(rootDir, "users", userId, "profile.save.json");
-	let text: string;
-	try {
-		text = await readFile(profilePath, "utf8");
-	} catch {
-		return engineError("NOT_FOUND", `profile not found: ${userId}`);
-	}
-	try {
-		return PlayerProfileSchema.parse(JSON.parse(text));
-	} catch (err) {
-		return engineError("VALIDATION_FAILED", "profile parse failed", err);
-	}
+  const profilePath = path.join(rootDir, "users", userId, "profile.save.json");
+  let text: string;
+  try {
+    text = await readFile(profilePath, "utf8");
+  } catch {
+    return engineError("NOT_FOUND", `profile not found: ${userId}`);
+  }
+  try {
+    return PlayerProfileSchema.parse(JSON.parse(text));
+  } catch (err) {
+    return engineError("VALIDATION_FAILED", "profile parse failed", err);
+  }
 }
 
 export function profilePath(rootDir: string, userId: string): string {
-	return path.join(rootDir, "users", userId, "profile.save.json");
+  return path.join(rootDir, "users", userId, "profile.save.json");
 }

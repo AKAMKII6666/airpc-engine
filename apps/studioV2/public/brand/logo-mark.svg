@@ -1,0 +1,19 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title">
+  <title id="title">AirPC Studio V2 Mark</title>
+  <defs>
+    <linearGradient id="markPrimary" x1="40" y1="8" x2="108" y2="100" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7C8CFF"/>
+      <stop offset="0.48" stop-color="#536BFF"/>
+      <stop offset="1" stop-color="#32D6FF"/>
+    </linearGradient>
+    <linearGradient id="markSecondary" x1="12" y1="100" x2="72" y2="24" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#25D0A2"/>
+      <stop offset="0.45" stop-color="#3AA8FF"/>
+      <stop offset="1" stop-color="#7A5CFF"/>
+    </linearGradient>
+  </defs>
+  <circle cx="60" cy="60" r="58" fill="#111A29" stroke="#253449"/>
+  <path d="M62.2 18.4C65.4 12.8 73.5 12.8 76.7 18.4L106.9 70.5C110.1 76.1 106.1 83.1 99.6 83.1H83.8C80.8 83.1 78 81.5 76.5 78.9L56 43.4C54.4 40.6 54.4 37.1 56 34.3L62.2 18.4Z" fill="url(#markPrimary)"/>
+  <path d="M45.4 44.7C48.6 39.1 56.7 39.1 59.9 44.7L67.7 58.3C69.3 61.1 69.3 64.5 67.7 67.3L47.2 102.8C45.7 105.4 42.9 107 39.9 107H24.1C17.6 107 13.6 100 16.8 94.4L45.4 44.7Z" fill="url(#markSecondary)"/>
+  <rect x="72" y="88" width="30" height="14" rx="7" fill="#5B6CFF"/>
+</svg>

@@ -65,6 +65,7 @@ export async function GET(req: Request): Promise<Response> {
             selectedExit: active.selectedExit,
             effectPlanResult: active.effectPlanResult,
             lastSimEvent: active.lastSimEvent ?? null,
+            chatTurns: active.chatTurns ?? [],
             outcome: active.outcome,
           }
         : null,

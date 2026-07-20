@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "files": [
+    {
+      "file": "packages/rpg-engine/src/**",
+      "effectiveLines": 1,
+      "maxFnLines": 1,
+      "maxComplexity": 1,
+      "reason": "bad",
+      "owner": "test",
+      "recordedAt": "2026-07-16",
+      "exitCondition": "never"
+    }
+  ]
+}

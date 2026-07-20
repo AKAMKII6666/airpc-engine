@@ -1,0 +1,28 @@
+[gbx] ▶ fixer:E5 start cmd=agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … still running fixer:E5 elapsed=15s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089069061.log
+[gbx] … still running fixer:E5 elapsed=30s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089069061.log
+[gbx] … still running fixer:E5 elapsed=45s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089069061.log
+[gbx] … still running fixer:E5 elapsed=60s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089069061.log
+[gbx] … still running fixer:E5 elapsed=75s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089069061.log
+[gbx] … still running fixer:E5 elapsed=90s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089069061.log
+已修好 gbx「verify 失败」的真因：命令本身已绿，缺的是任务表勾选。
+
+**真因（loop.log）：**
+```text
+verify ok=true checks=false
+checkbox missing: E5
+```
+`npm test` / `typecheck` 已通过（`latest-verify.json` ok=true，memory 含 E5 共 8 测），但 E5 仍为 ⬜，gbx 的 checkbox check 失败，于是反复进 FIX_BATCH。
+
+**已有实现无需再改：**
+- vignette Commit 写入 + 投影测
+- `rollupIfNeeded` 含 `previousQuarterPeriod` + 跨季补算测
+- CJK FTS / LIKE 回退
+- E5 防岔已写明 production vignette 抽取后置
+
+**本轮改动：**
+- 执行索引：E5 ⬜ → ✅
+- 刀口指针：下一刀 → **E6**（E0–E5 已 ✅）
+
+未写 `STATE.json`。本环境 Shell 再跑 `npm test` 被拒；以已有 `latest-verify.json`（exit 0）为准。下轮 gbx verify 应过 checkbox check。
+[gbx] ■ fixer:E5 done exit=0 elapsed=100s

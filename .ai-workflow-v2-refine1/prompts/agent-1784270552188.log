@@ -1,0 +1,20 @@
+[gbx] ▶ fixer:V2-R1-1+V2-R1-2+V2-R1-3 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-R1-1+V2-R1-2+V2-R1-3 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-R1-1+V2-R1-2+V2-R1-3 still running (30s elapsed, no output for 30s)
+[gbx] … fixer:V2-R1-1+V2-R1-2+V2-R1-3 still running (45s elapsed, no output for 45s)
+[gbx] … fixer:V2-R1-1+V2-R1-2+V2-R1-3 still running (60s elapsed, no output for 60s)
+[gbx] … fixer:V2-R1-1+V2-R1-2+V2-R1-3 still running (75s elapsed, no output for 75s)
+已按 `latest-verify.json` 修掉 **唯一硬失败**（`errors=2`）：`composer.localHourRange.test.ts` 里单个 `describe` 回调有效行 139 / 复杂度 19，超过硬上限 100 / 15。
+
+**改动**
+- 拆成 `negatives` / `match` 两个 `describe`
+- 抽出 `expectOkPrompt`，降低嵌套分支复杂度
+- 未动 WARN（STRUCT-009 平铺、其它告警线）
+- 未勾选执行索引（verify 未绿）
+
+**自验**：Shell 被拒，未自验。请本地执行：
+
+```bash
+npm run quality:engine
+```
+[gbx] ■ fixer:V2-R1-1+V2-R1-2+V2-R1-3 done exit=0 elapsed=76s

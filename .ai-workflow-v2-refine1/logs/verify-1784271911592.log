@@ -1,0 +1,138 @@
+[gbx] ▶ verify:npm run quality:engine start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+
+> quality:engine
+> node scripts/engine-quality/quality-engine.mjs
+
+
+==> check:engine-imports
+check:engine-imports ok (51 files)
+
+==> typecheck (@airpc/rpg-engine)
+
+> @airpc/rpg-engine@0.0.1 typecheck
+> tsc -p tsconfig.json --noEmit
+
+
+==> check:engine-structure
+ENGINE-STRUCT-002  packages/rpg-engine/src/host/createScheduleClockApi.ts:18:1  当前=95  允许=60  函数 createScheduleClockApi 有效行数 95 超过告警线 60  考虑拆分以保持可测性
+ENGINE-STRUCT-003  packages/rpg-engine/src/host/createScheduleClockApi.ts:18:1  当前=11  允许=10  函数 createScheduleClockApi 圈复杂度 11 超过告警线 10  重构条件分支
+ENGINE-STRUCT-003  packages/rpg-engine/src/host/wet.ts:140:1  当前=13  允许=10  函数 validateWetAppend 圈复杂度 13 超过告警线 10  重构条件分支
+ENGINE-STRUCT-002  packages/rpg-engine/src/host/wet.ts:196:1  当前=62  允许=60  函数 buildWetReplayView 有效行数 62 超过告警线 60  考虑拆分以保持可测性
+ENGINE-STRUCT-003  packages/rpg-engine/src/host/wet.ts:196:1  当前=12  允许=10  函数 buildWetReplayView 圈复杂度 12 超过告警线 10  重构条件分支
+ENGINE-STRUCT-003  packages/rpg-engine/src/runtime/activeStoryLock.ts:28:1  当前=12  允许=10  函数 asStorySave 圈复杂度 12 超过告警线 10  重构条件分支
+ENGINE-STRUCT-003  packages/rpg-engine/src/runtime/activeStoryLock.ts:62:1  当前=11  允许=10  函数 findActiveStoryLock 圈复杂度 11 超过告警线 10  重构条件分支
+ENGINE-STRUCT-003  packages/rpg-engine/src/runtime/activeStoryLock.ts:153:1  当前=14  允许=10  函数 activateStoryOnBegin 圈复杂度 14 超过告警线 10  重构条件分支
+ENGINE-STRUCT-003  packages/rpg-engine/src/runtime/classifyCall.ts:28:1  当前=14  允许=10  函数 classifyCall 圈复杂度 14 超过告警线 10  重构条件分支
+ENGINE-STRUCT-003  packages/rpg-engine/src/runtime/evaluateCondition.ts:7:1  当前=11  允许=10  函数 evaluateExitCondition 圈复杂度 11 超过告警线 10  重构条件分支
+ENGINE-STRUCT-002  packages/rpg-engine/src/runtime/exitSelector.ts:20:1  当前=69  允许=60  函数 selectExit 有效行数 69 超过告警线 60  考虑拆分以保持可测性
+ENGINE-STRUCT-003  packages/rpg-engine/src/runtime/exitSelector.ts:20:1  当前=12  允许=10  函数 selectExit 圈复杂度 12 超过告警线 10  重构条件分支
+ENGINE-STRUCT-002  packages/rpg-engine/src/runtime/freeCallPostPipeline.ts:37:1  当前=88  允许=60  函数 runFreeCallPostPipeline 有效行数 88 超过告警线 60  考虑拆分以保持可测性
+ENGINE-STRUCT-003  packages/rpg-engine/src/runtime/freeCallPostPipeline.ts:37:1  当前=11  允许=10  函数 runFreeCallPostPipeline 圈复杂度 11 超过告警线 10  重构条件分支
+ENGINE-STRUCT-003  packages/rpg-engine/src/runtime/pickPendingForUserDial.ts:56:1  当前=14  允许=10  函数 pickPendingForIntent 圈复杂度 14 超过告警线 10  重构条件分支
+ENGINE-STRUCT-003  packages/rpg-engine/src/schedule/reconcileRecurringIntents.ts:41:1  当前=11  允许=10  函数 reconcileRecurringIntents 圈复杂度 11 超过告警线 10  重构条件分支
+ENGINE-STRUCT-003  packages/rpg-engine/src/schedule/writeRecurringIntentFromEffect.ts:47:1  当前=11  允许=10  函数 writeRecurringIntentFromEffect 圈复杂度 11 超过告警线 10  重构条件分支
+ENGINE-STRUCT-003  packages/rpg-engine/src/schema/promptScene.ts:63:1  当前=15  允许=10  函数 validatePromptScenePatches 圈复杂度 15 超过告警线 10  重构条件分支
+ENGINE-STRUCT-003  packages/rpg-engine/src/tools/resolveToolPolicy.ts:8:1  当前=13  允许=10  函数 resolveToolPolicy 圈复杂度 13 超过告警线 10  重构条件分支
+ENGINE-STRUCT-002  packages/rpg-engine/tests/host/a-to-b-memory-e2e.test.ts:17:38  当前=80  允许=60  函数 <anonymous> 有效行数 80 超过告警线 60  考虑拆分以保持可测性
+ENGINE-STRUCT-002  packages/rpg-engine/tests/host/a-to-b-memory-e2e.test.ts:27:70  当前=71  允许=60  函数 <anonymous> 有效行数 71 超过告警线 60  考虑拆分以保持可测性
+ENGINE-STRUCT-002  packages/rpg-engine/tests/host/chat-turns-e2e.test.ts:17:37  当前=91  允许=60  函数 <anonymous> 有效行数 91 超过告警线 60  考虑拆分以保持可测性
+ENGINE-STRUCT-003  packages/rpg-engine/tests/host/chat-turns-e2e.test.ts:17:37  当前=13  允许=10  函数 <anonymous> 圈复杂度 13 超过告警线 10  重构条件分支
+ENGINE-STRUCT-002  packages/rpg-engine/tests/host/manual-story-loop.test.ts:21:31  当前=86  允许=60  函数 <anonymous> 有效行数 86 超过告警线 60  考虑拆分以保持可测性
+ENGINE-STRUCT-002  packages/rpg-engine/tests/host/night-layer-e2e.test.ts:17:40  当前=75  允许=60  函数 <anonymous> 有效行数 75 超过告警线 60  考虑拆分以保持可测性
+ENGINE-STRUCT-002  packages/rpg-engine/tests/host/playback-phase.test.ts:20:40  当前=94  允许=60  函数 <anonymous> 有效行数 94 超过告警线 60  考虑拆分以保持可测性
+ENGINE-STRUCT-002  packages/rpg-engine/tests/host/playback-phase.test.ts:30:79  当前=85  允许=60  函数 <anonymous> 有效行数 85 超过告警线 60  考虑拆分以保持可测性
+ENGINE-STRUCT-002  packages/rpg-engine/tests/runtime/composer.localHourRange.test.ts:145:56  当前=80  允许=60  函数 <anonymous> 有效行数 80 超过告警线 60  考虑拆分以保持可测性
+ENGINE-STRUCT-002  packages/rpg-engine/tests/runtime/pick-pending-entry-mode.test.ts:38:41  当前=86  允许=60  函数 <anonymous> 有效行数 86 超过告警线 60  考虑拆分以保持可测性
+ENGINE-STRUCT-002  packages/rpg-engine/tests/schedule/card-reference-and-classify.test.ts:28:43  当前=81  允许=60  函数 <anonymous> 有效行数 81 超过告警线 60  考虑拆分以保持可测性
+ENGINE-STRUCT-003  packages/rpg-engine/tests/schedule/card-reference-and-classify.test.ts:28:43  当前=14  允许=10  函数 <anonymous> 圈复杂度 14 超过告警线 10  重构条件分支
+ENGINE-STRUCT-009  packages/rpg-engine/src/host:1:1  当前=8  允许=clustered-dirs  目录含 8 个源文件且职责组≥2（card,host,schedule,enginelogfile,errors,types,wet），应分子目录  按职责拆分子目录，禁止长前缀代目录；新增文件勿继续恶化平铺
+ENGINE-STRUCT-009  packages/rpg-engine/src/runtime:1:1  当前=12  允许=clustered-dirs  目录含 12 个源文件且职责组≥2（activestorylock,card,composescene,composer,effect,evaluatecondition,exitselector,pickpendingforuserdial,schedule），应分子目录  按职责拆分子目录，禁止长前缀代目录；新增文件勿继续恶化平铺
+ENGINE-STRUCT-009  packages/rpg-engine/src/schema:1:1  当前=10  允许=clustered-dirs  目录含 10 个源文件且职责组≥2（asset,card,character,host,outcome,persist,promptscene,schedule,worldfact,worldlore），应分子目录  按职责拆分子目录，禁止长前缀代目录；新增文件勿继续恶化平铺
+ENGINE-STRUCT-009  packages/rpg-engine/src/tools:1:1  当前=5  允许=clustered-dirs  目录含 5 个源文件且职责组≥2（builtinregistry,effect,host,resolvetoolpolicy,types），应分子目录  按职责拆分子目录，禁止长前缀代目录；新增文件勿继续恶化平铺
+check:engine-structure checked=88 errors=0 warnings=35
+
+==> vitest (@airpc/rpg-engine)
+
+> @airpc/rpg-engine@0.0.1 test
+> vitest run
+
+
+ RUN  v3.2.7 /Users/bolbiao/workspace/airpc-engine/packages/rpg-engine
+
+ ✓ tests/host/isolation-recurring-e2e.test.ts (3 tests) 241ms
+ ✓ tests/host/clock-tick-e2e.test.ts (4 tests) 268ms
+ ✓ tests/host/engine-plan-7.1-7.3.test.ts (6 tests) 280ms
+ ✓ tests/host/schedule-card-recurring.test.ts (4 tests) 288ms
+ ✓ tests/host/free-call-pipeline.test.ts (4 tests) 323ms
+ ✓ tests/host/engine-plan-7.4-7.5.test.ts (8 tests) 345ms
+ ✓ tests/validation/golden-handoff.validate.test.ts (10 tests) 625ms
+ ✓ tests/host/night-layer-e2e.test.ts (2 tests) 111ms
+ ✓ tests/host/golden-handoff.test.ts (2 tests) 152ms
+ ✓ tests/host/a-to-b-memory-e2e.test.ts (1 test) 192ms
+ ✓ tests/host/active-story-lock.test.ts (3 tests) 373ms
+ ✓ tests/host/schedule-once-early-dial.test.ts (3 tests) 418ms
+ ✓ tests/host/content-reload-preserves-session.test.ts (2 tests) 345ms
+ ✓ tests/host/end-story-next-e2e.test.ts (1 test) 137ms
+ ✓ tests/host/chat-turns-e2e.test.ts (2 tests) 215ms
+ ✓ tests/host/schedule-no-story-save.test.ts (1 test) 133ms
+ ✓ tests/host/manual-story-loop.test.ts (2 tests) 220ms
+ ✓ tests/host/schedule-outbound.test.ts (2 tests) 123ms
+ ✓ tests/host/end-story-free-e2e.test.ts (1 test) 434ms
+   ✓ end_story no-next → Free (V1-E6 host) > 清场后任意角色 resolve(user_dial) source===free，旧 story pending 不再命中  431ms
+ ✓ tests/host/refer-to-expert-e2e.test.ts (1 test) 502ms
+   ✓ E4a refer_to_expert E2E > invokeTool(refer_to_expert) → endCall → unlock + schedule → advanceClock pending  500ms
+ ✓ tests/host/wet.test.ts (8 tests) 295ms
+ ✓ tests/runtime/effect-sink-plan-status.test.ts (7 tests) 61ms
+ ✓ tests/memory/sqlite-memory.test.ts (8 tests) 289ms
+ ✓ tests/host/playback-phase.test.ts (1 test) 826ms
+   ✓ playback_only session (S4) > beginCall → phase=playback；禁 register_exit；completePlayback → endCall  825ms
+ ✓ tests/lore/bootstrap-fallback.test.ts (6 tests) 65ms
+ ✓ tests/validation/validatePackage.timeBuckets.test.ts (1 test) 362ms
+   ✓ validatePackage promptScene timeBuckets > PROMPT_SCENE_TIME_BUCKETS_REMOVED when match has timeBuckets  357ms
+ ✓ tests/schema/callcard-schema-tighten.test.ts (4 tests) 5ms
+ ✓ tests/runtime/composer.test.ts (6 tests) 7ms
+ ✓ tests/runtime/pick-pending-entry-mode.test.ts (4 tests) 5ms
+ ✓ tests/runtime/end-story-cleanup.test.ts (5 tests) 13ms
+ ✓ tests/runtime/effect-s11.test.ts (5 tests) 10ms
+ ✓ tests/runtime/composer.localHourRange.test.ts (7 tests) 11ms
+ ✓ tests/schedule/card-reference-and-classify.test.ts (9 tests) 11ms
+ ✓ tests/host/log-redact.test.ts (1 test) 2ms
+ ✓ tests/runtime/exit-selector.test.ts (3 tests) 2ms
+ ✓ tests/index.smoke.test.ts (1 test) 1ms
+ ✓ tests/runtime/select-call-flow-prompt.test.ts (2 tests) 2ms
+
+ Test Files  37 passed (37)
+      Tests  140 passed (140)
+   Start at  15:05:15
+   Duration  4.78s (transform 831ms, setup 0ms, collect 11.53s, tests 7.69s, environment 6ms, prepare 4.33s)
+
+
+==> gate self-tests (engine-structure)
+▶ check:engine-structure
+  ✔ 有效行数忽略空行 (0.513792ms)
+  ✔ host 文件分类 (0.13375ms)
+  ✔ 圈复杂度统计分支 (3.607291ms)
+  ✔ 新文件超过文件硬上限失败 (13.715042ms)
+  ✔ 新函数超过函数硬上限失败 (2.972459ms)
+  ✔ 圈复杂度超过硬上限失败 (1.464167ms)
+  ✔ 历史超限文件保持基线通过 (4.911542ms)
+  ✔ 历史文件增加一行失败 (4.632875ms)
+  ✔ 大目录基线通配被拒绝 (4.862ms)
+  ✔ src 平放测试失败 (2.737917ms)
+  ✔ 无理由 suppress 失败 (1.118042ms)
+  ✔ 合格小文件通过 (0.610667ms)
+  ✔ validateBaselineDoc 拒绝通配 (0.102542ms)
+  ✔ 输出格式可被 path:line:col 解析 (5.358916ms)
+  ✔ 真实引擎包在基线下可过结构门禁 (134.027291ms)
+✔ check:engine-structure (181.857083ms)
+ℹ tests 15
+ℹ suites 1
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 332.453833
+
+quality:engine ok
+[gbx] ■ verify:npm run quality:engine done exit=0 elapsed=9s

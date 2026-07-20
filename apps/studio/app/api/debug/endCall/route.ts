@@ -8,6 +8,7 @@ import {
 } from "@studio/server/apiResponse.server";
 import { getStudioEngineHost } from "@studio/server/engineHost.server";
 import { getSelectedUserId } from "@studio/server/sessionUser.server";
+import { discardTextDialogueAdapter } from "@studio/server/textDialogueAdapter.server";
 import { isEngineError, type Outcome } from "@airpc/rpg-engine";
 
 export async function POST(req: Request): Promise<Response> {
@@ -25,6 +26,7 @@ export async function POST(req: Request): Promise<Response> {
     }
     const host = await getStudioEngineHost();
     const result = await host.endCall(body.sessionId, body.outcome);
+    discardTextDialogueAdapter(body.sessionId);
     if (isEngineError(result)) {
       return apiFail(
         result.code,
@@ -38,6 +40,7 @@ export async function POST(req: Request): Promise<Response> {
       freePipeline: result.freePipeline ?? null,
       selectedExit: result.session.selectedExit ?? null,
       status: result.session.status,
+      chatTurns: result.session.chatTurns ?? [],
     });
   } catch (err) {
     return apiFail(

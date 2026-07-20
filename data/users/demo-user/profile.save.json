@@ -4,10 +4,19 @@
   "user": {
     "userId": "demo-user",
     "nickname": "小明",
+    "fullName": "王小明",
+    "gender": "male",
+    "birthday": "2000-01-15",
+    "age": 26,
+    "outboundWindow": {
+      "from": 9,
+      "to": 22
+    },
     "location": {
       "country": "中国",
       "province": "广东省",
-      "city": "深圳市"
+      "city": "深圳市",
+      "district": "南山区"
     },
     "createdAt": "2026-07-13T00:00:00.000Z",
     "updatedAt": "2026-07-13T00:00:00.000Z"
@@ -26,7 +35,7 @@
     "golden_handoff": {
       "packageId": "golden_handoff",
       "status": "active",
-      "instanceId": "96f248ae-5f11-4949-9ecf-a5f23f15c1d7",
+      "instanceId": "daa7992d-6649-4e4d-a62d-edc7c282daf9",
       "variables": {}
     }
   },
@@ -57,7 +66,37 @@
     }
   },
   "world": {
-    "lore": null,
+    "lore": {
+      "version": 1,
+      "source": "fallback",
+      "generatedAt": "2026-07-15T05:43:23.063Z",
+      "location": {
+        "country": "中国",
+        "province": "广东省",
+        "city": "深圳市"
+      },
+      "sharedPremise": "世界背景（降级）：用户与角色们的故事发生在「中国·广东省·深圳市」语境下；保持日常电话感，勿剧透未解锁内容。",
+      "perspectives": {
+        "doubao-sister": [
+          "你知道用户大致在「中国·广东省·深圳市」附近生活。",
+          "不要编造未提供的地域细节。"
+        ],
+        "xiaoyu": [
+          "你知道用户大致在「中国·广东省·深圳市」附近生活。",
+          "不要编造未提供的地域细节。"
+        ]
+      },
+      "characters": {
+        "doubao-sister": {
+          "displayName": "澜星",
+          "blurb": "澜星是本地可通话的角色。"
+        },
+        "xiaoyu": {
+          "displayName": "小雨",
+          "blurb": "小雨是本地可通话的角色。"
+        }
+      }
+    },
     "facts": [],
     "knowledge": {}
   },
@@ -70,7 +109,7 @@
   },
   "meta": {
     "createdAt": "2026-07-13T00:00:00.000Z",
-    "updatedAt": "2026-07-15T00:56:15.953Z",
+    "updatedAt": "2026-07-20T04:24:43.979Z",
     "note": "记忆明细在 data/memory/memory.sqlite，不在本文件内嵌"
   }
 }

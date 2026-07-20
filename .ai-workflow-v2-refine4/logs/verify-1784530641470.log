@@ -1,0 +1,112 @@
+[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+
+> quality:studio
+> node scripts/studio-quality/quality-studio.mjs
+
+
+==> ensure-modal-layout (pre-typecheck)
+ensure-modal-layout: nothing to remove
+
+==> ensure-migrated-layout (pre-typecheck)
+ensure-migrated-layout: nothing to remove
+
+==> lint (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 lint
+> node ./scripts/run-eslint.mjs . --max-warnings 0
+
+
+==> typecheck (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 typecheck
+> tsc -p tsconfig.json --noEmit
+
+
+==> check:comments
+check:comments ok (215 files)
+
+==> check:studio-structure
+WARN STUDIO-STRUCT-003  apps/studioV2/app/api/characters/route.ts:54:1  函数 POST 圈复杂度 12 超过告警线 10  重构条件分支，避免继续堆叠
+WARN STUDIO-STRUCT-003  apps/studioV2/app/api/memory/route.ts:10:1  函数 GET 圈复杂度 11 超过告警线 10  重构条件分支，避免继续堆叠
+WARN STUDIO-STRUCT-003  apps/studioV2/app/api/users/[userId]/route.ts:41:1  函数 PUT 圈复杂度 12 超过告警线 10  重构条件分支，避免继续堆叠
+WARN STUDIO-STRUCT-003  apps/studioV2/app/api/users/route.ts:33:1  函数 POST 圈复杂度 13 超过告警线 10  重构条件分支，避免继续堆叠
+WARN STUDIO-STRUCT-001  apps/studioV2/src/bis/pageBis/characters/detail/form/characterDefMapper.ts:1:1  other 有效行数 377 超过告警线 350  尽快拆分，避免逼近硬上限
+WARN STUDIO-STRUCT-002  apps/studioV2/src/bis/pageBis/characters/detail/form/characterDefMapper.ts:150:1  函数 characterDefToSummary 有效行数 61 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/bis/pageBis/characters/detail/form/characterDefMapper.ts:217:1  函数 mergeDetailFormIntoCharacterDef 有效行数 94 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/bis/pageBis/characters/detail/form/characterDetailForm.ts:93:1  函数 applyCharacterDetailForm 有效行数 67 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-003  apps/studioV2/src/bis/pageBis/characters/detail/form/characterDetailFormValidate.ts:125:1  函数 validateScenes 圈复杂度 13 超过告警线 10  重构条件分支，避免继续堆叠
+WARN STUDIO-STRUCT-003  apps/studioV2/src/bis/pageBis/users/form/mapper/mapUserProfile.ts:14:1  函数 userToSummary 圈复杂度 12 超过告警线 10  重构条件分支，避免继续堆叠
+WARN STUDIO-STRUCT-002  apps/studioV2/src/commonUiComponents/form/blocks/AvatarUpload/index.tsx:19:5  函数 FormAvatarUpload 有效行数 72 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/commonUiComponents/form/blocks/LocalHourRangeField/index.tsx:38:5  函数 FormLocalHourRangeField 有效行数 72 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/commonUiComponents/form/blocks/PromptSceneListEditor/com/PromptSceneCardBody/index.tsx:34:2  函数 PromptSceneCardBody 有效行数 72 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/commonUiComponents/form/blocks/PromptSceneListEditor/index.tsx:26:5  函数 FormPromptSceneListEditor 有效行数 65 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-003  apps/studioV2/src/commonUiComponents/form/blocks/PromptSceneListEditor/promptSceneListHelpers.ts:26:1  函数 asPromptSceneList 圈复杂度 11 超过告警线 10  重构条件分支，避免继续堆叠
+WARN STUDIO-STRUCT-002  apps/studioV2/src/commonUiComponents/form/blocks/PromptVariantListEditor/index.tsx:36:5  函数 FormPromptVariantListEditor 有效行数 96 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/commonUiComponents/form/blocks/StringListEditor/index.tsx:24:5  函数 FormStringListEditor 有效行数 72 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/assets/com/AssetDetailEditForm.tsx:40:2  函数 AssetDetailEditForm 有效行数 68 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/assets/hooks/useAssetLibraryPage.ts:19:1  函数 useAssetLibraryPage 有效行数 78 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-003  apps/studioV2/src/pageComponents/assets/hooks/useAssetLibraryPage.ts:19:1  函数 useAssetLibraryPage 圈复杂度 11 超过告警线 10  重构条件分支，避免继续堆叠
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/characters/CharacterLibraryView.tsx:22:41  函数 CharacterLibraryView 有效行数 82 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/characters/com/CharacterDetailEditForm.tsx:41:2  函数 CharacterDetailEditForm 有效行数 69 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/characters/com/memory/CharacterMemoryMainBody.tsx:48:5  函数 CharacterMemoryMainBody 有效行数 62 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/characters/com/schedule/CharacterSchedulePanel.tsx:25:2  函数 CharacterSchedulePanel 有效行数 82 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/characters/com/schedule/hooks/useCharacterSchedulePanel.ts:43:1  函数 useCharacterSchedulePanel 有效行数 82 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/characters/hooks/useCharacterLibraryPage.ts:18:1  函数 useCharacterLibraryPage 有效行数 98 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-003  apps/studioV2/src/pageComponents/characters/hooks/useCharacterLibraryPage.ts:18:1  函数 useCharacterLibraryPage 圈复杂度 15 超过告警线 10  重构条件分支，避免继续堆叠
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/debugger/com/CallRunPanel.tsx:43:52  函数 CallRunPanel 有效行数 72 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/home/WorkbenchSideCol.tsx:21:37  函数 WorkbenchSideCol 有效行数 78 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/packages/create/CreatePackageView.tsx:23:38  函数 CreatePackageView 有效行数 71 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/packages/export/ExportPackageForm.tsx:33:45  函数 ExportPackageForm 有效行数 65 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/packages/list/PackageListView.tsx:34:36  函数 PackageListView 有效行数 93 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/settings/com/SettingsEnginePanels.tsx:92:62  函数 SchemaEnginePanel 有效行数 65 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-003  apps/studioV2/src/pageComponents/storyEditor/canvas/useStoryCanvasGraph.ts:63:1  函数 useStoryCanvasGraph 圈复杂度 11 超过告警线 10  重构条件分支，避免继续堆叠
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/storyEditor/com/panel/NodePropertyForm.tsx:41:2  函数 NodePropertyForm 有效行数 91 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/storyEditor/hooks/useStoryEditorCharacterForms.ts:33:1  函数 useStoryEditorCharacterForms 有效行数 84 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/users/UserLibraryList.tsx:32:58  函数 UserLibraryList 有效行数 61 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/users/UserLibraryView.tsx:59:36  函数 UserLibraryView 有效行数 80 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/users/com/UserDetailEditForm.tsx:41:2  函数 UserDetailEditForm 有效行数 68 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/users/hooks/useUserLibraryPage.ts:18:1  函数 useUserLibraryPage 有效行数 96 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-003  apps/studioV2/src/pageComponents/users/hooks/useUserLibraryPage.ts:18:1  函数 useUserLibraryPage 圈复杂度 15 超过告警线 10  重构条件分支，避免继续堆叠
+WARN STUDIO-STRUCT-003  apps/studioV2/src/utils/server/http/apiResponse.server.ts:23:1  函数 httpStatusForCode 圈复杂度 12 超过告警线 10  重构条件分支，避免继续堆叠
+STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/storyEditor/StoryEditorShell.tsx:53:60  函数 StoryEditorShell 有效行数 127 超过硬上限 100  拆出步骤函数、命令对象或纯计算
+STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/storyEditor/canvas/useStoryCanvasGraph.ts:63:1  函数 useStoryCanvasGraph 有效行数 144 超过硬上限 100  拆出步骤函数、命令对象或纯计算
+STUDIO-STRUCT-017  apps/studioV2/src/bis/pageBis/storyEditor/roleConnection.ts:2:1  新增或修改的代码文件缩进只能使用 tab，禁止用空格缩进  把行首缩进空格替换为 tab；对齐需求也优先通过换行和结构解决
+STUDIO-STRUCT-017  apps/studioV2/src/pageComponents/storyEditor/BottomToolBar.tsx:2:1  新增或修改的代码文件缩进只能使用 tab，禁止用空格缩进  把行首缩进空格替换为 tab；对齐需求也优先通过换行和结构解决
+STUDIO-STRUCT-018  apps/studioV2/src/pageComponents/storyEditor/BottomToolBar.tsx:39:11  自定义组件 <IconAddCard> 引用上方缺少用途注释  在组件引用上方增加一行：// 引用了IconAddCard组件，用于XXX
+STUDIO-STRUCT-018  apps/studioV2/src/pageComponents/storyEditor/BottomToolBar.tsx:45:11  自定义组件 <IconPlayback> 引用上方缺少用途注释  在组件引用上方增加一行：// 引用了IconPlayback组件，用于XXX
+STUDIO-STRUCT-018  apps/studioV2/src/pageComponents/storyEditor/BottomToolBar.tsx:51:11  自定义组件 <IconFreeCall> 引用上方缺少用途注释  在组件引用上方增加一行：// 引用了IconFreeCall组件，用于XXX
+STUDIO-STRUCT-018  apps/studioV2/src/pageComponents/storyEditor/BottomToolBar.tsx:57:11  自定义组件 <IconSchedule> 引用上方缺少用途注释  在组件引用上方增加一行：// 引用了IconSchedule组件，用于XXX
+STUDIO-STRUCT-018  apps/studioV2/src/pageComponents/storyEditor/BottomToolBar.tsx:63:11  自定义组件 <IconChapterEnd> 引用上方缺少用途注释  在组件引用上方增加一行：// 引用了IconChapterEnd组件，用于XXX
+STUDIO-STRUCT-018  apps/studioV2/src/pageComponents/storyEditor/BottomToolBar.tsx:69:11  自定义组件 <IconAction> 引用上方缺少用途注释  在组件引用上方增加一行：// 引用了IconAction组件，用于XXX
+STUDIO-STRUCT-018  apps/studioV2/src/pageComponents/storyEditor/BottomToolBar.tsx:75:11  自定义组件 <IconComment> 引用上方缺少用途注释  在组件引用上方增加一行：// 引用了IconComment组件，用于XXX
+STUDIO-STRUCT-018  apps/studioV2/src/pageComponents/storyEditor/BottomToolBar.tsx:81:11  自定义组件 <IconConnect> 引用上方缺少用途注释  在组件引用上方增加一行：// 引用了IconConnect组件，用于XXX
+STUDIO-STRUCT-018  apps/studioV2/src/pageComponents/storyEditor/BottomToolBar.tsx:87:11  自定义组件 <IconSelect> 引用上方缺少用途注释  在组件引用上方增加一行：// 引用了IconSelect组件，用于XXX
+STUDIO-STRUCT-018  apps/studioV2/src/pageComponents/storyEditor/BottomToolBar.tsx:93:11  自定义组件 <IconFitView> 引用上方缺少用途注释  在组件引用上方增加一行：// 引用了IconFitView组件，用于XXX
+STUDIO-STRUCT-018  apps/studioV2/src/pageComponents/storyEditor/BottomToolBar.tsx:115:11  自定义组件 <Tooltip> 引用上方缺少用途注释  在组件引用上方增加一行：// 引用了Tooltip组件，用于XXX
+STUDIO-STRUCT-018  apps/studioV2/src/pageComponents/storyEditor/BottomToolBar.tsx:117:15  自定义组件 <IconButton> 引用上方缺少用途注释  在组件引用上方增加一行：// 引用了IconButton组件，用于XXX
+STUDIO-STRUCT-018  apps/studioV2/src/pageComponents/storyEditor/BottomToolBar.tsx:129:9  自定义组件 <Tooltip> 引用上方缺少用途注释  在组件引用上方增加一行：// 引用了Tooltip组件，用于XXX
+STUDIO-STRUCT-018  apps/studioV2/src/pageComponents/storyEditor/BottomToolBar.tsx:130:11  自定义组件 <IconButton> 引用上方缺少用途注释  在组件引用上方增加一行：// 引用了IconButton组件，用于XXX
+STUDIO-STRUCT-018  apps/studioV2/src/pageComponents/storyEditor/BottomToolBar.tsx:136:13  自定义组件 <IconAssets> 引用上方缺少用途注释  在组件引用上方增加一行：// 引用了IconAssets组件，用于XXX
+STUDIO-STRUCT-017  apps/studioV2/src/pageComponents/storyEditor/StoryEditorShell.tsx:2:1  新增或修改的代码文件缩进只能使用 tab，禁止用空格缩进  把行首缩进空格替换为 tab；对齐需求也优先通过换行和结构解决
+STUDIO-STRUCT-017  apps/studioV2/src/pageComponents/storyEditor/canvas/CanvasMockGraph.ts:2:1  新增或修改的代码文件缩进只能使用 tab，禁止用空格缩进  把行首缩进空格替换为 tab；对齐需求也优先通过换行和结构解决
+STUDIO-STRUCT-017  apps/studioV2/src/pageComponents/storyEditor/canvas/StoryCanvasStage.tsx:2:1  新增或修改的代码文件缩进只能使用 tab，禁止用空格缩进  把行首缩进空格替换为 tab；对齐需求也优先通过换行和结构解决
+STUDIO-STRUCT-018  apps/studioV2/src/pageComponents/storyEditor/canvas/StoryCanvasStage.tsx:62:7  自定义组件 <ReactFlow> 引用上方缺少用途注释  在组件引用上方增加一行：// 引用了ReactFlow组件，用于XXX
+STUDIO-STRUCT-018  apps/studioV2/src/pageComponents/storyEditor/canvas/StoryCanvasStage.tsx:75:9  自定义组件 <Background> 引用上方缺少用途注释  在组件引用上方增加一行：// 引用了Background组件，用于XXX
+STUDIO-STRUCT-018  apps/studioV2/src/pageComponents/storyEditor/canvas/StoryCanvasStage.tsx:82:9  自定义组件 <Controls> 引用上方缺少用途注释  在组件引用上方增加一行：// 引用了Controls组件，用于XXX
+STUDIO-STRUCT-018  apps/studioV2/src/pageComponents/storyEditor/canvas/StoryCanvasStage.tsx:90:5  自定义组件 <ReactFlowProvider> 引用上方缺少用途注释  在组件引用上方增加一行：// 引用了ReactFlowProvider组件，用于XXX
+STUDIO-STRUCT-018  apps/studioV2/src/pageComponents/storyEditor/canvas/StoryCanvasStage.tsx:91:7  自定义组件 <StoryCanvasInner> 引用上方缺少用途注释  在组件引用上方增加一行：// 引用了StoryCanvasInner组件，用于XXX
+STUDIO-STRUCT-017  apps/studioV2/src/pageComponents/storyEditor/canvas/canvasConnectHandlers.ts:2:1  新增或修改的代码文件缩进只能使用 tab，禁止用空格缩进  把行首缩进空格替换为 tab；对齐需求也优先通过换行和结构解决
+STUDIO-STRUCT-017  apps/studioV2/src/pageComponents/storyEditor/canvas/nodes/CharacterAnchorFlowNode.tsx:2:1  新增或修改的代码文件缩进只能使用 tab，禁止用空格缩进  把行首缩进空格替换为 tab；对齐需求也优先通过换行和结构解决
+STUDIO-STRUCT-018  apps/studioV2/src/pageComponents/storyEditor/canvas/nodes/CharacterAnchorFlowNode.tsx:27:7  自定义组件 <Handle> 引用上方缺少用途注释  在组件引用上方增加一行：// 引用了Handle组件，用于XXX
+STUDIO-STRUCT-017  apps/studioV2/src/pageComponents/storyEditor/canvas/nodes/editorNodes.module.scss:5:1  新增或修改的代码文件缩进只能使用 tab，禁止用空格缩进  把行首缩进空格替换为 tab；对齐需求也优先通过换行和结构解决
+STUDIO-STRUCT-017  apps/studioV2/src/pageComponents/storyEditor/canvas/storyCanvasTypes.ts:2:1  新增或修改的代码文件缩进只能使用 tab，禁止用空格缩进  把行首缩进空格替换为 tab；对齐需求也优先通过换行和结构解决
+STUDIO-STRUCT-017  apps/studioV2/src/pageComponents/storyEditor/canvas/useStoryCanvasGraph.ts:2:1  新增或修改的代码文件缩进只能使用 tab，禁止用空格缩进  把行首缩进空格替换为 tab；对齐需求也优先通过换行和结构解决
+STUDIO-STRUCT-017  apps/studioV2/src/pageComponents/storyEditor/com/dock/DockToolIcons.tsx:2:1  新增或修改的代码文件缩进只能使用 tab，禁止用空格缩进  把行首缩进空格替换为 tab；对齐需求也优先通过换行和结构解决
+STUDIO-STRUCT-018  apps/studioV2/src/pageComponents/storyEditor/com/dock/DockToolIcons.tsx:13:7  自定义组件 <SvgIcon> 引用上方缺少用途注释  在组件引用上方增加一行：// 引用了SvgIcon组件，用于XXX
+STUDIO-STRUCT-019  apps/studioV2/src/pageComponents/storyEditor/com/dock/DockToolIcons.tsx:11:36  组件 DockMdIcon 的 props 必须在参数入口显式解构  改为 function X({ fieldA, fieldB }: XProps) 或 const X = ({ fieldA }: XProps) => ...
+STUDIO-STRUCT-017  apps/studioV2/typeFiles/story/editor/storyEditorMock.ts:2:1  新增或修改的代码文件缩进只能使用 tab，禁止用空格缩进  把行首缩进空格替换为 tab；对齐需求也优先通过换行和结构解决
+check:studio-structure failed (37 errors, 42 warnings, 215 files)
+check:studio-structure failed (exit 1)
+
+quality:studio FAILED
+[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=9s

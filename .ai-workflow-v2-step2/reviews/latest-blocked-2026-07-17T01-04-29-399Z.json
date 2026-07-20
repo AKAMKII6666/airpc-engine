@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "reviewRunId": "batch-reviewer-3-af0e01b9-310b-4af7-bf8c-33cda1570d62",
+  "role": "batch-reviewer",
+  "batchId": "3",
+  "exFile": "docs/AI和人类/里程碑/v2.0/项目第二步计划执行索引.md",
+  "result": "fail",
+  "blocker": 0,
+  "critical": 1,
+  "major": 3,
+  "minor": 0,
+  "recommendedNextState": "FIX_BATCH",
+  "summary": "Batch 3（V2-S7/P1/P2）实现面基本对齐第二步需求§3.4/§4.2：CreatePackageView 已 Formik+FormSchemaRenderer；列表已 FrontendPagination+FormModal 新建且会话内 mock。但执行器明确 verify NOT run（Shell 拒绝），索引三行仍为 ⬜，并残留 pageComponents 空壳 createPackageForm.ts；按规则不得放行。",
+  "issues": [
+    {
+      "id": "R3-1",
+      "severity": "critical",
+      "file": ".ai-workflow-v2-step2/STATE.json",
+      "location": "lastAgentStdout / executor summary",
+      "description": "执行器摘要含「verify NOT run」（本环境 Shell/rm/Delete 被拒绝），本批为实现批且 verify=npm run quality:studio。latest-verify.json 仍是 batch-2（V2-S4/S5/S6），不能覆盖本批门禁。对照 reviewer 规则：verify NOT run → 必须 result=fail。",
+      "expectedBehavior": "在可执行环境删除空壳后跑通 npm run quality:studio（exit 0），再勾选任务。",
+      "suggestedVerification": "rm -f apps/studioV2/src/pageComponents/packages/create/createPackageForm.ts && npm run quality:studio"
+    },
+    {
+      "id": "R3-2",
+      "severity": "major",
+      "file": "docs/AI和人类/里程碑/v2.0/项目第二步计划执行索引.md",
+      "location": "§1 任务表 V2-S7 / V2-P1 / V2-P2",
+      "description": "本批出口要求任务行均为 ✅，但 V2-S7/P1/P2 仍为 ⬜（执行器自述因 verify 未跑未勾选）。S7 未收口时不得把本批当 P 批完成放行。",
+      "expectedBehavior": "quality:studio 通过后将三行改为 ✅。",
+      "suggestedVerification": "rg 'V2-S7|V2-P1|V2-P2' docs/AI和人类/里程碑/v2.0/项目第二步计划执行索引.md"
+    },
+    {
+      "id": "R3-3",
+      "severity": "major",
+      "file": "apps/studioV2/src/pageComponents/packages/create/createPackageForm.ts",
+      "location": "整文件 export {}",
+      "description": "契约已迁至 src/bis/pageBis/packages/createPackageForm.ts，本路径仅留「已无业务导出」空壳（export {}）。违反 studio-v2-quality 禁止迁移壳/残留路径；执行器亦要求删除但未删成。无人再 import，属应删死文件。",
+      "expectedBehavior": "删除该空壳文件；调用方只引 bis 真源。",
+      "suggestedVerification": "test ! -f apps/studioV2/src/pageComponents/packages/create/createPackageForm.ts && rg createPackageForm apps/studioV2"
+    },
+    {
+      "id": "R3-4",
+      "severity": "major",
+      "file": "apps/studioV2/src/pageComponents/packages/list/PackageListView.tsx",
+      "location": "PackageListView 组件体 ~L40–L164",
+      "description": "批2结构门禁已对 PackageListView 告警有效行数超 60；本批叠 FrontendPagination+FormModal 后组件体约 120+ 行，极可能突破函数硬上限 100，导致 quality:studio 的 check:studio-structure 失败。",
+      "expectedBehavior": "拆出列表行组件或新建弹层编排（com/ 或 bis），使主组件有效行数 ≤100。",
+      "suggestedVerification": "npm run quality:studio；确认无 STUDIO-STRUCT 函数硬上限失败"
+    }
+  ],
+  "checks": {
+    "typecheck": "skipped",
+    "lint": "skipped",
+    "tests": "skipped",
+    "behaviorChecks": "pass",
+    "negativeChecks": "pass",
+    "qualityStudio": "not_run"
+  },
+  "notes": "只读审查，未改业务代码、未写 STATE。行为对照：V2-S7 字段名称/描述/语言/起点卡齐全且非裸 useState 表单；V2-P1 sliceForPage+pageSize=3；V2-P2 列表 FormModal 主流程、commitCreatePackageMock→appendMockPackage 会话内 mock、文案标明不写盘；未见 Host 写口、未见改 debugger、无 eslint-disable、未见 sx 裸 CSS 单位。/packages/create 保留 Formik 整页作薄备选入口符合「薄入口或重定向」。S1–S6 已 ✅；本批含最后一项 S7，须 verify+勾选后才算 S 横切收口。建议 FIX：删空壳 → 必要时拆 PackageListView → quality:studio → 勾选 ✅ → 再 Review。"
+}

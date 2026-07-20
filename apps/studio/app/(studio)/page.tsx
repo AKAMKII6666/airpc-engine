@@ -28,6 +28,12 @@ const DESKS = [
     primary: false,
   },
   {
+    href: "/world",
+    title: "世界",
+    desc: "当前用户 Lore／Facts／knowledge／schedule；Host bootstrap 重生成",
+    primary: false,
+  },
+  {
     href: "/users",
     title: "用户",
     desc: "UserGate：选择 / 新建 Profile 上下文；导出 SaveGame",
@@ -83,7 +89,7 @@ export default function StudioHomePage() {
       <div className={styles.note}>
         <p className={styles.noteTitle}>后续可挂</p>
         <p className={styles.noteBody}>
-          世界台、资源库等（需求 03「可选后续」）暂不建独立路由；有需要时再挂进来。
+          资源库等（需求 03「可选后续」／E3）暂不建独立路由；有需要时再挂进来。
         </p>
       </div>
     </section>

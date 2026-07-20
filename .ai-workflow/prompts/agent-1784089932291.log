@@ -1,0 +1,53 @@
+[gbx] ▶ executor:E7 start cmd=agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … still running executor:E7 elapsed=15s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=30s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=45s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=60s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=75s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=90s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=105s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=120s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=135s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=150s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=165s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=180s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=195s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=210s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=225s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=240s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=255s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=270s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=285s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=300s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=315s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=330s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=345s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=360s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=375s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=390s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=405s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=420s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=435s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=450s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=465s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=480s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=495s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=510s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=525s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+[gbx] … still running executor:E7 elapsed=540s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784089932291.log
+E7 已落地：调试台可走多轮文本对话。**verify NOT run**（本会话 Shell 全部被拒，无法执行 `npm run typecheck` / 测试）。
+
+### 完成内容
+- **引擎**：`DialogueAdapter` / `ChatTurn` 端口；`Host.recordChatTurn`（通话中登记，不写 Effect／Profile）；Story／Free e2e：`tests/host/chat-turns-e2e.test.ts`
+- **Server**：`TextDialogueAdapter` + `POST /api/debug/chat`（Composer → LLM；无 Key 时 mock）；挂机清理 Adapter；snapshot 含 `chatTurns`
+- **UI**：调试器聊天面板（用户／助手轮次）+ bis／ajax；错误码经门面
+
+### 任务表
+E7：⬜ → ✅（仅状态列）
+
+### 请本地补跑
+```bash
+npm test --workspace=@airpc/rpg-engine -- tests/host/chat-turns-e2e.test.ts
+npm run typecheck
+```
+[gbx] ■ executor:E7 done exit=0 elapsed=549s

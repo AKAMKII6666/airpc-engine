@@ -1,0 +1,40 @@
+[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+
+> quality:studio
+> node scripts/studio-quality/quality-studio.mjs
+
+
+==> ensure-modal-layout (pre-typecheck)
+ensure-modal-layout: nothing to remove
+
+==> ensure-migrated-layout (pre-typecheck)
+ensure-migrated-layout: nothing to remove
+
+==> lint (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 lint
+> node ./scripts/run-eslint.mjs . --max-warnings 0
+
+
+==> typecheck (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 typecheck
+> tsc -p tsconfig.json --noEmit
+
+
+==> check:comments
+STUDIO-COMMENT-001  apps/studioV2/src/bis/pageBis/users/create/createUserForm.ts:14:1  严格契约目录中的导出「CreateUserFormValues」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用
+STUDIO-COMMENT-001  apps/studioV2/src/bis/pageBis/users/create/createUserForm.ts:16:1  严格契约目录中的导出「CREATE_USER_INITIAL_VALUES」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用
+STUDIO-COMMENT-001  apps/studioV2/src/bis/pageBis/users/create/createUserForm.ts:21:1  严格契约目录中的导出「validateCreateUserForm」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用
+STUDIO-COMMENT-001  apps/studioV2/src/bis/pageBis/users/detail/userDetailForm.ts:17:1  严格契约目录中的导出「UserDetailFormValues」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用
+STUDIO-COMMENT-001  apps/studioV2/src/bis/pageBis/users/detail/userDetailForm.ts:21:1  严格契约目录中的导出「toUserDetailFormValues」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用
+STUDIO-COMMENT-001  apps/studioV2/src/bis/pageBis/users/detail/userDetailForm.ts:23:1  严格契约目录中的导出「validateUserDetailForm」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/library/users/userProfileSummary.ts:11:2  严格契约字段「UserLocationSummary.country」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/library/users/userProfileSummary.ts:12:2  严格契约字段「UserLocationSummary.province」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/library/users/userProfileSummary.ts:13:2  严格契约字段「UserLocationSummary.city」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/library/users/userProfileSummary.ts:14:2  严格契约字段「UserLocationSummary.district」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+check:comments failed (10 issues, 201 files)
+check:comments failed (exit 1)
+
+quality:studio FAILED
+[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=4s

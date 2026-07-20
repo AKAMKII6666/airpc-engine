@@ -1,0 +1,559 @@
+{
+  "schemaVersion": 1,
+  "label": "batch-2",
+  "at": "2026-07-20T07:09:26.862Z",
+  "ok": false,
+  "phase": "batch",
+  "activeTaskIds": [
+    "V2-S4-3",
+    "V2-S4-4"
+  ],
+  "reason": "command failed",
+  "failedCommand": "npm run quality:studio",
+  "exitCode": 1,
+  "results": [
+    {
+      "command": "npm run quality:studio",
+      "exitCode": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> quality:studio\n> node scripts/studio-quality/quality-studio.mjs\n\n\n==> ensure-modal-layout (pre-typecheck)\nensure-modal-layout: nothing to remove\n\n==> ensure-migrated-layout (pre-typecheck)\nensure-migrated-layout: nothing to remove\n\n==> lint (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 lint\n> node ./scripts/run-eslint.mjs . --max-warnings 0\n\n\n==> typecheck (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n==> check:comments\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/callCardLabels.ts:14:2  严格契约字段「CallCardLabelOption.label」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/callCardLabels.ts:15:2  严格契约字段「CallCardLabelOption.value」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:43:2  严格契约字段「EditorCallCardExitProjection.exitId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:44:2  严格契约字段「EditorCallCardExitProjection.exitKind」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:45:2  严格契约字段「EditorCallCardExitProjection.title」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:46:2  严格契约字段「EditorCallCardExitProjection.priority」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:53:2  严格契约字段「EditorCallCardContextProjection.privateBrief」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:54:2  严格契约字段「EditorCallCardContextProjection.speakableBrief」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:55:2  严格契约字段「EditorCallCardContextProjection.background」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:56:2  严格契约字段「EditorCallCardContextProjection.premise」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:57:2  严格契约字段「EditorCallCardContextProjection.emotion」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:60:2  严格契约字段「EditorCallCardContextProjection.forbidden」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:61:2  严格契约字段「EditorCallCardContextProjection.playbackClipId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:66:2  严格契约字段「EditorToolPolicyProjection.mode」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:67:2  严格契约字段「EditorToolPolicyProjection.allowedToolIds」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:72:2  严格契约字段「EditorScheduleMetaProjection.mode」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:73:2  严格契约字段「EditorScheduleMetaProjection.hour」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:74:2  严格契约字段「EditorScheduleMetaProjection.minute」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:77:2  严格契约字段「EditorScheduleMetaProjection.priority」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:85:2  严格契约字段「EditorCallCardProjection.cardId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:86:2  严格契约字段「EditorCallCardProjection.cardKind」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:87:2  严格契约字段「EditorCallCardProjection.title」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:88:2  严格契约字段「EditorCallCardProjection.ownerAgentId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:91:2  严格契约字段「EditorCallCardProjection.entryMode」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:92:2  严格契约字段「EditorCallCardProjection.interactionMode」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:93:2  严格契约字段「EditorCallCardProjection.context」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:94:2  严格契约字段「EditorCallCardProjection.objectives」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:97:2  严格契约字段「EditorCallCardProjection.toolPolicy」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:98:2  严格契约字段「EditorCallCardProjection.exits」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:99:2  严格契约字段「EditorCallCardProjection.schedule」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-001  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:109:1  严格契约目录中的导出「EditorChapterNodeData」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:110:2  严格契约字段「EditorChapterNodeData.kind」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:111:2  严格契约字段「EditorChapterNodeData.title」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\ncheck:comments failed (33 issues, 221 files)\ncheck:comments failed (exit 1)\n\nquality:studio FAILED\n[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=6s\n",
+      "stderr": "",
+      "stdoutTail": "ypeFiles/story/editor/editorCallCardProjection.ts:54:2  严格契约字段「EditorCallCardContextProjection.speakableBrief」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:55:2  严格契约字段「EditorCallCardContextProjection.background」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:56:2  严格契约字段「EditorCallCardContextProjection.premise」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:57:2  严格契约字段「EditorCallCardContextProjection.emotion」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:60:2  严格契约字段「EditorCallCardContextProjection.forbidden」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:61:2  严格契约字段「EditorCallCardContextProjection.playbackClipId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:66:2  严格契约字段「EditorToolPolicyProjection.mode」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:67:2  严格契约字段「EditorToolPolicyProjection.allowedToolIds」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:72:2  严格契约字段「EditorScheduleMetaProjection.mode」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:73:2  严格契约字段「EditorScheduleMetaProjection.hour」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:74:2  严格契约字段「EditorScheduleMetaProjection.minute」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:77:2  严格契约字段「EditorScheduleMetaProjection.priority」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:85:2  严格契约字段「EditorCallCardProjection.cardId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:86:2  严格契约字段「EditorCallCardProjection.cardKind」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:87:2  严格契约字段「EditorCallCardProjection.title」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:88:2  严格契约字段「EditorCallCardProjection.ownerAgentId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:91:2  严格契约字段「EditorCallCardProjection.entryMode」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:92:2  严格契约字段「EditorCallCardProjection.interactionMode」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:93:2  严格契约字段「EditorCallCardProjection.context」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:94:2  严格契约字段「EditorCallCardProjection.objectives」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:97:2  严格契约字段「EditorCallCardProjection.toolPolicy」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:98:2  严格契约字段「EditorCallCardProjection.exits」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:99:2  严格契约字段「EditorCallCardProjection.schedule」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-001  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:109:1  严格契约目录中的导出「EditorChapterNodeData」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:110:2  严格契约字段「EditorChapterNodeData.kind」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts:111:2  严格契约字段「EditorChapterNodeData.title」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\ncheck:comments failed (33 issues, 221 files)\ncheck:comments failed (exit 1)\n\nquality:studio FAILED\n[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=6s\n",
+      "stderrTail": "",
+      "errorLocations": [
+        {
+          "file": "apps/studioV2/typeFiles/story/callCardLabels.ts",
+          "line": 14,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「CallCardLabelOption.label」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/callCardLabels.ts",
+          "line": 15,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「CallCardLabelOption.value」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+          "line": 43,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「EditorCallCardExitProjection.exitId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+          "line": 44,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「EditorCallCardExitProjection.exitKind」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+          "line": 45,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「EditorCallCardExitProjection.title」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+          "line": 46,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「EditorCallCardExitProjection.priority」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+          "line": 53,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「EditorCallCardContextProjection.privateBrief」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+          "line": 54,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「EditorCallCardContextProjection.speakableBrief」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+          "line": 55,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「EditorCallCardContextProjection.background」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+          "line": 56,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「EditorCallCardContextProjection.premise」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+          "line": 57,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「EditorCallCardContextProjection.emotion」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+          "line": 60,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「EditorCallCardContextProjection.forbidden」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+          "line": 61,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「EditorCallCardContextProjection.playbackClipId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+          "line": 66,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「EditorToolPolicyProjection.mode」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+          "line": 67,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「EditorToolPolicyProjection.allowedToolIds」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+          "line": 72,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「EditorScheduleMetaProjection.mode」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+          "line": 73,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「EditorScheduleMetaProjection.hour」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+          "line": 74,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「EditorScheduleMetaProjection.minute」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+          "line": 77,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「EditorScheduleMetaProjection.priority」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+          "line": 85,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「EditorCallCardProjection.cardId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+          "line": 86,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「EditorCallCardProjection.cardKind」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+          "line": 87,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「EditorCallCardProjection.title」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+          "line": 88,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「EditorCallCardProjection.ownerAgentId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+          "line": 91,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「EditorCallCardProjection.entryMode」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+          "line": 92,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「EditorCallCardProjection.interactionMode」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+          "line": 93,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「EditorCallCardProjection.context」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+          "line": 94,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「EditorCallCardProjection.objectives」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+          "line": 97,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「EditorCallCardProjection.toolPolicy」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+          "line": 98,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「EditorCallCardProjection.exits」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+          "line": 99,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「EditorCallCardProjection.schedule」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+          "line": 109,
+          "column": 1,
+          "code": "STUDIO-COMMENT-001",
+          "message": "严格契约目录中的导出「EditorChapterNodeData」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+          "line": 110,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「EditorChapterNodeData.kind」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+          "line": 111,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「EditorChapterNodeData.title」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        }
+      ]
+    }
+  ],
+  "errorLocations": [
+    {
+      "file": "apps/studioV2/typeFiles/story/callCardLabels.ts",
+      "line": 14,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「CallCardLabelOption.label」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/callCardLabels.ts",
+      "line": 15,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「CallCardLabelOption.value」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+      "line": 43,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「EditorCallCardExitProjection.exitId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+      "line": 44,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「EditorCallCardExitProjection.exitKind」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+      "line": 45,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「EditorCallCardExitProjection.title」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+      "line": 46,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「EditorCallCardExitProjection.priority」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+      "line": 53,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「EditorCallCardContextProjection.privateBrief」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+      "line": 54,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「EditorCallCardContextProjection.speakableBrief」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+      "line": 55,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「EditorCallCardContextProjection.background」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+      "line": 56,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「EditorCallCardContextProjection.premise」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+      "line": 57,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「EditorCallCardContextProjection.emotion」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+      "line": 60,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「EditorCallCardContextProjection.forbidden」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+      "line": 61,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「EditorCallCardContextProjection.playbackClipId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+      "line": 66,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「EditorToolPolicyProjection.mode」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+      "line": 67,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「EditorToolPolicyProjection.allowedToolIds」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+      "line": 72,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「EditorScheduleMetaProjection.mode」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+      "line": 73,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「EditorScheduleMetaProjection.hour」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+      "line": 74,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「EditorScheduleMetaProjection.minute」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+      "line": 77,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「EditorScheduleMetaProjection.priority」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+      "line": 85,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「EditorCallCardProjection.cardId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+      "line": 86,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「EditorCallCardProjection.cardKind」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+      "line": 87,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「EditorCallCardProjection.title」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+      "line": 88,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「EditorCallCardProjection.ownerAgentId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+      "line": 91,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「EditorCallCardProjection.entryMode」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+      "line": 92,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「EditorCallCardProjection.interactionMode」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+      "line": 93,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「EditorCallCardProjection.context」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+      "line": 94,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「EditorCallCardProjection.objectives」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+      "line": 97,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「EditorCallCardProjection.toolPolicy」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+      "line": 98,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「EditorCallCardProjection.exits」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+      "line": 99,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「EditorCallCardProjection.schedule」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+      "line": 109,
+      "column": 1,
+      "code": "STUDIO-COMMENT-001",
+      "message": "严格契约目录中的导出「EditorChapterNodeData」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+      "line": 110,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「EditorChapterNodeData.kind」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+      "line": 111,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「EditorChapterNodeData.title」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    }
+  ],
+  "historyFile": "batch-2-1784531366862.json"
+}

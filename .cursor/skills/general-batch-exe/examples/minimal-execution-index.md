@@ -4,7 +4,8 @@
 
 batch_size: 3
 max_rounds: 40
-max_fix_attempts: 2
+max_fix_attempts: 5
+max_ineffective_fixes: 2
 stop_on_fail: true
 group: order
 

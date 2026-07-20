@@ -1,0 +1,83 @@
+@use "../../../typeFiles/theme/tokens.scss" as t;
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px 22px;
+  border-radius: 12px;
+  border: 1px solid t.$border-panel;
+  background: t.$bg-panel;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+}
+
+.brandRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.title {
+  color: t.$text-primary;
+  font-weight: 600;
+}
+
+.caption {
+  color: t.$text-muted;
+  margin-top: 2px;
+}
+
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+}
+
+.swatch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chip {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1px solid t.$border-subtle;
+}
+
+.swatchLabel {
+  font-size: 12px;
+  color: t.$text-secondary;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.layers {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+
+.layerApp,
+.layerPanel,
+.layerElevated {
+  padding: 14px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  color: t.$text-secondary;
+  border: 1px solid t.$border-subtle;
+}
+
+.layerApp {
+  background: t.$bg-app;
+}
+
+.layerPanel {
+  background: t.$bg-panel;
+  border-color: t.$border-panel;
+}
+
+.layerElevated {
+  background: t.$bg-panel-elevated;
+  border-color: t.$border-panel;
+}

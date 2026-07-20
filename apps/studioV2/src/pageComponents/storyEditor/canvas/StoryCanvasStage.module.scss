@@ -1,0 +1,20 @@
+@use "../../../../typeFiles/theme/tokens.scss" as t;
+
+.root {
+	position: absolute;
+	inset: 0;
+	background: t.$bg-canvas;
+}
+
+.root :global(.react-flow__controls) {
+	background: t.$bg-panel;
+	border: 1px solid t.$border-panel;
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+.root :global(.react-flow__controls-button) {
+	background: t.$bg-panel;
+	border-bottom: 1px solid t.$border-subtle;
+	fill: t.$text-secondary;
+}

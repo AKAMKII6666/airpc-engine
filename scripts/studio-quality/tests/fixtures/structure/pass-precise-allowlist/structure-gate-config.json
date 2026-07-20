@@ -1,0 +1,24 @@
+{
+  "studioRoot": ".",
+  "excludeDirNames": ["node_modules", ".next", "tests", "dist"],
+  "thresholds": {
+    "page": { "warnLines": 2, "hardLines": 3 },
+    "uiComponent": { "warnLines": 250, "hardLines": 400 },
+    "hookOrCommand": { "warnLines": 250, "hardLines": 400 },
+    "other": { "warnLines": 350, "hardLines": 500 },
+    "function": { "warnLines": 60, "hardLines": 100 },
+    "complexity": { "warn": 10, "hard": 15 }
+  },
+  "bannedClientEngineWriteSymbols": ["createEngineHost"],
+  "bannedImportPatterns": ["@airpc/rpg-engine/"],
+  "allowlist": [
+    {
+      "ruleId": "STUDIO-STRUCT-004",
+      "target": "app/page.tsx",
+      "reason": "夹具验证精确豁免",
+      "owner": "structure-gate-tests",
+      "exitCondition": "删除本夹具后移除",
+      "created": "2026-07-16"
+    }
+  ]
+}

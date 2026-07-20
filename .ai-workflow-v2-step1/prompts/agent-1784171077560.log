@@ -1,0 +1,17 @@
+[gbx] ▶ fixer:V1-U5+V1-U6+V1-U7 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … still running fixer:V1-U5+V1-U6+V1-U7 elapsed=15s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784171077560.log
+[gbx] … still running fixer:V1-U5+V1-U6+V1-U7 elapsed=30s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784171077560.log
+[gbx] … still running fixer:V1-U5+V1-U6+V1-U7 elapsed=45s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784171077560.log
+[gbx] … still running fixer:V1-U5+V1-U6+V1-U7 elapsed=60s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784171077560.log
+[gbx] … still running fixer:V1-U5+V1-U6+V1-U7 elapsed=75s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784171077560.log
+Batch-8 Fixer 已处理 `reviews/latest.json` 中的确认问题。
+
+### 已修
+| Issue | 处理 |
+|-------|------|
+| **R8-2** (minor) | `CharacterLibraryView` 列表行增加自由通话就绪态（`freeCallLabel` + badge），对齐 05§4 |
+| **R8-1** (major) | 执行索引 **V1-U5 / V1-U6 / V1-U7** 已改为 ✅ |
+
+### 门禁
+本会话 **Shell 仍全部被拒**，无法在此进程跑 `npm run quality:studio`。请依赖 gbx 后续 verify 阶段执行该命令；细节见 `.ai-workflow-v2-step1/FIXER-VERIFY-NOTE.md`。未改 `STATE.json`。
+[gbx] ■ fixer:V1-U5+V1-U6+V1-U7 done exit=0 elapsed=84s

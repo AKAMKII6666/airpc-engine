@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "label": "batch-2",
+  "at": "2026-07-17T09:21:24.086Z",
+  "ok": false,
+  "phase": "batch",
+  "activeTaskIds": [
+    "V2-R3-2",
+    "V2-R3-3",
+    "V2-R4-1"
+  ],
+  "reason": "command failed",
+  "failedCommand": "npm run quality:studio",
+  "exitCode": 1,
+  "results": [
+    {
+      "command": "npm run quality:studio",
+      "exitCode": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> quality:studio\n> node scripts/studio-quality/quality-studio.mjs\n\n\n==> ensure-modal-layout (pre-typecheck)\nensure-modal-layout: nothing to remove\n\n==> ensure-migrated-layout (pre-typecheck)\nremoved obsolete flat file: apps/studioV2/src/bis/pageBis/characters/detail/characterDetailForm.ts\nremoved obsolete flat file: apps/studioV2/src/bis/pageBis/characters/detail/characterDefMapper.ts\nremoved obsolete flat file: apps/studioV2/src/bis/pageBis/characters/detail/characterDetailFormValidate.ts\nremoved obsolete flat file: apps/studioV2/src/bis/pageBis/characters/detail/characterDetailFormItems.ts\nremoved obsolete flat file: apps/studioV2/src/bis/pageBis/characters/detail/characterDetailFormValues.ts\nremoved obsolete flat file: apps/studioV2/src/bis/pageBis/characters/detail/saveCharacter_bis.ts\nremoved obsolete flat file: apps/studioV2/src/utils/ajaxProxy/library/charactersApi.ts\nremoved obsolete flat file: apps/studioV2/src/utils/ajaxProxy/library/memoryApi.ts\nremoved obsolete flat file: apps/studioV2/src/utils/ajaxProxy/library/usersApi.ts\nremoved obsolete flat file: apps/studioV2/src/utils/ajaxProxy/library/mockLibraryData.ts\nremoved obsolete flat file: apps/studioV2/src/utils/ajaxProxy/library/mockCharactersData.ts\nremoved obsolete flat file: apps/studioV2/src/utils/server/apiResponse.server.ts\nremoved obsolete flat file: apps/studioV2/src/utils/server/charactersFs.server.ts\nremoved obsolete flat file: apps/studioV2/src/utils/server/dataRoot.server.ts\nremoved obsolete flat file: apps/studioV2/src/utils/server/memoryRead.server.ts\nremoved obsolete flat file: apps/studioV2/src/utils/server/usersFs.server.ts\nremoved obsolete flat file: apps/studioV2/typeFiles/library/characters/characterSummary.ts\nremoved obsolete flat file: apps/studioV2/typeFiles/library/characters/characterFormShapes.ts\nremoved obsolete flat file: apps/studioV2/typeFiles/library/characters/memoryReadModel.ts\nremoved obsolete flat file: apps/studioV2/typeFiles/library/characters/realtimeVoiceOptions.ts\nremoved obsolete flat file: apps/studioV2/src/pageComponents/characters/com/memory/useCharacterMemoryList.ts\nremoved obsolete flat file: apps/studioV2/src/pageComponents/characters/com/memory/useCharacterMemoryPanel.ts\nremoved obsolete flat file: apps/studioV2/src/pageComponents/characters/com/memory/useCharacterMemoryUsers.ts\nremoved obsolete flat file: apps/studioV2/src/pageComponents/characters/com/memory/CharacterMemorySectionShell.tsx\nensure-migrated-layout: removed 24 file(s)\n\n==> lint (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 lint\n> node ./scripts/run-eslint.mjs . --max-warnings 0\n\n\n==> typecheck (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\nsrc/pageComponents/characters/com/memory/hooks/useCharacterMemoryUsers.ts(6,10): error TS2305: Module '\"@studio-v2/src/utils/ajaxProxy/library/api/usersApi\"' has no exported member 'fetchDiskUserSummaries'.\nsrc/pageComponents/characters/com/memory/hooks/useCharacterMemoryUsers.ts(36,29): error TS7006: Parameter 'u' implicitly has an 'any' type.\nnpm error Lifecycle script `typecheck` failed with error:\nnpm error code 2\nnpm error path /Users/bolbiao/workspace/airpc-engine/apps/studioV2\nnpm error workspace @airpc/studio-v2@0.0.1\nnpm error location /Users/bolbiao/workspace/airpc-engine/apps/studioV2\nnpm error command failed\nnpm error command sh -c tsc -p tsconfig.json --noEmit\ntypecheck (@airpc/studio-v2) failed (exit 2)\n\nquality:studio FAILED\n[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=4s\n",
+      "stderr": "",
+      "stdoutTail": "[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> quality:studio\n> node scripts/studio-quality/quality-studio.mjs\n\n\n==> ensure-modal-layout (pre-typecheck)\nensure-modal-layout: nothing to remove\n\n==> ensure-migrated-layout (pre-typecheck)\nremoved obsolete flat file: apps/studioV2/src/bis/pageBis/characters/detail/characterDetailForm.ts\nremoved obsolete flat file: apps/studioV2/src/bis/pageBis/characters/detail/characterDefMapper.ts\nremoved obsolete flat file: apps/studioV2/src/bis/pageBis/characters/detail/characterDetailFormValidate.ts\nremoved obsolete flat file: apps/studioV2/src/bis/pageBis/characters/detail/characterDetailFormItems.ts\nremoved obsolete flat file: apps/studioV2/src/bis/pageBis/characters/detail/characterDetailFormValues.ts\nremoved obsolete flat file: apps/studioV2/src/bis/pageBis/characters/detail/saveCharacter_bis.ts\nremoved obsolete flat file: apps/studioV2/src/utils/ajaxProxy/library/charactersApi.ts\nremoved obsolete flat file: apps/studioV2/src/utils/ajaxProxy/library/memoryApi.ts\nremoved obsolete flat file: apps/studioV2/src/utils/ajaxProxy/library/usersApi.ts\nremoved obsolete flat file: apps/studioV2/src/utils/ajaxProxy/library/mockLibraryData.ts\nremoved obsolete flat file: apps/studioV2/src/utils/ajaxProxy/library/mockCharactersData.ts\nremoved obsolete flat file: apps/studioV2/src/utils/server/apiResponse.server.ts\nremoved obsolete flat file: apps/studioV2/src/utils/server/charactersFs.server.ts\nremoved obsolete flat file: apps/studioV2/src/utils/server/dataRoot.server.ts\nremoved obsolete flat file: apps/studioV2/src/utils/server/memoryRead.server.ts\nremoved obsolete flat file: apps/studioV2/src/utils/server/usersFs.server.ts\nremoved obsolete flat file: apps/studioV2/typeFiles/library/characters/characterSummary.ts\nremoved obsolete flat file: apps/studioV2/typeFiles/library/characters/characterFormShapes.ts\nremoved obsolete flat file: apps/studioV2/typeFiles/library/characters/memoryReadModel.ts\nremoved obsolete flat file: apps/studioV2/typeFiles/library/characters/realtimeVoiceOptions.ts\nremoved obsolete flat file: apps/studioV2/src/pageComponents/characters/com/memory/useCharacterMemoryList.ts\nremoved obsolete flat file: apps/studioV2/src/pageComponents/characters/com/memory/useCharacterMemoryPanel.ts\nremoved obsolete flat file: apps/studioV2/src/pageComponents/characters/com/memory/useCharacterMemoryUsers.ts\nremoved obsolete flat file: apps/studioV2/src/pageComponents/characters/com/memory/CharacterMemorySectionShell.tsx\nensure-migrated-layout: removed 24 file(s)\n\n==> lint (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 lint\n> node ./scripts/run-eslint.mjs . --max-warnings 0\n\n\n==> typecheck (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\nsrc/pageComponents/characters/com/memory/hooks/useCharacterMemoryUsers.ts(6,10): error TS2305: Module '\"@studio-v2/src/utils/ajaxProxy/library/api/usersApi\"' has no exported member 'fetchDiskUserSummaries'.\nsrc/pageComponents/characters/com/memory/hooks/useCharacterMemoryUsers.ts(36,29): error TS7006: Parameter 'u' implicitly has an 'any' type.\nnpm error Lifecycle script `typecheck` failed with error:\nnpm error code 2\nnpm error path /Users/bolbiao/workspace/airpc-engine/apps/studioV2\nnpm error workspace @airpc/studio-v2@0.0.1\nnpm error location /Users/bolbiao/workspace/airpc-engine/apps/studioV2\nnpm error command failed\nnpm error command sh -c tsc -p tsconfig.json --noEmit\ntypecheck (@airpc/studio-v2) failed (exit 2)\n\nquality:studio FAILED\n[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=4s\n",
+      "stderrTail": "",
+      "errorLocations": [
+        {
+          "file": "src/pageComponents/characters/com/memory/hooks/useCharacterMemoryUsers.ts",
+          "line": 6,
+          "column": 10,
+          "code": "TS2305",
+          "message": "Module '\"@studio-v2/src/utils/ajaxProxy/library/api/usersApi\"' has no exported member 'fetchDiskUserSummaries'.",
+          "severity": "error"
+        },
+        {
+          "file": "src/pageComponents/characters/com/memory/hooks/useCharacterMemoryUsers.ts",
+          "line": 36,
+          "column": 29,
+          "code": "TS7006",
+          "message": "Parameter 'u' implicitly has an 'any' type.",
+          "severity": "error"
+        }
+      ]
+    }
+  ],
+  "errorLocations": [
+    {
+      "file": "src/pageComponents/characters/com/memory/hooks/useCharacterMemoryUsers.ts",
+      "line": 6,
+      "column": 10,
+      "code": "TS2305",
+      "message": "Module '\"@studio-v2/src/utils/ajaxProxy/library/api/usersApi\"' has no exported member 'fetchDiskUserSummaries'.",
+      "severity": "error"
+    },
+    {
+      "file": "src/pageComponents/characters/com/memory/hooks/useCharacterMemoryUsers.ts",
+      "line": 36,
+      "column": 29,
+      "code": "TS7006",
+      "message": "Parameter 'u' implicitly has an 'any' type.",
+      "severity": "error"
+    }
+  ],
+  "historyFile": "batch-2-1784280084086.json"
+}

@@ -1,0 +1,26 @@
+[gbx] ▶ executor:E4a start cmd=agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … still running executor:E4a elapsed=15s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784087388175.log
+[gbx] … still running executor:E4a elapsed=30s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784087388175.log
+[gbx] … still running executor:E4a elapsed=45s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784087388175.log
+[gbx] … still running executor:E4a elapsed=60s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784087388175.log
+[gbx] … still running executor:E4a elapsed=75s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784087388175.log
+[gbx] … still running executor:E4a elapsed=90s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784087388175.log
+[gbx] … still running executor:E4a elapsed=105s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784087388175.log
+[gbx] … still running executor:E4a elapsed=120s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784087388175.log
+[gbx] … still running executor:E4a elapsed=135s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784087388175.log
+**E4a 已落地**：补了 host 整通测，并勾选任务表。
+
+### 做了什么
+- 新增 `packages/rpg-engine/tests/host/refer-to-expert-e2e.test.ts`
+  - Free 通话中 `invokeTool("refer_to_expert")` → `endCall`
+  - 断言：`xiaoyu` unlock、`schedule.intents` once、`advanceClock` 后 outbound pending，以及 `agent_outbound` resolve
+  - 起手清空种子存档里的 unlock／inbound pending，避免假绿
+- 任务表：`E4a` ⬜ → ✅
+
+### Verify
+**verify NOT run**（本环境 Shell 工具被拒，无法执行 `npm test`）。请本机或 gbx VERIFY_BATCH 跑：
+
+```bash
+npm test
+```
+[gbx] ■ executor:E4a done exit=0 elapsed=145s

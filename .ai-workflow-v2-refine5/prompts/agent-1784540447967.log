@@ -1,0 +1,23 @@
+[gbx] ▶ fixer:V2-S5-1+V2-S5-2 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (30s elapsed, no output for 30s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (45s elapsed, no output for 45s)
+已修硬门禁 `STUDIO-STRUCT-019`：`ChapterEndNextFields` 的 `formik` 入口注释原先不含「用于/是什么/说明/表示」，未过 `hasBindingComment` 正则。已改为：
+
+```25:28:apps/studioV2/src/pageComponents/storyEditor/com/panel/ChapterEndNextFields.tsx
+	function ChapterEndNextFields({
+		// formik 是章节属性 Formik，用于下一包与起点卡 Select 绑定
+		formik,
+	}) {
+```
+
+未动 WARN 级 STRUCT-002/003（按规则不烧本轮）。执行索引 V2-S5-1/S5-2 仍保持 ⬜（门禁未确认绿）。
+
+**未自验**：本环境 Shell 两次被拒，未能复跑 `npm run quality:studio`。请本地执行：
+
+```bash
+cd /Users/bolbiao/workspace/airpc-engine && npm run quality:studio
+```
+
+exit 0 后可将 V2-S5-1、V2-S5-2 勾为 ✅。
+[gbx] ■ fixer:V2-S5-1+V2-S5-2 done exit=0 elapsed=60s

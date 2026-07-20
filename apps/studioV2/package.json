@@ -1,0 +1,38 @@
+{
+  "name": "@airpc/studio-v2",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 8562",
+    "build": "npm run build -w @airpc/rpg-engine && next build",
+    "start": "next start --port 8265",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "node ./scripts/run-eslint.mjs . --max-warnings 0",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@airpc/rpg-engine": "*",
+    "@emotion/cache": "^11.14.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/material": "^7.1.1",
+    "@mui/material-nextjs": "^7.1.1",
+    "@xyflow/react": "^12.11.2",
+    "formik": "^2.4.6",
+    "next": "^16.2.10",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "zustand": "^5.0.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.28.0",
+    "@types/node": "^22.15.30",
+    "@types/react": "^19.1.6",
+    "@types/react-dom": "^19.1.5",
+    "eslint": "^9.28.0",
+    "sass": "^1.89.2",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.33.1",
+    "vitest": "^3.2.4"
+  }
+}

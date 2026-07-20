@@ -21,11 +21,19 @@ export function resolveToolPolicy(
   if (mode === "deny_all") {
     return { mode: "deny_all", allowedToolIds: [] };
   }
-  if (mode === "inherit_free" || card.cardKind === "free") {
+  // ScheduleCard 是 FreeCard 超集：工具策略 inherit_free 同路径
+  if (
+    mode === "inherit_free" ||
+    card.cardKind === "free" ||
+    card.cardKind === "schedule"
+  ) {
     return {
       mode: "inherit_free",
       allowedToolIds: BUILTIN_TOOL_DEFINITIONS.filter(function (t) {
-        return t.allowedCardKinds.includes("free");
+        return (
+          t.allowedCardKinds.includes("free") ||
+          t.allowedCardKinds.includes("schedule")
+        );
       }).map(function (t) {
         return t.toolId;
       }),

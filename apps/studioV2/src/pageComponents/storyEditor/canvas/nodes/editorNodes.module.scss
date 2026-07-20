@@ -1,0 +1,177 @@
+@use "../../../../../typeFiles/theme/tokens.scss" as t;
+
+.callCard,
+.callCardSelected {
+	width: 220px;
+	padding: 10px 12px 12px;
+	border-radius: 12px;
+	background: t.$bg-node;
+	border: 1px solid t.$border-node;
+	color: t.$text-primary;
+	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+	font-size: 12px;
+}
+
+.callCardSelected {
+	border-color: t.$brand-primary;
+	box-shadow: 0 0 0 1px rgba(91, 108, 255, 0.45), 0 8px 20px rgba(0, 0, 0, 0.28);
+}
+
+.kind {
+	color: t.$brand-cyan;
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+}
+
+.title {
+	margin-top: 4px;
+	font-size: 14px;
+	font-weight: 700;
+}
+
+.meta {
+	margin-top: 2px;
+	color: t.$text-muted;
+}
+
+.goal {
+	margin-top: 8px;
+	color: t.$text-secondary;
+	line-height: 1.4;
+}
+
+.footer {
+	display: flex;
+	justify-content: space-between;
+	gap: 6px;
+	margin-top: 10px;
+	color: t.$text-muted;
+	font-size: 11px;
+}
+
+.ok {
+	color: t.$state-success;
+}
+
+.warn {
+	color: t.$state-warning;
+}
+
+.err {
+	color: t.$state-danger;
+}
+
+.handleRole {
+	width: 8px !important;
+	height: 8px !important;
+	background: t.$brand-violet !important;
+	border: 1px solid t.$border-strong !important;
+}
+
+.handleParent {
+	width: 8px !important;
+	height: 8px !important;
+	background: t.$text-muted !important;
+	border: 1px solid t.$border-panel !important;
+}
+
+.handleExit {
+	width: 9px !important;
+	height: 9px !important;
+	background: t.$brand-primary !important;
+	border: 1px solid #a8b4ff !important;
+}
+
+/* Tooltip 需要可持 ref 的包裹层；竖直位置由 inline top 控制 */
+.exitHandleHit {
+	position: absolute;
+	right: 0;
+	width: 14px;
+	height: 14px;
+	transform: translate(50%, -50%);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	pointer-events: all;
+}
+
+.exitHandleHit .handleExit {
+	position: relative !important;
+	transform: none !important;
+	top: auto !important;
+	right: auto !important;
+}
+
+.chapterStart,
+.chapterEnd {
+	width: 140px;
+	padding: 12px 14px;
+	border-radius: 999px;
+	text-align: center;
+	border: 1px dashed t.$border-node;
+	background: t.$bg-panel-elevated;
+	color: t.$text-primary;
+}
+
+.chapterStart {
+	border-color: t.$brand-teal;
+}
+
+.chapterEnd {
+	border-color: t.$state-warning;
+}
+
+.chapterLabel {
+	font-weight: 700;
+	font-size: 13px;
+}
+
+.characterAnchor,
+.characterAnchorSelected {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-width: 128px;
+	padding: 8px 10px;
+	border-radius: 10px;
+	background: rgba(16, 24, 36, 0.92);
+	border: 1px solid t.$border-panel;
+	color: t.$text-primary;
+	font-size: 12px;
+	box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
+	cursor: pointer;
+}
+
+.characterAnchorSelected {
+	border-color: t.$brand-primary;
+	box-shadow: 0 0 0 1px rgba(91, 108, 255, 0.45), 0 6px 16px rgba(0, 0, 0, 0.28);
+}
+
+.anchorAvatar {
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	display: grid;
+	place-items: center;
+	background: t.$bg-panel-elevated;
+	border: 1px solid t.$border-node;
+	color: t.$brand-cyan;
+	font-weight: 700;
+	flex-shrink: 0;
+}
+
+.anchorBody {
+	min-width: 0;
+	flex: 1;
+}
+
+.anchorName {
+	font-weight: 600;
+	font-size: 12px;
+}
+
+.anchorMeta {
+	color: t.$text-muted;
+	font-size: 10px;
+}

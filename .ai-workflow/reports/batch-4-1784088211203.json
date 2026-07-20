@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "label": "batch-4",
+  "at": "2026-07-15T04:03:31.203Z",
+  "ok": true,
+  "phase": "batch",
+  "activeTaskIds": [
+    "E4c"
+  ],
+  "reason": "all commands passed",
+  "failedCommand": null,
+  "exitCode": 0,
+  "results": [
+    {
+      "command": "npm test",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "[gbx] ▶ verify:npm test start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> test\n> npm run check:engine-imports && npm run test -w @airpc/rpg-engine\n\n\n> check:engine-imports\n> node scripts/check-engine-imports.mjs\n\ncheck:engine-imports ok (42 files)\n\n> @airpc/rpg-engine@0.0.1 test\n> vitest run\n\n\n RUN  v3.2.7 /Users/bolbiao/workspace/airpc-engine/packages/rpg-engine\n\n ✓ tests/host/a-to-b-memory-e2e.test.ts (1 test) 145ms\n ✓ tests/host/content-reload-preserves-session.test.ts (2 tests) 156ms\n ✓ tests/host/golden-handoff.test.ts (2 tests) 168ms\n ✓ tests/host/isolation-recurring-e2e.test.ts (2 tests) 272ms\n ✓ tests/host/active-story-lock.test.ts (3 tests) 406ms\n ✓ tests/host/free-call-pipeline.test.ts (4 tests) 426ms\n ✓ tests/host/refer-to-expert-e2e.test.ts (1 test) 215ms\n ✓ tests/lore/bootstrap-fallback.test.ts (3 tests) 83ms\n ✓ tests/validation/golden-handoff.validate.test.ts (10 tests) 1111ms\n   ✓ validatePackage > FREE_CARD_MISSING when freeCardId file removed  448ms\n ✓ tests/host/manual-story-loop.test.ts (2 tests) 410ms\n ✓ tests/host/schedule-outbound.test.ts (2 tests) 563ms\n   ✓ schedule → outbound (S3) > Free 挂机写入 schedule → advanceClock → agent_outbound begin Manual  555ms\n ✓ tests/memory/sqlite-memory.test.ts (5 tests) 92ms\n ✓ tests/host/playback-phase.test.ts (1 test) 290ms\n ✓ tests/runtime/pick-pending-entry-mode.test.ts (4 tests) 2ms\n ✓ tests/host/log-redact.test.ts (1 test) 13ms\n ✓ tests/index.smoke.test.ts (1 test) 5ms\n ✓ tests/runtime/composer.test.ts (9 tests) 144ms\n ✓ tests/runtime/exit-selector.test.ts (3 tests) 4ms\n ✓ tests/runtime/effect-sink-plan-status.test.ts (3 tests) 15ms\n ✓ tests/schema/callcard-schema-tighten.test.ts (4 tests) 62ms\n ✓ tests/runtime/effect-s11.test.ts (5 tests) 85ms\n ✓ tests/runtime/select-call-flow-prompt.test.ts (2 tests) 4ms\n\n Test Files  22 passed (22)\n      Tests  70 passed (70)\n   Start at  12:03:14\n   Duration  5.93s (transform 792ms, setup 0ms, collect 13.23s, tests 4.67s, environment 4ms, prepare 3.98s)\n\n[gbx] ■ verify:npm test done exit=0 elapsed=8s\n",
+      "stderr": "",
+      "stdoutTail": "/Users/bolbiao/workspace/airpc-engine\n\n> test\n> npm run check:engine-imports && npm run test -w @airpc/rpg-engine\n\n\n> check:engine-imports\n> node scripts/check-engine-imports.mjs\n\ncheck:engine-imports ok (42 files)\n\n> @airpc/rpg-engine@0.0.1 test\n> vitest run\n\n\n RUN  v3.2.7 /Users/bolbiao/workspace/airpc-engine/packages/rpg-engine\n\n ✓ tests/host/a-to-b-memory-e2e.test.ts (1 test) 145ms\n ✓ tests/host/content-reload-preserves-session.test.ts (2 tests) 156ms\n ✓ tests/host/golden-handoff.test.ts (2 tests) 168ms\n ✓ tests/host/isolation-recurring-e2e.test.ts (2 tests) 272ms\n ✓ tests/host/active-story-lock.test.ts (3 tests) 406ms\n ✓ tests/host/free-call-pipeline.test.ts (4 tests) 426ms\n ✓ tests/host/refer-to-expert-e2e.test.ts (1 test) 215ms\n ✓ tests/lore/bootstrap-fallback.test.ts (3 tests) 83ms\n ✓ tests/validation/golden-handoff.validate.test.ts (10 tests) 1111ms\n   ✓ validatePackage > FREE_CARD_MISSING when freeCardId file removed  448ms\n ✓ tests/host/manual-story-loop.test.ts (2 tests) 410ms\n ✓ tests/host/schedule-outbound.test.ts (2 tests) 563ms\n   ✓ schedule → outbound (S3) > Free 挂机写入 schedule → advanceClock → agent_outbound begin Manual  555ms\n ✓ tests/memory/sqlite-memory.test.ts (5 tests) 92ms\n ✓ tests/host/playback-phase.test.ts (1 test) 290ms\n ✓ tests/runtime/pick-pending-entry-mode.test.ts (4 tests) 2ms\n ✓ tests/host/log-redact.test.ts (1 test) 13ms\n ✓ tests/index.smoke.test.ts (1 test) 5ms\n ✓ tests/runtime/composer.test.ts (9 tests) 144ms\n ✓ tests/runtime/exit-selector.test.ts (3 tests) 4ms\n ✓ tests/runtime/effect-sink-plan-status.test.ts (3 tests) 15ms\n ✓ tests/schema/callcard-schema-tighten.test.ts (4 tests) 62ms\n ✓ tests/runtime/effect-s11.test.ts (5 tests) 85ms\n ✓ tests/runtime/select-call-flow-prompt.test.ts (2 tests) 4ms\n\n Test Files  22 passed (22)\n      Tests  70 passed (70)\n   Start at  12:03:14\n   Duration  5.93s (transform 792ms, setup 0ms, collect 13.23s, tests 4.67s, environment 4ms, prepare 3.98s)\n\n[gbx] ■ verify:npm test done exit=0 elapsed=8s\n",
+      "stderrTail": "",
+      "errorLocations": []
+    },
+    {
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "[gbx] ▶ verify:npm run typecheck start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> typecheck\n> npm run build -w @airpc/rpg-engine && npm run typecheck -w @airpc/rpg-engine && npm run typecheck -w @airpc/studio\n\n\n> @airpc/rpg-engine@0.0.1 build\n> tsc -p tsconfig.build.json\n\n\n> @airpc/rpg-engine@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n> @airpc/studio@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n[gbx] ■ verify:npm run typecheck done exit=0 elapsed=10s\n",
+      "stderr": "",
+      "stdoutTail": "[gbx] ▶ verify:npm run typecheck start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> typecheck\n> npm run build -w @airpc/rpg-engine && npm run typecheck -w @airpc/rpg-engine && npm run typecheck -w @airpc/studio\n\n\n> @airpc/rpg-engine@0.0.1 build\n> tsc -p tsconfig.build.json\n\n\n> @airpc/rpg-engine@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n> @airpc/studio@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n[gbx] ■ verify:npm run typecheck done exit=0 elapsed=10s\n",
+      "stderrTail": "",
+      "errorLocations": []
+    }
+  ],
+  "errorLocations": [],
+  "historyFile": "batch-4-1784088211203.json"
+}

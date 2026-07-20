@@ -1,0 +1,7 @@
+{
+  "studioRoot": "apps/studioV2",
+  "includeGlobs": ["**/*.ts", "**/*.tsx"],
+  "excludeDirNames": ["node_modules", ".next", "tests", "dist"],
+  "strictContractDirs": ["typeFiles", "src/bis"],
+  "allowlist": []
+}

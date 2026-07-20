@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "label": "batch-11",
+  "at": "2026-07-15T05:10:45.605Z",
+  "ok": true,
+  "phase": "batch",
+  "activeTaskIds": [
+    "E10"
+  ],
+  "reason": "all commands passed",
+  "failedCommand": null,
+  "exitCode": 0,
+  "results": [
+    {
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "[gbx] ▶ verify:npm run typecheck start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> typecheck\n> npm run build -w @airpc/rpg-engine && npm run typecheck -w @airpc/rpg-engine && npm run typecheck -w @airpc/studio\n\n\n> @airpc/rpg-engine@0.0.1 build\n> tsc -p tsconfig.build.json\n\n\n> @airpc/rpg-engine@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n> @airpc/studio@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n[gbx] ■ verify:npm run typecheck done exit=0 elapsed=5s\n",
+      "stderr": "",
+      "stdoutTail": "[gbx] ▶ verify:npm run typecheck start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> typecheck\n> npm run build -w @airpc/rpg-engine && npm run typecheck -w @airpc/rpg-engine && npm run typecheck -w @airpc/studio\n\n\n> @airpc/rpg-engine@0.0.1 build\n> tsc -p tsconfig.build.json\n\n\n> @airpc/rpg-engine@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n> @airpc/studio@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n[gbx] ■ verify:npm run typecheck done exit=0 elapsed=5s\n",
+      "stderrTail": "",
+      "errorLocations": []
+    }
+  ],
+  "errorLocations": [],
+  "historyFile": "batch-11-1784092245605.json"
+}

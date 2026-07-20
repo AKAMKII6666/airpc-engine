@@ -5,9 +5,10 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Alert,
+  Autocomplete,
   Button,
   CircularProgress,
   Stack,
@@ -98,7 +99,21 @@ export default function StoryEditorPage() {
     redoCanvas,
     canUndo,
     canRedo,
+    searchCards,
+    locateCard,
+    copySelectedCard,
+    pasteClipboardCard,
+    canPaste,
+    autoLayoutCanvas,
   } = useStoryEditorActionsBis();
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const searchHits = useMemo(
+    function () {
+      return searchCards(searchQuery);
+    },
+    [searchCards, searchQuery],
+  );
 
   const errorCount = validation?.errors.length ?? 0;
   const warningCount = validation?.warnings.length ?? 0;
@@ -232,9 +247,94 @@ export default function StoryEditorPage() {
         </Stack>
       </header>
 
+      <Stack
+        direction="row"
+        spacing={1}
+        flexWrap="wrap"
+        alignItems="center"
+        className={styles.p1Toolbar}
+      >
+        <Autocomplete
+          size="small"
+          sx={{ minWidth: 280, flex: "1 1 240px" }}
+          options={searchHits}
+          getOptionLabel={function (opt): string {
+            return `${opt.title} · ${opt.cardId}${
+              opt.ownerAgentId ? ` · ${opt.ownerAgentId}` : ""
+            }`;
+          }}
+          inputValue={searchQuery}
+          onInputChange={function (_e, value, reason): void {
+            if (reason === "input" || reason === "clear") {
+              setSearchQuery(value);
+            }
+          }}
+          onChange={function (_e, value): void {
+            if (value) {
+              locateCard(value.cardId);
+            }
+          }}
+          renderInput={function (params) {
+            return (
+              <TextField
+                {...params}
+                label="搜索卡"
+                placeholder="cardId / title / ownerAgentId"
+              />
+            );
+          }}
+          noOptionsText={
+            searchQuery.trim() ? "无匹配卡" : "输入 cardId／title／owner"
+          }
+          clearOnBlur={false}
+        />
+        <Button
+          size="small"
+          variant="outlined"
+          disabled={!searchHits[0]}
+          onClick={function (): void {
+            const first = searchHits[0];
+            if (first) locateCard(first.cardId);
+          }}
+        >
+          定位首条
+        </Button>
+        <Button
+          size="small"
+          variant="outlined"
+          disabled={!selectedCardId || saving}
+          onClick={function (): void {
+            copySelectedCard();
+          }}
+        >
+          复制卡
+        </Button>
+        <Button
+          size="small"
+          variant="outlined"
+          disabled={!canPaste || saving}
+          onClick={function (): void {
+            void pasteClipboardCard();
+          }}
+        >
+          粘贴卡
+        </Button>
+        <Button
+          size="small"
+          variant="outlined"
+          disabled={saving || !conf}
+          onClick={function (): void {
+            void autoLayoutCanvas();
+          }}
+        >
+          自动布局
+        </Button>
+      </Stack>
+
       <Alert severity="info" className={styles.hint}>
         主路径为结构化属性与出口类型连线；真源仍是 exits[].effects。JSON
-        在面板内折叠为对照。编辑不改本通 frozenCard。
+        在面板内折叠为对照。编辑不改本通 frozenCard。画布
+        P1：搜索定位、单卡复制粘贴（⌘/Ctrl+C/V）、泳道自动布局可撤销。
         {errorCount > 0
           ? " 存在校验 error，Content 导出已阻断。"
           : null}

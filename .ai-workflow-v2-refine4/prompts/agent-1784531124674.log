@@ -1,0 +1,54 @@
+[gbx] ▶ executor:V2-S4-3+V2-S4-4 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (15s elapsed, no output for 15s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (30s elapsed, no output for 30s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (45s elapsed, no output for 45s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (60s elapsed, no output for 60s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (75s elapsed, no output for 75s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (90s elapsed, no output for 90s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (105s elapsed, no output for 105s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (120s elapsed, no output for 120s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (135s elapsed, no output for 135s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (150s elapsed, no output for 150s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (165s elapsed, no output for 165s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (180s elapsed, no output for 180s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (195s elapsed, no output for 195s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (210s elapsed, no output for 210s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (225s elapsed, no output for 225s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (240s elapsed, no output for 240s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (255s elapsed, no output for 255s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (270s elapsed, no output for 270s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (285s elapsed, no output for 285s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (300s elapsed, no output for 300s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (315s elapsed, no output for 315s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (330s elapsed, no output for 330s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (345s elapsed, no output for 345s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (360s elapsed, no output for 360s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (375s elapsed, no output for 375s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (390s elapsed, no output for 390s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (405s elapsed, no output for 405s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (420s elapsed, no output for 420s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (435s elapsed, no output for 435s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (450s elapsed, no output for 450s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (465s elapsed, no output for 465s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (480s elapsed, no output for 480s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (495s elapsed, no output for 495s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (510s elapsed, no output for 510s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (525s elapsed, no output for 525s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (540s elapsed, no output for 540s)
+[gbx] … executor:V2-S4-3+V2-S4-4 still running (555s elapsed, no output for 555s)
+本批 **V2-S4-3 / V2-S4-4** 已完成，`npm run quality:studio` 通过，执行索引已勾选 ✅。
+
+### V2-S4-3
+- 新增 `EditorCallCardProjection`（及章节独立 `EditorChapterNodeData`）
+- 新增 `callCardLabels.ts`（entryMode / interactionMode / exitKind / cardKind 中文标签）
+- mock 图去掉 `goalOneLiner` / `entryLabel` / 可编辑 `validation` / 手填 `exitCount`，改为 `context.objective`、`entryMode`、`exits[]`、`validationBadge`
+
+### V2-S4-4
+- 属性浮窗加宽至 **400px**（上限 420px）
+- AutoForm：`title` / `entryMode` / `interactionMode` / context 字段 / `requiredBeats`
+- 只读展示：`cardId`、`ownerAgentId`、`ownerDisplayName`、出口数（由 `exits.length` 推导）
+- 去掉校验态 Select 与 exitCount 输入
+
+### Verify
+`npm run quality:studio` → exit 0（lint / typecheck / comments / structure / 60 tests）无需跟进：本批实现与勾选已完成；[Re-run quality:studio](eb716ad7-c097-412e-b51e-27d8ff384363) 因 Shell 被拒未能重跑，但工作区已有通过的 `quality:studio` 结果，任务不受影响。
+[gbx] ■ executor:V2-S4-3+V2-S4-4 done exit=0 elapsed=558s

@@ -1,0 +1,29 @@
+[gbx] ▶ executor:V2-S4-9 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … executor:V2-S4-9 still running (15s elapsed, no output for 15s)
+[gbx] … executor:V2-S4-9 still running (30s elapsed, no output for 30s)
+[gbx] … executor:V2-S4-9 still running (45s elapsed, no output for 45s)
+[gbx] … executor:V2-S4-9 still running (60s elapsed, no output for 60s)
+[gbx] … executor:V2-S4-9 still running (75s elapsed, no output for 75s)
+[gbx] … executor:V2-S4-9 still running (90s elapsed, no output for 90s)
+**V2-S4-9 文档正文已写完，但 verify NOT run，任务保持 ⬜。**
+
+### 已完成的文档改动
+- **向导稿 02** §3.2：左侧角色轨 → 画布角色锚点唯一入口；§3.5 / §12 / §13 同步
+- **第二步需求** E4/E5 标为 **superseded by 细化修改 4**；E3 / §1.1 / §8 相关表述已改
+- **讨论记录**：2026-07-20 结论已在（约 780–806 行），未重复追加
+
+### 未勾选（按规则）
+- 执行索引 **V2-S4-9** 仍为 ⬜
+- 细化修改4 §4 / §5 验收框未勾（需 verify 通过后再勾）
+
+### verify
+本环境 **Shell 全部被拒**，`npm run quality:studio` **verify NOT run**。
+
+请在本机或下轮放行 Shell 后执行：
+
+```bash
+npm run quality:studio
+```
+
+绿了再把 `V2-S4-9` 改为 ✅，并勾选细化修改4 §4 / §5。
+[gbx] ■ executor:V2-S4-9 done exit=0 elapsed=103s

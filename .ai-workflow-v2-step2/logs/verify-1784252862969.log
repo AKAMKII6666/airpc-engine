@@ -1,0 +1,110 @@
+[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+
+> quality:studio
+> node scripts/studio-quality/quality-studio.mjs
+
+
+==> ensure-modal-layout (pre-typecheck)
+ensure-modal-layout: nothing to remove
+
+==> ensure-migrated-layout (pre-typecheck)
+ensure-migrated-layout: nothing to remove
+
+==> lint (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 lint
+> node ./scripts/run-eslint.mjs . --max-warnings 0
+
+
+==> typecheck (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 typecheck
+> tsc -p tsconfig.json --noEmit
+
+
+==> check:comments
+check:comments ok (133 files)
+
+==> check:studio-structure
+WARN STUDIO-STRUCT-002  apps/studioV2/src/commonUiComponents/modal/form/FormModal.tsx:72:1  函数 FormModalFrame 有效行数 65 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/assets/hooks/useAssetLibraryPage.ts:19:1  函数 useAssetLibraryPage 有效行数 78 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-003  apps/studioV2/src/pageComponents/assets/hooks/useAssetLibraryPage.ts:19:1  函数 useAssetLibraryPage 圈复杂度 11 超过告警线 10  重构条件分支，避免继续堆叠
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/characters/com/CharacterDetailEditForm.tsx:42:3  函数 CharacterDetailEditForm 有效行数 84 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/characters/hooks/useCharacterLibraryPage.ts:18:1  函数 useCharacterLibraryPage 有效行数 71 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/debugger/com/CallRunPanel.tsx:43:52  函数 CallRunPanel 有效行数 72 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/home/WorkbenchSideCol.tsx:21:37  函数 WorkbenchSideCol 有效行数 78 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/packages/create/CreatePackageView.tsx:22:38  函数 CreatePackageView 有效行数 63 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/packages/export/ExportPackageForm.tsx:33:45  函数 ExportPackageForm 有效行数 65 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/packages/list/PackageListView.tsx:30:36  函数 PackageListView 有效行数 84 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/settings/com/SettingsEnginePanels.tsx:92:62  函数 SchemaEnginePanel 有效行数 65 超过告警线 60  考虑拆分以保持可测性
+check:studio-structure ok (133 files, 11 warnings)
+
+==> test:studio
+
+> test:studio
+> npm run test -w @airpc/studio-v2
+
+
+> @airpc/studio-v2@0.0.1 test
+> vitest run
+
+
+ RUN  v3.2.7 /Users/bolbiao/workspace/airpc-engine/apps/studioV2
+
+ ✓ tests/commonUi/modalContract.test.ts (3 tests) 2ms
+ ✓ tests/commonUi/paginationSlice.test.ts (5 tests) 2ms
+ ✓ tests/commonUi/formFieldConfig.test.ts (4 tests) 7ms
+ ✓ tests/packages/createPackageForm.test.ts (2 tests) 2ms
+ ✓ tests/characters/characterForm.test.ts (4 tests) 2ms
+ ✓ tests/users/userForm.test.ts (5 tests) 2ms
+ ✓ tests/assets/assetForm.test.ts (8 tests) 8ms
+ ✓ tests/domain/createStudioId.test.ts (2 tests) 3ms
+
+ Test Files  8 passed (8)
+      Tests  33 passed (33)
+   Start at  09:47:47
+   Duration  450ms (transform 390ms, setup 0ms, collect 687ms, tests 28ms, environment 1ms, prepare 424ms)
+
+
+==> gate self-tests (comments + structure)
+▶ check:comments
+  ✔ 合格契约通过 (9.787667ms)
+  ✔ 缺失导出意图注释失败 (1.819333ms)
+  ✔ 缺失字段说明失败 (1.090334ms)
+  ✔ 复述占位注释失败 (1.106291ms)
+  ✔ 无原因抑制失败（含裸 eslint-disable） (2.648167ms)
+  ✔ 带原因抑制通过 (1.626625ms)
+  ✔ 输出格式含规则编号与位置 (0.96875ms)
+✔ check:comments (19.745125ms)
+▶ check:studio-structure
+  ✔ 有效行数忽略空行但不忽略注释 (0.4935ms)
+  ✔ page.tsx 分类正确 (0.141792ms)
+  ✔ 圈复杂度统计分支 (3.544375ms)
+  ✔ 合格基线通过，且排除 generated (8.169541ms)
+  ✔ page 行数硬上限失败 (2.39875ms)
+  ✔ 函数复杂度硬上限失败 (1.96975ms)
+  ✔ client 引擎写口失败 (2.454708ms)
+  ✔ 业务旁平放测试失败 (3.63175ms)
+  ✔ 深挖引擎内部路径失败 (2.491708ms)
+  ✔ 目录异责平铺失败 (3.569708ms)
+  ✔ 业务 barrel index 失败 (1.072209ms)
+  ✔ 旧式顶层业务目录失败 (1.240292ms)
+  ✔ 兼容转发壳失败 (1.964833ms)
+  ✔ 同一语义区重复入口失败 (1.580458ms)
+  ✔ UI 组件裸 fetch 失败 (1.066209ms)
+  ✔ 大范围豁免被拒绝 (1.100459ms)
+  ✔ 精确豁免生效 (1.086833ms)
+  ✔ validateAllowlist 拒绝 apps/** (0.071667ms)
+  ✔ 输出格式含规则编号与位置（路径可定位） (1.206833ms)
+✔ check:studio-structure (40.244458ms)
+ℹ tests 26
+ℹ suites 2
+ℹ pass 26
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 181.31075
+
+quality:studio ok
+[gbx] ■ verify:npm run quality:studio done exit=0 elapsed=5s

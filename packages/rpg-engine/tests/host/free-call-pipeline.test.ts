@@ -153,13 +153,13 @@ describe("free call + tools + memory", () => {
     expect(saved.characters.xiaoyu?.unlocked).toBe(true);
   });
 
-  it("rejects loadCard for __free__ package sentinel", async () => {
-    tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-p5-rej-"));
+  it("loadCard 可经 __free__ 解析角色 FreeCard", async () => {
+    tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-p5-free-load-"));
     const dataRoot = path.join(tmpRoot, "data");
     await cp(dataSrc, dataRoot, { recursive: true });
     const host = createEngineHost({ persist: false });
     await host.loadWorkspace(dataRoot);
-    const bad = await host.preloadCard(FREE_PACKAGE_ID, "doubao_free");
-    expect(isEngineError(bad)).toBe(true);
+    const ok = await host.preloadCard(FREE_PACKAGE_ID, "doubao_free");
+    expect(isEngineError(ok)).toBe(false);
   });
 });

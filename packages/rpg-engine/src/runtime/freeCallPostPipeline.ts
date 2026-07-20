@@ -8,6 +8,7 @@ import type { MemoryPort } from "../memory/types.js";
 import { selectExit } from "./exitSelector.js";
 import { executeEffects } from "./effectExecutor.js";
 import type { EffectSink } from "./effectSink.js";
+import type { ScheduledCardLookup } from "../schedule/scheduleCardReferenceResolver.js";
 
 export interface FreeCallPostPipelineResult {
   committed: boolean;
@@ -41,6 +42,8 @@ export async function runFreeCallPostPipeline(input: {
   nowIso: string;
   opts?: FreeCallPostPipelineOpts;
   effectSink?: EffectSink | null;
+  /** 动态 recurring 写入前查卡；Host 注入 */
+  lookupCard?: ScheduledCardLookup | null;
 }): Promise<FreeCallPostPipelineResult> {
   const minTurns = input.opts?.minTurns ?? 2;
   const commitEnabled = input.opts?.memoryCommitEnabled !== false;
@@ -118,12 +121,13 @@ export async function runFreeCallPostPipeline(input: {
     ].join("; "),
   };
 
-  const plan = executeEffects(selected.exit.effects, {
+  const plan = await executeEffects(selected.exit.effects, {
     profile: input.profile,
     session: input.session,
     nowIso: input.nowIso,
     memory: input.memory,
     effectSink: input.effectSink,
+    lookupCard: input.lookupCard,
   });
   input.session.effectPlanResult = plan;
 

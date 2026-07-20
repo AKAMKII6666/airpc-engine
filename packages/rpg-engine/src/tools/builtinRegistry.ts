@@ -28,7 +28,8 @@ export const BUILTIN_TOOL_DEFINITIONS: ToolDefinition[] = [
   {
     toolId: "schedule_recurring_call",
     displayName: "登记重复外呼",
-    allowedCardKinds: ["free", "story"],
+    // Story 出口仍可能写 effect；validatePackage 对 StoryCard 上 recurring 报 error
+    allowedCardKinds: ["free", "schedule"],
     allowedInPlayback: false,
     behavior: "register_exit",
   },

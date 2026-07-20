@@ -1,7 +1,8 @@
 /**
  * 模块名称：Studio API ajax 封装
  */
-import { studioFetchJson } from "@studio/utils/ajaxHelper/fetchBase";
+import { studioFetchJson, type ApiEnvelope } from "@studio/utils/ajaxHelper/fetchBase";
+import { iterateSseStream } from "@studio/utils/ajaxHelper/sseParse";
 import type {
   IStorySummary,
   IStoryEditorLayout,
@@ -10,6 +11,16 @@ import type {
   IValidationReportDto,
 } from "@studio/types/frontEnd/store/studioStore.types";
 import type { IDebuggerSnapshot } from "@studio/types/frontEnd/store/studioStore.types";
+import type {
+  IWorldFactDto,
+  IWorldLoreDto,
+  IWorldScheduleDto,
+  IWorldSnapshotDto,
+  IWetEventDto,
+  IWetQueryResultDto,
+  IWetReplayDto,
+} from "@studio/types/frontEnd/world/world.types";
+import type { IAssetMetaDto } from "@studio/types/frontEnd/assets/assets.types";
 
 export interface UserSummaryDto {
   userId: string;
@@ -338,6 +349,104 @@ export async function postInvokeTool(body: {
   });
 }
 
+export type TDebugChatSseMessage =
+  | { type: "session.ready"; sessionId: string }
+  | { type: "assistant.delta"; text: string }
+  | { type: "assistant.message"; text: string }
+  | { type: "user.transcript"; text: string }
+  | { type: "session.ended"; reason: string }
+  | { type: "error"; message: string; code?: string };
+
+export interface IDebugChatDone {
+  assistantText: string;
+  turns: Array<{
+    role: "user" | "assistant" | "system";
+    text: string;
+    at: string;
+  }>;
+  usedMock: boolean;
+}
+
+/**
+ * POST /api/debug/chat → text/event-stream（message / done / error）。
+ * 门面校验失败仍可能返回 JSON envelope。
+ */
+export async function postDebugChat(
+  body: {
+    sessionId: string;
+    text: string;
+  },
+  opts?: {
+    onMessage?: (ev: TDebugChatSseMessage) => void;
+  },
+): Promise<ApiEnvelope<IDebugChatDone>> {
+  const res = await fetch("/api/debug/chat", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "text/event-stream",
+    },
+    body: JSON.stringify(body),
+  });
+  const contentType = res.headers.get("content-type") ?? "";
+  if (!contentType.includes("text/event-stream")) {
+    const json = (await res.json()) as ApiEnvelope<IDebugChatDone>;
+    return json;
+  }
+  if (!res.body) {
+    return {
+      ok: false,
+      code: "ENGINE_INTERNAL",
+      message: "chat SSE missing body",
+    };
+  }
+
+  let donePayload: IDebugChatDone | null = null;
+  let errorPayload: { code?: string; message?: string } | null = null;
+
+  for await (const evt of iterateSseStream(res.body)) {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(evt.data) as unknown;
+    } catch {
+      continue;
+    }
+    if (evt.event === "message") {
+      opts?.onMessage?.(parsed as TDebugChatSseMessage);
+      continue;
+    }
+    if (evt.event === "done") {
+      donePayload = parsed as IDebugChatDone;
+      continue;
+    }
+    if (evt.event === "error") {
+      const err = parsed as { code?: string; message?: string };
+      errorPayload = err;
+      opts?.onMessage?.({
+        type: "error",
+        message: err.message ?? "chat failed",
+        code: err.code,
+      });
+    }
+  }
+
+  if (errorPayload) {
+    return {
+      ok: false,
+      code: errorPayload.code ?? "ENGINE_INTERNAL",
+      message: errorPayload.message ?? "chat failed",
+    };
+  }
+  if (!donePayload) {
+    return {
+      ok: false,
+      code: "ENGINE_INTERNAL",
+      message: "chat SSE ended without done",
+    };
+  }
+  return { ok: true, data: donePayload };
+}
+
 export async function postEndCall(body: {
   sessionId: string;
   outcome: {
@@ -352,6 +461,11 @@ export async function postEndCall(body: {
     freePipeline?: unknown;
     selectedExit?: unknown;
     status: string;
+    chatTurns?: Array<{
+      role: "user" | "assistant" | "system";
+      text: string;
+      at: string;
+    }>;
   }>("/api/debug/endCall", {
     method: "POST",
     body: JSON.stringify(body),
@@ -411,9 +525,18 @@ export async function postBootstrapLore(body?: { force?: boolean }) {
   });
 }
 
-export async function postAdvanceClock(body: { deltaMs: number }) {
+export async function postAdvanceClock(body: {
+  deltaMs?: number;
+  toClockMs?: number;
+  toNextIntent?: boolean;
+}) {
   return studioFetchJson<{
-    deltaMs: number;
+    mode: "deltaMs" | "toClockMs" | "toNextIntent";
+    deltaMs?: number;
+    toClockMs?: number;
+    fromClockMs?: number;
+    advancedMs?: number;
+    reason?: string;
     fired: unknown[];
   }>("/api/debug/advanceClock", {
     method: "POST",
@@ -443,4 +566,131 @@ export async function getDebugLogs(opts?: {
 export async function getDebugSnapshot(userId?: string) {
   const q = userId ? `?userId=${encodeURIComponent(userId)}` : "";
   return studioFetchJson<IDebuggerSnapshot>(`/api/debug/snapshot${q}`);
+}
+
+export async function getWorldSnapshot() {
+  return studioFetchJson<IWorldSnapshotDto>("/api/world");
+}
+
+export async function putWorldLore(lore: IWorldLoreDto) {
+  return studioFetchJson<{ lore: IWorldLoreDto }>("/api/world/lore", {
+    method: "PUT",
+    body: JSON.stringify(lore),
+  });
+}
+
+export async function putWorldFacts(facts: IWorldFactDto[]) {
+  return studioFetchJson<{ facts: IWorldFactDto[] }>("/api/world/facts", {
+    method: "PUT",
+    body: JSON.stringify({ facts }),
+  });
+}
+
+export async function putWorldKnowledge(knowledge: Record<string, string[]>) {
+  return studioFetchJson<{ knowledge: Record<string, string[]> }>(
+    "/api/world/knowledge",
+    {
+      method: "PUT",
+      body: JSON.stringify({ knowledge }),
+    },
+  );
+}
+
+export async function putWorldSchedule(schedule: IWorldScheduleDto) {
+  return studioFetchJson<{ schedule: IWorldScheduleDto }>(
+    "/api/world/schedule",
+    {
+      method: "PUT",
+      body: JSON.stringify(schedule),
+    },
+  );
+}
+
+export async function postWorldBootstrap(body?: { force?: boolean }) {
+  return studioFetchJson<{
+    lore: IWorldLoreDto;
+    usedFallback: boolean;
+    errorMessage?: string;
+  }>("/api/world/bootstrap", {
+    method: "POST",
+    body: JSON.stringify(body ?? { force: true }),
+  });
+}
+
+export async function getAssets() {
+  return studioFetchJson<{ assets: IAssetMetaDto[] }>("/api/assets");
+}
+
+export async function getAsset(assetId: string) {
+  return studioFetchJson<{ asset: IAssetMetaDto }>(
+    `/api/assets/${encodeURIComponent(assetId)}`,
+  );
+}
+
+export async function postCreateAsset(body: {
+  asset: IAssetMetaDto;
+  fileBase64?: string;
+}) {
+  return studioFetchJson<{ asset: IAssetMetaDto }>("/api/assets", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function putAsset(
+  assetId: string,
+  body: { asset: IAssetMetaDto; fileBase64?: string },
+) {
+  return studioFetchJson<{ asset: IAssetMetaDto }>(
+    `/api/assets/${encodeURIComponent(assetId)}`,
+    {
+      method: "PUT",
+      body: JSON.stringify(body),
+    },
+  );
+}
+
+export async function deleteAssetApi(assetId: string) {
+  return studioFetchJson<{ ok: boolean }>(
+    `/api/assets/${encodeURIComponent(assetId)}`,
+    { method: "DELETE" },
+  );
+}
+
+export async function queryWetEvents(opts?: {
+  userId?: string;
+  type?: string;
+  sessionId?: string;
+  since?: string;
+  until?: string;
+  limit?: number;
+  includeFile?: boolean;
+}) {
+  const q = new URLSearchParams();
+  if (opts?.userId) q.set("userId", opts.userId);
+  if (opts?.type) q.set("type", opts.type);
+  if (opts?.sessionId) q.set("sessionId", opts.sessionId);
+  if (opts?.since) q.set("since", opts.since);
+  if (opts?.until) q.set("until", opts.until);
+  if (opts?.limit) q.set("limit", String(opts.limit));
+  if (opts?.includeFile === false) q.set("includeFile", "0");
+  const qs = q.toString();
+  return studioFetchJson<IWetQueryResultDto>(`/api/wet${qs ? `?${qs}` : ""}`);
+}
+
+export async function appendWetEvent(body: {
+  type: "wet.annotation" | "wet.compensation";
+  note: string;
+  sessionId?: string;
+  payload?: Record<string, unknown>;
+}) {
+  return studioFetchJson<{ event: IWetEventDto }>("/api/wet", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function getWetReplay(sessionId: string) {
+  const q = new URLSearchParams({ sessionId });
+  return studioFetchJson<IWetReplayDto>(`/api/wet/replay?${q.toString()}`);
 }

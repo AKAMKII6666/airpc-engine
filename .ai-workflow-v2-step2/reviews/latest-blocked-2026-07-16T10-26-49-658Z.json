@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "reviewRunId": "batch-reviewer-1-8ac5eadf-9557-4720-b728-efe9b69d2eb8",
+  "role": "batch-reviewer",
+  "batchId": "1",
+  "exFile": "docs/AI和人类/里程碑/v2.0/项目第二步计划执行索引.md",
+  "result": "fail",
+  "blocker": 0,
+  "critical": 1,
+  "major": 1,
+  "minor": 0,
+  "recommendedNextState": "FIX_BATCH",
+  "summary": "Batch 1（V2-S1/S2/S3）实现面已齐：formik 已声明并解析到 node_modules/formik@2.4.9；commonUi form 骨架、FormFieldShell+四字段、FormSchemaRenderer/formTypes 对照第二步需求 §3 基本达标。但执行器摘要明确「verify NOT run / Shell 被拒」，quality:studio 未跑；索引三行仍为 ⬜。按 reviewer 硬规则不得放行。",
+  "issues": [
+    {
+      "id": "R1-1",
+      "severity": "critical",
+      "file": ".ai-workflow-v2-step2/prompts/agent-1784194942631.log",
+      "location": "executor summary ~L14–L37",
+      "description": "执行器摘要含「verify NOT run」且 Shell 被拒，未能执行本批 verify=`npm run quality:studio`。本批为实现批（非纯文档 verify=—）。对照 prompt / reviewer_extra：verify 未跑或质量门禁未通过 → 必须 result=fail，不得 pass。",
+      "expectedBehavior": "在可执行 Shell 的会话中跑通 `npm run quality:studio`（exit 0），再进入勾选与后续批。",
+      "suggestedVerification": "cd 仓库根 && npm run quality:studio；确认 exit 0"
+    },
+    {
+      "id": "R1-2",
+      "severity": "major",
+      "file": "docs/AI和人类/里程碑/v2.0/项目第二步计划执行索引.md",
+      "location": "§1 任务表 V2-S1 / V2-S2 / V2-S3",
+      "description": "单批出口要求本批任务行均为 ✅，但 V2-S1/S2/S3 仍为 ⬜（执行器因 verify 未跑按规则未勾选）。批未收口；S 批未收口不得推进 P/E。",
+      "expectedBehavior": "quality:studio 通过后将三行状态改为 ✅。",
+      "suggestedVerification": "rg 'V2-S1|V2-S2|V2-S3' 执行索引，确认状态列为 ✅"
+    }
+  ],
+  "checks": {
+    "typecheck": "skipped",
+    "lint": "skipped",
+    "tests": "skipped",
+    "behaviorChecks": "pass",
+    "negativeChecks": "pass",
+    "qualityStudio": "not_run"
+  },
+  "notes": "只读审查，未改业务代码、未写 STATE.json。实现面核对：无 barrel index.ts；modal/pagination 为类型占位（S4/S5）；FormFieldShell 含 label/错误/add|edit|watch；四字段 MUI+scss+Formik；FormSchemaRenderer 按 kind 映射且支持 hidden。未见 Host 写口、debugger 改动、eslint-disable、JS sx 裸 CSS 单位。上一轮「formik 未进 node_modules/lock」已消除（根 node_modules/formik@2.4.9 + package-lock 有 resolved）。上一轮 minor 再导出壳已收敛为 formBoundFieldProps helpers + formBoundTypes 真源。建议 FIX：跑 quality:studio → 勾选 ✅ → 再 Review。"
+}

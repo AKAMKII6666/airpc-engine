@@ -1,0 +1,117 @@
+@use "../../../../typeFiles/theme/tokens.scss" as t;
+
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  color: t.$text-primary;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.title {
+  color: t.$text-primary;
+  font-weight: 600;
+}
+
+.sub {
+  color: t.$text-muted;
+  margin-top: 4px;
+  max-width: 520px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.search {
+  max-width: 360px;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.item {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  background: t.$bg-panel;
+  border: 1px solid t.$border-panel;
+  border-radius: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.itemMain {
+  min-width: 0;
+  flex: 1;
+}
+
+.itemTitle {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.itemDesc {
+  margin-top: 4px;
+  color: t.$text-secondary;
+  font-size: 13px;
+}
+
+.itemStats {
+  margin-top: 6px;
+  color: t.$text-muted;
+  font-size: 12px;
+}
+
+.itemSide {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.itemActions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.badgeOk,
+.badgeWarn,
+.badgeErr {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badgeOk {
+  color: t.$state-success;
+  background: rgba(98, 210, 111, 0.12);
+}
+
+.badgeWarn {
+  color: t.$state-warning;
+  background: rgba(255, 176, 32, 0.12);
+}
+
+.badgeErr {
+  color: t.$state-danger;
+  background: rgba(255, 90, 78, 0.12);
+}

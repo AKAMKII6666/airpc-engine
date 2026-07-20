@@ -14,6 +14,10 @@ export const CharacterDefSchema = z
     isNarrativeOnly: z.boolean().optional(),
     identity: z
       .object({
+        /** 全名；Studio 编辑态必填，引擎侧仍 optional */
+        fullName: z.string().optional(),
+        /** 昵称；Studio 编辑态必填，引擎侧仍 optional */
+        nickname: z.string().optional(),
         gender: z.string().optional(),
         age: z.number().optional(),
         ageNote: z.string().optional(),

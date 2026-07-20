@@ -1,0 +1,54 @@
+[gbx] ▶ executor:V2-U3+V2-E1+V2-E2 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … executor:V2-U3+V2-E1+V2-E2 still running (15s elapsed, no output for 15s)
+[gbx] … executor:V2-U3+V2-E1+V2-E2 still running (30s elapsed, no output for 30s)
+[gbx] … executor:V2-U3+V2-E1+V2-E2 still running (45s elapsed, no output for 45s)
+[gbx] … executor:V2-U3+V2-E1+V2-E2 still running (60s elapsed, no output for 60s)
+[gbx] … executor:V2-U3+V2-E1+V2-E2 still running (75s elapsed, no output for 75s)
+[gbx] … executor:V2-U3+V2-E1+V2-E2 still running (90s elapsed, no output for 90s)
+[gbx] … executor:V2-U3+V2-E1+V2-E2 still running (105s elapsed, no output for 105s)
+[gbx] … executor:V2-U3+V2-E1+V2-E2 still running (120s elapsed, no output for 120s)
+[gbx] … executor:V2-U3+V2-E1+V2-E2 still running (135s elapsed, no output for 135s)
+[gbx] … executor:V2-U3+V2-E1+V2-E2 still running (150s elapsed, no output for 150s)
+[gbx] … executor:V2-U3+V2-E1+V2-E2 still running (165s elapsed, no output for 165s)
+[gbx] … executor:V2-U3+V2-E1+V2-E2 still running (180s elapsed, no output for 180s)
+[gbx] … executor:V2-U3+V2-E1+V2-E2 still running (195s elapsed, no output for 195s)
+[gbx] … executor:V2-U3+V2-E1+V2-E2 still running (210s elapsed, no output for 210s)
+[gbx] … executor:V2-U3+V2-E1+V2-E2 still running (225s elapsed, no output for 225s)
+[gbx] … executor:V2-U3+V2-E1+V2-E2 still running (240s elapsed, no output for 240s)
+[gbx] … executor:V2-U3+V2-E1+V2-E2 still running (255s elapsed, no output for 255s)
+[gbx] … executor:V2-U3+V2-E1+V2-E2 still running (270s elapsed, no output for 270s)
+[gbx] … executor:V2-U3+V2-E1+V2-E2 still running (285s elapsed, no output for 285s)
+[gbx] … executor:V2-U3+V2-E1+V2-E2 still running (300s elapsed, no output for 300s)
+[gbx] … executor:V2-U3+V2-E1+V2-E2 still running (315s elapsed, no output for 315s)
+[gbx] … executor:V2-U3+V2-E1+V2-E2 still running (330s elapsed, no output for 330s)
+[gbx] … executor:V2-U3+V2-E1+V2-E2 still running (345s elapsed, no output for 345s)
+[gbx] … executor:V2-U3+V2-E1+V2-E2 still running (360s elapsed, no output for 360s)
+[gbx] … executor:V2-U3+V2-E1+V2-E2 still running (375s elapsed, no output for 375s)
+本轮已实现 **V2-U3 / V2-E1 / V2-E2** 的代码改动，但 **verify NOT run**（当前环境 Shell 全部被拒），按 prompt 规则 **未将任务改为 ✅**，索引中仍保持 ⬜。
+
+### 已完成的实现
+
+**V2-U3 用户删改 mock**
+- `removeMockUserProfile` + `deleteUser_bis`
+- 列表删除按钮 + `DeleteConfirmModal`
+- 详情保存仍走既有 Formik；会话内列表/详情一致
+- 测试补充删除用例
+
+**V2-E1 属性面板实质内容**
+- `FloatingPanelShell`：Formik 编辑标题/角色/目标/入口/出口数/校验态
+- 类型徽章 + `promptScenes` / 出口动作 / 包配置折叠占位
+- 「应用到画布」仅写会话内节点投影
+
+**V2-E2 角色归属连线**
+- 画布内角色锚点节点 + `onConnect` / `onEdgesChange`
+- 卡顶 `role` → 锚点：虚线归属边，并更新 `characterName` / `characterAgentId`
+- 角色浮窗点选同样可改归属并同步边
+
+### 请你本地执行
+
+```bash
+npm run quality:studio
+```
+
+通过后告诉我，或再跑一轮 gbx executor，我再把索引中 **V2-U3 / V2-E1 / V2-E2** 勾成 ✅。
+[gbx] ■ executor:V2-U3+V2-E1+V2-E2 done exit=0 elapsed=387s

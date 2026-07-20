@@ -1,0 +1,15 @@
+[gbx] ▶ batch-reviewer:E4a start cmd=agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … still running batch-reviewer:E4a elapsed=15s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784087533240.log
+[gbx] … still running batch-reviewer:E4a elapsed=30s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784087533240.log
+[gbx] … still running batch-reviewer:E4a elapsed=45s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784087533240.log
+[gbx] … still running batch-reviewer:E4a elapsed=60s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784087533240.log
+[gbx] … still running batch-reviewer:E4a elapsed=75s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784087533240.log
+**E4a 审查通过**（`result=pass`），建议下一状态 `VERIFY_BATCH`。
+
+已写入 `.ai-workflow/reviews/latest.json`（`reviewRunId=batch-reviewer-2-f48ee6ad-37d5-4899-9eb5-5fe0bb347ff3`）。
+
+结论要点：
+- host 整通测覆盖 `invokeTool(refer_to_expert)` → `register_exit` → `endCall` → unlock + schedule → `advanceClock` → outbound pending / `agent_outbound`
+- 未宣称 E4 全体或 E5/E6 闭合；未见引擎边界／通话中 Effect／client Key 违规
+- 1 条 **minor**：`06` 验收条仍空勾，可留 E11 对齐；不阻塞本批 verify
+[gbx] ■ batch-reviewer:E4a done exit=0 elapsed=82s

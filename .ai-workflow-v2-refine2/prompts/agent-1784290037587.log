@@ -1,0 +1,24 @@
+[gbx] ▶ fixer:V2-P2-2+V2-P3-1+V2-P3-2 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-P2-2+V2-P3-1+V2-P3-2 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-P2-2+V2-P3-1+V2-P3-2 still running (30s elapsed, no output for 30s)
+[gbx] … fixer:V2-P2-2+V2-P3-1+V2-P3-2 still running (45s elapsed, no output for 45s)
+[gbx] … fixer:V2-P2-2+V2-P3-1+V2-P3-2 still running (60s elapsed, no output for 60s)
+[gbx] … fixer:V2-P2-2+V2-P3-1+V2-P3-2 still running (75s elapsed, no output for 75s)
+[gbx] … fixer:V2-P2-2+V2-P3-1+V2-P3-2 still running (90s elapsed, no output for 90s)
+[gbx] … fixer:V2-P2-2+V2-P3-1+V2-P3-2 still running (105s elapsed, no output for 105s)
+[gbx] … fixer:V2-P2-2+V2-P3-1+V2-P3-2 still running (120s elapsed, no output for 120s)
+已按 `latest-verify.json` 的 3 个硬错误修好，未动 WARN/告警线。
+
+**修复：**
+1. `app/users/page.tsx` — 补 `// 引用了UserLibraryView组件，用于…`（STRUCT-018）
+2. `UserLibraryDetail.tsx` — Formik 注释改为 `引用了Formik组件，用于…`（STRUCT-018）
+3. `UserLibraryView.tsx` — 去掉行首空格缩进（嵌套类型改为 `UserDeleteRefProfile`，全文 tab）（STRUCT-017）
+
+**自验：** 本会话 Shell 全部被拒（含 `npm run quality:studio`），**未自验**。请本地执行：
+
+```bash
+npm run quality:studio
+```
+
+通过后再把执行索引中 `V2-P2-2` / `V2-P3-1` / `V2-P3-2` 勾为 ✅（本轮未改索引，因门禁未绿）。
+[gbx] ■ fixer:V2-P2-2+V2-P3-1+V2-P3-2 done exit=0 elapsed=130s

@@ -1,0 +1,36 @@
+[gbx] ▶ executor:E2 start cmd=agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … still running executor:E2 elapsed=15s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784085312361.log
+[gbx] … still running executor:E2 elapsed=30s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784085312361.log
+[gbx] … still running executor:E2 elapsed=45s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784085312361.log
+[gbx] … still running executor:E2 elapsed=60s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784085312361.log
+[gbx] … still running executor:E2 elapsed=75s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784085312361.log
+[gbx] … still running executor:E2 elapsed=90s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784085312361.log
+[gbx] … still running executor:E2 elapsed=105s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784085312361.log
+[gbx] … still running executor:E2 elapsed=120s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784085312361.log
+[gbx] … still running executor:E2 elapsed=135s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784085312361.log
+[gbx] … still running executor:E2 elapsed=150s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784085312361.log
+[gbx] … still running executor:E2 elapsed=165s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784085312361.log
+[gbx] … still running executor:E2 elapsed=180s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784085312361.log
+[gbx] … still running executor:E2 elapsed=195s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784085312361.log
+[gbx] … still running executor:E2 elapsed=210s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784085312361.log
+[gbx] … still running executor:E2 elapsed=225s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784085312361.log
+**E2（画布 P1）已落地**：搜索定位、单卡复制粘贴、泳道自动布局；任务表已标 ✅。
+
+### 实现要点
+| 能力 | 行为 |
+|------|------|
+| **搜索** | 工具栏按 `cardId` / `title` / `ownerAgentId` 匹配 → 选中并 `fitView` 聚焦 |
+| **复制／粘贴** | 单卡深拷贝 → 新 `cardId` + layout 偏移；写 conf／卡／layout；进撤销栈；⌘/Ctrl+C/V |
+| **自动布局** | 按泳道 + conf 顺序重排 **仅 layout**；可撤销 |
+
+写死口径（已写入 E2 节）：出口目标 **保留指向**；**多选复制分期**；不做跨包粘贴。
+
+### 主要改动
+- `apps/studio/bis/storyEditor/storyEditorCanvasP1.bis.ts`（新建）
+- `storyEditorLayout.bis.ts` / `storyEditor.bis.ts`
+- `StoryCanvas.tsx`、故事编辑页工具栏
+- 执行索引：E2 `⬜` → `✅` + 分期注明
+
+### 验证
+`npm run typecheck -w @airpc/studio` 在本环境 **Shell 被拒，未能实际跑通**。请本地执行确认 exit 0。未 commit、未改 `STATE.json`。
+[gbx] ■ executor:E2 done exit=0 elapsed=236s

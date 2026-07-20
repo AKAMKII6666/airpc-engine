@@ -2,7 +2,9 @@
 
 /**
  * Module: agent/runner
- * Purpose: Spawn cursor-agent with prompt written to a file (avoids ARG_MAX).
+ * Purpose: Spawn cursor-agent / agent with prompt on disk (avoids ARG_MAX).
+ * Default: live tee to console + log file + heartbeats (not silent).
+ * --quiet / GBX_QUIET=1: capture-only (old behavior).
  */
 
 const { spawnSync } = require('child_process');
@@ -16,6 +18,17 @@ function commandExists(command) {
   return r.status === 0;
 }
 
+function readLog(logFile) {
+  try {
+    if (fs.existsSync(logFile)) {
+      return fs.readFileSync(logFile, 'utf8');
+    }
+  } catch {
+    /* ignore */
+  }
+  return '';
+}
+
 /**
  * Write full prompt to disk; argv only carries a short pointer (ARG_MAX safe).
  */
@@ -26,10 +39,15 @@ function runCursorAgent({
   workdir,
   promptDir = null,
   timeoutMs = 1_800_000,
+  quiet = false,
+  heartbeatMs = 15_000,
+  label = 'agent',
 }) {
   const dir = promptDir || path.join(os.tmpdir(), 'gbx-prompts');
   fs.mkdirSync(dir, { recursive: true });
-  const promptFile = path.join(dir, `prompt-${Date.now()}.md`);
+  const stamp = Date.now();
+  const promptFile = path.join(dir, `prompt-${stamp}.md`);
+  const logFile = path.join(dir, `agent-${stamp}.log`);
   fs.writeFileSync(promptFile, prompt, 'utf8');
 
   const shortPrompt = [
@@ -38,24 +56,78 @@ function runCursorAgent({
     'Read that file now and execute it.',
   ].join('\n');
 
-  const result = spawnSync(command, [printFlag, shortPrompt], {
+  const args = [printFlag, shortPrompt];
+  const env = {
+    ...process.env,
+    GBX_PROMPT_FILE: promptFile,
+  };
+
+  if (quiet) {
+    const result = spawnSync(command, args, {
+      cwd: workdir,
+      encoding: 'utf8',
+      timeout: timeoutMs,
+      env,
+      maxBuffer: 20 * 1024 * 1024,
+    });
+    const stdout = result.stdout || '';
+    const stderr = result.stderr || '';
+    try {
+      fs.writeFileSync(logFile, `${stdout}${stderr ? `\n--- stderr ---\n${stderr}` : ''}`, 'utf8');
+    } catch {
+      /* ignore */
+    }
+    return {
+      ok: result.status === 0,
+      exitCode: result.status == null ? 1 : result.status,
+      stdout,
+      stderr,
+      error: result.error ? String(result.error.message) : null,
+      promptFile,
+      logFile,
+    };
+  }
+
+  const teeChild = path.join(__dirname, 'teeChild.js');
+  const payloadFile = path.join(dir, `spawn-${stamp}.json`);
+  fs.writeFileSync(
+    payloadFile,
+    `${JSON.stringify(
+      {
+        command,
+        args,
+        workdir,
+        logFile,
+        heartbeatMs,
+        label,
+        env: { GBX_PROMPT_FILE: promptFile },
+      },
+      null,
+      2,
+    )}\n`,
+    'utf8',
+  );
+
+  process.stderr.write(
+    `[gbx] launching ${label} (${command}); live output below; log=${logFile}\n`,
+  );
+
+  const result = spawnSync(process.execPath, [teeChild, payloadFile], {
     cwd: workdir,
-    encoding: 'utf8',
+    stdio: 'inherit',
     timeout: timeoutMs,
-    env: {
-      ...process.env,
-      GBX_PROMPT_FILE: promptFile,
-    },
-    maxBuffer: 20 * 1024 * 1024,
+    env,
   });
 
+  const captured = readLog(logFile);
   return {
     ok: result.status === 0,
     exitCode: result.status == null ? 1 : result.status,
-    stdout: result.stdout || '',
-    stderr: result.stderr || '',
+    stdout: captured,
+    stderr: result.error ? String(result.error.message) : '',
     error: result.error ? String(result.error.message) : null,
     promptFile,
+    logFile,
   };
 }
 

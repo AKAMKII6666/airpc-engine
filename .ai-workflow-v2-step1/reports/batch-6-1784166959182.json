@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "label": "batch-6",
+  "at": "2026-07-16T01:55:59.182Z",
+  "ok": false,
+  "phase": "batch",
+  "activeTaskIds": [
+    "V1-Q3",
+    "V1-Q4",
+    "V1-U1"
+  ],
+  "reason": "command failed",
+  "failedCommand": "npm run check:studio-structure",
+  "exitCode": 1,
+  "results": [
+    {
+      "command": "npm run check:studio-structure",
+      "exitCode": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "[gbx] ▶ verify:npm run check:studio-structure start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> check:studio-structure\n> node scripts/studio-quality/check-studio-structure.mjs && node --test scripts/studio-quality/tests/check-studio-structure.test.mjs\n\ncheck:studio-structure ok (27 files, 0 warnings)\n▶ check:studio-structure\n  ✔ 有效行数忽略空行但不忽略注释 (0.501292ms)\n  ✔ page.tsx 分类正确 (0.146083ms)\n  ✔ 圈复杂度统计分支 (3.769459ms)\n  ✔ 合格基线通过，且排除 generated (8.268583ms)\n  ✔ page 行数硬上限失败 (2.848875ms)\n  ✔ 函数复杂度硬上限失败 (3.692458ms)\n  ✔ client 引擎写口失败 (2.654125ms)\n  ✖ 业务旁平放测试失败 (9.655792ms)\n  ✔ 深挖引擎内部路径失败 (2.201208ms)\n  ✔ 目录异责平铺失败 (3.190583ms)\n  ✔ 业务 barrel index 失败 (1.100125ms)\n  ✔ UI 组件裸 fetch 失败 (1.160667ms)\n  ✔ 大范围豁免被拒绝 (1.041083ms)\n  ✔ 精确豁免生效 (1.256542ms)\n  ✔ validateAllowlist 拒绝 apps/** (0.156583ms)\n  ✔ 输出格式含规则编号与位置（路径可定位） (3.972833ms)\n✖ check:studio-structure (46.740375ms)\nℹ tests 16\nℹ suites 1\nℹ pass 15\nℹ fail 1\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 205.031875\n\n✖ failing tests:\n\ntest at scripts/studio-quality/tests/check-studio-structure.test.mjs:85:3\n✖ 业务旁平放测试失败 (9.655792ms)\n  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n  \n    assert.ok(errors.some((v) => v.ruleId === \"STUDIO-STRUCT-007\"))\n  \n      at TestContext.<anonymous> (file:///Users/bolbiao/workspace/airpc-engine/scripts/studio-quality/tests/check-studio-structure.test.mjs:87:12)\n      at async Test.run (node:internal/test_runner/test:1208:7)\n      at async Suite.processPendingSubtests (node:internal/test_runner/test:831:7) {\n    generatedMessage: true,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n[gbx] ■ verify:npm run check:studio-structure done exit=1 elapsed=1s\n",
+      "stderr": "",
+      "stdoutTail": "[gbx] ▶ verify:npm run check:studio-structure start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> check:studio-structure\n> node scripts/studio-quality/check-studio-structure.mjs && node --test scripts/studio-quality/tests/check-studio-structure.test.mjs\n\ncheck:studio-structure ok (27 files, 0 warnings)\n▶ check:studio-structure\n  ✔ 有效行数忽略空行但不忽略注释 (0.501292ms)\n  ✔ page.tsx 分类正确 (0.146083ms)\n  ✔ 圈复杂度统计分支 (3.769459ms)\n  ✔ 合格基线通过，且排除 generated (8.268583ms)\n  ✔ page 行数硬上限失败 (2.848875ms)\n  ✔ 函数复杂度硬上限失败 (3.692458ms)\n  ✔ client 引擎写口失败 (2.654125ms)\n  ✖ 业务旁平放测试失败 (9.655792ms)\n  ✔ 深挖引擎内部路径失败 (2.201208ms)\n  ✔ 目录异责平铺失败 (3.190583ms)\n  ✔ 业务 barrel index 失败 (1.100125ms)\n  ✔ UI 组件裸 fetch 失败 (1.160667ms)\n  ✔ 大范围豁免被拒绝 (1.041083ms)\n  ✔ 精确豁免生效 (1.256542ms)\n  ✔ validateAllowlist 拒绝 apps/** (0.156583ms)\n  ✔ 输出格式含规则编号与位置（路径可定位） (3.972833ms)\n✖ check:studio-structure (46.740375ms)\nℹ tests 16\nℹ suites 1\nℹ pass 15\nℹ fail 1\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 205.031875\n\n✖ failing tests:\n\ntest at scripts/studio-quality/tests/check-studio-structure.test.mjs:85:3\n✖ 业务旁平放测试失败 (9.655792ms)\n  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n  \n    assert.ok(errors.some((v) => v.ruleId === \"STUDIO-STRUCT-007\"))\n  \n      at TestContext.<anonymous> (file:///Users/bolbiao/workspace/airpc-engine/scripts/studio-quality/tests/check-studio-structure.test.mjs:87:12)\n      at async Test.run (node:internal/test_runner/test:1208:7)\n      at async Suite.processPendingSubtests (node:internal/test_runner/test:831:7) {\n    generatedMessage: true,\n    code: 'ERR_ASSERTION',\n    actual: false,\n    expected: true,\n    operator: '==',\n    diff: 'simple'\n  }\n[gbx] ■ verify:npm run check:studio-structure done exit=1 elapsed=1s\n",
+      "stderrTail": "",
+      "errorLocations": []
+    }
+  ],
+  "errorLocations": [],
+  "historyFile": "batch-6-1784166959182.json"
+}

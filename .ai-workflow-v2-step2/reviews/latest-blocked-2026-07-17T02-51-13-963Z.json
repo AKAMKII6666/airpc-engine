@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "reviewRunId": "batch-reviewer-8-394af4bf-a05e-4df0-9e1a-1cc8e12725d9",
+  "role": "batch-reviewer",
+  "batchId": "8",
+  "exFile": "docs/AI和人类/里程碑/v2.0/项目第二步计划执行索引.md",
+  "result": "fail",
+  "blocker": 0,
+  "critical": 1,
+  "major": 2,
+  "minor": 1,
+  "recommendedNextState": "FIX_BATCH",
+  "summary": "Batch 8（V2-E3/E4/E5）编辑器深化代码面基本对齐第二步需求 §4.1：底栏 icon dock、角色轨画布内绝对定位浮层、FormModal 添加角色 + mock 可变源均已落地；但执行器明确 verify NOT run（Shell 拒跑），@mui/icons-material 仅写入 package.json、未进 package-lock/解析树，索引三行仍为 ⬜。按规则不得放行。",
+  "issues": [
+    {
+      "id": "R8-1",
+      "severity": "critical",
+      "file": ".ai-workflow-v2-step2/STATE.json",
+      "location": "lastAgentStdout / executor summary",
+      "description": "执行器摘要含「verify NOT run」（本环境 Shell 全部被拒，无法 npm install / quality:studio）。本批 verify=npm run quality:studio，门禁未跑。同时 apps/studioV2/package.json 已声明 @mui/icons-material@^7.1.1，但 package-lock.json 的 apps/studioV2.dependencies 无该包、全仓无 icons-material 解析条目；BottomToolBar/CharacterAnchorRail 已 import 该包，以当前依赖态 typecheck/门禁必然失败。对照 reviewer 规则：verify NOT run + 实现批 → 必须 fail。",
+      "expectedBehavior": "在可执行环境完成 npm install（含 @mui/icons-material 进 lock）后跑通 npm run quality:studio（exit 0），再勾选任务。",
+      "suggestedVerification": "npm install -w @airpc/studio-v2 && rg '\"@mui/icons-material\"' package-lock.json && npm run quality:studio"
+    },
+    {
+      "id": "R8-2",
+      "severity": "major",
+      "file": "docs/AI和人类/里程碑/v2.0/项目第二步计划执行索引.md",
+      "location": "§1 任务表 V2-E3 / V2-E4 / V2-E5",
+      "description": "本批出口要求任务行均为 ✅，但 V2-E3/E4/E5 仍为 ⬜（执行器自述因 verify 未跑未勾选）。批未收口。",
+      "expectedBehavior": "quality:studio 通过后将三行改为 ✅。",
+      "suggestedVerification": "rg 'V2-E3|V2-E4|V2-E5' docs/AI和人类/里程碑/v2.0/项目第二步计划执行索引.md，确认状态列为 ✅"
+    },
+    {
+      "id": "R8-3",
+      "severity": "major",
+      "file": "apps/studioV2/package.json",
+      "location": "dependencies.@mui/icons-material + package-lock.json",
+      "description": "V2-E3 要求 MUI Icons：package.json 已声明 ^7.1.1，但未实际安装进 workspace lock。源码多处 from \"@mui/icons-material/...\"，安装前无法通过门禁。",
+      "expectedBehavior": "@mui/icons-material 安装到 workspace 并可被 @airpc/studio-v2 解析；lockfile 含 resolved 条目。",
+      "suggestedVerification": "test -d node_modules/@mui/icons-material && npm run typecheck -w @airpc/studio-v2"
+    },
+    {
+      "id": "R8-4",
+      "severity": "minor",
+      "file": "apps/studioV2/src/pageComponents/storyEditor/com/DockToolIcons.tsx",
+      "location": "整文件未引用",
+      "description": "存在手写 SvgIcon 路径图标文件（注释写「避免额外依赖 @mui/icons-material」），但 BottomToolBar 已改用官方 @mui/icons-material；DockToolIcons 无任何 import，成死代码，与「禁止迁移壳/残留双路径」精神冲突。",
+      "expectedBehavior": "删除未使用的 DockToolIcons.tsx，或若改回无额外依赖方案则统一底栏引用并去掉 icons-material 依赖。",
+      "suggestedVerification": "rg DockToolIcons|IconAddCard apps/studioV2；确认无残留或已删除文件"
+    }
+  ],
+  "checks": {
+    "typecheck": "skipped",
+    "lint": "skipped",
+    "tests": "skipped",
+    "behaviorChecks": "pass",
+    "negativeChecks": "pass",
+    "qualityStudio": "not_run"
+  },
+  "notes": "只读审查，未改业务代码。对照第二步需求 §4.1 / 导向稿 02：E3 BottomToolBar 已为 IconButton+Tooltip dock，角色/资源浮窗可点、其余 disabled 且 tooltip 带「本步未开放」；E4 CharacterAnchorRail 在 canvasWrap 内 position:absolute，token/阴影对齐 FloatingPanelShell，无关闭按钮，可折叠窄条；E5 FormModal+addEditorCharacterForm+mockEditorCharacters 可变 mock，壳层 append 并 addCharacterAnchor 同步画布，含 vitest。无 Host 写口、无 debugger 业务改动、无 eslint-disable、未见裸 CSS 单位进 JS sx。S/P/C/A/U 批此前已 ✅。latest-verify.json 仍为 batch-7，非本批。建议 FIX：npm install → quality:studio → 删死代码 DockToolIcons（可选）→ 勾选 ✅ → 再 Review。"
+}

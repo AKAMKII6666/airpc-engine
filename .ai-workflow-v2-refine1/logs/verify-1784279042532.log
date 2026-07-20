@@ -1,0 +1,73 @@
+[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+
+> quality:studio
+> node scripts/studio-quality/quality-studio.mjs
+
+
+==> ensure-modal-layout (pre-typecheck)
+ensure-modal-layout: nothing to remove
+
+==> ensure-migrated-layout (pre-typecheck)
+ensure-migrated-layout: nothing to remove
+
+==> lint (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 lint
+> node ./scripts/run-eslint.mjs . --max-warnings 0
+
+
+==> typecheck (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 typecheck
+> tsc -p tsconfig.json --noEmit
+
+
+==> check:comments
+check:comments ok (190 files)
+
+==> check:studio-structure
+WARN STUDIO-STRUCT-003  apps/studioV2/app/api/characters/route.ts:54:1  函数 POST 圈复杂度 12 超过告警线 10  重构条件分支，避免继续堆叠
+WARN STUDIO-STRUCT-003  apps/studioV2/app/api/memory/route.ts:10:1  函数 GET 圈复杂度 11 超过告警线 10  重构条件分支，避免继续堆叠
+WARN STUDIO-STRUCT-001  apps/studioV2/src/bis/pageBis/characters/detail/characterDefMapper.ts:1:1  other 有效行数 377 超过告警线 350  尽快拆分，避免逼近硬上限
+WARN STUDIO-STRUCT-002  apps/studioV2/src/bis/pageBis/characters/detail/characterDefMapper.ts:150:1  函数 characterDefToSummary 有效行数 61 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/bis/pageBis/characters/detail/characterDefMapper.ts:217:1  函数 mergeDetailFormIntoCharacterDef 有效行数 94 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/bis/pageBis/characters/detail/characterDetailForm.ts:93:1  函数 applyCharacterDetailForm 有效行数 67 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-003  apps/studioV2/src/bis/pageBis/characters/detail/characterDetailFormValidate.ts:125:1  函数 validateScenes 圈复杂度 13 超过告警线 10  重构条件分支，避免继续堆叠
+WARN STUDIO-STRUCT-002  apps/studioV2/src/commonUiComponents/form/blocks/AvatarUpload/index.tsx:19:5  函数 FormAvatarUpload 有效行数 72 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/commonUiComponents/form/blocks/LocalHourRangeField/index.tsx:38:5  函数 FormLocalHourRangeField 有效行数 72 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/commonUiComponents/form/blocks/PromptSceneListEditor/com/PromptSceneCardBody/index.tsx:34:2  函数 PromptSceneCardBody 有效行数 72 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/commonUiComponents/form/blocks/PromptSceneListEditor/index.tsx:26:5  函数 FormPromptSceneListEditor 有效行数 65 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-003  apps/studioV2/src/commonUiComponents/form/blocks/PromptSceneListEditor/promptSceneListHelpers.ts:26:1  函数 asPromptSceneList 圈复杂度 11 超过告警线 10  重构条件分支，避免继续堆叠
+WARN STUDIO-STRUCT-002  apps/studioV2/src/commonUiComponents/form/blocks/PromptVariantListEditor/index.tsx:36:5  函数 FormPromptVariantListEditor 有效行数 96 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/commonUiComponents/form/blocks/StringListEditor/index.tsx:24:5  函数 FormStringListEditor 有效行数 72 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/assets/hooks/useAssetLibraryPage.ts:19:1  函数 useAssetLibraryPage 有效行数 78 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-003  apps/studioV2/src/pageComponents/assets/hooks/useAssetLibraryPage.ts:19:1  函数 useAssetLibraryPage 圈复杂度 11 超过告警线 10  重构条件分支，避免继续堆叠
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/characters/CharacterLibraryView.tsx:22:41  函数 CharacterLibraryView 有效行数 82 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/characters/com/CharacterDetailEditForm.tsx:39:2  函数 CharacterDetailEditForm 有效行数 67 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/characters/hooks/useCharacterLibraryPage.ts:18:1  函数 useCharacterLibraryPage 有效行数 98 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-003  apps/studioV2/src/pageComponents/characters/hooks/useCharacterLibraryPage.ts:18:1  函数 useCharacterLibraryPage 圈复杂度 15 超过告警线 10  重构条件分支，避免继续堆叠
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/debugger/com/CallRunPanel.tsx:43:52  函数 CallRunPanel 有效行数 72 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/home/WorkbenchSideCol.tsx:21:37  函数 WorkbenchSideCol 有效行数 78 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/packages/create/CreatePackageView.tsx:22:38  函数 CreatePackageView 有效行数 63 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/packages/export/ExportPackageForm.tsx:33:45  函数 ExportPackageForm 有效行数 65 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/packages/list/PackageListView.tsx:30:36  函数 PackageListView 有效行数 84 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/settings/com/SettingsEnginePanels.tsx:92:62  函数 SchemaEnginePanel 有效行数 65 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/storyEditor/StoryEditorShell.tsx:36:60  函数 StoryEditorShell 有效行数 95 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/storyEditor/canvas/useStoryCanvasGraph.ts:54:1  函数 useStoryCanvasGraph 有效行数 98 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/storyEditor/com/panel/NodePropertyForm.tsx:39:60  函数 NodePropertyForm 有效行数 77 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/users/UserLibraryView.tsx:41:36  函数 UserLibraryView 有效行数 67 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/users/hooks/useUserLibraryPage.ts:18:1  函数 useUserLibraryPage 有效行数 69 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-003  apps/studioV2/src/utils/server/apiResponse.server.ts:23:1  函数 httpStatusForCode 圈复杂度 12 超过告警线 10  重构条件分支，避免继续堆叠
+WARN STUDIO-STRUCT-002  apps/studioV2/src/utils/server/memoryRead.server.ts:47:1  函数 listMemoryPage 有效行数 61 超过告警线 60  考虑拆分以保持可测性
+STUDIO-STRUCT-002  apps/studioV2/src/pageComponents/characters/com/CharacterMemoryPanel.tsx:33:2  函数 CharacterMemoryPanel 有效行数 181 超过硬上限 100  拆出步骤函数、命令对象或纯计算
+STUDIO-STRUCT-003  apps/studioV2/src/pageComponents/characters/com/CharacterMemoryPanel.tsx:33:2  函数 CharacterMemoryPanel 圈复杂度 22 超过硬上限 15  用查表、状态机或早返回降低分支
+STUDIO-STRUCT-008  apps/studioV2/src/bis/pageBis/characters/detail:1:1  目录含 6 个源文件且职责组≥2（charac,savech），应分子目录  按 domain/commands/features 等职责拆分子目录，禁止长前缀代目录
+STUDIO-STRUCT-008  apps/studioV2/src/utils/ajaxProxy/library:1:1  目录含 5 个源文件且职责组≥2（service,mockch,mockli），应分子目录  按 domain/commands/features 等职责拆分子目录，禁止长前缀代目录
+STUDIO-STRUCT-008  apps/studioV2/src/utils/server:1:1  目录含 5 个源文件且职责组≥2（service,charac,dataro,memory,usersf），应分子目录  按 domain/commands/features 等职责拆分子目录，禁止长前缀代目录
+STUDIO-STRUCT-008  apps/studioV2/typeFiles/library/characters:1:1  目录含 4 个源文件且职责组≥2（charac,memory,realti），应分子目录  按 domain/commands/features 等职责拆分子目录，禁止长前缀代目录
+STUDIO-STRUCT-017  apps/studioV2/src/utils/server/memoryRead.server.ts:75:1  新增或修改的代码文件缩进只能使用 tab，禁止用空格缩进  把行首缩进空格替换为 tab；对齐需求也优先通过换行和结构解决
+check:studio-structure failed (7 errors, 33 warnings, 190 files)
+check:studio-structure failed (exit 1)
+
+quality:studio FAILED
+[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=4s

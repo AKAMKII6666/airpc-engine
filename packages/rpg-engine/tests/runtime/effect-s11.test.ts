@@ -46,7 +46,7 @@ function baseSession(packageId = "pkg_demo"): CallSession {
 }
 
 describe("effectExecutor S11 world / story / media stubs", () => {
-  it("set_world_fact upserts Profile.world.facts", () => {
+  it("set_world_fact upserts Profile.world.facts", async () => {
     const profile = baseProfile();
     const session = baseSession();
     const effects: Effect[] = [
@@ -63,7 +63,7 @@ describe("effectExecutor S11 world / story / media stubs", () => {
         value: "yes",
       },
     ];
-    const plan = executeEffects(effects, {
+    const plan = await executeEffects(effects, {
       profile,
       session,
       nowIso: "2026-07-14T00:00:00.000Z",
@@ -76,10 +76,10 @@ describe("effectExecutor S11 world / story / media stubs", () => {
     expect(facts[0]?.value).toBe("yes");
   });
 
-  it("update_npc_knowledge toggles factId lists", () => {
+  it("update_npc_knowledge toggles factId lists", async () => {
     const profile = baseProfile();
     const session = baseSession();
-    executeEffects(
+    await executeEffects(
       [
         {
           id: "k1",
@@ -92,7 +92,7 @@ describe("effectExecutor S11 world / story / media stubs", () => {
       { profile, session, nowIso: "2026-07-14T00:00:00.000Z" },
     );
     expect(profile.world.knowledge.xiaoyu).toEqual(["met_xiaoyu"]);
-    executeEffects(
+    await executeEffects(
       [
         {
           id: "k2",
@@ -107,10 +107,24 @@ describe("effectExecutor S11 world / story / media stubs", () => {
     expect(profile.world.knowledge.xiaoyu).toEqual([]);
   });
 
-  it("end_story marks package completed in Profile.stories", () => {
+  it("end_story marks package completed in Profile.stories", async () => {
     const profile = baseProfile();
     const session = baseSession("golden_handoff");
-    const plan = executeEffects(
+    session.composeScene = {
+      callDirection: "inbound",
+      localTime: {
+        isoWithOffset: "2026-01-01T00:00:00+08:00",
+        localHour: 0,
+      },
+      timeMentionPolicy: "correct_only",
+    };
+    session.channel = "manual";
+    session.interactionPhase = "dialogue";
+    session.phoneFlags = {};
+    session.completedBeats = [];
+    session.toolTrace = [];
+    session.exitCandidates = [];
+    const plan = await executeEffects(
       [{ id: "e1", effect: "end_story", reason: "cleared" }],
       { profile, session, nowIso: "2026-07-14T00:00:00.000Z" },
     );
@@ -123,10 +137,10 @@ describe("effectExecutor S11 world / story / media stubs", () => {
     expect(story.reason).toBe("cleared");
   });
 
-  it("create_voicemail / play_system_prompt are executable stubs", () => {
+  it("create_voicemail / play_system_prompt are executable stubs", async () => {
     const profile = baseProfile();
     const session = baseSession();
-    const plan = executeEffects(
+    const plan = await executeEffects(
       [
         {
           id: "vm1",
@@ -153,7 +167,7 @@ describe("effectExecutor S11 world / story / media stubs", () => {
     expect(Array.isArray(profile.meta?.mediaStubs)).toBe(true);
   });
 
-  it("create_research_commitment appends Profile.research.commitments", () => {
+  it("create_research_commitment appends Profile.research.commitments", async () => {
     const profile = baseProfile();
     const session = baseSession();
     const effects: Effect[] = [
@@ -164,7 +178,7 @@ describe("effectExecutor S11 world / story / media stubs", () => {
         notifyMode: "next_call",
       } as Effect,
     ];
-    const plan = executeEffects(effects, {
+    const plan = await executeEffects(effects, {
       profile,
       session,
       nowIso: "2026-07-14T00:00:00.000Z",

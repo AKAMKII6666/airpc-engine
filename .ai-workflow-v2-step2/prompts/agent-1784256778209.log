@@ -1,0 +1,38 @@
+[gbx] ▶ final-fixer start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … final-fixer still running (15s elapsed, no output for 15s)
+[gbx] … final-fixer still running (30s elapsed, no output for 30s)
+[gbx] … final-fixer still running (45s elapsed, no output for 45s)
+[gbx] … final-fixer still running (60s elapsed, no output for 60s)
+[gbx] … final-fixer still running (75s elapsed, no output for 75s)
+[gbx] … final-fixer still running (90s elapsed, no output for 90s)
+**结论：** `STUDIO-STRUCT-008` 的代码侧修复已在磁盘上完成；本轮无需再改业务文件。Shell 被拒，**未自验**。
+
+### 对照 verify / review
+
+| 项 | 状态 |
+|---|---|
+| **F-1 / STRUCT-008**（硬错误） | `storyEditor/com` 已按 character / dock / panel 分子目录；平铺 `com/NodePropertyForm.tsx` 等已不存在；import 已指向嵌套路径 |
+| STRUCT-002/001 WARN | 不阻断，本轮不拆 |
+| F-2/F-3（流程与 §3 勾选） | 属门禁绿后收口，本轮不改索引 / 不写 STATE |
+| F-5 mock 行数 WARN | 不阻断，不拆 |
+
+当前落点：
+
+```text
+com/character/  CharacterAnchor*.tsx (3)
+com/dock/       DockToolIcons.tsx
+com/panel/      NodePropertyForm.tsx(+scss)
+```
+
+按门禁逻辑（同层 ≥4 源文件且无子目录才报 STRUCT-008），该硬错误应已消解。`latest-verify.json` 仍是拆分前快照（`ok=false`）。
+
+### 下一步（编排器）
+
+请在有 Shell 的环境执行：
+
+```bash
+npm run quality:studio
+```
+
+预期：`check:studio-structure` 不再报 STRUCT-008，`quality:studio` exit 0。若仍红，把新的 `studioQualityTail` 交回 FIX。
+[gbx] ■ final-fixer done exit=0 elapsed=93s

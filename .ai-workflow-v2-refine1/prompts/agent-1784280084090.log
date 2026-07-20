@@ -1,0 +1,16 @@
+[gbx] ▶ fixer:V2-R3-2+V2-R3-3+V2-R4-1 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-R3-2+V2-R3-3+V2-R4-1 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-R3-2+V2-R3-3+V2-R4-1 still running (30s elapsed, no output for 30s)
+[gbx] … fixer:V2-R3-2+V2-R3-3+V2-R4-1 still running (45s elapsed, no output for 45s)
+**根因：** `usersApi.ts` 误写成了 Memory API（`fetchMemoryPage`），导致 `fetchDiskUserSummaries` 缺失，并连带触发 `u` 隐式 `any`。
+
+**已修：** 恢复 `apps/studioV2/src/utils/ajaxProxy/library/api/usersApi.ts`，导出 `fetchDiskUserSummaries()` → `GET /api/users`，返回 `DiskUserSummaryDto[]`。记忆区 hook 的两个 TS 错误应随之消除。
+
+**未勾选** 执行索引 V2-R3-2 / V2-R3-3 / V2-R4-1（门禁未绿前不勾）。
+
+**自验：** Shell 全部被拒，**未自验**；请在本机执行：
+
+```bash
+npm run quality:studio
+```
+[gbx] ■ fixer:V2-R3-2+V2-R3-3+V2-R4-1 done exit=0 elapsed=52s

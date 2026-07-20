@@ -1,0 +1,21 @@
+{
+  "status": "READY_FOR_MANUAL_QA",
+  "currentBatch": 8,
+  "batchFixAttempts": 0,
+  "fullFixAttempts": 0,
+  "iteration": 2,
+  "lastSuccessfulCommit": null,
+  "manualQaRequired": true,
+  "blockedReason": null,
+  "activeTaskIds": [],
+  "exFile": "/Users/bolbiao/workspace/airpc-engine/docs/AI和人类/里程碑/v2.0/项目第一步计划执行索引.md",
+  "fixTrigger": null,
+  "lastVerifyOk": true,
+  "lastVerifySummary": "verify ok",
+  "lastVerifyFingerprint": null,
+  "lastVerifyReportPath": "/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/reports/latest-verify.json",
+  "ineffectiveFixStreak": 0,
+  "updatedAt": "2026-07-16T04:14:05.777Z",
+  "lastAgentStdout": "[mock] final review pass",
+  "lastAgentStderr": ""
+}

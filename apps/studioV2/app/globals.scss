@@ -1,0 +1,21 @@
+@use "../typeFiles/theme/tokens.scss" as t;
+
+// 原生 date/time/select 控件跟暗色主题，避免日历图标与字色发白/发黑
+:root {
+	color-scheme: dark;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+	min-height: 100%;
+	background: t.$bg-app;
+	color: t.$text-primary;
+	-webkit-font-smoothing: antialiased;
+	text-rendering: optimizeLegibility;
+}
+
+* {
+	box-sizing: border-box;
+}

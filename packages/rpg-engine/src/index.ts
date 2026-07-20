@@ -7,8 +7,10 @@ export { ENGINE_PACKAGE_NAME, getEnginePackageName } from "./packageMeta.js";
 
 export {
   FREE_PACKAGE_ID,
+  SCHEDULE_PACKAGE_ID,
   MEMORY_PROJECT_DEFAULTS,
   MEMORY_SEARCH_DEFAULTS,
+  MEMORY_ROLLUP_DEFAULTS,
 } from "./constants.js";
 
 export {
@@ -20,7 +22,44 @@ export {
   type LoadWorkspaceOptions,
 } from "./host/createEngineHost.js";
 
-export type { FiredScheduleItem } from "./runtime/scheduleTick.js";
+export type {
+  AdvanceToNextResult,
+  FiredScheduleItem,
+} from "./runtime/scheduleTick.js";
+export {
+  SCHEDULE_DAY_MS,
+  advanceProfileClock,
+  advanceProfileClockToNextIntent,
+  cancelStoryOnceIntents,
+  clearStoryPendingCards,
+  consumeLinkedOnceIntent,
+  materializeRecurringOccurrences,
+  peekNextScheduleFireAtMs,
+  resolveRecurringCardTarget,
+  setProfileClockMs,
+  tickScheduleOnce,
+} from "./runtime/scheduleTick.js";
+
+export {
+  isLocalHourInOutboundWindow,
+  localHourFromIso,
+  type OutboundWindow,
+} from "./runtime/outboundWindow.js";
+
+export {
+  resolveScheduledCardReference,
+  type ScheduledCardLookup,
+  type ScheduledCardRefInput,
+  type ScheduledCardResolveResult,
+} from "./schedule/scheduleCardReferenceResolver.js";
+
+export { reconcileRecurringIntents } from "./schedule/reconcileRecurringIntents.js";
+
+export {
+  classifyCall,
+  type CallClassifyInput,
+  type CallClassifyResult,
+} from "./runtime/classifyCall.js";
 
 export {
   engineError,
@@ -30,6 +69,7 @@ export {
 } from "./host/errors.js";
 
 export type {
+  ActualCallEntry,
   BeginCallOpts,
   CallIntent,
   CallSession,
@@ -43,7 +83,6 @@ export type {
   RenderedPrompt,
   ResolveResult,
   SaveReason,
-  TimeBucket,
 } from "./host/types.js";
 
 export {
@@ -51,6 +90,22 @@ export {
   formatLoreSoftContext,
   type WorldLoreDoc,
 } from "./schema/worldLore.js";
+
+export {
+  WorldFactSchema,
+  WorldFactsArraySchema,
+  WorldKnowledgeSchema,
+  type WorldFact,
+  type WorldKnowledge,
+} from "./schema/worldFact.js";
+
+export {
+  ScheduledIntentSchema,
+  ProfileScheduleSchema,
+  hasRecurringCardRef,
+  type ScheduledIntent,
+  type ProfileSchedule,
+} from "./schema/schedule.js";
 
 export { buildFallbackLore } from "./lore/fallbackLore.js";
 export { bootstrapLoreOntoProfile } from "./lore/bootstrapLore.js";
@@ -63,12 +118,32 @@ export {
 } from "./host/engineLogFile.js";
 
 export {
+  WET_APPENDABLE_TYPES,
+  WET_STORAGE_NOTE,
+  isWetAppendableType,
+  matchWetType,
+  filterWetRecords,
+  mergeWetSources,
+  validateWetAppend,
+  buildWetAppendRecord,
+  buildWetReplayView,
+  type WetAppendableType,
+  type WetQueryOpts,
+  type WetAppendInput,
+  type WetReplayView,
+} from "./host/wet.js";
+
+export {
   selectCallFlowPrompt,
   type CallFlowSimEventKind,
   type CallFlowPromptPick,
 } from "./runtime/selectCallFlowPrompt.js";
 
-export { buildComposeScene } from "./runtime/composeScene.js";
+export {
+  buildComposeScene,
+  callDirectionFromActualEntry,
+  callDirectionFromEntryMode,
+} from "./runtime/composeScene.js";
 export {
   composeRenderedPrompt,
   type ComposeInput,
@@ -80,6 +155,10 @@ export {
   isMediaEffect,
   MEDIA_EFFECT_NAMES,
   type EffectSink,
+  type EffectSinkApplyInput,
+  type EffectSinkResult,
+  type EffectSinkResultOk,
+  type EffectSinkResultErr,
 } from "./runtime/effectSink.js";
 
 export { createSqliteMemoryPort } from "./memory/sqliteMemoryPort.js";
@@ -127,9 +206,14 @@ export {
   StoryPackageConfSchema,
   EntryModeSchema,
   InteractionModeSchema,
+  CardKindSchema,
+  ScheduleMetaSchema,
   ToolPolicySchema,
   formatZodError,
+  isScheduleCard,
   type CallCardDefinition,
+  type ScheduleMeta,
+  type CardKind,
 } from "./schema/callCard.js";
 
 export {
@@ -137,6 +221,14 @@ export {
   isEffectiveDialable,
   type CharacterDef,
 } from "./schema/character.js";
+
+export {
+  AssetMetaSchema,
+  AssetKindSchema,
+  PLAYBACK_ASSET_KINDS,
+  type AssetMeta,
+  type AssetKind,
+} from "./schema/asset.js";
 
 export {
   OutcomeSchema,
@@ -161,8 +253,6 @@ export { hasBlockingErrors } from "./validation/types.js";
 
 export {
   PromptSceneLayerSchema,
-  TimeBucketSchema,
-  hourToTimeBucket,
   validatePromptScenePatches,
   type PromptSceneLayer,
 } from "./schema/promptScene.js";
@@ -171,6 +261,9 @@ export type {
   DialogueSessionSpec,
   DialogueSessionPatch,
   DialogueChannel,
+  DialogueAdapter,
+  DialogueEvent,
+  ChatTurn,
   InteractionMode,
 } from "./schema/dialogueSession.js";
 

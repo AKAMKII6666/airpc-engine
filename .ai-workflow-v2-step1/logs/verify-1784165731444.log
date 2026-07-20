@@ -1,0 +1,24 @@
+[gbx] ▶ verify:npm run check:comments start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+
+> check:comments
+> node scripts/studio-quality/check-comments.mjs && node --test scripts/studio-quality/tests/check-comments.test.mjs
+
+check:comments ok (24 files)
+▶ check:comments
+  ✔ 合格契约通过 (9.478166ms)
+  ✔ 缺失导出意图注释失败 (1.737ms)
+  ✔ 缺失字段说明失败 (1.079833ms)
+  ✔ 复述占位注释失败 (1.161792ms)
+  ✔ 无原因抑制失败（含裸 eslint-disable） (2.438792ms)
+  ✔ 带原因抑制通过 (1.191125ms)
+  ✔ 输出格式含规则编号与位置 (0.83325ms)
+✔ check:comments (18.589042ms)
+ℹ tests 7
+ℹ suites 1
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 158.928417
+[gbx] ■ verify:npm run check:comments done exit=0 elapsed=0s

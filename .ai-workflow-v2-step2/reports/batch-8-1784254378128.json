@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "label": "batch-8",
+  "at": "2026-07-17T02:12:58.128Z",
+  "ok": false,
+  "phase": "batch",
+  "activeTaskIds": [
+    "V2-E3",
+    "V2-E4",
+    "V2-E5"
+  ],
+  "reason": "command failed",
+  "failedCommand": "npm run quality:studio",
+  "exitCode": 1,
+  "results": [
+    {
+      "command": "npm run quality:studio",
+      "exitCode": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> quality:studio\n> node scripts/studio-quality/quality-studio.mjs\n\n\n==> ensure-modal-layout (pre-typecheck)\nensure-modal-layout: nothing to remove\n\n==> ensure-migrated-layout (pre-typecheck)\nensure-migrated-layout: nothing to remove\n\n==> lint (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 lint\n> node ./scripts/run-eslint.mjs . --max-warnings 0\n\n\n==> typecheck (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n==> check:comments\nSTUDIO-COMMENT-002  apps/studioV2/src/bis/pageBis/storyEditor/addEditorCharacterForm.ts:16:3  严格契约字段「EditorCharacterLibraryOption.agentId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/src/bis/pageBis/storyEditor/addEditorCharacterForm.ts:17:3  严格契约字段「EditorCharacterLibraryOption.displayName」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-001  apps/studioV2/src/bis/pageBis/storyEditor/addEditorCharacterForm.ts:62:1  严格契约目录中的导出「ADD_EDITOR_CHARACTER_INITIAL_VALUES」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用\ncheck:comments failed (3 issues, 144 files)\ncheck:comments failed (exit 1)\n\nquality:studio FAILED\n[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=4s\n",
+      "stderr": "",
+      "stdoutTail": "[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> quality:studio\n> node scripts/studio-quality/quality-studio.mjs\n\n\n==> ensure-modal-layout (pre-typecheck)\nensure-modal-layout: nothing to remove\n\n==> ensure-migrated-layout (pre-typecheck)\nensure-migrated-layout: nothing to remove\n\n==> lint (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 lint\n> node ./scripts/run-eslint.mjs . --max-warnings 0\n\n\n==> typecheck (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n==> check:comments\nSTUDIO-COMMENT-002  apps/studioV2/src/bis/pageBis/storyEditor/addEditorCharacterForm.ts:16:3  严格契约字段「EditorCharacterLibraryOption.agentId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/src/bis/pageBis/storyEditor/addEditorCharacterForm.ts:17:3  严格契约字段「EditorCharacterLibraryOption.displayName」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-001  apps/studioV2/src/bis/pageBis/storyEditor/addEditorCharacterForm.ts:62:1  严格契约目录中的导出「ADD_EDITOR_CHARACTER_INITIAL_VALUES」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用\ncheck:comments failed (3 issues, 144 files)\ncheck:comments failed (exit 1)\n\nquality:studio FAILED\n[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=4s\n",
+      "stderrTail": "",
+      "errorLocations": []
+    }
+  ],
+  "errorLocations": [],
+  "historyFile": "batch-8-1784254378128.json"
+}

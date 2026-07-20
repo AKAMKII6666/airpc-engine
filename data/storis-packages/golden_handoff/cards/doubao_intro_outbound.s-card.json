@@ -21,9 +21,7 @@
         "priority": 10,
         "match": {
           "callDirection": "outbound",
-          "timeBuckets": [
-            "afternoon"
-          ]
+          "localHourRange": { "from": 11, "to": 17 }
         },
         "patch": {
           "openingSpeakable": "喂喂，下午还好吗？有个朋友想认识你。",
@@ -35,13 +33,35 @@
         "priority": 10,
         "match": {
           "callDirection": "outbound",
-          "timeBuckets": [
-            "evening"
-          ]
+          "localHourRange": { "from": 17, "to": 22 }
         },
         "patch": {
           "openingSpeakable": "晚上好呀，打扰一下——有个朋友想认识你。",
           "toneHint": "轻声、热心"
+        }
+      },
+      {
+        "layerId": "outbound_night",
+        "priority": 10,
+        "match": {
+          "callDirection": "outbound",
+          "localHourRange": { "from": 22, "to": 24 }
+        },
+        "patch": {
+          "openingSpeakable": "这么晚还没歇呀？有个朋友想认识你。",
+          "toneHint": "压低声音、热心"
+        }
+      },
+      {
+        "layerId": "outbound_late_night",
+        "priority": 10,
+        "match": {
+          "callDirection": "outbound",
+          "localHourRange": { "from": 0, "to": 5 }
+        },
+        "patch": {
+          "openingSpeakable": "还醒着啊……有个朋友想认识你，别吵着别人。",
+          "toneHint": "轻声、勿扰"
         }
       },
       {
@@ -146,23 +166,7 @@
       "condition": {
         "op": "always"
       },
-      "effects": [
-        {
-          "id": "attach_out_doubao_sister_story_3",
-          "effect": "attach_call_card",
-          "agentId": "doubao-sister",
-          "cardId": "doubao_sister_story_3",
-          "activation": "outbound_auto"
-        },
-        {
-          "id": "sched_doubao_sister_story_3",
-          "effect": "schedule_call_card",
-          "agentId": "doubao-sister",
-          "cardId": "doubao_sister_story_3",
-          "packageId": "golden_handoff",
-          "delayMinutes": 5
-        }
-      ]
+      "effects": []
     }
   ]
 }

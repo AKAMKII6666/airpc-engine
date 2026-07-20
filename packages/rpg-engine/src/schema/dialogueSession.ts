@@ -34,3 +34,31 @@ export interface DialogueSessionPatch {
   appendPrivate?: string;
   tools?: ToolDefinition[];
 }
+
+/** 调试／Adapter 可见轮次（不含 private 原文） */
+export interface ChatTurn {
+  role: "user" | "assistant" | "system";
+  text: string;
+  at: string;
+}
+
+export type DialogueEvent =
+  | { type: "session.ready"; sessionId: string }
+  | { type: "assistant.delta"; text: string }
+  | { type: "assistant.message"; text: string }
+  | { type: "user.transcript"; text: string }
+  | { type: "session.ended"; reason: string }
+  | { type: "error"; message: string; code?: string };
+
+/**
+ * 对话端口（需求 50）：实现位于 Next server／壳；引擎只认接口。
+ * 通话中禁止经此口写 Profile／Effect。
+ */
+export interface DialogueAdapter {
+  readonly channel: DialogueChannel;
+  start(spec: DialogueSessionSpec): Promise<void>;
+  update?(patch: DialogueSessionPatch): Promise<void>;
+  sendUserText?(text: string): Promise<void>;
+  stop(reason: string): Promise<void>;
+  subscribe(handler: (ev: DialogueEvent) => void): () => void;
+}

@@ -1,0 +1,26 @@
+[gbx] ▶ executor:V2-P1-1+V2-P1-2+V2-P2-1 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … executor:V2-P1-1+V2-P1-2+V2-P2-1 still running (15s elapsed, no output for 15s)
+[gbx] … executor:V2-P1-1+V2-P1-2+V2-P2-1 still running (30s elapsed, no output for 30s)
+[gbx] … executor:V2-P1-1+V2-P1-2+V2-P2-1 still running (45s elapsed, no output for 45s)
+[gbx] … executor:V2-P1-1+V2-P1-2+V2-P2-1 still running (60s elapsed, no output for 60s)
+本批代码已改完，但 **verify NOT run**（本环境 Shell 调用被拒），执行索引中 V2-P1-1 / V2-P1-2 / V2-P2-1 仍保持 ⬜，未勾选。
+
+### 已完成改动
+
+| 任务 | 改动 |
+|------|------|
+| **V2-P1-1** | `UserSchema` 增加 `gender`（male\|female）、`birthday`、`age`（int）；新增 `tests/schema/user-schema.test.ts` |
+| **V2-P1-2** | 需求 10 §2 同步；`demo-user/profile.save.json` 补齐新字段 |
+| **V2-P2-1** | 侧栏「玩家配置」、`/users` 页头、角色库快捷链改为「玩家配置」 |
+
+未做（属后续任务）：去掉「打开调试器」（V2-P2-2）、表单重编排与落盘（P3）。
+
+### 需人工补跑
+
+```bash
+npm run quality:engine
+npm run quality:studio
+```
+
+两门禁均 exit 0 后，再把执行索引对应三行 ⬜ → ✅（或让 gbx `--clear-blocked --after-manual`）。
+[gbx] ■ executor:V2-P1-1+V2-P1-2+V2-P2-1 done exit=0 elapsed=66s

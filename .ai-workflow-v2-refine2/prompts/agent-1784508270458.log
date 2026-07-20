@@ -1,0 +1,3 @@
+[gbx] ▶ batch-reviewer:V2-P3-3 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+ActionRequiredError: You've hit your usage limit Get Cursor Pro for more Agent usage, unlimited Tab, and more.
+[gbx] ■ batch-reviewer:V2-P3-3 done exit=1 elapsed=15s

@@ -1,0 +1,26 @@
+[gbx] ▶ fixer:V1-E10+V1-P1+V1-P2 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … still running fixer:V1-E10+V1-P1+V1-P2 elapsed=15s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784163185807.log
+[gbx] … still running fixer:V1-E10+V1-P1+V1-P2 elapsed=30s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784163185807.log
+[gbx] … still running fixer:V1-E10+V1-P1+V1-P2 elapsed=45s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784163185807.log
+[gbx] … still running fixer:V1-E10+V1-P1+V1-P2 elapsed=60s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784163185807.log
+[gbx] … still running fixer:V1-E10+V1-P1+V1-P2 elapsed=75s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784163185807.log
+[gbx] … still running fixer:V1-E10+V1-P1+V1-P2 elapsed=90s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-step1/prompts/agent-1784163185807.log
+已按审查报告处理；**Shell 全程 Rejected**，本批机器 verify 仍无法在此环境执行。
+
+### 已修（R4-2 minor）
+在 `packages/rpg-engine/tests/host/engine-plan-7.4-7.5.test.ts` 的三条 sink 失败路径中补了 ledger 否定断言：
+- 非 critical：`m-fail` 不得出现在 `executed`；`later` 可以
+- critical：`m-crit` 不得 `executed`，且 ledger 为空
+- reject：`m-rej` 不得 `executed`
+
+### 未完成（R4-1 major）
+审查要求对本批跑：
+```bash
+npm test && npm run typecheck -w @airpc/studio-v2
+```
+通过后再把 `V1-E10` / `V1-P1` / `V1-P2` 标 ✅。
+
+当前与上一轮 executor 相同：**终端命令全部 Rejected**，无法拿到 exit 0。因此执行索引三行仍保持 ⬜（未伪造勾选；未写 `STATE.json`）。
+
+请在本机或恢复 Shell 权限后跑上述两条命令；通过后勾选，或让编排进入下一轮 verify / `checkbox_missing` 修复。
+[gbx] ■ fixer:V1-E10+V1-P1+V1-P2 done exit=0 elapsed=94s

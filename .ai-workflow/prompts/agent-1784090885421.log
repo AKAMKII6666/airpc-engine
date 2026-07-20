@@ -1,0 +1,20 @@
+[gbx] ▶ batch-reviewer:E8 start cmd=agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … still running batch-reviewer:E8 elapsed=15s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784090885421.log
+[gbx] … still running batch-reviewer:E8 elapsed=30s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784090885421.log
+[gbx] … still running batch-reviewer:E8 elapsed=45s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784090885421.log
+[gbx] … still running batch-reviewer:E8 elapsed=60s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784090885421.log
+[gbx] … still running batch-reviewer:E8 elapsed=75s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784090885421.log
+[gbx] … still running batch-reviewer:E8 elapsed=90s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784090885421.log
+[gbx] … still running batch-reviewer:E8 elapsed=105s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784090885421.log
+**E8 批审结果：`pass`**（`recommendedNextState`: `VERIFY_BATCH`）
+
+已写入 `.ai-workflow/reviews/latest.json`（`reviewRunId`: `batch-reviewer-9-27ad2dcd-c086-4c11-a41e-958c21d22be5`）。
+
+对照完成标准：
+- `POST /api/debug/chat` 为 `text/event-stream`，推送 `message`／`done`／`error`
+- 客户端经 `ajaxHelper` + bis 订阅；Key 仍在 server；refreshStamp 作兜底
+- 文档已改为 SSE 已落地，不再写「仅后置／只靠 refreshStamp」
+- 无引擎边界／通话中 Effect／client Key／裸 CSS 单位问题
+
+1 条 minor：执行索引仍写「下一刀 E7」，与任务表 E7/E8 已 ✅ 不一致。
+[gbx] ■ batch-reviewer:E8 done exit=0 elapsed=108s

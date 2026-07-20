@@ -111,9 +111,20 @@ export interface IDebuggerSnapshot {
       reason: string;
       at: string;
     } | null;
+    chatTurns?: Array<{
+      role: "user" | "assistant" | "system";
+      text: string;
+      at: string;
+    }>;
     outcome?: unknown;
   } | null;
   recentLogs: unknown[];
+}
+
+export interface IDebuggerChatTurn {
+  role: "user" | "assistant" | "system";
+  text: string;
+  at: string;
 }
 
 export interface IDebuggerSlice {
@@ -126,6 +137,11 @@ export interface IDebuggerSlice {
   lastEndResult: unknown;
   lastToolResult: unknown;
   lastSimEvent: unknown;
+  /** 文本调试轮次（以 snapshot／chat 响应为准） */
+  chatTurns: IDebuggerChatTurn[];
+  chatDraft: string;
+  /** chat SSE 进行中 */
+  chatStreaming: boolean;
   loading: boolean;
   error: string | null;
   answeredCompleted: boolean;
@@ -227,6 +243,9 @@ export interface IStudioStoreActions {
   setDebuggerLastSimEvent: (result: unknown) => void;
   setDebuggerSessionId: (sessionId: string | null) => void;
   applyDebuggerSnapshot: (snapshot: IDebuggerSnapshot) => void;
+  setDebuggerChatTurns: (turns: IDebuggerChatTurn[]) => void;
+  setDebuggerChatDraft: (draft: string) => void;
+  setDebuggerChatStreaming: (streaming: boolean) => void;
   setDebuggerEndResult: (result: unknown) => void;
   setDebuggerLoading: (loading: boolean) => void;
   setDebuggerError: (error: string | null) => void;

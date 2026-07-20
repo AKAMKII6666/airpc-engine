@@ -3,7 +3,7 @@
  */
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useSyncExternalStore } from "react";
 import {
   useStudioStore,
   useStudioStoreShallow,
@@ -37,7 +37,23 @@ import {
   resetStoryEditorHistory,
   type StoryEditorCanvasSnapshot,
 } from "@studio/bis/storyEditor/storyEditorHistory.bis";
-import { yForLaneOrder } from "@studio/bis/storyEditor/storyEditorLayout.bis";
+import {
+  computeSwimLaneAutoLayout,
+  yForLaneOrder,
+} from "@studio/bis/storyEditor/storyEditorLayout.bis";
+import {
+  allocatePastedCardId,
+  cloneCardForPaste,
+  getStoryEditorClipboard,
+  getStoryEditorClipboardVersion,
+  hasStoryEditorClipboard,
+  matchStoryCards,
+  PASTE_LAYOUT_OFFSET,
+  requestStoryCanvasFocus,
+  setStoryEditorClipboard,
+  subscribeStoryEditorClipboard,
+  type StoryCardSearchHit,
+} from "@studio/bis/storyEditor/storyEditorCanvasP1.bis";
 
 export function useStoryEditorActionsBis() {
   const {
@@ -102,6 +118,11 @@ export function useStoryEditorActionsBis() {
     (s) => s.bumpStoryEditorHistoryTick,
   );
   const historyTick = useStudioStore((s) => s.storyEditor.historyTick);
+  const clipboardVersion = useSyncExternalStore(
+    subscribeStoryEditorClipboard,
+    getStoryEditorClipboardVersion,
+    getStoryEditorClipboardVersion,
+  );
 
   const currentSnapshot = useCallback(function (): StoryEditorCanvasSnapshot | null {
     if (!conf || !layout) return null;
@@ -635,6 +656,7 @@ export function useStoryEditorActionsBis() {
   );
 
   void historyTick;
+  void clipboardVersion;
 
   const addParticipant = useCallback(
     async function (agentId: string): Promise<boolean> {
@@ -799,6 +821,146 @@ export function useStoryEditorActionsBis() {
     [setStoryEditorSaving, setStoryEditorError],
   );
 
+  const searchCards = useCallback(
+    function (query: string): StoryCardSearchHit[] {
+      return matchStoryCards(query, cards);
+    },
+    [cards],
+  );
+
+  const locateCard = useCallback(
+    function (cardId: string): boolean {
+      if (!cards[cardId]) return false;
+      setStoryEditorSelectedCard(cardId);
+      requestStoryCanvasFocus(cardId);
+      return true;
+    },
+    [cards, setStoryEditorSelectedCard],
+  );
+
+  const copySelectedCard = useCallback(
+    function (): boolean {
+      if (!packageId || !selectedCardId) return false;
+      const card = cards[selectedCardId];
+      if (!card) return false;
+      setStoryEditorClipboard({
+        packageId,
+        card,
+        sourceCardId: selectedCardId,
+      });
+      return true;
+    },
+    [packageId, selectedCardId, cards],
+  );
+
+  const pasteClipboardCard = useCallback(
+    async function (): Promise<boolean> {
+      if (!packageId || !conf || !layout) return false;
+      const clip = getStoryEditorClipboard(packageId);
+      if (!clip) {
+        setStoryEditorError("剪贴板为空或来自其他故事包（不做跨包粘贴）");
+        return false;
+      }
+      checkpoint();
+      const existingIds = new Set(
+        conf.cards.map(function (c) {
+          return c.cardId;
+        }),
+      );
+      const newCardId = allocatePastedCardId(clip.sourceCardId, existingIds);
+      const nextCard = cloneCardForPaste(clip.card, newCardId);
+      const sourceNode = layout.nodes.find(function (n) {
+        return n.cardId === clip.sourceCardId;
+      });
+      const nextConf: IStoryEditorConf = {
+        ...conf,
+        cards: [...conf.cards, { cardId: newCardId }],
+      };
+      const nextLayout = {
+        ...layout,
+        nodes: [
+          ...layout.nodes,
+          {
+            cardId: newCardId,
+            x: (sourceNode?.x ?? 200) + PASTE_LAYOUT_OFFSET,
+            y: (sourceNode?.y ?? yForLaneOrder(0)) + PASTE_LAYOUT_OFFSET,
+          },
+        ],
+      };
+      const nextCards = { ...cards, [newCardId]: nextCard };
+
+      setStoryEditorSaving(true);
+      setStoryEditorError(null);
+      const cardRes = await putStoryCard(packageId, newCardId, nextCard);
+      if (!cardRes.ok) {
+        setStoryEditorSaving(false);
+        setStoryEditorError(cardRes.message ?? "paste card failed");
+        return false;
+      }
+      const confRes = await putStoryConf(packageId, nextConf);
+      if (!confRes.ok) {
+        setStoryEditorSaving(false);
+        setStoryEditorError(confRes.message ?? "save conf failed");
+        return false;
+      }
+      const layoutRes = await putStoryLayout(packageId, nextLayout);
+      setStoryEditorSaving(false);
+      if (!layoutRes.ok) {
+        setStoryEditorError(layoutRes.message ?? "save layout failed");
+        return false;
+      }
+      applyStoryEditorCanvasState({
+        conf: nextConf,
+        layout: nextLayout,
+        cards: nextCards,
+      });
+      setStoryEditorSelectedCard(newCardId);
+      requestStoryCanvasFocus(newCardId);
+      return true;
+    },
+    [
+      packageId,
+      conf,
+      layout,
+      cards,
+      checkpoint,
+      setStoryEditorSaving,
+      setStoryEditorError,
+      applyStoryEditorCanvasState,
+      setStoryEditorSelectedCard,
+    ],
+  );
+
+  const autoLayoutCanvas = useCallback(
+    async function (): Promise<boolean> {
+      if (!packageId || !conf || !layout) return false;
+      checkpoint();
+      const nextLayout = computeSwimLaneAutoLayout(layout, conf, cards);
+      setStoryEditorSaving(true);
+      setStoryEditorError(null);
+      setStoryEditorLayout(nextLayout);
+      const layoutRes = await putStoryLayout(packageId, nextLayout);
+      setStoryEditorSaving(false);
+      if (!layoutRes.ok) {
+        setStoryEditorError(layoutRes.message ?? "auto layout save failed");
+        return false;
+      }
+      markStoryEditorLayoutDirty(false);
+      return true;
+    },
+    [
+      packageId,
+      conf,
+      layout,
+      cards,
+      checkpoint,
+      setStoryEditorSaving,
+      setStoryEditorError,
+      setStoryEditorLayout,
+      markStoryEditorLayoutDirty,
+    ],
+  );
+
   return {
     validate,
     saveLayout,
@@ -821,6 +983,12 @@ export function useStoryEditorActionsBis() {
     createCardFromTemplate,
     exportContent,
     exportSaveGame,
+    searchCards,
+    locateCard,
+    copySelectedCard,
+    pasteClipboardCard,
+    canPaste: hasStoryEditorClipboard(packageId),
+    autoLayoutCanvas,
     dirtyLayout,
     dirtyCard,
     dirtyConf,

@@ -1,0 +1,8 @@
+{
+  "assetId": "clip_hello",
+  "kind": "wav",
+  "uri": "files/clip_hello.wav",
+  "displayName": "样例开场音",
+  "durationMs": 0,
+  "transcript": "（无声桩）"
+}

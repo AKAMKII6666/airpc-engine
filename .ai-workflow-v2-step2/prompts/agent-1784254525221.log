@@ -1,0 +1,28 @@
+[gbx] ▶ fixer:V2-E3+V2-E4+V2-E5 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-E3+V2-E4+V2-E5 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-E3+V2-E4+V2-E5 still running (30s elapsed, no output for 30s)
+[gbx] … fixer:V2-E3+V2-E4+V2-E5 still running (45s elapsed, no output for 45s)
+[gbx] … fixer:V2-E3+V2-E4+V2-E5 still running (60s elapsed, no output for 60s)
+[gbx] … fixer:V2-E3+V2-E4+V2-E5 still running (75s elapsed, no output for 75s)
+[gbx] … fixer:V2-E3+V2-E4+V2-E5 still running (90s elapsed, no output for 90s)
+[gbx] … fixer:V2-E3+V2-E4+V2-E5 still running (105s elapsed, no output for 105s)
+[gbx] … fixer:V2-E3+V2-E4+V2-E5 still running (120s elapsed, no output for 120s)
+[gbx] … fixer:V2-E3+V2-E4+V2-E5 still running (135s elapsed, no output for 135s)
+[gbx] … fixer:V2-E3+V2-E4+V2-E5 still running (150s elapsed, no output for 150s)
+[gbx] … fixer:V2-E3+V2-E4+V2-E5 still running (165s elapsed, no output for 165s)
+[gbx] … fixer:V2-E3+V2-E4+V2-E5 still running (180s elapsed, no output for 180s)
+[gbx] … fixer:V2-E3+V2-E4+V2-E5 still running (195s elapsed, no output for 195s)
+已按 `latest-verify.json` 修掉阻断项：`CharacterAnchorRail` 有效行数 139 > 硬上限 100。
+
+**改动**
+- 拆出 `com/CharacterAnchorList.tsx`、`com/CharacterAnchorAddControls.tsx`、`com/CharacterAnchorRailHead.tsx`
+- 拆出 `hooks/useAddEditorCharacterModal.ts`（表单字段 / 校验 / 提交）
+- 主组件约 45 有效行、复杂度约 3（原 139 / 11）
+
+**未动**
+- 告警级结构项（其它文件 >60 行等）——不阻断
+- `STATE.json`
+- 索引里 V2-E3/E4/E5 已是 ✅
+
+**环境限制**：本会话 Shell 全部被拒，无法重跑 `npm run quality:studio`。请编排器或本机再跑一次验证。
+[gbx] ■ fixer:V2-E3+V2-E4+V2-E5 done exit=0 elapsed=201s

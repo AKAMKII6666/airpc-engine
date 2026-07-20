@@ -1,0 +1,29 @@
+[gbx] ▶ fixer:E5 start cmd=agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … still running fixer:E5 elapsed=15s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088883562.log
+[gbx] … still running fixer:E5 elapsed=30s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088883562.log
+[gbx] … still running fixer:E5 elapsed=45s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088883562.log
+[gbx] … still running fixer:E5 elapsed=60s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088883562.log
+[gbx] … still running fixer:E5 elapsed=75s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088883562.log
+[gbx] … still running fixer:E5 elapsed=90s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088883562.log
+[gbx] … still running fixer:E5 elapsed=105s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088883562.log
+[gbx] … still running fixer:E5 elapsed=120s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088883562.log
+[gbx] … still running fixer:E5 elapsed=135s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088883562.log
+[gbx] … still running fixer:E5 elapsed=150s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088883562.log
+[gbx] … still running fixer:E5 elapsed=165s log=/Users/bolbiao/workspace/airpc-engine/.ai-workflow/prompts/agent-1784088883562.log
+已修好导致 `npm test` 红灯的根因；本环境 Shell 被拒，未能在此重跑 verify。
+
+**失败点：** `E5: commit writes vignette…` 里 `search({ textQuery: "小蛋糕", kinds: ["vignette"] })` 得到 0 条（commit 已成功写入 3 条）。
+
+**原因：** FTS5 `unicode61` 把中文按字切 token；`escapeFtsQuery` 把 `"小蛋糕"` 当成单 token 短语，无法命中。
+
+**修改（`sqliteMemoryPort.ts`）：**
+1. CJK 字间插空格再组短语（如 `"小 蛋 糕"`）
+2. FTS 零命中时回退 `LIKE`（与设计 20 的降级一致）
+3. `kinds` 下推到 SQL，内部 LIMIT 放宽后再截断
+
+E5 任务表仍为 ⬜（未绿测不断言完成）。请在本机或 gbx 再跑：
+
+```bash
+npm test
+```
+[gbx] ■ fixer:E5 done exit=0 elapsed=178s

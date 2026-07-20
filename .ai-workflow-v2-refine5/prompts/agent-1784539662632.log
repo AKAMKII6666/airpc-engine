@@ -1,0 +1,38 @@
+[gbx] ▶ fixer:V2-S5-1+V2-S5-2 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (30s elapsed, no output for 30s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (45s elapsed, no output for 45s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (60s elapsed, no output for 60s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (75s elapsed, no output for 75s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (90s elapsed, no output for 90s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (105s elapsed, no output for 105s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (120s elapsed, no output for 120s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (135s elapsed, no output for 135s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (150s elapsed, no output for 150s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (165s elapsed, no output for 165s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (180s elapsed, no output for 180s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (195s elapsed, no output for 195s)
+[gbx] … fixer:V2-S5-1+V2-S5-2 still running (210s elapsed, no output for 210s)
+## 批次修复结论
+
+审查唯一确认问题是 **R1-1**：`V2-S5-1` / `V2-S5-2` 实现已通过静态核对，但未跑 `npm run quality:studio`，执行索引仍为 ⬜。
+
+本轮 **未自验**（Shell 多次被拒，含 smart-mode / 子 agent / worktree），无法取得 exit code，**不能**声称门禁通过，也 **未** 将任务勾为 ✅。
+
+### 静态核对（无新代码改动）
+
+| 任务 | 落点 | 结论 |
+|---|---|---|
+| V2-S5-1 | `ChapterPropertyForm` + `chapterPropertyForm` + `packageConfProjection` | `chapter_end` 有 `nextPackageId` / `nextEntryCardId` Select；换包校正；仅会话写回 |
+| V2-S5-2 | `EFFECT_NAME_OPTIONS` + `ExitEffectsMockList` + `coerceKnownEffectName` | effect 为枚举下拉，禁止自由文本 |
+
+未见写盘 / 引擎 schema / CharacterAnchorRail 回潮。审查未报行为缺陷，故未改业务代码、未写 `STATE.json`。
+
+### 请本地补跑
+
+```bash
+cd /Users/bolbiao/workspace/airpc-engine && npm run quality:studio
+```
+
+通过后把执行索引里 `V2-S5-1`、`V2-S5-2` 改为 ✅，或用 gbx `--clear-blocked --after-manual` 续跑。
+[gbx] ■ fixer:V2-S5-1+V2-S5-2 done exit=0 elapsed=221s

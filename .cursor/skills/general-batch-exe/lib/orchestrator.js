@@ -30,7 +30,17 @@ const {
   decideAfterVerify,
 } = require('./reviewDecision');
 const { runVerifyCommands } = require('./verify');
+const {
+  loadLatestVerify,
+  formatBlockedVerifyReport,
+  buildVerifyExcerptForPrompt,
+  summarizeVerify,
+} = require('./verifyReport');
 const { checkHardStop } = require('./hardStop');
+const {
+  archiveLatestReview,
+  resolveClearBlockedNext,
+} = require('./clearBlocked');
 const { checkCheckpointPreflight, createCheckpoint } = require('./gitCheckpoint');
 const { buildPrompt } = require('./prompts');
 const { runCursorAgent, commandExists } = require('./agent/runner');
@@ -97,18 +107,129 @@ function printDryRun(loaded, workdir) {
 }
 
 function runAgent(role, { mock, config, promptCtx, paths, state, workdir }) {
+  const fixTrigger = state && state.fixTrigger ? state.fixTrigger : null;
+  const latestVerify = loadLatestVerify(paths);
+  const needsVerifyExcerpt =
+    !fixTrigger || String(fixTrigger).includes('verify') || role === 'fixer' || role === 'final-fixer';
+  const enrichedCtx = {
+    ...promptCtx,
+    fixTrigger,
+    latestVerifyPath: paths.latestVerify,
+    verifyExcerpt: needsVerifyExcerpt
+      ? buildVerifyExcerptForPrompt(latestVerify)
+      : '(not injected)',
+  };
+
   if (mock || config.mock_agent) {
-    return runMockAgent({ role, ctx: promptCtx, paths, state });
+    if (!config.quiet) {
+      console.error(
+        `[gbx] mock agent role=${role} batch=${(enrichedCtx.batchIds || []).join(',') || '-'} trigger=${fixTrigger || '-'}`,
+      );
+    }
+    return runMockAgent({ role, ctx: enrichedCtx, paths, state });
   }
-  const prompt = buildPrompt(role, promptCtx);
+  const prompt = buildPrompt(role, enrichedCtx);
   const promptDir = path.join(paths.root, 'prompts');
+  if (!config.quiet) {
+    console.error(
+      `[gbx] spawn role=${role} batch=${(enrichedCtx.batchIds || []).join(',') || '-'} trigger=${fixTrigger || '-'} quiet=false`,
+    );
+  }
   return runCursorAgent({
     command: config.agent.command,
     printFlag: config.agent.print_flag || '-p',
     prompt,
     workdir,
     promptDir,
+    quiet: Boolean(config.quiet),
+    heartbeatMs: config.heartbeat_ms == null ? 15_000 : config.heartbeat_ms,
+    label: `${role}${enrichedCtx.batchIds && enrichedCtx.batchIds.length ? `:${enrichedCtx.batchIds.join('+')}` : ''}`,
   });
+}
+
+function emitBlockedVerify(paths, state, blockedReason) {
+  const report = loadLatestVerify(paths);
+  const text = formatBlockedVerifyReport({
+    blockedReason,
+    state,
+    report,
+    latestVerifyPath: paths.latestVerify,
+    latestReviewPath: paths.latestReview,
+  });
+  console.error(text);
+  appendLog(paths, text.replace(/\n/g, ' | '));
+}
+
+function clearFixBookkeepingPartial() {
+  return {
+    fixTrigger: null,
+    ineffectiveFixStreak: 0,
+  };
+}
+
+/**
+ * After VERIFY_*: update STATE fields, apply ineffective-fix melt, set fixTrigger when looping to FIX.
+ * @param {{ checkboxMissing?: boolean, missingIds?: string[] }} [extra]
+ */
+function patchAfterVerifyFailure(state, cfg, { v, decision, phase, checkboxMissing, missingIds }) {
+  if (checkboxMissing) {
+    const goingToFix =
+      decision.next === STATUSES.FIX_BATCH || decision.next === STATUSES.FULL_FIX;
+    return {
+      lastVerifyOk: true,
+      lastVerifySummary: `verify ok; checkbox missing: ${(missingIds || []).join(',') || '(none)'}`,
+      lastVerifyFingerprint: null,
+      lastVerifyReportPath: null,
+      ineffectiveFixStreak: 0,
+      status: decision.next,
+      blockedReason: decision.next === STATUSES.BLOCKED ? decision.reason : null,
+      fixTrigger:
+        goingToFix || decision.next === STATUSES.BLOCKED
+          ? 'checkbox_missing'
+          : state.fixTrigger || null,
+    };
+  }
+
+  const report = v.report || null;
+  const fingerprint = v.fingerprint || null;
+  let streak = state.ineffectiveFixStreak || 0;
+
+  if (
+    fingerprint &&
+    state.lastVerifyFingerprint &&
+    fingerprint === state.lastVerifyFingerprint &&
+    ((state.batchFixAttempts || 0) > 0 || (state.fullFixAttempts || 0) > 0)
+  ) {
+    streak += 1;
+  } else if (fingerprint && fingerprint !== state.lastVerifyFingerprint) {
+    streak = 0;
+  }
+
+  const maxIneffective = cfg.max_ineffective_fixes != null ? cfg.max_ineffective_fixes : 2;
+  let next = decision.next;
+  let reason = decision.reason;
+  if (
+    !v.ok &&
+    streak >= maxIneffective &&
+    (next === STATUSES.FIX_BATCH || next === STATUSES.FULL_FIX || next === STATUSES.BLOCKED)
+  ) {
+    next = STATUSES.BLOCKED;
+    reason = `ineffective fix loop; verify still failing with same fingerprint (${streak}/${maxIneffective})`;
+  }
+
+  const trigger = phase === 'full' ? 'full_verify_fail' : 'verify_fail';
+  const goingToFix = next === STATUSES.FIX_BATCH || next === STATUSES.FULL_FIX;
+
+  return {
+    lastVerifyOk: false,
+    lastVerifySummary: summarizeVerify(report),
+    lastVerifyFingerprint: fingerprint,
+    lastVerifyReportPath: null, // filled by caller with paths.latestVerify
+    ineffectiveFixStreak: streak,
+    status: next,
+    blockedReason: next === STATUSES.BLOCKED ? reason : null,
+    fixTrigger: goingToFix ? trigger : next === STATUSES.BLOCKED ? state.fixTrigger || trigger : null,
+  };
 }
 
 function applyAgentPersist(paths, agentResult) {
@@ -182,12 +303,22 @@ function runOrchestrator(cli) {
   }
 
   if (!cli.mockAgent && !loaded.config.mock_agent) {
-    const cmd = loaded.config.agent.command;
+    let cmd = loaded.config.agent.command;
     if (!commandExists(cmd)) {
-      console.error(
-        `error: agent command not found: ${cmd}. Install Cursor CLI, set GBX_AGENT_CMD, or use --mock-agent.`,
-      );
-      return 1;
+      if (cmd === 'cursor-agent' && commandExists('agent')) {
+        cmd = 'agent';
+        loaded.config.agent.command = 'agent';
+        console.error('[gbx] agent command: cursor-agent missing; using `agent`');
+      } else if (cmd === 'agent' && commandExists('cursor-agent')) {
+        cmd = 'cursor-agent';
+        loaded.config.agent.command = 'cursor-agent';
+        console.error('[gbx] agent command: agent missing; using `cursor-agent`');
+      } else {
+        console.error(
+          `error: agent command not found: ${cmd}. Install Cursor CLI, set GBX_AGENT_CMD, or use --mock-agent.`,
+        );
+        return 1;
+      }
     }
   }
 
@@ -206,6 +337,56 @@ function runOrchestrator(cli) {
   } catch (error) {
     console.error(`error: ${error.message}`);
     return 1;
+  }
+
+  if (cli.clearBlocked) {
+    if (state.status !== STATUSES.BLOCKED) {
+      console.error(
+        `error: --clear-blocked requires STATUS=BLOCKED (current=${state.status}). Use --reset-state for a full restart.`,
+      );
+      return 1;
+    }
+    loaded = reload(cli.exFile, workdir, cli.config, cli);
+    const priorActive = Array.isArray(state.activeTaskIds) ? [...state.activeTaskIds] : [];
+    const priorFixTrigger = state.fixTrigger || null;
+    const archived = archiveLatestReview(paths.latestReview, paths.reviews);
+    if (archived) {
+      console.error(`[gbx] --clear-blocked: archived stale review → ${archived}`);
+    }
+    const resolved = resolveClearBlockedNext({
+      tasks: loaded.tasks,
+      activeTaskIds: priorActive,
+      fixTrigger: priorFixTrigger,
+      afterManual: Boolean(cli.afterManual),
+    });
+    state = patchState(paths, {
+      status: resolved.next,
+      blockedReason: null,
+      lastAgentStdout: '',
+      lastAgentStderr: '',
+      activeTaskIds: resolved.activeTaskIds,
+      // Keep fixTrigger when resuming FIX_BATCH so Fixer prompt still knows why.
+      fixTrigger:
+        resolved.next === STATUSES.FIX_BATCH || resolved.next === STATUSES.FULL_FIX
+          ? resolved.fixTrigger || priorFixTrigger
+          : null,
+      batchFixAttempts: 0,
+      fullFixAttempts: 0,
+      checkboxFixAttempts: 0,
+      ineffectiveFixStreak: 0,
+      skipHardStopOnce: true,
+    });
+    appendLog(
+      paths,
+      `clear-blocked afterManual=${Boolean(cli.afterManual)} → ${resolved.next} (${resolved.reason})`,
+    );
+    console.error(
+      `[gbx] --clear-blocked${cli.afterManual ? ' --after-manual' : ''}: was BLOCKED; now ${resolved.next}`,
+    );
+    console.error(`[gbx]   reason: ${resolved.reason}`);
+    console.error(
+      `[gbx]   todos=${todoTasks(loaded.tasks).length}; activeTaskIds=${resolved.activeTaskIds.join(',') || '-'}; stdout+latest.json cleared/archived`,
+    );
   }
 
   const checkpointOptions = {
@@ -227,11 +408,20 @@ function runOrchestrator(cli) {
   appendLog(paths, `start status=${state.status} mock=${Boolean(cli.mockAgent)}`);
 
   const maxIterations = loaded.config.max_rounds || 40;
+  const quietMode = Boolean(loaded.config.quiet);
+  if (!quietMode) {
+    console.error(
+      `[gbx] live console ON (default). Use --quiet for capture-only. workflow=${paths.root}`,
+    );
+  }
 
   for (let iteration = 1; iteration <= maxIterations; iteration += 1) {
     state = patchState(paths, { iteration });
     appendLog(paths, `iter=${iteration} status=${state.status}`);
     console.log(`[gbx] Iteration=${iteration} Status=${state.status}`);
+    if (!quietMode && state.activeTaskIds && state.activeTaskIds.length) {
+      console.error(`[gbx] activeTaskIds=${state.activeTaskIds.join(',')}`);
+    }
 
     if (isTerminal(state.status)) {
       console.log(`[gbx] terminal: ${state.status}`);
@@ -241,6 +431,13 @@ function runOrchestrator(cli) {
       if (state.blockedReason) {
         console.log(`[gbx] blockedReason: ${state.blockedReason}`);
       }
+      if (
+        state.status === STATUSES.BLOCKED &&
+        state.blockedReason &&
+        /verify|ineffective fix/i.test(state.blockedReason)
+      ) {
+        emitBlockedVerify(paths, state, state.blockedReason);
+      }
       return exitCodeForStatus(state.status);
     }
 
@@ -248,16 +445,38 @@ function runOrchestrator(cli) {
     const cfg = loaded.config;
 
     const review = readLatestReview(paths.latestReview);
-    const hs = checkHardStop(
-      [state.lastAgentStdout, state.lastAgentStderr, review ? JSON.stringify(review) : ''],
-      cfg.hard_stop_patterns,
-    );
-    if (hs.hit) {
-      state = patchState(paths, {
-        status: STATUSES.BLOCKED,
-        blockedReason: `hard_stop matched ${hs.pattern}: ${hs.snippet}`,
-      });
-      continue;
+    if (state.skipHardStopOnce) {
+      state = patchState(paths, { skipHardStopOnce: false });
+      if (!quietMode) {
+        console.error(
+          '[gbx] hard_stop: skipped once after --clear-blocked (stale review already archived)',
+        );
+      }
+    } else {
+      const hs = checkHardStop(
+        [state.lastAgentStdout, state.lastAgentStderr, review ? JSON.stringify(review) : ''],
+        cfg.hard_stop_patterns,
+      );
+      if (hs.hit) {
+        const reason = `hard_stop matched ${hs.pattern}: ${hs.snippet}`;
+        console.error(`[gbx] ${reason}`);
+        if (hs.context) {
+          console.error(`[gbx] hard_stop context: …${hs.context}…`);
+        }
+        console.error(
+          '[gbx] hint: if this is a "we do NOT implement X" mention, patterns should use action verbs; or re-run with --clear-blocked [--after-manual] after fixing patterns.',
+        );
+        state = patchState(paths, {
+          status: STATUSES.BLOCKED,
+          blockedReason: reason,
+        });
+        continue;
+      }
+      if (hs.skippedNegations > 0 && !quietMode) {
+        console.error(
+          `[gbx] hard_stop: skipped ${hs.skippedNegations} negated mention(s) (out-of-scope wording)`,
+        );
+      }
     }
 
     const batch = selectBatch(loaded.tasks, {
@@ -373,25 +592,62 @@ function runOrchestrator(cli) {
         state = patchState(paths, {
           status: decision.next,
           blockedReason: decision.next === STATUSES.BLOCKED ? decision.reason : null,
+          fixTrigger: decision.next === STATUSES.FIX_BATCH ? 'review_fail' : state.fixTrigger,
         });
         break;
       }
 
       case STATUSES.FIX_BATCH: {
-        if (state.batchFixAttempts >= cfg.max_fix_attempts) {
+        const isCheckbox = state.fixTrigger === 'checkbox_missing';
+        const maxCheckbox =
+          cfg.max_checkbox_fix_attempts != null ? cfg.max_checkbox_fix_attempts : 2;
+        if (isCheckbox) {
+          if ((state.checkboxFixAttempts || 0) >= maxCheckbox) {
+            const reason = `checkbox_missing; fix budget exhausted (${state.checkboxFixAttempts || 0}/${maxCheckbox})`;
+            state = patchState(paths, {
+              status: STATUSES.BLOCKED,
+              blockedReason: reason,
+              fixTrigger: 'checkbox_missing',
+            });
+            emitBlockedVerify(paths, state, reason);
+            break;
+          }
+        } else if (state.batchFixAttempts >= cfg.max_fix_attempts) {
+          const reason = 'batch fix attempts exceeded';
           state = patchState(paths, {
             status: STATUSES.BLOCKED,
-            blockedReason: 'batch fix attempts exceeded',
+            blockedReason: reason,
           });
+          emitBlockedVerify(paths, state, reason);
           break;
         }
-        state = patchState(paths, { batchFixAttempts: state.batchFixAttempts + 1 });
+        if (
+          state.fixTrigger &&
+          String(state.fixTrigger).includes('verify') &&
+          state.fixTrigger !== 'checkbox_missing' &&
+          !loadLatestVerify(paths)
+        ) {
+          const reason = 'fixTrigger is verify_* but reports/latest-verify.json is missing';
+          state = patchState(paths, {
+            status: STATUSES.BLOCKED,
+            blockedReason: reason,
+          });
+          emitBlockedVerify(paths, state, reason);
+          break;
+        }
+        if (isCheckbox) {
+          state = patchState(paths, {
+            checkboxFixAttempts: (state.checkboxFixAttempts || 0) + 1,
+          });
+        } else {
+          state = patchState(paths, { batchFixAttempts: state.batchFixAttempts + 1 });
+        }
         const fixResult = runAgent('fixer', {
           mock: cli.mockAgent,
           config: cfg,
           promptCtx,
           paths,
-          state,
+          state: readState(paths) || state,
           workdir,
         });
         applyAgentPersist(paths, fixResult);
@@ -416,7 +672,12 @@ function runOrchestrator(cli) {
           collectVerifyCommands(batchTasks, cfg.verify_default),
           cli,
         );
-        const v = runVerifyCommands(cmds, workdir, paths, `batch-${state.currentBatch}`);
+        const v = runVerifyCommands(cmds, workdir, paths, `batch-${state.currentBatch}`, {
+          quiet: Boolean(cfg.quiet),
+          phase: 'batch',
+          activeTaskIds: ids,
+          maxBytes: cfg.verify_capture_max_bytes,
+        });
         const verifyOk = v.ok;
         const checksOk = check.ok;
         if (!check.ok) {
@@ -431,6 +692,10 @@ function runOrchestrator(cli) {
           fullFixAttempts: state.fullFixAttempts,
           maxFixAttempts: cfg.max_fix_attempts,
           maxFullFixAttempts: cfg.max_full_fix_attempts,
+          checkboxFixAttempts: state.checkboxFixAttempts || 0,
+          maxCheckboxFixAttempts:
+            cfg.max_checkbox_fix_attempts != null ? cfg.max_checkbox_fix_attempts : 2,
+          missingTaskIds: check.missing || [],
         });
 
         if (verifyOk && checksOk) {
@@ -452,20 +717,55 @@ function runOrchestrator(cli) {
         }
         appendLog(
           paths,
-          `verify ok=${verifyOk} checks=${checksOk} → ${decision.next} (${decision.reason})`,
+          `verify ok=${verifyOk} checks=${checksOk} → ${decision.next} (${decision.reason}) fingerprint=${v.fingerprint || '-'}`,
         );
+
+        if (!verifyOk || !checksOk) {
+          const checkboxMissing = Boolean(verifyOk && !checksOk);
+          const failPatch = patchAfterVerifyFailure(state, cfg, {
+            v,
+            decision,
+            phase: 'batch',
+            checkboxMissing,
+            missingIds: check.missing || [],
+          });
+          failPatch.lastVerifyReportPath = paths.latestVerify;
+          if (checkboxMissing) {
+            console.error(
+              `[gbx] verify scripts OK but tasks not checked: ${(check.missing || []).join(',')}; fixTrigger=checkbox_missing`,
+            );
+          }
+          state = patchState(paths, failPatch);
+          if (state.status === STATUSES.BLOCKED) {
+            emitBlockedVerify(paths, state, state.blockedReason);
+          } else if (state.fixTrigger) {
+            console.error(
+              `[gbx] ${checkboxMissing ? 'checkbox gap' : 'verify failed'} → ${state.status}; fixTrigger=${state.fixTrigger}; ${state.lastVerifySummary || ''}`,
+            );
+          }
+          break;
+        }
+
         const patch = {
           status: decision.next,
-          blockedReason: decision.next === STATUSES.BLOCKED ? decision.reason : null,
+          blockedReason: null,
+          lastVerifyOk: true,
+          lastVerifySummary: summarizeVerify(v.report),
+          lastVerifyFingerprint: null,
+          lastVerifyReportPath: paths.latestVerify,
+          checkboxFixAttempts: 0,
+          ...clearFixBookkeepingPartial(),
         };
         if (decision.next === STATUSES.EXECUTE_BATCH) {
           patch.currentBatch = state.currentBatch + 1;
           patch.batchFixAttempts = 0;
+          patch.checkboxFixAttempts = 0;
           patch.activeTaskIds = [];
         }
         if (decision.next === STATUSES.FULL_REVIEW) {
           patch.activeTaskIds = [];
           patch.batchFixAttempts = 0;
+          patch.checkboxFixAttempts = 0;
         }
         state = patchState(paths, patch);
         break;
@@ -518,25 +818,62 @@ function runOrchestrator(cli) {
           status: decision.next,
           blockedReason: decision.next === STATUSES.BLOCKED ? decision.reason : null,
           manualQaRequired: decision.next === STATUSES.READY_FOR_MANUAL_QA,
+          fixTrigger: decision.next === STATUSES.FULL_FIX ? 'full_review_fail' : state.fixTrigger,
         });
         break;
       }
 
       case STATUSES.FULL_FIX: {
-        if (state.fullFixAttempts >= cfg.max_full_fix_attempts) {
+        const isCheckbox = state.fixTrigger === 'checkbox_missing';
+        const maxCheckbox =
+          cfg.max_checkbox_fix_attempts != null ? cfg.max_checkbox_fix_attempts : 2;
+        if (isCheckbox) {
+          if ((state.checkboxFixAttempts || 0) >= maxCheckbox) {
+            const reason = `checkbox_missing; fix budget exhausted (${state.checkboxFixAttempts || 0}/${maxCheckbox})`;
+            state = patchState(paths, {
+              status: STATUSES.BLOCKED,
+              blockedReason: reason,
+              fixTrigger: 'checkbox_missing',
+            });
+            emitBlockedVerify(paths, state, reason);
+            break;
+          }
+        } else if (state.fullFixAttempts >= cfg.max_full_fix_attempts) {
+          const reason = 'full fix attempts exceeded';
           state = patchState(paths, {
             status: STATUSES.BLOCKED,
-            blockedReason: 'full fix attempts exceeded',
+            blockedReason: reason,
           });
+          emitBlockedVerify(paths, state, reason);
           break;
         }
-        state = patchState(paths, { fullFixAttempts: state.fullFixAttempts + 1 });
+        if (
+          state.fixTrigger &&
+          String(state.fixTrigger).includes('verify') &&
+          state.fixTrigger !== 'checkbox_missing' &&
+          !loadLatestVerify(paths)
+        ) {
+          const reason = 'fixTrigger is full_verify_* but reports/latest-verify.json is missing';
+          state = patchState(paths, {
+            status: STATUSES.BLOCKED,
+            blockedReason: reason,
+          });
+          emitBlockedVerify(paths, state, reason);
+          break;
+        }
+        if (isCheckbox) {
+          state = patchState(paths, {
+            checkboxFixAttempts: (state.checkboxFixAttempts || 0) + 1,
+          });
+        } else {
+          state = patchState(paths, { fullFixAttempts: state.fullFixAttempts + 1 });
+        }
         const ff = runAgent('final-fixer', {
           mock: cli.mockAgent,
           config: cfg,
           promptCtx,
           paths,
-          state,
+          state: readState(paths) || state,
           workdir,
         });
         applyAgentPersist(paths, ff);
@@ -560,7 +897,12 @@ function runOrchestrator(cli) {
         if (cli.mockAgent && process.env.GBX_MOCK_REAL_VERIFY !== '1') {
           runCmds = [MOCK_OK_CMD];
         }
-        const v = runVerifyCommands(runCmds, workdir, paths, 'full');
+        const v = runVerifyCommands(runCmds, workdir, paths, 'full', {
+          quiet: Boolean(cfg.quiet),
+          phase: 'full',
+          activeTaskIds: allTaskIds,
+          maxBytes: cfg.verify_capture_max_bytes,
+        });
         const decision = decideAfterVerify({
           verifyOk: v.ok,
           checksOk: check.ok,
@@ -570,6 +912,10 @@ function runOrchestrator(cli) {
           fullFixAttempts: state.fullFixAttempts,
           maxFixAttempts: cfg.max_fix_attempts,
           maxFullFixAttempts: cfg.max_full_fix_attempts,
+          checkboxFixAttempts: state.checkboxFixAttempts || 0,
+          maxCheckboxFixAttempts:
+            cfg.max_checkbox_fix_attempts != null ? cfg.max_checkbox_fix_attempts : 2,
+          missingTaskIds: check.missing || [],
         });
         if (v.ok && check.ok) {
           const cp = createCheckpoint(workdir, 'final', {
@@ -587,17 +933,40 @@ function runOrchestrator(cli) {
           if (cp.sha) {
             state = patchState(paths, { lastSuccessfulCommit: cp.sha });
           }
-        }
-        if (decision.next === STATUSES.READY_FOR_MANUAL_QA) {
           state = patchState(paths, {
             status: STATUSES.READY_FOR_MANUAL_QA,
             manualQaRequired: true,
+            lastVerifyOk: true,
+            lastVerifySummary: summarizeVerify(v.report),
+            lastVerifyFingerprint: null,
+            lastVerifyReportPath: paths.latestVerify,
+            checkboxFixAttempts: 0,
+            ...clearFixBookkeepingPartial(),
           });
-        } else {
-          state = patchState(paths, {
-            status: decision.next,
-            blockedReason: decision.next === STATUSES.BLOCKED ? decision.reason : null,
-          });
+          break;
+        }
+
+        appendLog(
+          paths,
+          `full verify ok=${v.ok} checks=${check.ok} → ${decision.next} (${decision.reason})`,
+        );
+        const checkboxMissing = Boolean(v.ok && !check.ok);
+        const failPatch = patchAfterVerifyFailure(state, cfg, {
+          v,
+          decision,
+          phase: 'full',
+          checkboxMissing,
+          missingIds: check.missing || [],
+        });
+        failPatch.lastVerifyReportPath = paths.latestVerify;
+        if (decision.next === STATUSES.READY_FOR_MANUAL_QA) {
+          failPatch.status = STATUSES.READY_FOR_MANUAL_QA;
+          failPatch.manualQaRequired = true;
+          failPatch.blockedReason = null;
+        }
+        state = patchState(paths, failPatch);
+        if (state.status === STATUSES.BLOCKED) {
+          emitBlockedVerify(paths, state, state.blockedReason);
         }
         break;
       }

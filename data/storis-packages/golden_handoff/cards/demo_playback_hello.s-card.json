@@ -1,0 +1,52 @@
+{
+  "cardId": "demo_playback_hello",
+  "cardKind": "story",
+  "title": "样例播放：开场音",
+  "ownerAgentId": "doubao-sister",
+  "entryMode": "outbound_auto",
+  "interactionMode": "playback_only",
+  "context": {
+    "privateBrief": "E3 样例：引用全局资产 clip_hello。",
+    "speakableBrief": "播放样例开场音。",
+    "playbackClipId": "clip_hello",
+    "background": "",
+    "premise": "验证 ASSET 引用与 URI 存在性。",
+    "emotion": "",
+    "objective": "播放完成",
+    "forbidden": [],
+    "promptScenes": []
+  },
+  "objectives": {
+    "requiredBeats": []
+  },
+  "toolPolicy": {
+    "mode": "deny_all",
+    "allowedToolIds": []
+  },
+  "exits": [
+    {
+      "exitId": "play_done",
+      "exitKind": "terminal",
+      "title": "播完",
+      "priority": 100,
+      "condition": { "op": "always" },
+      "effects": []
+    },
+    {
+      "exitId": "play_fail",
+      "exitKind": "failure",
+      "title": "播放失败",
+      "priority": 10,
+      "condition": { "op": "always" },
+      "effects": []
+    },
+    {
+      "exitId": "play_retry",
+      "exitKind": "recovery",
+      "title": "重试播放",
+      "priority": 5,
+      "condition": { "op": "always" },
+      "effects": []
+    }
+  ]
+}

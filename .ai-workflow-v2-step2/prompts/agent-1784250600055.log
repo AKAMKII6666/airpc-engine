@@ -1,0 +1,38 @@
+[gbx] ▶ fixer:V2-P3+V2-C1+V2-C2 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-P3+V2-C1+V2-C2 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-P3+V2-C1+V2-C2 still running (30s elapsed, no output for 30s)
+[gbx] … fixer:V2-P3+V2-C1+V2-C2 still running (45s elapsed, no output for 45s)
+[gbx] … fixer:V2-P3+V2-C1+V2-C2 still running (60s elapsed, no output for 60s)
+[gbx] … fixer:V2-P3+V2-C1+V2-C2 still running (75s elapsed, no output for 75s)
+[gbx] … fixer:V2-P3+V2-C1+V2-C2 still running (90s elapsed, no output for 90s)
+[gbx] … fixer:V2-P3+V2-C1+V2-C2 still running (105s elapsed, no output for 105s)
+[gbx] … fixer:V2-P3+V2-C1+V2-C2 still running (120s elapsed, no output for 120s)
+[gbx] … fixer:V2-P3+V2-C1+V2-C2 still running (135s elapsed, no output for 135s)
+[gbx] … fixer:V2-P3+V2-C1+V2-C2 still running (150s elapsed, no output for 150s)
+[gbx] … fixer:V2-P3+V2-C1+V2-C2 still running (165s elapsed, no output for 165s)
+[gbx] … fixer:V2-P3+V2-C1+V2-C2 still running (180s elapsed, no output for 180s)
+[gbx] … fixer:V2-P3+V2-C1+V2-C2 still running (195s elapsed, no output for 195s)
+[gbx] … fixer:V2-P3+V2-C1+V2-C2 still running (210s elapsed, no output for 210s)
+[gbx] … fixer:V2-P3+V2-C1+V2-C2 still running (225s elapsed, no output for 225s)
+[gbx] … fixer:V2-P3+V2-C1+V2-C2 still running (240s elapsed, no output for 240s)
+[gbx] … fixer:V2-P3+V2-C1+V2-C2 still running (255s elapsed, no output for 255s)
+[gbx] … fixer:V2-P3+V2-C1+V2-C2 still running (270s elapsed, no output for 270s)
+Batch 4 审查问题已按报告处理（本会话 Shell 对 `npm`/`node` 持续 Rejected，无法本地跑通 `quality:studio`）。
+
+### 已修
+| 问题 | 处理 |
+|------|------|
+| **R4-1** critical | 无法执行门禁；预拆 `CharacterLibraryDetail` → `com/CharacterDetailEditForm.tsx`，避免外层函数触碰 STRUCT-002 硬上限（≥100） |
+| **R4-2** major | 执行索引 V2-P3 / V2-C1 / V2-C2 已改为 ✅ |
+| **R4-3** minor | 导入选文件步标明「演示：点此装载 mock 包」，并展示 `IMPORT_DEMO_FILE_LABEL`（文件名 · 大小） |
+
+### 未改
+- 未写 `STATE.json`（按 prompt 禁止）
+
+### 门禁
+本会话 **未能** 运行 `npm run quality:studio`（与执行器相同的 Shell denied）。请 gbx 下一轮 verify 再跑；本机也可：
+
+```bash
+cd /Users/bolbiao/workspace/airpc-engine && npm run quality:studio
+```
+[gbx] ■ fixer:V2-P3+V2-C1+V2-C2 done exit=0 elapsed=279s

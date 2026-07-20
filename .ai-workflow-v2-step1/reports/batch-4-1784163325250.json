@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "label": "batch-4",
+  "at": "2026-07-16T00:55:25.250Z",
+  "ok": true,
+  "phase": "batch",
+  "activeTaskIds": [
+    "V1-E10",
+    "V1-P1",
+    "V1-P2"
+  ],
+  "reason": "all commands passed",
+  "failedCommand": null,
+  "exitCode": 0,
+  "results": [
+    {
+      "command": "npm test",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "[gbx] ▶ verify:npm test start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> test\n> npm run check:engine-imports && npm run test -w @airpc/rpg-engine\n\n\n> check:engine-imports\n> node scripts/check-engine-imports.mjs\n\ncheck:engine-imports ok (43 files)\n\n> @airpc/rpg-engine@0.0.1 test\n> vitest run\n\n\n RUN  v3.2.7 /Users/bolbiao/workspace/airpc-engine/packages/rpg-engine\n\n ✓ tests/host/active-story-lock.test.ts (3 tests) 198ms\n ✓ tests/host/isolation-recurring-e2e.test.ts (3 tests) 243ms\n ✓ tests/host/schedule-once-early-dial.test.ts (3 tests) 246ms\n ✓ tests/host/clock-tick-e2e.test.ts (4 tests) 297ms\n ✓ tests/host/engine-plan-7.4-7.5.test.ts (8 tests) 469ms\n ✓ tests/host/engine-plan-7.1-7.3.test.ts (6 tests) 516ms\n ✓ tests/validation/golden-handoff.validate.test.ts (10 tests) 587ms\n ✓ tests/host/manual-story-loop.test.ts (2 tests) 163ms\n ✓ tests/host/golden-handoff.test.ts (2 tests) 167ms\n ✓ tests/host/free-call-pipeline.test.ts (4 tests) 264ms\n ✓ tests/host/end-story-next-e2e.test.ts (1 test) 108ms\n ✓ tests/host/night-layer-e2e.test.ts (2 tests) 137ms\n ✓ tests/host/schedule-card-recurring.test.ts (4 tests) 364ms\n ✓ tests/host/refer-to-expert-e2e.test.ts (1 test) 146ms\n ✓ tests/host/chat-turns-e2e.test.ts (2 tests) 240ms\n ✓ tests/host/content-reload-preserves-session.test.ts (2 tests) 190ms\n ✓ tests/host/end-story-free-e2e.test.ts (1 test) 203ms\n ✓ tests/host/playback-phase.test.ts (1 test) 161ms\n ✓ tests/host/schedule-outbound.test.ts (2 tests) 182ms\n ✓ tests/host/a-to-b-memory-e2e.test.ts (1 test) 200ms\n ✓ tests/memory/sqlite-memory.test.ts (8 tests) 70ms\n ✓ tests/lore/bootstrap-fallback.test.ts (6 tests) 48ms\n ✓ tests/host/wet.test.ts (8 tests) 16ms\n ✓ tests/runtime/exit-selector.test.ts (3 tests) 2ms\n ✓ tests/runtime/composer.test.ts (10 tests) 5ms\n ✓ tests/index.smoke.test.ts (1 test) 1ms\n ✓ tests/runtime/effect-s11.test.ts (5 tests) 8ms\n ✓ tests/runtime/effect-sink-plan-status.test.ts (7 tests) 49ms\n ✓ tests/runtime/pick-pending-entry-mode.test.ts (4 tests) 2ms\n ✓ tests/runtime/end-story-cleanup.test.ts (5 tests) 8ms\n ✓ tests/runtime/select-call-flow-prompt.test.ts (2 tests) 1ms\n ✓ tests/host/log-redact.test.ts (1 test) 1ms\n ✓ tests/schema/callcard-schema-tighten.test.ts (4 tests) 3ms\n\n Test Files  33 passed (33)\n      Tests  126 passed (126)\n   Start at  08:55:21\n   Duration  2.64s (transform 570ms, setup 0ms, collect 6.01s, tests 5.30s, environment 4ms, prepare 1.86s)\n\n[gbx] ■ verify:npm test done exit=0 elapsed=3s\n",
+      "stderr": "",
+      "stdoutTail": ".test.ts (3 tests) 243ms\n ✓ tests/host/schedule-once-early-dial.test.ts (3 tests) 246ms\n ✓ tests/host/clock-tick-e2e.test.ts (4 tests) 297ms\n ✓ tests/host/engine-plan-7.4-7.5.test.ts (8 tests) 469ms\n ✓ tests/host/engine-plan-7.1-7.3.test.ts (6 tests) 516ms\n ✓ tests/validation/golden-handoff.validate.test.ts (10 tests) 587ms\n ✓ tests/host/manual-story-loop.test.ts (2 tests) 163ms\n ✓ tests/host/golden-handoff.test.ts (2 tests) 167ms\n ✓ tests/host/free-call-pipeline.test.ts (4 tests) 264ms\n ✓ tests/host/end-story-next-e2e.test.ts (1 test) 108ms\n ✓ tests/host/night-layer-e2e.test.ts (2 tests) 137ms\n ✓ tests/host/schedule-card-recurring.test.ts (4 tests) 364ms\n ✓ tests/host/refer-to-expert-e2e.test.ts (1 test) 146ms\n ✓ tests/host/chat-turns-e2e.test.ts (2 tests) 240ms\n ✓ tests/host/content-reload-preserves-session.test.ts (2 tests) 190ms\n ✓ tests/host/end-story-free-e2e.test.ts (1 test) 203ms\n ✓ tests/host/playback-phase.test.ts (1 test) 161ms\n ✓ tests/host/schedule-outbound.test.ts (2 tests) 182ms\n ✓ tests/host/a-to-b-memory-e2e.test.ts (1 test) 200ms\n ✓ tests/memory/sqlite-memory.test.ts (8 tests) 70ms\n ✓ tests/lore/bootstrap-fallback.test.ts (6 tests) 48ms\n ✓ tests/host/wet.test.ts (8 tests) 16ms\n ✓ tests/runtime/exit-selector.test.ts (3 tests) 2ms\n ✓ tests/runtime/composer.test.ts (10 tests) 5ms\n ✓ tests/index.smoke.test.ts (1 test) 1ms\n ✓ tests/runtime/effect-s11.test.ts (5 tests) 8ms\n ✓ tests/runtime/effect-sink-plan-status.test.ts (7 tests) 49ms\n ✓ tests/runtime/pick-pending-entry-mode.test.ts (4 tests) 2ms\n ✓ tests/runtime/end-story-cleanup.test.ts (5 tests) 8ms\n ✓ tests/runtime/select-call-flow-prompt.test.ts (2 tests) 1ms\n ✓ tests/host/log-redact.test.ts (1 test) 1ms\n ✓ tests/schema/callcard-schema-tighten.test.ts (4 tests) 3ms\n\n Test Files  33 passed (33)\n      Tests  126 passed (126)\n   Start at  08:55:21\n   Duration  2.64s (transform 570ms, setup 0ms, collect 6.01s, tests 5.30s, environment 4ms, prepare 1.86s)\n\n[gbx] ■ verify:npm test done exit=0 elapsed=3s\n",
+      "stderrTail": "",
+      "errorLocations": []
+    },
+    {
+      "command": "npm run typecheck -w @airpc/studio-v2",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "[gbx] ▶ verify:npm run typecheck -w @airpc/studio-v2 start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> @airpc/studio-v2@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n[gbx] ■ verify:npm run typecheck -w @airpc/studio-v2 done exit=0 elapsed=1s\n",
+      "stderr": "",
+      "stdoutTail": "[gbx] ▶ verify:npm run typecheck -w @airpc/studio-v2 start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> @airpc/studio-v2@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n[gbx] ■ verify:npm run typecheck -w @airpc/studio-v2 done exit=0 elapsed=1s\n",
+      "stderrTail": "",
+      "errorLocations": []
+    }
+  ],
+  "errorLocations": [],
+  "historyFile": "batch-4-1784163325250.json"
+}

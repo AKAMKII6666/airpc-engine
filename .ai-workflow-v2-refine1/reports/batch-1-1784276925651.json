@@ -1,0 +1,416 @@
+{
+  "schemaVersion": 1,
+  "label": "batch-1",
+  "at": "2026-07-17T08:28:45.651Z",
+  "ok": false,
+  "phase": "batch",
+  "activeTaskIds": [
+    "V2-R2-3",
+    "V2-R2-4",
+    "V2-R3-1"
+  ],
+  "reason": "command failed",
+  "failedCommand": "npm run quality:studio",
+  "exitCode": 1,
+  "results": [
+    {
+      "command": "npm run quality:studio",
+      "exitCode": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> quality:studio\n> node scripts/studio-quality/quality-studio.mjs\n\n\n==> ensure-modal-layout (pre-typecheck)\nensure-modal-layout: nothing to remove\n\n==> ensure-migrated-layout (pre-typecheck)\nensure-migrated-layout: nothing to remove\n\n==> lint (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 lint\n> node ./scripts/run-eslint.mjs . --max-warnings 0\n\n\n==> typecheck (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n==> check:comments\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterFormShapes.ts:8:2  严格契约字段「PromptVariantForm.variantId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterFormShapes.ts:9:2  严格契约字段「PromptVariantForm.text」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterFormShapes.ts:14:2  严格契约字段「LocalHourRangeForm.from」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterFormShapes.ts:15:2  严格契约字段「LocalHourRangeForm.to」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterFormShapes.ts:23:2  严格契约字段「PromptSceneLayerForm.layerId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterFormShapes.ts:24:2  严格契约字段「PromptSceneLayerForm.priority」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterFormShapes.ts:25:2  严格契约字段「PromptSceneLayerForm.match」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterFormShapes.ts:29:2  严格契约字段「PromptSceneLayerForm.patch」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:32:2  严格契约字段「CharacterIdentityProjection.fullName」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:33:2  严格契约字段「CharacterIdentityProjection.nickname」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:38:2  严格契约字段「CharacterIdentityProjection.birthday」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:56:2  严格契约字段「CharacterPersonaProjection.systemPrompt」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:57:2  严格契约字段「CharacterPersonaProjection.profession」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:58:2  严格契约字段「CharacterPersonaProjection.speakingStyle」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:59:2  严格契约字段「CharacterPersonaProjection.exampleLines」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:60:2  严格契约字段「CharacterPersonaProjection.voiceId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:61:2  严格契约字段「CharacterPersonaProjection.voiceNotes」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:66:2  严格契约字段「CharacterCallFlowPromptsProjection.longSilence」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:67:2  严格契约字段「CharacterCallFlowPromptsProjection.longCallNudge」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:68:2  严格契约字段「CharacterCallFlowPromptsProjection.preHangupFarewell」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:94:2  严格契约字段「CharacterSummary.identity」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:95:2  严格契约字段「CharacterSummary.persona」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:106:2  严格契约字段「CharacterSummary.callFlowPrompts」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:107:2  严格契约字段「CharacterSummary.defaultPromptScenes」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\ncheck:comments failed (24 issues, 167 files)\ncheck:comments failed (exit 1)\n\nquality:studio FAILED\n[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=4s\n",
+      "stderr": "",
+      "stdoutTail": "e-typecheck)\nensure-modal-layout: nothing to remove\n\n==> ensure-migrated-layout (pre-typecheck)\nensure-migrated-layout: nothing to remove\n\n==> lint (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 lint\n> node ./scripts/run-eslint.mjs . --max-warnings 0\n\n\n==> typecheck (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n==> check:comments\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterFormShapes.ts:8:2  严格契约字段「PromptVariantForm.variantId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterFormShapes.ts:9:2  严格契约字段「PromptVariantForm.text」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterFormShapes.ts:14:2  严格契约字段「LocalHourRangeForm.from」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterFormShapes.ts:15:2  严格契约字段「LocalHourRangeForm.to」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterFormShapes.ts:23:2  严格契约字段「PromptSceneLayerForm.layerId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterFormShapes.ts:24:2  严格契约字段「PromptSceneLayerForm.priority」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterFormShapes.ts:25:2  严格契约字段「PromptSceneLayerForm.match」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterFormShapes.ts:29:2  严格契约字段「PromptSceneLayerForm.patch」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:32:2  严格契约字段「CharacterIdentityProjection.fullName」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:33:2  严格契约字段「CharacterIdentityProjection.nickname」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:38:2  严格契约字段「CharacterIdentityProjection.birthday」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:56:2  严格契约字段「CharacterPersonaProjection.systemPrompt」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:57:2  严格契约字段「CharacterPersonaProjection.profession」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:58:2  严格契约字段「CharacterPersonaProjection.speakingStyle」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:59:2  严格契约字段「CharacterPersonaProjection.exampleLines」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:60:2  严格契约字段「CharacterPersonaProjection.voiceId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:61:2  严格契约字段「CharacterPersonaProjection.voiceNotes」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:66:2  严格契约字段「CharacterCallFlowPromptsProjection.longSilence」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:67:2  严格契约字段「CharacterCallFlowPromptsProjection.longCallNudge」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:68:2  严格契约字段「CharacterCallFlowPromptsProjection.preHangupFarewell」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:94:2  严格契约字段「CharacterSummary.identity」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:95:2  严格契约字段「CharacterSummary.persona」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:106:2  严格契约字段「CharacterSummary.callFlowPrompts」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/library/characters/characterSummary.ts:107:2  严格契约字段「CharacterSummary.defaultPromptScenes」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\ncheck:comments failed (24 issues, 167 files)\ncheck:comments failed (exit 1)\n\nquality:studio FAILED\n[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=4s\n",
+      "stderrTail": "",
+      "errorLocations": [
+        {
+          "file": "apps/studioV2/typeFiles/library/characters/characterFormShapes.ts",
+          "line": 8,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「PromptVariantForm.variantId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/library/characters/characterFormShapes.ts",
+          "line": 9,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「PromptVariantForm.text」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/library/characters/characterFormShapes.ts",
+          "line": 14,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「LocalHourRangeForm.from」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/library/characters/characterFormShapes.ts",
+          "line": 15,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「LocalHourRangeForm.to」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/library/characters/characterFormShapes.ts",
+          "line": 23,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「PromptSceneLayerForm.layerId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/library/characters/characterFormShapes.ts",
+          "line": 24,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「PromptSceneLayerForm.priority」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/library/characters/characterFormShapes.ts",
+          "line": 25,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「PromptSceneLayerForm.match」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/library/characters/characterFormShapes.ts",
+          "line": 29,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「PromptSceneLayerForm.patch」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
+          "line": 32,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「CharacterIdentityProjection.fullName」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
+          "line": 33,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「CharacterIdentityProjection.nickname」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
+          "line": 38,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「CharacterIdentityProjection.birthday」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
+          "line": 56,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「CharacterPersonaProjection.systemPrompt」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
+          "line": 57,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「CharacterPersonaProjection.profession」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
+          "line": 58,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「CharacterPersonaProjection.speakingStyle」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
+          "line": 59,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「CharacterPersonaProjection.exampleLines」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
+          "line": 60,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「CharacterPersonaProjection.voiceId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
+          "line": 61,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「CharacterPersonaProjection.voiceNotes」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
+          "line": 66,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「CharacterCallFlowPromptsProjection.longSilence」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
+          "line": 67,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「CharacterCallFlowPromptsProjection.longCallNudge」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
+          "line": 68,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「CharacterCallFlowPromptsProjection.preHangupFarewell」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
+          "line": 94,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「CharacterSummary.identity」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
+          "line": 95,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「CharacterSummary.persona」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
+          "line": 106,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「CharacterSummary.callFlowPrompts」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
+          "line": 107,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「CharacterSummary.defaultPromptScenes」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        }
+      ]
+    }
+  ],
+  "errorLocations": [
+    {
+      "file": "apps/studioV2/typeFiles/library/characters/characterFormShapes.ts",
+      "line": 8,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「PromptVariantForm.variantId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/library/characters/characterFormShapes.ts",
+      "line": 9,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「PromptVariantForm.text」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/library/characters/characterFormShapes.ts",
+      "line": 14,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「LocalHourRangeForm.from」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/library/characters/characterFormShapes.ts",
+      "line": 15,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「LocalHourRangeForm.to」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/library/characters/characterFormShapes.ts",
+      "line": 23,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「PromptSceneLayerForm.layerId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/library/characters/characterFormShapes.ts",
+      "line": 24,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「PromptSceneLayerForm.priority」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/library/characters/characterFormShapes.ts",
+      "line": 25,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「PromptSceneLayerForm.match」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/library/characters/characterFormShapes.ts",
+      "line": 29,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「PromptSceneLayerForm.patch」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
+      "line": 32,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「CharacterIdentityProjection.fullName」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
+      "line": 33,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「CharacterIdentityProjection.nickname」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
+      "line": 38,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「CharacterIdentityProjection.birthday」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
+      "line": 56,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「CharacterPersonaProjection.systemPrompt」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
+      "line": 57,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「CharacterPersonaProjection.profession」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
+      "line": 58,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「CharacterPersonaProjection.speakingStyle」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
+      "line": 59,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「CharacterPersonaProjection.exampleLines」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
+      "line": 60,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「CharacterPersonaProjection.voiceId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
+      "line": 61,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「CharacterPersonaProjection.voiceNotes」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
+      "line": 66,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「CharacterCallFlowPromptsProjection.longSilence」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
+      "line": 67,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「CharacterCallFlowPromptsProjection.longCallNudge」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
+      "line": 68,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「CharacterCallFlowPromptsProjection.preHangupFarewell」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
+      "line": 94,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「CharacterSummary.identity」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
+      "line": 95,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「CharacterSummary.persona」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
+      "line": 106,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「CharacterSummary.callFlowPrompts」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
+      "line": 107,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「CharacterSummary.defaultPromptScenes」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    }
+  ],
+  "historyFile": "batch-1-1784276925651.json"
+}

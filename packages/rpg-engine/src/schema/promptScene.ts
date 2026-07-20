@@ -1,18 +1,10 @@
 /**
- * 模块名称：PromptSceneLayer / TimeBucket Zod 与 patch 硬约束
+ * 模块名称：PromptSceneLayer Zod 与 patch / 已移除字段硬约束
+ *
+ * match 仅 localHourRange（半开区间）；旧 timeBuckets 拒载，不做兼容剥离。
  */
 import { z } from "zod";
 import { engineError, type EngineError } from "../host/errors.js";
-
-export const TimeBucketSchema = z.enum([
-  "late_night",
-  "morning",
-  "afternoon",
-  "evening",
-  "night",
-]);
-
-export type TimeBucket = z.infer<typeof TimeBucketSchema>;
 
 export const PromptScenePatchSchema = z
   .object({
@@ -31,7 +23,6 @@ export const PromptSceneLayerSchema = z.object({
   match: z
     .object({
       callDirection: z.enum(["inbound", "outbound", "either"]).optional(),
-      timeBuckets: z.array(TimeBucketSchema).optional(),
       localHourRange: z
         .object({
           from: z.number().int().min(0).max(23),
@@ -39,6 +30,7 @@ export const PromptSceneLayerSchema = z.object({
         })
         .optional(),
     })
+    .strict()
     .default({}),
   patch: PromptScenePatchSchema.default({}),
 });
@@ -49,7 +41,24 @@ export type PromptScenePatch = z.infer<typeof PromptScenePatchSchema>;
 const HARD_PATCH_KEYS = ["objective", "forbidden"] as const;
 
 /**
- * 校验 promptScenes.patch 不得含 objective / forbidden（PROMPT_SCENE_PATCH_HARD）
+ * 从 validatePromptScenePatches 错误取出 ruleId，供 validatePackage 映射 issue。
+ * 默认 PROMPT_SCENE_PATCH_HARD，避免校验入口再写 ?? 抬高复杂度。
+ */
+export function promptSceneValidationRuleId(err: EngineError): string {
+  const details = err.details;
+  if (
+    typeof details === "object" &&
+    details !== null &&
+    "rule" in details &&
+    typeof (details as { rule: unknown }).rule === "string"
+  ) {
+    return (details as { rule: string }).rule;
+  }
+  return "PROMPT_SCENE_PATCH_HARD";
+}
+
+/**
+ * 校验 promptScenes：patch 禁 objective/forbidden；match 禁已删除的 timeBuckets。
  */
 export function validatePromptScenePatches(
   layers: unknown,
@@ -64,14 +73,24 @@ export function validatePromptScenePatches(
   }
   for (const raw of layers) {
     if (typeof raw !== "object" || raw === null) continue;
+    const layerId =
+      typeof (raw as { layerId?: unknown }).layerId === "string"
+        ? (raw as { layerId: string }).layerId
+        : "(unknown)";
+    const match = (raw as { match?: unknown }).match;
+    if (typeof match === "object" && match !== null) {
+      if (Object.prototype.hasOwnProperty.call(match, "timeBuckets")) {
+        return engineError(
+          "VALIDATION_FAILED",
+          `promptScenes.match must not contain timeBuckets (layer ${layerId})`,
+          { rule: "PROMPT_SCENE_TIME_BUCKETS_REMOVED", layerId },
+        );
+      }
+    }
     const patch = (raw as { patch?: unknown }).patch;
     if (typeof patch !== "object" || patch === null) continue;
     for (const key of HARD_PATCH_KEYS) {
       if (Object.prototype.hasOwnProperty.call(patch, key)) {
-        const layerId =
-          typeof (raw as { layerId?: unknown }).layerId === "string"
-            ? (raw as { layerId: string }).layerId
-            : "(unknown)";
         return engineError(
           "VALIDATION_FAILED",
           `promptScenes.patch must not contain ${key} (layer ${layerId})`,
@@ -81,14 +100,4 @@ export function validatePromptScenePatches(
     }
   }
   return null;
-}
-
-/** 本地小时 → TimeBucket（与需求 01 对齐） */
-export function hourToTimeBucket(localHour: number): TimeBucket {
-  const h = ((localHour % 24) + 24) % 24;
-  if (h >= 0 && h < 5) return "late_night";
-  if (h >= 5 && h < 11) return "morning";
-  if (h >= 11 && h < 17) return "afternoon";
-  if (h >= 17 && h < 22) return "evening";
-  return "night";
 }

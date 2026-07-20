@@ -1,0 +1,62 @@
+@use "../../../../../typeFiles/theme/tokens.scss" as t;
+
+.form {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	min-height: 0;
+}
+
+.badgeRow {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+}
+
+.agentHint {
+	color: t.$text-muted;
+}
+
+.readonlyBlock {
+	display: block;
+	line-height: 1.45;
+	color: t.$text-muted;
+}
+
+.section {
+	display: block;
+	margin-top: 4px;
+	font-weight: 600;
+	letter-spacing: 0.04em;
+	color: t.$text-muted;
+	text-transform: uppercase;
+}
+
+.fold {
+	margin: 0;
+	padding: 6px 8px;
+	border-radius: 8px;
+	border: 1px dashed t.$border-panel;
+	background: rgba(0, 0, 0, 0.18);
+	color: t.$text-secondary;
+
+	summary {
+		cursor: pointer;
+		font-size: 12px;
+		font-weight: 600;
+		color: t.$text-primary;
+	}
+}
+
+.actions {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin-top: 4px;
+}
+
+.hint {
+	color: t.$text-muted;
+	line-height: 1.4;
+}

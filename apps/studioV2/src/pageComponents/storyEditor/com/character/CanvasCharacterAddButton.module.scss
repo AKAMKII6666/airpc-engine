@@ -1,0 +1,16 @@
+@use "../../../../../typeFiles/theme/tokens.scss" as t;
+
+.wrap {
+	position: absolute;
+	left: 12px;
+	top: 12px;
+	z-index: 6;
+}
+
+.btn {
+	background: rgba(16, 24, 36, 0.92) !important;
+	border-color: t.$border-panel !important;
+	color: t.$text-primary !important;
+	text-transform: none;
+	box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
+}

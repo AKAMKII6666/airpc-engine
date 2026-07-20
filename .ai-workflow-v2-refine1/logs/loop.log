@@ -1,0 +1,129 @@
+[2026-07-17T06:26:52.393Z] checkpoint preflight skipped=true checkpoints disabled (default; pass --checkpoint to enable)
+[2026-07-17T06:26:52.393Z] start status=EXECUTE_BATCH mock=false
+[2026-07-17T06:26:52.395Z] iter=1 status=EXECUTE_BATCH
+[2026-07-17T06:31:47.555Z] iter=2 status=BATCH_REVIEW
+[2026-07-17T06:32:51.540Z] batch review → FIX_BATCH (review fail blocker=0 critical=1)
+[2026-07-17T06:32:51.540Z] iter=3 status=FIX_BATCH
+[2026-07-17T06:34:27.464Z] iter=4 status=VERIFY_BATCH
+[2026-07-17T06:34:29.049Z] checkbox missing: V2-R1-1,V2-R1-2,V2-R1-3
+[2026-07-17T06:34:29.049Z] verify ok=false checks=false → FIX_BATCH (batch verify failed) fingerprint=1e77f693d87aade51c6cc76f484ba8269e12cf99
+[2026-07-17T06:34:29.050Z] iter=5 status=FIX_BATCH
+[2026-07-17T06:42:30.465Z] iter=6 status=VERIFY_BATCH
+[2026-07-17T06:42:32.185Z] checkbox missing: V2-R1-1,V2-R1-2,V2-R1-3
+[2026-07-17T06:42:32.185Z] verify ok=false checks=false → FIX_BATCH (batch verify failed) fingerprint=1e77f693d87aade51c6cc76f484ba8269e12cf99
+[2026-07-17T06:42:32.186Z] iter=7 status=FIX_BATCH
+[2026-07-17T06:43:47.976Z] iter=8 status=VERIFY_BATCH
+[2026-07-17T06:43:59.631Z] checkbox missing: V2-R1-1,V2-R1-2,V2-R1-3
+[2026-07-17T06:43:59.631Z] verify ok=true checks=false → FIX_BATCH (batch verify failed) fingerprint=-
+[2026-07-17T06:43:59.632Z] iter=9 status=FIX_BATCH
+[2026-07-17T06:44:33.944Z] iter=10 status=VERIFY_BATCH
+[2026-07-17T06:44:45.909Z] checkpoint skipped=true sha=null checkpoints disabled
+[2026-07-17T06:44:45.909Z] verify ok=true checks=true → EXECUTE_BATCH (batch verify pass; more todos) fingerprint=-
+[2026-07-17T06:44:45.910Z] iter=11 status=EXECUTE_BATCH
+[2026-07-17T06:50:29.042Z] iter=12 status=BATCH_REVIEW
+[2026-07-17T06:58:27.756Z] batch review → FIX_BATCH (review fail blocker=0 critical=1)
+[2026-07-17T06:58:27.758Z] iter=13 status=FIX_BATCH
+[2026-07-17T07:05:11.575Z] iter=14 status=VERIFY_BATCH
+[2026-07-17T07:05:22.438Z] checkbox missing: V2-R1-4,V2-R2-1,V2-R2-2
+[2026-07-17T07:05:22.439Z] verify ok=false checks=false → FIX_BATCH (batch verify failed) fingerprint=cfbf68d406baf37afdb6f9992a30af9cc2300fda
+[2026-07-17T07:05:22.440Z] iter=15 status=FIX_BATCH
+[2026-07-17T07:06:03.528Z] iter=16 status=VERIFY_BATCH
+[2026-07-17T07:06:12.844Z] checkbox missing: V2-R1-4,V2-R2-1,V2-R2-2
+[2026-07-17T07:06:12.844Z] verify ok=false checks=false → FIX_BATCH (batch verify failed) fingerprint=7006de494d1e1709b851eb21e3c4fdf53e49ba4b
+[2026-07-17T07:06:12.844Z] iter=17 status=FIX_BATCH
+[2026-07-17T07:07:50.611Z] iter=18 status=VERIFY_BATCH
+[2026-07-17T07:08:00.625Z] checkbox missing: V2-R1-4,V2-R2-1,V2-R2-2
+[2026-07-17T07:08:00.625Z] verify ok=false checks=false → FIX_BATCH (batch verify failed) fingerprint=37cf0009853501394b143d4d44ea4aa183663d3b
+[2026-07-17T07:08:00.626Z] iter=19 status=FIX_BATCH
+[2026-07-17T07:31:27.425Z] iter=20 status=VERIFY_BATCH
+[2026-07-17T07:31:39.250Z] checkbox missing: V2-R1-4,V2-R2-1,V2-R2-2
+[2026-07-17T07:31:39.251Z] verify ok=false checks=false → FIX_BATCH (batch verify failed) fingerprint=5c2356a172aa9e1a751468f4a8a848c0afd793ec
+[2026-07-17T07:31:39.252Z] iter=21 status=FIX_BATCH
+[2026-07-17T07:33:50.939Z] iter=22 status=VERIFY_BATCH
+[2026-07-17T07:34:04.074Z] checkbox missing: V2-R1-4,V2-R2-1,V2-R2-2
+[2026-07-17T07:34:04.074Z] verify ok=true checks=false → BLOCKED (batch verify failed; fix budget exhausted) fingerprint=-
+[2026-07-17T07:34:04.078Z] [gbx] ========== BLOCKED ========== | [gbx] reason: batch verify failed; fix budget exhausted | [gbx] activeTaskIds: V2-R1-4,V2-R2-1,V2-R2-2 | [gbx] failedCommand: (unknown) (exit 0) | [gbx] errorLocations: | [gbx]   - apps/studioV2/src/commonUiComponents/modal/form/FormModal/index.tsx:72:1  STUDIO-STRUCT-002  函数 FormModalFrame 有效行数 65 超过告警线 60  考虑拆分以保持可测性 | [gbx]   - apps/studioV2/src/pageComponents/assets/hooks/useAssetLibraryPage.ts:19:1  STUDIO-STRUCT-002  函数 useAssetLibraryPage 有效行数 78 超过告警线 60  考虑拆分以保持可测性 | [gbx]   - apps/studioV2/src/pageComponents/assets/hooks/useAssetLibraryPage.ts:19:1  STUDIO-STRUCT-003  函数 useAssetLibraryPage 圈复杂度 11 超过告警线 10  重构条件分支，避免继续堆叠 | [gbx]   - apps/studioV2/src/pageComponents/characters/com/CharacterDetailEditForm.tsx:42:3  STUDIO-STRUCT-002  函数 CharacterDetailEditForm 有效行数 84 超过告警线 60  考虑拆分以保持可测性 | [gbx]   - apps/studioV2/src/pageComponents/characters/hooks/useCharacterLibraryPage.ts:18:1  STUDIO-STRUCT-002  函数 useCharacterLibraryPage 有效行数 71 超过告警线 60  考虑拆分以保持可测性 | [gbx]   - apps/studioV2/src/pageComponents/debugger/com/CallRunPanel.tsx:43:52  STUDIO-STRUCT-002  函数 CallRunPanel 有效行数 72 超过告警线 60  考虑拆分以保持可测性 | [gbx]   - apps/studioV2/src/pageComponents/home/WorkbenchSideCol.tsx:21:37  STUDIO-STRUCT-002  函数 WorkbenchSideCol 有效行数 78 超过告警线 60  考虑拆分以保持可测性 | [gbx]   - apps/studioV2/src/pageComponents/packages/create/CreatePackageView.tsx:22:38  STUDIO-STRUCT-002  函数 CreatePackageView 有效行数 63 超过告警线 60  考虑拆分以保持可测性 | [gbx]   - apps/studioV2/src/pageComponents/packages/export/ExportPackageForm.tsx:33:45  STUDIO-STRUCT-002  函数 ExportPackageForm 有效行数 65 超过告警线 60  考虑拆分以保持可测性 | [gbx]   - apps/studioV2/src/pageComponents/packages/list/PackageListView.tsx:30:36  STUDIO-STRUCT-002  函数 PackageListView 有效行数 84 超过告警线 60  考虑拆分以保持可测性 | [gbx]   - apps/studioV2/src/pageComponents/settings/com/SettingsEnginePanels.tsx:92:62  STUDIO-STRUCT-002  函数 SchemaEnginePanel 有效行数 65 超过告警线 60  考虑拆分以保持可测性 | [gbx]   - apps/studioV2/src/pageComponents/storyEditor/StoryEditorShell.tsx:36:60  STUDIO-STRUCT-002  函数 StoryEditorShell 有效行数 95 超过告警线 60  考虑拆分以保持可测性 | [gbx]   - apps/studioV2/src/pageComponents/storyEditor/canvas/useStoryCanvasGraph.ts:54:1  STUDIO-STRUCT-002  函数 useStoryCanvasGraph 有效行数 98 超过告警线 60  考虑拆分以保持可测性 | [gbx]   - apps/studioV2/src/pageComponents/storyEditor/com/panel/NodePropertyForm.tsx:39:60  STUDIO-STRUCT-002  函数 NodePropertyForm 有效行数 77 超过告警线 60  考虑拆分以保持可测性 | [gbx]   - apps/studioV2/src/pageComponents/users/hooks/useUserLibraryPage.ts:18:1  STUDIO-STRUCT-002  函数 useUserLibraryPage 有效行数 69 超过告警线 60  考虑拆分以保持可测性 | [gbx] verify report: /Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-refine1/reports/latest-verify.json | [gbx] review report: /Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-refine1/reviews/latest.json | [gbx] hint: fix the locations above, then re-run gbx (often with --reset-state if status stuck BLOCKED) | [gbx] =============================
+[2026-07-17T07:34:04.078Z] iter=23 status=BLOCKED
+[2026-07-17T07:34:04.079Z] [gbx] ========== BLOCKED ========== | [gbx] reason: batch verify failed; fix budget exhausted | [gbx] activeTaskIds: V2-R1-4,V2-R2-1,V2-R2-2 | [gbx] failedCommand: (unknown) (exit 0) | [gbx] errorLocations: | [gbx]   - apps/studioV2/src/commonUiComponents/modal/form/FormModal/index.tsx:72:1  STUDIO-STRUCT-002  函数 FormModalFrame 有效行数 65 超过告警线 60  考虑拆分以保持可测性 | [gbx]   - apps/studioV2/src/pageComponents/assets/hooks/useAssetLibraryPage.ts:19:1  STUDIO-STRUCT-002  函数 useAssetLibraryPage 有效行数 78 超过告警线 60  考虑拆分以保持可测性 | [gbx]   - apps/studioV2/src/pageComponents/assets/hooks/useAssetLibraryPage.ts:19:1  STUDIO-STRUCT-003  函数 useAssetLibraryPage 圈复杂度 11 超过告警线 10  重构条件分支，避免继续堆叠 | [gbx]   - apps/studioV2/src/pageComponents/characters/com/CharacterDetailEditForm.tsx:42:3  STUDIO-STRUCT-002  函数 CharacterDetailEditForm 有效行数 84 超过告警线 60  考虑拆分以保持可测性 | [gbx]   - apps/studioV2/src/pageComponents/characters/hooks/useCharacterLibraryPage.ts:18:1  STUDIO-STRUCT-002  函数 useCharacterLibraryPage 有效行数 71 超过告警线 60  考虑拆分以保持可测性 | [gbx]   - apps/studioV2/src/pageComponents/debugger/com/CallRunPanel.tsx:43:52  STUDIO-STRUCT-002  函数 CallRunPanel 有效行数 72 超过告警线 60  考虑拆分以保持可测性 | [gbx]   - apps/studioV2/src/pageComponents/home/WorkbenchSideCol.tsx:21:37  STUDIO-STRUCT-002  函数 WorkbenchSideCol 有效行数 78 超过告警线 60  考虑拆分以保持可测性 | [gbx]   - apps/studioV2/src/pageComponents/packages/create/CreatePackageView.tsx:22:38  STUDIO-STRUCT-002  函数 CreatePackageView 有效行数 63 超过告警线 60  考虑拆分以保持可测性 | [gbx]   - apps/studioV2/src/pageComponents/packages/export/ExportPackageForm.tsx:33:45  STUDIO-STRUCT-002  函数 ExportPackageForm 有效行数 65 超过告警线 60  考虑拆分以保持可测性 | [gbx]   - apps/studioV2/src/pageComponents/packages/list/PackageListView.tsx:30:36  STUDIO-STRUCT-002  函数 PackageListView 有效行数 84 超过告警线 60  考虑拆分以保持可测性 | [gbx]   - apps/studioV2/src/pageComponents/settings/com/SettingsEnginePanels.tsx:92:62  STUDIO-STRUCT-002  函数 SchemaEnginePanel 有效行数 65 超过告警线 60  考虑拆分以保持可测性 | [gbx]   - apps/studioV2/src/pageComponents/storyEditor/StoryEditorShell.tsx:36:60  STUDIO-STRUCT-002  函数 StoryEditorShell 有效行数 95 超过告警线 60  考虑拆分以保持可测性 | [gbx]   - apps/studioV2/src/pageComponents/storyEditor/canvas/useStoryCanvasGraph.ts:54:1  STUDIO-STRUCT-002  函数 useStoryCanvasGraph 有效行数 98 超过告警线 60  考虑拆分以保持可测性 | [gbx]   - apps/studioV2/src/pageComponents/storyEditor/com/panel/NodePropertyForm.tsx:39:60  STUDIO-STRUCT-002  函数 NodePropertyForm 有效行数 77 超过告警线 60  考虑拆分以保持可测性 | [gbx]   - apps/studioV2/src/pageComponents/users/hooks/useUserLibraryPage.ts:18:1  STUDIO-STRUCT-002  函数 useUserLibraryPage 有效行数 69 超过告警线 60  考虑拆分以保持可测性 | [gbx] verify report: /Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-refine1/reports/latest-verify.json | [gbx] review report: /Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-refine1/reviews/latest.json | [gbx] hint: fix the locations above, then re-run gbx (often with --reset-state if status stuck BLOCKED) | [gbx] =============================
+[2026-07-17T07:49:53.527Z] clear-blocked afterManual=true → VERIFY_BATCH (--after-manual: active batch already ✅ → VERIFY_BATCH)
+[2026-07-17T07:49:53.528Z] checkpoint preflight skipped=true checkpoints disabled (default; pass --checkpoint to enable)
+[2026-07-17T07:49:53.528Z] start status=VERIFY_BATCH mock=false
+[2026-07-17T07:49:53.528Z] iter=1 status=VERIFY_BATCH
+[2026-07-17T07:49:55.531Z] verify ok=false checks=true → FIX_BATCH (batch verify failed) fingerprint=1e77f693d87aade51c6cc76f484ba8269e12cf99
+[2026-07-17T07:49:55.531Z] iter=2 status=FIX_BATCH
+[2026-07-17T07:49:55.566Z] fixer failed exit=1
+[2026-07-17T07:49:55.566Z] iter=3 status=BLOCKED
+[2026-07-17T08:02:00.197Z] clear-blocked afterManual=false → EXECUTE_BATCH (remaining todos=8 → EXECUTE_BATCH)
+[2026-07-17T08:02:00.209Z] checkpoint preflight skipped=true checkpoints disabled (default; pass --checkpoint to enable)
+[2026-07-17T08:02:00.209Z] start status=EXECUTE_BATCH mock=false
+[2026-07-17T08:02:00.214Z] iter=1 status=EXECUTE_BATCH
+[2026-07-17T08:11:56.029Z] checkpoint preflight skipped=true checkpoints disabled (default; pass --checkpoint to enable)
+[2026-07-17T08:11:56.035Z] start status=EXECUTE_BATCH mock=false
+[2026-07-17T08:11:56.039Z] iter=1 status=EXECUTE_BATCH
+[2026-07-17T08:23:40.571Z] iter=2 status=BATCH_REVIEW
+[2026-07-17T08:25:21.014Z] batch review → FIX_BATCH (review fail blocker=0 critical=2)
+[2026-07-17T08:25:21.015Z] iter=3 status=FIX_BATCH
+[2026-07-17T08:28:41.372Z] iter=4 status=VERIFY_BATCH
+[2026-07-17T08:28:45.653Z] checkbox missing: V2-R2-3,V2-R2-4,V2-R3-1
+[2026-07-17T08:28:45.654Z] verify ok=false checks=false → FIX_BATCH (batch verify failed) fingerprint=6cb15a547087119746f58b55bd9cb5869065a424
+[2026-07-17T08:28:45.654Z] iter=5 status=FIX_BATCH
+[2026-07-17T08:29:56.324Z] iter=6 status=VERIFY_BATCH
+[2026-07-17T08:30:00.601Z] checkbox missing: V2-R2-3,V2-R2-4,V2-R3-1
+[2026-07-17T08:30:00.601Z] verify ok=false checks=false → FIX_BATCH (batch verify failed) fingerprint=2a2477d71bf9eaac59fbe98707534ea26a30ae2a
+[2026-07-17T08:30:00.602Z] iter=7 status=FIX_BATCH
+[2026-07-17T08:34:04.045Z] iter=8 status=VERIFY_BATCH
+[2026-07-17T08:34:08.333Z] checkbox missing: V2-R2-3,V2-R2-4,V2-R3-1
+[2026-07-17T08:34:08.333Z] verify ok=false checks=false → FIX_BATCH (batch verify failed) fingerprint=6f39189e9326022d0f5167ab7c2c0e66a92c897b
+[2026-07-17T08:34:08.333Z] iter=9 status=FIX_BATCH
+[2026-07-17T08:46:22.642Z] iter=10 status=VERIFY_BATCH
+[2026-07-17T08:46:29.142Z] checkbox missing: V2-R2-3,V2-R2-4,V2-R3-1
+[2026-07-17T08:46:29.143Z] verify ok=false checks=false → FIX_BATCH (batch verify failed) fingerprint=e475b443aa5dd963e032509f2d2cbe8e8932f303
+[2026-07-17T08:46:29.143Z] iter=11 status=FIX_BATCH
+[2026-07-17T08:47:56.179Z] iter=12 status=VERIFY_BATCH
+[2026-07-17T08:48:02.299Z] checkbox missing: V2-R2-3,V2-R2-4,V2-R3-1
+[2026-07-17T08:48:02.299Z] verify ok=true checks=false → FIX_BATCH (checkbox_missing; tasks not checked: V2-R2-3,V2-R2-4,V2-R3-1) fingerprint=-
+[2026-07-17T08:48:02.299Z] iter=13 status=FIX_BATCH
+[2026-07-17T08:48:26.158Z] iter=14 status=VERIFY_BATCH
+[2026-07-17T08:48:32.077Z] checkpoint skipped=true sha=null checkpoints disabled
+[2026-07-17T08:48:32.077Z] verify ok=true checks=true → EXECUTE_BATCH (batch verify pass; more todos) fingerprint=-
+[2026-07-17T08:48:32.078Z] iter=15 status=EXECUTE_BATCH
+[2026-07-17T08:59:37.407Z] iter=16 status=BATCH_REVIEW
+[2026-07-17T09:01:09.004Z] batch review → FIX_BATCH (review fail blocker=0 critical=0)
+[2026-07-17T09:01:09.005Z] iter=17 status=FIX_BATCH
+[2026-07-17T09:02:33.475Z] iter=18 status=VERIFY_BATCH
+[2026-07-17T09:02:37.889Z] checkbox missing: V2-R3-2,V2-R3-3,V2-R4-1
+[2026-07-17T09:02:37.890Z] verify ok=false checks=false → FIX_BATCH (batch verify failed) fingerprint=837437fcd7d4e559cf44e4dfed56575dee97caa3
+[2026-07-17T09:02:37.890Z] iter=19 status=FIX_BATCH
+[2026-07-17T09:04:02.524Z] iter=20 status=VERIFY_BATCH
+[2026-07-17T09:04:07.026Z] checkbox missing: V2-R3-2,V2-R3-3,V2-R4-1
+[2026-07-17T09:04:07.026Z] verify ok=false checks=false → FIX_BATCH (batch verify failed) fingerprint=f143f740dac75f363f85dd64a4655e534f5a080c
+[2026-07-17T09:04:07.027Z] iter=21 status=FIX_BATCH
+[2026-07-17T09:21:20.195Z] iter=22 status=VERIFY_BATCH
+[2026-07-17T09:21:24.087Z] checkbox missing: V2-R3-2,V2-R3-3,V2-R4-1
+[2026-07-17T09:21:24.087Z] verify ok=false checks=false → FIX_BATCH (batch verify failed) fingerprint=1da0f8efcf0382de21b012153898125026aed14c
+[2026-07-17T09:21:24.088Z] iter=23 status=FIX_BATCH
+[2026-07-17T09:22:16.290Z] iter=24 status=VERIFY_BATCH
+[2026-07-17T09:22:20.617Z] checkbox missing: V2-R3-2,V2-R3-3,V2-R4-1
+[2026-07-17T09:22:20.617Z] verify ok=false checks=false → FIX_BATCH (batch verify failed) fingerprint=2bd670d05898520b7080ccc4bceb25bcc8a3af8d
+[2026-07-17T09:22:20.617Z] iter=25 status=FIX_BATCH
+[2026-07-17T09:26:21.835Z] iter=26 status=VERIFY_BATCH
+[2026-07-17T09:26:30.377Z] checkbox missing: V2-R3-2,V2-R3-3,V2-R4-1
+[2026-07-17T09:26:30.377Z] verify ok=true checks=false → FIX_BATCH (checkbox_missing; tasks not checked: V2-R3-2,V2-R3-3,V2-R4-1) fingerprint=-
+[2026-07-17T09:26:30.378Z] iter=27 status=FIX_BATCH
+[2026-07-17T09:26:59.134Z] iter=28 status=VERIFY_BATCH
+[2026-07-17T09:27:05.594Z] checkpoint skipped=true sha=null checkpoints disabled
+[2026-07-17T09:27:05.594Z] verify ok=true checks=true → EXECUTE_BATCH (batch verify pass; more todos) fingerprint=-
+[2026-07-17T09:27:05.595Z] iter=29 status=EXECUTE_BATCH
+[2026-07-17T09:33:06.848Z] iter=30 status=BATCH_REVIEW
+[2026-07-17T09:34:25.099Z] batch review → FIX_BATCH (review fail blocker=0 critical=0)
+[2026-07-17T09:34:25.101Z] iter=31 status=FIX_BATCH
+[2026-07-17T09:38:04.738Z] iter=32 status=VERIFY_BATCH
+[2026-07-17T09:38:13.514Z] checkbox missing: V2-R4-2,V2-R4-3
+[2026-07-17T09:38:13.514Z] verify ok=true checks=false → FIX_BATCH (checkbox_missing; tasks not checked: V2-R4-2,V2-R4-3) fingerprint=-
+[2026-07-17T09:38:13.515Z] iter=33 status=FIX_BATCH
+[2026-07-17T09:38:40.710Z] iter=34 status=VERIFY_BATCH
+[2026-07-17T09:38:47.846Z] checkpoint skipped=true sha=null checkpoints disabled
+[2026-07-17T09:38:47.846Z] verify ok=true checks=true → FULL_REVIEW (batch verify pass; no todos left) fingerprint=-
+[2026-07-17T09:38:47.846Z] iter=35 status=FULL_REVIEW
+[2026-07-17T09:40:25.465Z] full review → READY_FOR_MANUAL_QA (full review pass)
+[2026-07-17T09:40:25.466Z] iter=36 status=READY_FOR_MANUAL_QA

@@ -1,0 +1,38 @@
+[gbx] ▶ executor:V2-A3+V2-U1+V2-U2 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … executor:V2-A3+V2-U1+V2-U2 still running (15s elapsed, no output for 15s)
+[gbx] … executor:V2-A3+V2-U1+V2-U2 still running (30s elapsed, no output for 30s)
+[gbx] … executor:V2-A3+V2-U1+V2-U2 still running (45s elapsed, no output for 45s)
+[gbx] … executor:V2-A3+V2-U1+V2-U2 still running (60s elapsed, no output for 60s)
+[gbx] … executor:V2-A3+V2-U1+V2-U2 still running (75s elapsed, no output for 75s)
+[gbx] … executor:V2-A3+V2-U1+V2-U2 still running (90s elapsed, no output for 90s)
+[gbx] … executor:V2-A3+V2-U1+V2-U2 still running (105s elapsed, no output for 105s)
+[gbx] … executor:V2-A3+V2-U1+V2-U2 still running (120s elapsed, no output for 120s)
+[gbx] … executor:V2-A3+V2-U1+V2-U2 still running (135s elapsed, no output for 135s)
+[gbx] … executor:V2-A3+V2-U1+V2-U2 still running (150s elapsed, no output for 150s)
+[gbx] … executor:V2-A3+V2-U1+V2-U2 still running (165s elapsed, no output for 165s)
+[gbx] … executor:V2-A3+V2-U1+V2-U2 still running (180s elapsed, no output for 180s)
+本批代码已写完，但 **verify NOT run**（本环境 Shell 调用被拒），因此执行索引中 **V2-A3 / V2-U1 / V2-U2 仍保持 ⬜**，未勾选。
+
+### 已实现
+
+**V2-A3 资源删改 mock**
+- `removeMockAsset` + `commitDeleteAssetMock`
+- 列表行「删除」+ `AssetDeleteConfirmModal`
+- 详情保存（A2）与删除后列表/选中态会话内一致
+
+**V2-U1 新建用户档案**
+- `FormModal`（昵称必填、常用度、备注）；`userId` 系统生成
+- `MOCK_USER_PROFILES` 改为可变 + `appendMockUserProfile` / `listMockUserProfiles`
+
+**V2-U2 用户详情可编辑**
+- Formik：基本信息 / 调试偏好 / 备注；`userId` 与最近调试只读
+- 「应用更改（会话内）」写入 mock
+
+### 请你本地补跑
+
+```bash
+npm run quality:studio
+```
+
+通过后再把索引里这三行改为 ✅（或让 gbx 下一轮带 Shell 的 Executor 勾选）。
+[gbx] ■ executor:V2-A3+V2-U1+V2-U2 done exit=0 elapsed=181s

@@ -1,0 +1,113 @@
+[2026-07-15T11:05:20.566Z] checkpoint preflight skipped=true checkpoints disabled (default; pass --checkpoint to enable)
+[2026-07-15T11:05:20.566Z] start status=EXECUTE_BATCH mock=false
+[2026-07-15T11:05:20.570Z] iter=1 status=EXECUTE_BATCH
+[2026-07-15T11:12:45.825Z] iter=2 status=BATCH_REVIEW
+[2026-07-15T11:14:08.328Z] batch review → FIX_BATCH (review fail blocker=0 critical=0)
+[2026-07-15T11:14:08.330Z] iter=3 status=FIX_BATCH
+[2026-07-15T11:38:09.620Z] iter=4 status=VERIFY_BATCH
+[2026-07-15T11:38:12.583Z] checkpoint skipped=true sha=null checkpoints disabled
+[2026-07-15T11:38:12.583Z] verify ok=true checks=true → EXECUTE_BATCH (batch verify pass; more todos) fingerprint=-
+[2026-07-15T11:38:12.584Z] iter=5 status=EXECUTE_BATCH
+[2026-07-15T14:29:57.447Z] iter=6 status=BATCH_REVIEW
+[2026-07-15T14:31:13.728Z] batch review → FIX_BATCH (review fail blocker=0 critical=0)
+[2026-07-15T14:31:13.729Z] iter=7 status=FIX_BATCH
+[2026-07-15T14:33:28.379Z] iter=8 status=VERIFY_BATCH
+[2026-07-15T14:33:31.299Z] checkpoint skipped=true sha=null checkpoints disabled
+[2026-07-15T14:33:31.299Z] verify ok=true checks=true → EXECUTE_BATCH (batch verify pass; more todos) fingerprint=-
+[2026-07-15T14:33:31.299Z] iter=9 status=EXECUTE_BATCH
+[2026-07-15T14:38:31.553Z] iter=10 status=BATCH_REVIEW
+[2026-07-15T14:39:37.502Z] batch review → FIX_BATCH (review fail blocker=0 critical=0)
+[2026-07-15T14:39:37.502Z] iter=11 status=FIX_BATCH
+[2026-07-15T14:42:00.056Z] iter=12 status=VERIFY_BATCH
+[2026-07-15T14:42:02.985Z] checkpoint skipped=true sha=null checkpoints disabled
+[2026-07-15T14:42:02.985Z] verify ok=true checks=true → EXECUTE_BATCH (batch verify pass; more todos) fingerprint=-
+[2026-07-15T14:42:02.985Z] iter=13 status=EXECUTE_BATCH
+[2026-07-15T20:06:19.936Z] executor failed exit=1
+[2026-07-15T20:06:19.939Z] iter=14 status=BLOCKED
+[2026-07-16T00:44:16.587Z] checkpoint preflight skipped=true checkpoints disabled (default; pass --checkpoint to enable)
+[2026-07-16T00:44:16.593Z] start status=BLOCKED mock=false
+[2026-07-16T00:44:16.599Z] iter=1 status=BLOCKED
+[2026-07-16T00:47:52.447Z] clear-blocked → EXECUTE_BATCH
+[2026-07-16T00:47:52.449Z] checkpoint preflight skipped=true checkpoints disabled (default; pass --checkpoint to enable)
+[2026-07-16T00:47:52.450Z] start status=EXECUTE_BATCH mock=false
+[2026-07-16T00:47:52.450Z] iter=1 status=EXECUTE_BATCH
+[2026-07-16T00:52:19.170Z] iter=2 status=BATCH_REVIEW
+[2026-07-16T00:53:05.797Z] batch review → FIX_BATCH (review fail blocker=0 critical=0)
+[2026-07-16T00:53:05.798Z] iter=3 status=FIX_BATCH
+[2026-07-16T00:54:39.968Z] iter=4 status=VERIFY_BATCH
+[2026-07-16T00:54:47.610Z] checkbox missing: V1-E10,V1-P1,V1-P2
+[2026-07-16T00:54:47.611Z] verify ok=true checks=false → FIX_BATCH (batch verify failed) fingerprint=-
+[2026-07-16T00:54:47.611Z] iter=5 status=FIX_BATCH
+[2026-07-16T00:55:20.982Z] iter=6 status=VERIFY_BATCH
+[2026-07-16T00:55:25.250Z] checkpoint skipped=true sha=null checkpoints disabled
+[2026-07-16T00:55:25.250Z] verify ok=true checks=true → EXECUTE_BATCH (batch verify pass; more todos) fingerprint=-
+[2026-07-16T00:55:25.250Z] iter=7 status=EXECUTE_BATCH
+[2026-07-16T01:06:42.097Z] iter=8 status=BATCH_REVIEW
+[2026-07-16T01:08:08.228Z] batch review → FIX_BATCH (review fail blocker=0 critical=0)
+[2026-07-16T01:08:08.228Z] iter=9 status=FIX_BATCH
+[2026-07-16T01:11:16.223Z] iter=10 status=VERIFY_BATCH
+[2026-07-16T01:11:17.704Z] checkbox missing: V1-P3,V1-Q1,V1-Q2
+[2026-07-16T01:11:17.704Z] verify ok=false checks=false → FIX_BATCH (batch verify failed) fingerprint=525734ad1183d78c69e2084759724563a6ec2772
+[2026-07-16T01:11:17.704Z] iter=11 status=FIX_BATCH
+[2026-07-16T01:22:58.953Z] checkpoint preflight skipped=true checkpoints disabled (default; pass --checkpoint to enable)
+[2026-07-16T01:22:58.954Z] start status=FIX_BATCH mock=false
+[2026-07-16T01:22:58.957Z] iter=1 status=FIX_BATCH
+[2026-07-16T01:35:29.051Z] iter=2 status=VERIFY_BATCH
+[2026-07-16T01:35:35.451Z] checkbox missing: V1-P3,V1-Q1,V1-Q2
+[2026-07-16T01:35:35.451Z] verify ok=true checks=false → FIX_BATCH (batch verify failed) fingerprint=-
+[2026-07-16T01:35:35.454Z] iter=3 status=FIX_BATCH
+[2026-07-16T01:36:08.061Z] iter=4 status=VERIFY_BATCH
+[2026-07-16T01:36:14.034Z] checkpoint skipped=true sha=null checkpoints disabled
+[2026-07-16T01:36:14.034Z] verify ok=true checks=true → EXECUTE_BATCH (batch verify pass; more todos) fingerprint=-
+[2026-07-16T01:36:14.035Z] iter=5 status=EXECUTE_BATCH
+[2026-07-16T01:48:29.055Z] iter=6 status=BATCH_REVIEW
+[2026-07-16T01:49:40.105Z] batch review → FIX_BATCH (review fail blocker=0 critical=0)
+[2026-07-16T01:49:40.106Z] iter=7 status=FIX_BATCH
+[2026-07-16T01:55:58.123Z] iter=8 status=VERIFY_BATCH
+[2026-07-16T01:55:59.186Z] checkbox missing: V1-Q3,V1-Q4,V1-U1
+[2026-07-16T01:55:59.186Z] verify ok=false checks=false → FIX_BATCH (batch verify failed) fingerprint=98338dc4d5a74f6c0ce849bdf035f0d4d55093d2
+[2026-07-16T01:55:59.187Z] iter=9 status=FIX_BATCH
+[2026-07-16T01:58:38.265Z] iter=10 status=VERIFY_BATCH
+[2026-07-16T01:58:48.009Z] checkbox missing: V1-Q3,V1-Q4,V1-U1
+[2026-07-16T01:58:48.010Z] verify ok=true checks=false → FIX_BATCH (batch verify failed) fingerprint=-
+[2026-07-16T01:58:48.010Z] iter=11 status=FIX_BATCH
+[2026-07-16T01:59:27.521Z] iter=12 status=VERIFY_BATCH
+[2026-07-16T01:59:35.108Z] checkpoint skipped=true sha=null checkpoints disabled
+[2026-07-16T01:59:35.108Z] verify ok=true checks=true → EXECUTE_BATCH (batch verify pass; more todos) fingerprint=-
+[2026-07-16T01:59:35.108Z] iter=13 status=EXECUTE_BATCH
+[2026-07-16T02:09:31.464Z] iter=14 status=BATCH_REVIEW
+[2026-07-16T02:10:54.342Z] batch review → FIX_BATCH (review fail blocker=0 critical=0)
+[2026-07-16T02:10:54.344Z] iter=15 status=FIX_BATCH
+[2026-07-16T02:22:50.935Z] iter=16 status=VERIFY_BATCH
+[2026-07-16T02:22:54.594Z] checkbox missing: V1-U2,V1-U3,V1-U4
+[2026-07-16T02:22:54.594Z] verify ok=false checks=false → FIX_BATCH (batch verify failed) fingerprint=95764b18420f5dcae835fbd90ae1ded0056fcb9c
+[2026-07-16T02:22:54.595Z] iter=17 status=FIX_BATCH
+[2026-07-16T02:44:17.548Z] iter=18 status=VERIFY_BATCH
+[2026-07-16T02:44:20.993Z] checkbox missing: V1-U2,V1-U3,V1-U4
+[2026-07-16T02:44:20.993Z] verify ok=false checks=false → FIX_BATCH (batch verify failed) fingerprint=95764b18420f5dcae835fbd90ae1ded0056fcb9c
+[2026-07-16T02:44:20.994Z] iter=19 status=FIX_BATCH
+[2026-07-16T02:53:47.804Z] iter=20 status=VERIFY_BATCH
+[2026-07-16T02:53:55.047Z] checkbox missing: V1-U2,V1-U3,V1-U4
+[2026-07-16T02:53:55.047Z] verify ok=true checks=false → FIX_BATCH (batch verify failed) fingerprint=-
+[2026-07-16T02:53:55.048Z] iter=21 status=FIX_BATCH
+[2026-07-16T02:54:38.095Z] iter=22 status=VERIFY_BATCH
+[2026-07-16T02:54:44.434Z] checkpoint skipped=true sha=null checkpoints disabled
+[2026-07-16T02:54:44.435Z] verify ok=true checks=true → EXECUTE_BATCH (batch verify pass; more todos) fingerprint=-
+[2026-07-16T02:54:44.435Z] iter=23 status=EXECUTE_BATCH
+[2026-07-16T03:03:13.542Z] iter=24 status=BATCH_REVIEW
+[2026-07-16T03:04:37.547Z] batch review → FIX_BATCH (review fail blocker=0 critical=0)
+[2026-07-16T03:04:37.548Z] iter=25 status=FIX_BATCH
+[2026-07-16T03:06:01.637Z] iter=26 status=VERIFY_BATCH
+[2026-07-16T03:06:05.390Z] verify ok=false checks=true → FIX_BATCH (batch verify failed) fingerprint=95764b18420f5dcae835fbd90ae1ded0056fcb9c
+[2026-07-16T03:06:05.391Z] iter=27 status=FIX_BATCH
+[2026-07-16T03:20:21.575Z] iter=28 status=VERIFY_BATCH
+[2026-07-16T03:20:32.427Z] checkpoint skipped=true sha=null checkpoints disabled
+[2026-07-16T03:20:32.428Z] verify ok=true checks=true → FULL_REVIEW (batch verify pass; no todos left) fingerprint=-
+[2026-07-16T03:20:32.428Z] iter=29 status=FULL_REVIEW
+[2026-07-16T03:22:54.707Z] iter=30 status=BLOCKED
+[2026-07-16T04:14:05.771Z] clear-blocked → FULL_REVIEW
+[2026-07-16T04:14:05.773Z] checkpoint preflight skipped=true checkpoints disabled (default; pass --checkpoint to enable)
+[2026-07-16T04:14:05.773Z] start status=FULL_REVIEW mock=true
+[2026-07-16T04:14:05.773Z] iter=1 status=FULL_REVIEW
+[2026-07-16T04:14:05.777Z] full review → READY_FOR_MANUAL_QA (full review pass)
+[2026-07-16T04:14:05.777Z] iter=2 status=READY_FOR_MANUAL_QA

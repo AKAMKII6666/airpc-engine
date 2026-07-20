@@ -1,0 +1,48 @@
+---
+description: Studio V2 代码可读性、注释与复杂度硬规则
+alwaysApply: true
+---
+
+# Studio V2 代码质量规则
+
+本规则适用于 Studio V2 新项目。V2 工程根目录确定后，门禁脚本和 CI 必须以该目录为强制检查范围；旧 Studio 只作为参考与遗留验证台，不得用旧代码现状降低 V2 标准。
+
+完整门禁需求见 [Studio V2 前端工程规则与质量门禁需求](../../docs/AI和人类/sudioV2.0版本/需求/ui/08-Studio-V2前端工程规则与质量门禁需求.md)。目录落点真源见 [Studio V2 前端目录结构与落点规则](../../docs/AI和人类/sudioV2.0版本/需求/ui/09-Studio-V2前端目录结构与落点规则.md)。
+
+## 必须执行
+
+- `page.tsx` 只负责路由入口、首屏装配和错误边界，不承载完整业务流程。
+- Studio V2 只认 `app/`、`src/`、`typeFiles/`、`tests/` 作为业务目录；禁止新增旧式顶层 `features/`、`domain/`、`services/`、`commands/`、`store/`。
+- `app/` 只放 Next 路由入口；页面主组件必须进 `src/pageComponents/<route>/index.tsx`。
+- 页面和组件编排必须进 `src/bis/`；前端状态必须进 `src/stores/`；公共工具必须进 `src/utils/`；类型、DTO、枚举和 UI 投影契约必须进 `typeFiles/`。
+- UI 组件只负责展示与交互转发；领域判断、请求编排、保存事务、画布命令不得堆入组件。
+- **≥2 个业务页面**复用的展示组件（Modal、表单字段、分页等）必须抽到 `apps/studioV2/src/commonUiComponents/`；禁止在各页 `com/` 复制粘贴；禁止本目录 barrel `index.ts`。单页私有组件仍放 `pageComponents/<route>/com/`。
+- `commonUiComponents/` 内公共 UI 组件必须使用目录单元：`ComponentName/index.tsx`、可选 `index.module.scss`、`com/`、`images/`、`hooks/`；禁止 `ComponentName.tsx + ComponentName.module.scss` 平铺。
+- Studio V2 新增或修改的代码文件必须使用 tab 缩进，禁止行首空格缩进；历史文件以门禁 baseline 为边界，触碰即按新规整改。
+- TSX 中引用自定义组件时，引用上方必须有一行用途注释：`// 引用了XXX组件，用于XXX`；处于 JSX 树内时写成 `{/* 引用了XXX组件，用于XXX */}`。
+- React 组件的 props 必须在参数入口显式解构，并为每个解构字段写入口说明注释；禁止 `function X(props: XProps) { const { a } = props; }` 这类入口不透明写法。
+- 单文件达到告警线时应在当前任务内说明原因；达到硬上限必须拆分，禁止用关闭规则或空白压缩绕过。
+- 新增或修改的公共领域契约、跨层端口、编辑器命令、复杂状态转换和非显然副作用必须写意图注释或 JSDoc。
+- 导出的领域 `interface` / `type` 中，不能从字段名直接理解的字段必须有字段级说明，尤其是单位、时序、可空语义、所有权、持久化位置与互斥关系。
+- `eslint-disable`、`@ts-ignore`、`@ts-expect-error`、门禁豁免必须在同处写明原因；临时豁免还必须写清退出条件。
+- 注释必须解释“为什么、约束、时序或副作用”，禁止用复述代码的注释凑门禁。
+- 代码行为、字段语义或约束变化时必须同步更新相关注释；错误注释视为缺陷。
+- V2 合并前必须通过统一质量命令；不得以人工承诺替代机器门禁。
+
+## 注释不要求覆盖的内容
+
+- 语义直接的局部变量、简单样式映射和纯展示 JSX。
+- 一眼可见的 getter、简单事件转发和框架样板。
+- 仅用于描述下一行代码做了什么的重复说明。
+
+“无需注释”不等于允许大函数或隐式副作用；这类问题应通过拆分、命名和类型先解决。
+
+## 禁止事项
+
+- 按注释行数或注释密度制造无意义注释。
+- 用文件头大段说明代替具体契约、字段或复杂流程旁的说明。
+- 为通过行数门禁删除有价值的注释、压成单行或堆入匿名回调。
+- 用任意 `eslint-disable`、门禁忽略目录或永久 allowlist 掩盖结构问题。
+- 把旧 Studio 的超长 page、超大 Hook、JSON 表单和混合职责复制进 V2。
+- 保留 `@deprecated 已迁至...`、`兼容转发`、re-export barrel 等迁移壳；V2 是新项目，移动文件必须同步改 import 并删除旧路径。
+- 在父目录和子目录保留同名组件或同名类型文件，例如 `debugger/CallRunPanel.tsx` 与 `debugger/com/CallRunPanel.tsx` 并存。

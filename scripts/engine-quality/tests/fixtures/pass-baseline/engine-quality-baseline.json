@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "files": [
+    {
+      "file": "scripts/engine-quality/tests/fixtures/pass-baseline/src/legacy.ts",
+      "effectiveLines": 520,
+      "maxFnLines": 0,
+      "maxComplexity": 0,
+      "reason": "fixture",
+      "owner": "test",
+      "recordedAt": "2026-07-16",
+      "exitCondition": "shrink"
+    }
+  ]
+}

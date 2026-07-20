@@ -1,0 +1,11 @@
+{
+  "engineRoot": "packages/rpg-engine",
+  "excludeDirNames": ["node_modules", "dist", ".turbo"],
+  "thresholds": {
+    "source": { "warnLines": 350, "hardLines": 500 },
+    "host": { "warnLines": 400, "hardLines": 600 },
+    "test": { "warnLines": 450, "hardLines": 700 },
+    "function": { "warnLines": 60, "hardLines": 100 },
+    "complexity": { "warn": 10, "hard": 15 }
+  }
+}

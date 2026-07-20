@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "label": "batch-5",
+  "at": "2026-07-16T01:11:17.699Z",
+  "ok": false,
+  "phase": "batch",
+  "activeTaskIds": [
+    "V1-P3",
+    "V1-Q1",
+    "V1-Q2"
+  ],
+  "reason": "command failed",
+  "failedCommand": "npm run lint -w @airpc/studio-v2",
+  "exitCode": 127,
+  "results": [
+    {
+      "command": "npm run typecheck -w @airpc/studio-v2",
+      "exitCode": 0,
+      "signal": null,
+      "error": null,
+      "stdout": "[gbx] ▶ verify:npm run typecheck -w @airpc/studio-v2 start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> @airpc/studio-v2@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n[gbx] ■ verify:npm run typecheck -w @airpc/studio-v2 done exit=0 elapsed=1s\n",
+      "stderr": "",
+      "stdoutTail": "[gbx] ▶ verify:npm run typecheck -w @airpc/studio-v2 start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> @airpc/studio-v2@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n[gbx] ■ verify:npm run typecheck -w @airpc/studio-v2 done exit=0 elapsed=1s\n",
+      "stderrTail": "",
+      "errorLocations": []
+    },
+    {
+      "command": "npm run lint -w @airpc/studio-v2",
+      "exitCode": 127,
+      "signal": null,
+      "error": null,
+      "stdout": "[gbx] ▶ verify:npm run lint -w @airpc/studio-v2 start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> @airpc/studio-v2@0.0.1 lint\n> eslint . --max-warnings 0\n\nsh: eslint: command not found\nnpm error Lifecycle script `lint` failed with error:\nnpm error code 127\nnpm error path /Users/bolbiao/workspace/airpc-engine/apps/studioV2\nnpm error workspace @airpc/studio-v2@0.0.1\nnpm error location /Users/bolbiao/workspace/airpc-engine/apps/studioV2\nnpm error command failed\nnpm error command sh -c eslint . --max-warnings 0\n[gbx] ■ verify:npm run lint -w @airpc/studio-v2 done exit=127 elapsed=0s\n",
+      "stderr": "",
+      "stdoutTail": "[gbx] ▶ verify:npm run lint -w @airpc/studio-v2 start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> @airpc/studio-v2@0.0.1 lint\n> eslint . --max-warnings 0\n\nsh: eslint: command not found\nnpm error Lifecycle script `lint` failed with error:\nnpm error code 127\nnpm error path /Users/bolbiao/workspace/airpc-engine/apps/studioV2\nnpm error workspace @airpc/studio-v2@0.0.1\nnpm error location /Users/bolbiao/workspace/airpc-engine/apps/studioV2\nnpm error command failed\nnpm error command sh -c eslint . --max-warnings 0\n[gbx] ■ verify:npm run lint -w @airpc/studio-v2 done exit=127 elapsed=0s\n",
+      "stderrTail": "",
+      "errorLocations": []
+    }
+  ],
+  "errorLocations": [],
+  "historyFile": "batch-5-1784164277699.json"
+}

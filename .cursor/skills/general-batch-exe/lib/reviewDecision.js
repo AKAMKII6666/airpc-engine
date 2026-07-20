@@ -82,6 +82,7 @@ function decideAfterReview(report, ctx) {
 
 /**
  * After VERIFY_BATCH / FULL_VERIFY script-only gate.
+ * Scripts red (!verifyOk) and checkbox gaps (!checksOk) use separate budgets.
  */
 function decideAfterVerify({
   verifyOk,
@@ -92,8 +93,17 @@ function decideAfterVerify({
   fullFixAttempts,
   maxFixAttempts,
   maxFullFixAttempts,
+  checkboxFixAttempts = 0,
+  maxCheckboxFixAttempts = 2,
+  missingTaskIds = [],
 }) {
-  if (!verifyOk || !checksOk) {
+  const missingLabel =
+    Array.isArray(missingTaskIds) && missingTaskIds.length
+      ? missingTaskIds.join(',')
+      : '(unknown)';
+
+  // Hard verify failure (commands exit ≠ 0)
+  if (!verifyOk) {
     if (phase === 'full') {
       if (fullFixAttempts >= maxFullFixAttempts) {
         return { next: STATUSES.BLOCKED, reason: 'full verify failed; fix budget exhausted' };
@@ -104,6 +114,32 @@ function decideAfterVerify({
       return { next: STATUSES.BLOCKED, reason: 'batch verify failed; fix budget exhausted' };
     }
     return { next: STATUSES.FIX_BATCH, reason: 'batch verify failed' };
+  }
+
+  // Scripts green but active tasks still ⬜ — do not burn hard-fix budget
+  if (!checksOk) {
+    if (phase === 'full') {
+      if (checkboxFixAttempts >= maxCheckboxFixAttempts) {
+        return {
+          next: STATUSES.BLOCKED,
+          reason: `checkbox_missing; fix budget exhausted; missing=${missingLabel}`,
+        };
+      }
+      return {
+        next: STATUSES.FULL_FIX,
+        reason: `checkbox_missing; tasks not checked: ${missingLabel}`,
+      };
+    }
+    if (checkboxFixAttempts >= maxCheckboxFixAttempts) {
+      return {
+        next: STATUSES.BLOCKED,
+        reason: `checkbox_missing; fix budget exhausted; missing=${missingLabel}`,
+      };
+    }
+    return {
+      next: STATUSES.FIX_BATCH,
+      reason: `checkbox_missing; tasks not checked: ${missingLabel}`,
+    };
   }
 
   if (phase === 'full') {

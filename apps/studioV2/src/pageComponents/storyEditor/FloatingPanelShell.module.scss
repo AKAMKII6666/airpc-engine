@@ -1,0 +1,36 @@
+@use "../../../typeFiles/theme/tokens.scss" as t;
+
+.panel {
+	position: absolute;
+	top: 72px;
+	right: 20px;
+	width: 400px;
+	max-width: min(420px, calc(100% - 40px));
+	max-height: calc(100% - 100px);
+	overflow: auto;
+	padding: 12px 14px;
+	background: t.$bg-panel-elevated;
+	border: 1px solid t.$border-panel;
+	border-radius: 12px;
+	box-shadow: t.$shadow-panel;
+	z-index: 4;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.head {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.title {
+	font-weight: 600;
+	color: t.$text-primary;
+}
+
+.hint {
+	color: t.$text-muted;
+	line-height: 1.45;
+}

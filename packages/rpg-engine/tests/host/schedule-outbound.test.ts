@@ -43,6 +43,13 @@ describe("schedule → outbound (S3)", () => {
     );
     expect(isEngineError(badRemind)).toBe(true);
 
+    const bareRecurring = expandRegisterExitEffects(
+      "schedule_recurring_call",
+      { topic_hint: "bare", hour: 9, minute: 0 },
+      "doubao-sister",
+    );
+    expect(isEngineError(bareRecurring)).toBe(true);
+
     const ok = expandRegisterExitEffects(
       "schedule_reminder_call",
       {

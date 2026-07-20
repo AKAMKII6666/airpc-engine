@@ -1,0 +1,27 @@
+[gbx] ▶ verify:npm run typecheck start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+
+> typecheck
+> npm run build -w @airpc/rpg-engine && npm run typecheck -w @airpc/rpg-engine && npm run typecheck -w @airpc/studio
+
+
+> @airpc/rpg-engine@0.0.1 build
+> tsc -p tsconfig.build.json
+
+
+> @airpc/rpg-engine@0.0.1 typecheck
+> tsc -p tsconfig.json --noEmit
+
+
+> @airpc/studio@0.0.1 typecheck
+> tsc -p tsconfig.json --noEmit
+
+app/(studio)/world/page.tsx(213,36): error TS1351: An identifier or keyword cannot immediately follow a numeric literal.
+app/(studio)/world/page.tsx(323,38): error TS1351: An identifier or keyword cannot immediately follow a numeric literal.
+npm error Lifecycle script `typecheck` failed with error:
+npm error code 1
+npm error path /Users/bolbiao/workspace/airpc-engine/apps/studio
+npm error workspace @airpc/studio@0.0.1
+npm error location /Users/bolbiao/workspace/airpc-engine/apps/studio
+npm error command failed
+npm error command sh -c tsc -p tsconfig.json --noEmit
+[gbx] ■ verify:npm run typecheck done exit=1 elapsed=3s

@@ -4,7 +4,7 @@
 "use client";
 
 import type { FC } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Accordion,
   AccordionDetails,
@@ -24,6 +24,8 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+import { getAssets } from "@studio/utils/ajaxHelper/studio.ajax";
+import type { IAssetMetaDto } from "@studio/types/frontEnd/assets/assets.types";
 
 const TIME_BUCKETS = [
   "late_night",
@@ -117,6 +119,19 @@ export const StoryCardPanel: FC<IStoryCardPanelProps> = function (props) {
   const card = parseCard(cardDraftJson);
   const [renameOpen, setRenameOpen] = useState(false);
   const [renameId, setRenameId] = useState("");
+  const [assets, setAssets] = useState<IAssetMetaDto[]>([]);
+
+  useEffect(
+    function (): void {
+      void (async function (): Promise<void> {
+        const res = await getAssets();
+        if (res.ok && res.data) {
+          setAssets(res.data.assets);
+        }
+      })();
+    },
+    [],
+  );
 
   function patch(mutator: (draft: Record<string, unknown>) => void): void {
     if (!card) return;
@@ -304,6 +319,40 @@ export const StoryCardPanel: FC<IStoryCardPanelProps> = function (props) {
           playback_only 已锁定 toolPolicy = deny_all（保存校验亦强制）。
         </Alert>
       ) : null}
+      <FormControl size="small" fullWidth>
+        <InputLabel>playbackClipId</InputLabel>
+        <Select
+          label="playbackClipId"
+          value={String(ctx.playbackClipId ?? "")}
+          displayEmpty
+          onChange={function (e): void {
+            const nextId = String(e.target.value);
+            patch(function (d): void {
+              const c = contextOf(d);
+              if (!nextId) {
+                const { playbackClipId: _drop, ...rest } = c;
+                void _drop;
+                d.context = rest;
+              } else {
+                d.context = { ...c, playbackClipId: nextId };
+              }
+            });
+          }}
+        >
+          <MenuItem value="">
+            <em>未选择</em>
+          </MenuItem>
+          {assets.map(function (a) {
+            const missing = a.fileExists === false ? "（文件缺失）" : "";
+            return (
+              <MenuItem key={a.assetId} value={a.assetId}>
+                {a.displayName || a.assetId} · {a.kind}
+                {missing}
+              </MenuItem>
+            );
+          })}
+        </Select>
+      </FormControl>
       <FormControl size="small" fullWidth disabled={playbackLocked}>
         <InputLabel>toolPolicy.mode</InputLabel>
         <Select

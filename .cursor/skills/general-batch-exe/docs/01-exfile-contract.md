@@ -184,10 +184,30 @@ agent:
 - 无法解析出任何待办，且未声明「仅 FULL_REVIEW」  
 - 既无 `verify_default` 又无任务级 verify，又要求自动推进（应 BLOCKED 或要求人补）  
 - frontmatter YAML 语法错误  
+- **高风险引擎任务**缺少落点声明（见 §8）时，dry-run / Reviewer 应标为不可执行，而非让 Executor 猜落点  
 
 ---
 
-## 8. 拷到其它项目时
+## 8. 高风险引擎任务声明（本库质量门禁对接）
+
+涉及 Resolver / EffectExecutor / Schedule / StorySave / Profile 隔离 / schemaVersion 的任务，执行索引正文或任务备注须写明：
+
+```text
+行为目标：要实现什么
+目标模块：主要逻辑放在哪里
+允许修改：哪些文件/目录
+禁止落点：不得继续塞入哪些上帝模块（如 createEngineHost / scheduleTick / effectExecutor）
+状态不变量：必须保持什么
+回归测试：至少哪些负向/恢复场景
+verify：npm run quality:engine
+结构预算：是否触碰历史基线，指标只能持平或下降
+```
+
+引擎批默认 verify 应为 `npm run quality:engine`（本库根命令），不是单独的 `npm test`。结构门禁真源在本库 `scripts/engine-quality/`，不在本 skill 内实现。
+
+---
+
+## 9. 拷到其它项目时
 
 1. 复制整个 `general-batch-exe` 目录（自带 `package.json`）  
 2. 准备该项目自己的执行索引（遵守本契约）  

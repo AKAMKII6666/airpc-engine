@@ -22,6 +22,10 @@ reviews/final-review.json
 
 ## 2. Schema（目标 v0）
 
+Batch Reviewer 与 Final Reviewer **使用不同的 `batchId` 契约**；不得共用含糊占位符 `"<n>"`。
+
+### 2.1 Batch Reviewer
+
 ```json
 {
   "schemaVersion": 1,
@@ -50,11 +54,41 @@ reviews/final-review.json
   "checks": {
     "typecheck": "skipped",
     "lint": "skipped",
-    "tests": "skipped"
+    "tests": "skipped",
+    "behaviorChecks": "pass",
+    "negativeChecks": "pass",
+    "structureChecks": "pass",
+    "baselineDelta": "0",
+    "qualityEngine": "pass"
   },
   "notes": "只读审查；未改代码"
 }
 ```
+
+引擎批 Reviewer 应在 `checks`（或等价 notes）中覆盖：`behaviorChecks`、`negativeChecks`、`structureChecks`、`baselineDelta`、`qualityEngine`。`npm test` 通过但未跑 / 未过 `quality:engine` 至少记 major。
+
+`batchId` = 当前批号字符串（与 prompt 中 `Current batch number` 一致）。
+
+### 2.2 Final Reviewer
+
+```json
+{
+  "schemaVersion": 1,
+  "reviewRunId": "final-reviewer-final-<uuid>",
+  "role": "final-reviewer",
+  "batchId": "final",
+  "result": "pass",
+  "blocker": 0,
+  "critical": 0,
+  "major": 0,
+  "minor": 0,
+  "recommendedNextState": "READY_FOR_MANUAL_QA",
+  "summary": "...",
+  "issues": []
+}
+```
+
+`batchId` **只能**是字符串 `"final"`。编排器校验 `role=final-reviewer + batchId=final + 当前 reviewRunId`；写批号（如 `"8"`）会导致 `BLOCKED`，**不会**放宽校验兼容数字。
 
 ### 字段说明
 
@@ -63,6 +97,7 @@ reviews/final-review.json
 | `schemaVersion` | 数字；破坏性变更时递增 |
 | `reviewRunId` | 必须逐字复制当前 Reviewer prompt 中的本轮 ID；缺失或不匹配时 BLOCKED |
 | `role` | `batch-reviewer` \| `batch-verifier` \| `final-reviewer` \| `final-verifier` \| … |
+| `batchId` | batch-reviewer → 批号字符串；**final-reviewer → 必须 `"final"`** |
 | `result` | `pass` \| `fail` \| `blocked` |
 | `blocker` / `critical` / `major` / `minor` | 非负整数；与 `issues` 一致为佳 |
 | `recommendedNextState` | FSM 状态名建议；脚本可拒绝不合理跳转 |

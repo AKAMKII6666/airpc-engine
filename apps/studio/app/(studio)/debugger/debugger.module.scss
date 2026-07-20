@@ -41,3 +41,33 @@
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+.chatLog {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 16rem;
+  overflow: auto;
+  padding: 0.5rem;
+  border-radius: 0.35rem;
+  background: oklch(0.97 0.01 160);
+  border: 1px solid color-mix(in srgb, #1a5f4a 14%, transparent);
+}
+
+.chatBubbleUser,
+.chatBubbleAssistant {
+  padding: 0.4rem 0.55rem;
+  border-radius: 0.35rem;
+  max-width: 95%;
+}
+
+.chatBubbleUser {
+  align-self: flex-end;
+  background: color-mix(in srgb, #1a5f4a 16%, #fff);
+}
+
+.chatBubbleAssistant {
+  align-self: flex-start;
+  background: #fff;
+  border: 1px solid color-mix(in srgb, #1a5f4a 12%, transparent);
+}

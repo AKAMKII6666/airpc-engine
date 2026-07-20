@@ -1,0 +1,10 @@
+[gbx] ▶ fixer:V2-R3-2+V2-R3-3+V2-R4-1 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+**Batch 2 fix（checkbox_missing）完成。**
+
+已将执行索引中活动任务标为 ✅：
+- `V2-R3-2` 角色 JSON 读写
+- `V2-R3-3` 记忆只读区
+- `V2-R4-1` 对齐创建弹窗
+
+未改代码、未追 WARN、未写 STATE.json。`latest-verify.json` 已为 `ok=true` / `exitCode=0`，本轮未重跑 verify（按 trigger 仅勾选）。
+[gbx] ■ fixer:V2-R3-2+V2-R3-3+V2-R4-1 done exit=0 elapsed=29s

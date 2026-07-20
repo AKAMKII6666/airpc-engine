@@ -1,0 +1,35 @@
+[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+
+> quality:studio
+> node scripts/studio-quality/quality-studio.mjs
+
+
+==> lint (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 lint
+> node ./scripts/run-eslint.mjs . --max-warnings 0
+
+
+==> typecheck (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 typecheck
+> tsc -p tsconfig.json --noEmit
+
+
+==> check:comments
+check:comments ok (51 files)
+
+==> check:studio-structure
+WARN STUDIO-STRUCT-001  apps/studioV2/features/home/WorkbenchShell.tsx:1:1  uiComponent 有效行数 258 超过告警线 250  尽快拆分，避免逼近硬上限
+WARN STUDIO-STRUCT-002  apps/studioV2/features/packages/create/CreatePackageView.tsx:22:38  函数 CreatePackageView 有效行数 87 超过告警线 60  考虑拆分以保持可测性
+WARN STUDIO-STRUCT-003  apps/studioV2/features/packages/import/ImportPackageView.tsx:19:38  函数 ImportPackageView 圈复杂度 11 超过告警线 10  重构条件分支，避免继续堆叠
+WARN STUDIO-STRUCT-002  apps/studioV2/features/packages/list/PackageListView.tsx:24:36  函数 PackageListView 有效行数 80 超过告警线 60  考虑拆分以保持可测性
+STUDIO-STRUCT-002  apps/studioV2/features/home/WorkbenchShell.tsx:135:1  函数 WorkbenchShell 有效行数 129 超过硬上限 100  拆出步骤函数、命令对象或纯计算
+STUDIO-STRUCT-002  apps/studioV2/features/packages/export/ExportPackageView.tsx:24:38  函数 ExportPackageView 有效行数 120 超过硬上限 100  拆出步骤函数、命令对象或纯计算
+STUDIO-STRUCT-003  apps/studioV2/features/packages/export/ExportPackageView.tsx:24:38  函数 ExportPackageView 圈复杂度 16 超过硬上限 15  用查表、状态机或早返回降低分支
+STUDIO-STRUCT-002  apps/studioV2/features/packages/import/ImportPackageView.tsx:19:38  函数 ImportPackageView 有效行数 134 超过硬上限 100  拆出步骤函数、命令对象或纯计算
+check:studio-structure failed (4 errors, 4 warnings, 51 files)
+check:studio-structure failed (exit 1)
+
+quality:studio FAILED
+[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=4s
