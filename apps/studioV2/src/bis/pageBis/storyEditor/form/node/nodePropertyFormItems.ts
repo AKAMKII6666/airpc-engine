@@ -5,14 +5,23 @@
 import type { AutoFormItem } from "@studio-v2/src/commonUiComponents/form/autoFormTypes";
 import {
 	BUILTIN_TOOL_OPTIONS,
+	CARD_KIND_OPTIONS,
 	ENTRY_MODE_OPTIONS,
 	INTERACTION_MODE_OPTIONS,
 	SCHEDULE_MODE_OPTIONS,
 	TOOL_POLICY_MODE_OPTIONS,
 } from "@studio-v2/typeFiles/story/callCardLabels";
 
-/** 基本：标题 + 入口 / 交互枚举 */
+/** 基本：卡片类型 + 标题 + 入口 / 交互枚举 */
 export const NODE_BASIC_ITEMS: AutoFormItem[] = [
+	{
+		name: "cardKind",
+		label: "卡片类型",
+		comType: "Select",
+		required: true,
+		options: [...CARD_KIND_OPTIONS],
+		helperText: "新建默认剧情通话；过场/自由/延迟外呼在此切换。",
+	},
 	{
 		name: "title",
 		label: "标题",

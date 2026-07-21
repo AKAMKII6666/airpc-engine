@@ -2,6 +2,7 @@
 
 .callCard,
 .callCardSelected {
+	position: relative;
 	width: 220px;
 	padding: 10px 12px 12px;
 	border-radius: 12px;
@@ -10,6 +11,23 @@
 	color: t.$text-primary;
 	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
 	font-size: 12px;
+}
+
+.deleteBtn {
+	position: absolute !important;
+	top: 2px;
+	right: 2px;
+	z-index: 2;
+	width: 22px !important;
+	height: 22px !important;
+	padding: 0 !important;
+	color: t.$text-muted !important;
+	font-size: 16px !important;
+	line-height: 1 !important;
+}
+
+.deleteBtn:hover {
+	color: t.$state-danger !important;
 }
 
 .callCardSelected {
@@ -174,4 +192,73 @@
 .anchorMeta {
 	color: t.$text-muted;
 	font-size: 10px;
+}
+
+.actionNode,
+.actionNodeSelected {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	width: 160px;
+	padding: 8px 10px;
+	border-radius: 10px;
+	background: rgba(16, 24, 36, 0.94);
+	border: 1px solid t.$border-node;
+	color: t.$text-primary;
+	box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
+	font-size: 12px;
+}
+
+.actionNodeSelected {
+	border-color: t.$brand-cyan;
+	box-shadow: 0 0 0 1px rgba(50, 214, 255, 0.4), 0 6px 16px rgba(0, 0, 0, 0.28);
+}
+
+.actionIcon {
+	display: grid;
+	place-items: center;
+	flex-shrink: 0;
+	color: t.$brand-cyan;
+	margin-top: 1px;
+}
+
+.actionBody {
+	min-width: 0;
+	flex: 1;
+}
+
+.actionTitle {
+	font-weight: 700;
+	font-size: 13px;
+}
+
+.actionSummary {
+	margin-top: 4px;
+	color: t.$text-secondary;
+	line-height: 1.35;
+	font-size: 11px;
+}
+
+.commentGroup,
+.commentGroupSelected {
+	width: 200px;
+	min-height: 88px;
+	padding: 10px 12px;
+	border-radius: 8px;
+	border: 1.5px dashed t.$border-node;
+	background: rgba(12, 18, 28, 0.45);
+	color: t.$text-muted;
+	box-sizing: border-box;
+}
+
+.commentGroupSelected {
+	border-color: t.$brand-primary;
+	color: t.$text-secondary;
+	box-shadow: 0 0 0 1px rgba(91, 108, 255, 0.35);
+}
+
+.commentLabel {
+	font-weight: 600;
+	font-size: 12px;
+	letter-spacing: 0.02em;
 }

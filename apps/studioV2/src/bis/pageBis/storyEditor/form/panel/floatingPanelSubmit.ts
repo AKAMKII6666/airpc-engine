@@ -6,7 +6,7 @@ import type { FormikHelpers } from "formik";
 import type {
 	EditorCallCardProjection,
 	EditorChapterNodeData,
-} from "@studio-v2/typeFiles/story/editor/storyEditorMock";
+} from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
 import {
 	applyNodePropertyForm,
 	type NodePropertyFormValues,

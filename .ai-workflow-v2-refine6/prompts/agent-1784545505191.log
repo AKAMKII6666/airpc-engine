@@ -1,0 +1,20 @@
+[gbx] ▶ batch-reviewer:V2-S6-1+V2-S6-2 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … batch-reviewer:V2-S6-1+V2-S6-2 still running (15s elapsed, no output for 15s)
+[gbx] … batch-reviewer:V2-S6-1+V2-S6-2 still running (30s elapsed, no output for 30s)
+[gbx] … batch-reviewer:V2-S6-1+V2-S6-2 still running (45s elapsed, no output for 45s)
+[gbx] … batch-reviewer:V2-S6-1+V2-S6-2 still running (60s elapsed, no output for 60s)
+[gbx] … batch-reviewer:V2-S6-1+V2-S6-2 still running (75s elapsed, no output for 75s)
+[gbx] … batch-reviewer:V2-S6-1+V2-S6-2 still running (90s elapsed, no output for 90s)
+[gbx] … batch-reviewer:V2-S6-1+V2-S6-2 still running (105s elapsed, no output for 105s)
+Batch 1 审查已完成，结果写入 `.ai-workflow-v2-refine6/reviews/latest.json`。
+
+**结论：`fail`**（blocker 0 / critical 0 / major 2 / minor 1）→ 建议 `FIX_BATCH`
+
+| 级别 | 问题 |
+|------|------|
+| major | 执行者写明 **verify NOT run**，未跑 `quality:studio` |
+| major | 索引中 V2-S6-1 / V2-S6-2 仍为 ⬜ |
+| minor | 残留重复文件 `disabledDockTools.tsx` |
+
+静态对照 §2.1–§2.2 / §2.5（本批范围）：底栏可点、toolMode、fitView、框选/连线互斥、无「界面预览未开放」/写盘/引擎改动等 critical；真实放置属 S6-3+。未改业务代码。
+[gbx] ■ batch-reviewer:V2-S6-1+V2-S6-2 done exit=0 elapsed=114s

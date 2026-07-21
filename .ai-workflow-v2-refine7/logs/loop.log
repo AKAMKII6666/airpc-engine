@@ -1,0 +1,3 @@
+[2026-07-21T09:34:27.225Z] checkpoint preflight skipped=true working tree is dirty before execution; commit/stash first, use a clean worktree, or omit --checkpoint.
+[2026-07-21T09:34:27.225Z] start status=BLOCKED mock=false
+[2026-07-21T09:34:27.230Z] iter=1 status=BLOCKED

@@ -2,7 +2,7 @@
 * CallCard 节点校验角标文案与样式映射。
 * 与引擎校验真源无关；仅驱动静态蓝图节点展示（不进 Formik）。
 */
-import type { EditorNodeValidationBadge } from "@studio-v2/typeFiles/story/editor/editorCallCardProjection";
+import type { EditorNodeValidationBadge } from "@studio-v2/typeFiles/story/editor/callCard/editorCallCardProjection";
 import styles from "./editorNodes.module.scss";
 
 export function callCardValidationClass(

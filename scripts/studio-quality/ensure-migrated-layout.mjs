@@ -267,6 +267,53 @@ const PAIRS = [
     nested:
       "apps/studioV2/src/pageComponents/storyEditor/com/panel/ExitListEditor/ExitListEditor.tsx",
   },
+  {
+    flat: "apps/studioV2/typeFiles/story/editor/dockToolMode.ts",
+    nested: "apps/studioV2/typeFiles/story/editor/dock/dockToolMode.ts",
+  },
+  {
+    flat: "apps/studioV2/typeFiles/story/editor/storyEditorMock.ts",
+    nested: "apps/studioV2/typeFiles/story/editor/mock/storyEditorMock.ts",
+  },
+  {
+    flat: "apps/studioV2/typeFiles/story/editor/editorCallCardProjection.ts",
+    nested:
+      "apps/studioV2/typeFiles/story/editor/callCard/editorCallCardProjection.ts",
+  },
+  {
+    flat: "apps/studioV2/typeFiles/story/editor/editorStoryPackageConf.ts",
+    nested:
+      "apps/studioV2/typeFiles/story/editor/package/editorStoryPackageConf.ts",
+  },
+  {
+    flat:
+      "apps/studioV2/src/pageComponents/storyEditor/hooks/useStoryEditorShellController.ts",
+    nested:
+      "apps/studioV2/src/pageComponents/storyEditor/hooks/shell/useStoryEditorShellController.ts",
+  },
+  {
+    flat:
+      "apps/studioV2/src/pageComponents/storyEditor/hooks/useStoryEditorDockTools.ts",
+    nested:
+      "apps/studioV2/src/pageComponents/storyEditor/hooks/dock/useStoryEditorDockTools.ts",
+  },
+  {
+    flat:
+      "apps/studioV2/src/pageComponents/storyEditor/hooks/useStoryEditorAssetForms.ts",
+    nested:
+      "apps/studioV2/src/pageComponents/storyEditor/hooks/forms/useStoryEditorAssetForms.ts",
+  },
+  {
+    flat:
+      "apps/studioV2/src/pageComponents/storyEditor/hooks/useStoryEditorCharacterForms.ts",
+    nested:
+      "apps/studioV2/src/pageComponents/storyEditor/hooks/forms/useStoryEditorCharacterForms.ts",
+  },
+  {
+    flat:
+      "apps/studioV2/src/pageComponents/storyEditor/com/dock/disabledDockTools.tsx",
+    nested: "apps/studioV2/src/pageComponents/storyEditor/com/dock/dockTools.tsx",
+  },
 ];
 
 /**

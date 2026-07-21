@@ -5,7 +5,7 @@
 import type {
 	EditorCallCardProjection,
 	EditorChapterNodeData,
-} from "@studio-v2/typeFiles/story/editor/editorCallCardProjection";
+} from "@studio-v2/typeFiles/story/editor/callCard/editorCallCardProjection";
 
 export type {
 	EditorCallCardContextProjection,
@@ -19,8 +19,12 @@ export type {
 	EditorNodeValidationBadge,
 	EditorScheduleMetaProjection,
 	EditorToolPolicyProjection,
-} from "@studio-v2/typeFiles/story/editor/editorCallCardProjection";
-export { exitCountFromProjection } from "@studio-v2/typeFiles/story/editor/editorCallCardProjection";
+} from "@studio-v2/typeFiles/story/editor/callCard/editorCallCardProjection";
+export type {
+	EditorActionNodeData,
+	EditorCommentGroupNodeData,
+} from "@studio-v2/typeFiles/story/editor/mock/editorLightweightNodes";
+export { exitCountFromProjection } from "@studio-v2/typeFiles/story/editor/callCard/editorCallCardProjection";
 export {
 	cardKindLabel,
 	entryModeLabel,

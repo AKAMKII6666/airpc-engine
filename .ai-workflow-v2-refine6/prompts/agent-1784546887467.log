@@ -1,0 +1,35 @@
+[gbx] ▶ executor:V2-S6-3+V2-S6-4 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … executor:V2-S6-3+V2-S6-4 still running (16s elapsed, no output for 16s)
+[gbx] … executor:V2-S6-3+V2-S6-4 still running (31s elapsed, no output for 31s)
+[gbx] … executor:V2-S6-3+V2-S6-4 still running (46s elapsed, no output for 46s)
+[gbx] … executor:V2-S6-3+V2-S6-4 still running (61s elapsed, no output for 61s)
+[gbx] … executor:V2-S6-3+V2-S6-4 still running (76s elapsed, no output for 76s)
+[gbx] … executor:V2-S6-3+V2-S6-4 still running (91s elapsed, no output for 91s)
+[gbx] … executor:V2-S6-3+V2-S6-4 still running (106s elapsed, no output for 106s)
+[gbx] … executor:V2-S6-3+V2-S6-4 still running (121s elapsed, no output for 121s)
+[gbx] … executor:V2-S6-3+V2-S6-4 still running (136s elapsed, no output for 136s)
+[gbx] … executor:V2-S6-3+V2-S6-4 still running (151s elapsed, no output for 151s)
+[gbx] … executor:V2-S6-3+V2-S6-4 still running (166s elapsed, no output for 166s)
+[gbx] … executor:V2-S6-3+V2-S6-4 still running (181s elapsed, no output for 181s)
+[gbx] … executor:V2-S6-3+V2-S6-4 still running (196s elapsed, no output for 196s)
+[gbx] … executor:V2-S6-3+V2-S6-4 still running (211s elapsed, no output for 211s)
+[gbx] … executor:V2-S6-3+V2-S6-4 still running (226s elapsed, no output for 226s)
+**V2-S6-3 / V2-S6-4 代码已落地；verify NOT run**（本环境 Shell 被拒，执行索引保持 ⬜，未勾选）。
+
+### 已实现
+
+- **`dockNodeFactory.ts`**：story / playback / free / schedule / chapter_end 默认投影；`createStudioId` 生成 cardId/nodeId；action/comment 返回 null（留给 S6-5）
+- **`StoryCanvasStageApi.addNodeAt`** + **`onPaneClick`**：`screenToFlowPosition` → 工厂 → 选中 → 开属性浮窗 → 回 idle
+- **chapter_end** 走 `selectionKind: "chapter"`，复用章节属性窗（含 refine5 下一包字段）
+- 测试：`tests/storyEditor/dockNodeFactory.test.ts`
+
+### 未完成（规则要求）
+
+执行索引 **V2-S6-3、V2-S6-4 仍为 ⬜**。请在可跑 Shell 的环境执行：
+
+```bash
+npm run quality:studio
+```
+
+全绿后再把这两行改为 ✅（或让下一轮 executor / `--after-manual` 处理）。
+[gbx] ■ executor:V2-S6-3+V2-S6-4 done exit=0 elapsed=232s

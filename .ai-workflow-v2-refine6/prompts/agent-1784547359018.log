@@ -1,0 +1,41 @@
+[gbx] ▶ executor:V2-S6-5+V2-S6-6 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … executor:V2-S6-5+V2-S6-6 still running (15s elapsed, no output for 15s)
+[gbx] … executor:V2-S6-5+V2-S6-6 still running (30s elapsed, no output for 30s)
+[gbx] … executor:V2-S6-5+V2-S6-6 still running (45s elapsed, no output for 45s)
+[gbx] … executor:V2-S6-5+V2-S6-6 still running (60s elapsed, no output for 60s)
+[gbx] … executor:V2-S6-5+V2-S6-6 still running (75s elapsed, no output for 75s)
+[gbx] … executor:V2-S6-5+V2-S6-6 still running (90s elapsed, no output for 90s)
+[gbx] … executor:V2-S6-5+V2-S6-6 still running (105s elapsed, no output for 105s)
+[gbx] … executor:V2-S6-5+V2-S6-6 still running (120s elapsed, no output for 120s)
+[gbx] … executor:V2-S6-5+V2-S6-6 still running (135s elapsed, no output for 135s)
+[gbx] … executor:V2-S6-5+V2-S6-6 still running (150s elapsed, no output for 150s)
+[gbx] … executor:V2-S6-5+V2-S6-6 still running (165s elapsed, no output for 165s)
+**Batch 3 代码与文档已落地；verify NOT run（本环境 Shell 全部 Rejected），执行索引保持 ⬜。**
+
+### V2-S6-5（代码已写）
+- 新增 `EditorActionNodeData` / `EditorCommentGroupNodeData`（独立轻量类型，不进 CallCard）
+- `ActionFlowNode` + `CommentGroupFlowNode`；注册到 `StoryCanvasStage`
+- `dockNodeFactory` 支持 `action` / `comment` 放置；系统生成 nodeId
+- 放置后选中，但不打开属性浮窗（`selectionFromPlacedNode` → null，并收起旧浮窗）
+- 测试已更新
+
+### V2-S6-6（文档已写）
+- 向导稿 §3.4 / §7.1 / §12 / §13 已对齐 refine6
+- `docs/人类/原始需求讨论记录` 已追加 refine6 结论
+- **验收勾选未改**（依赖 `quality:studio`）
+
+### 执行索引
+| ID | 状态 |
+|----|------|
+| V2-S6-5 | ⬜ |
+| V2-S6-6 | ⬜ |
+
+### 下一步（需人工 / 编排器）
+在仓库根执行：
+
+```bash
+npm run quality:studio
+```
+
+exit 0 后将 `V2-S6-5`、`V2-S6-6` 改为 ✅，并勾选 `细化修改6_需求.md` §5 与执行索引 §3。
+[gbx] ■ executor:V2-S6-5+V2-S6-6 done exit=0 elapsed=175s

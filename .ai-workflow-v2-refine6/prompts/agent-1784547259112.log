@@ -1,0 +1,17 @@
+[gbx] ▶ fixer:V2-S6-3+V2-S6-4 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-S6-3+V2-S6-4 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-S6-3+V2-S6-4 still running (30s elapsed, no output for 30s)
+## Batch Fix 摘要（batch-2 / verify_fail）
+
+**根因：** `DockFlowPosition.x` / `y` 触发 `STUDIO-COMMENT-002`（严格契约缺字段级说明）。
+
+**修复：** 在 `dockNodeFactory.ts` 为 `x`、`y` 补充单位（flow 像素）、生命周期（会话瞬时）与持久化（不进包）说明。
+
+**验证：** 未自验（Shell 被拒绝，未能重跑 `npm run quality:studio`）。请本地执行：
+
+```bash
+npm run quality:studio
+```
+
+任务勾选未改（verify 尚未确认通过）。
+[gbx] ■ fixer:V2-S6-3+V2-S6-4 done exit=0 elapsed=43s

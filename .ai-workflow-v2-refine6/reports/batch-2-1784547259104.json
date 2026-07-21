@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "label": "batch-2",
+  "at": "2026-07-20T11:34:19.104Z",
+  "ok": false,
+  "phase": "batch",
+  "activeTaskIds": [
+    "V2-S6-3",
+    "V2-S6-4"
+  ],
+  "reason": "command failed",
+  "failedCommand": "npm run quality:studio",
+  "exitCode": 1,
+  "results": [
+    {
+      "command": "npm run quality:studio",
+      "exitCode": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> quality:studio\n> node scripts/studio-quality/quality-studio.mjs\n\n\n==> ensure-modal-layout (pre-typecheck)\nensure-modal-layout: nothing to remove\n\n==> ensure-migrated-layout (pre-typecheck)\nensure-migrated-layout: nothing to remove\n\n==> lint (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 lint\n> node ./scripts/run-eslint.mjs . --max-warnings 0\n\n\n==> typecheck (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n==> check:comments\nSTUDIO-COMMENT-002  apps/studioV2/src/bis/pageBis/storyEditor/dock/dockNodeFactory.ts:25:2  严格契约字段「DockFlowPosition.x」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/src/bis/pageBis/storyEditor/dock/dockNodeFactory.ts:26:2  严格契约字段「DockFlowPosition.y」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\ncheck:comments failed (2 issues, 248 files)\ncheck:comments failed (exit 1)\n\nquality:studio FAILED\n[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=7s\n",
+      "stderr": "",
+      "stdoutTail": "[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> quality:studio\n> node scripts/studio-quality/quality-studio.mjs\n\n\n==> ensure-modal-layout (pre-typecheck)\nensure-modal-layout: nothing to remove\n\n==> ensure-migrated-layout (pre-typecheck)\nensure-migrated-layout: nothing to remove\n\n==> lint (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 lint\n> node ./scripts/run-eslint.mjs . --max-warnings 0\n\n\n==> typecheck (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n==> check:comments\nSTUDIO-COMMENT-002  apps/studioV2/src/bis/pageBis/storyEditor/dock/dockNodeFactory.ts:25:2  严格契约字段「DockFlowPosition.x」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/src/bis/pageBis/storyEditor/dock/dockNodeFactory.ts:26:2  严格契约字段「DockFlowPosition.y」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\ncheck:comments failed (2 issues, 248 files)\ncheck:comments failed (exit 1)\n\nquality:studio FAILED\n[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=7s\n",
+      "stderrTail": "",
+      "errorLocations": [
+        {
+          "file": "apps/studioV2/src/bis/pageBis/storyEditor/dock/dockNodeFactory.ts",
+          "line": 25,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「DockFlowPosition.x」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/src/bis/pageBis/storyEditor/dock/dockNodeFactory.ts",
+          "line": 26,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「DockFlowPosition.y」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        }
+      ]
+    }
+  ],
+  "errorLocations": [
+    {
+      "file": "apps/studioV2/src/bis/pageBis/storyEditor/dock/dockNodeFactory.ts",
+      "line": 25,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「DockFlowPosition.x」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/src/bis/pageBis/storyEditor/dock/dockNodeFactory.ts",
+      "line": 26,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「DockFlowPosition.y」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    }
+  ],
+  "historyFile": "batch-2-1784547259104.json"
+}

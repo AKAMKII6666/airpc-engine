@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "label": "batch-1",
+  "at": "2026-07-20T11:09:12.770Z",
+  "ok": false,
+  "phase": "batch",
+  "activeTaskIds": [
+    "V2-S6-1",
+    "V2-S6-2"
+  ],
+  "reason": "command failed",
+  "failedCommand": "npm run quality:studio",
+  "exitCode": 1,
+  "results": [
+    {
+      "command": "npm run quality:studio",
+      "exitCode": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> quality:studio\n> node scripts/studio-quality/quality-studio.mjs\n\n\n==> ensure-modal-layout (pre-typecheck)\nensure-modal-layout: nothing to remove\n\n==> ensure-migrated-layout (pre-typecheck)\nensure-migrated-layout: nothing to remove\n\n==> lint (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 lint\n> node ./scripts/run-eslint.mjs . --max-warnings 0\n\n\n==> typecheck (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n==> check:comments\nSTUDIO-COMMENT-002  apps/studioV2/src/bis/pageBis/storyEditor/dock/dockToolMode.ts:18:2  严格契约字段「DockToolClickResult.next」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/src/bis/pageBis/storyEditor/dock/dockToolMode.ts:19:2  严格契约字段「DockToolClickResult.effect」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-001  apps/studioV2/src/bis/pageBis/storyEditor/dock/dockToolMode.ts:149:1  严格契约目录中的导出「reactFlowInteractionForToolMode」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用\ncheck:comments failed (3 issues, 247 files)\ncheck:comments failed (exit 1)\n\nquality:studio FAILED\n[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=7s\n",
+      "stderr": "",
+      "stdoutTail": "[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> quality:studio\n> node scripts/studio-quality/quality-studio.mjs\n\n\n==> ensure-modal-layout (pre-typecheck)\nensure-modal-layout: nothing to remove\n\n==> ensure-migrated-layout (pre-typecheck)\nensure-migrated-layout: nothing to remove\n\n==> lint (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 lint\n> node ./scripts/run-eslint.mjs . --max-warnings 0\n\n\n==> typecheck (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n==> check:comments\nSTUDIO-COMMENT-002  apps/studioV2/src/bis/pageBis/storyEditor/dock/dockToolMode.ts:18:2  严格契约字段「DockToolClickResult.next」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/src/bis/pageBis/storyEditor/dock/dockToolMode.ts:19:2  严格契约字段「DockToolClickResult.effect」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-001  apps/studioV2/src/bis/pageBis/storyEditor/dock/dockToolMode.ts:149:1  严格契约目录中的导出「reactFlowInteractionForToolMode」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用\ncheck:comments failed (3 issues, 247 files)\ncheck:comments failed (exit 1)\n\nquality:studio FAILED\n[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=7s\n",
+      "stderrTail": "",
+      "errorLocations": [
+        {
+          "file": "apps/studioV2/src/bis/pageBis/storyEditor/dock/dockToolMode.ts",
+          "line": 18,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「DockToolClickResult.next」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/src/bis/pageBis/storyEditor/dock/dockToolMode.ts",
+          "line": 19,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「DockToolClickResult.effect」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/src/bis/pageBis/storyEditor/dock/dockToolMode.ts",
+          "line": 149,
+          "column": 1,
+          "code": "STUDIO-COMMENT-001",
+          "message": "严格契约目录中的导出「reactFlowInteractionForToolMode」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用",
+          "severity": "error"
+        }
+      ]
+    }
+  ],
+  "errorLocations": [
+    {
+      "file": "apps/studioV2/src/bis/pageBis/storyEditor/dock/dockToolMode.ts",
+      "line": 18,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「DockToolClickResult.next」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/src/bis/pageBis/storyEditor/dock/dockToolMode.ts",
+      "line": 19,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「DockToolClickResult.effect」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/src/bis/pageBis/storyEditor/dock/dockToolMode.ts",
+      "line": 149,
+      "column": 1,
+      "code": "STUDIO-COMMENT-001",
+      "message": "严格契约目录中的导出「reactFlowInteractionForToolMode」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用",
+      "severity": "error"
+    }
+  ],
+  "historyFile": "batch-1-1784545752770.json"
+}

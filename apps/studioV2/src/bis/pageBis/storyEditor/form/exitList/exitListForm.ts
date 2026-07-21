@@ -7,7 +7,7 @@ import type {
 	EditorCallCardExitProjection,
 	EditorExitEffectProjection,
 	EditorExitKind,
-} from "@studio-v2/typeFiles/story/editor/editorCallCardProjection";
+} from "@studio-v2/typeFiles/story/editor/callCard/editorCallCardProjection";
 import { EFFECT_NAME_OPTIONS } from "@studio-v2/typeFiles/story/callCardLabels";
 
 /** 表单内出口行；与投影同构，供 Formik exits[] */

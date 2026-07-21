@@ -11,7 +11,7 @@ import {
 import type {
 	CharacterAnchorNodeData,
 	StoryEditorSelection,
-} from "@studio-v2/typeFiles/story/editor/storyEditorMock";
+} from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
 import type { StoryCanvasStageApi } from "@studio-v2/src/pageComponents/storyEditor/canvas/storyCanvasTypes";
 
 /** 将 RF 节点投影为属性浮窗选中；CallCard 或章节，其它返回 null */
@@ -53,7 +53,9 @@ export function useStoryCanvasSelection(args: {
 
 	return useCallback(
 		(params: OnSelectionChangeParams) => {
-			const node = params.nodes[0];
+			// 框选多卡仅用于整体挪位置，不做批量编辑，也不弹属性面板；
+			// 只有恰好单选时才投影为属性浮窗选中，避免多选竞态读到不完整 values。
+			const node = params.nodes.length === 1 ? params.nodes[0] : undefined;
 			selectedIdRef.current = node?.id ?? null;
 			const anchor = readCharacterAnchorData(node);
 			if (anchor) {

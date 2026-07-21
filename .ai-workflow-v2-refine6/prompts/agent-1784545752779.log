@@ -1,0 +1,12 @@
+[gbx] ▶ fixer:V2-S6-1+V2-S6-2 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-S6-1+V2-S6-2 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-S6-1+V2-S6-2 still running (30s elapsed, no output for 30s)
+[gbx] … fixer:V2-S6-1+V2-S6-2 still running (45s elapsed, no output for 45s)
+已按 `latest-verify.json` 修掉 3 处 `check:comments` 硬错误，仅改 `dockToolMode.ts`：
+
+1. **`DockToolClickResult.next`** — 补字段说明（会话内存态、不落盘；fit 时等于入参）
+2. **`DockToolClickResult.effect`** — 补字段说明（瞬时副作用、不持久化）
+3. **`reactFlowInteractionForToolMode`** — 补 JSDoc（RF 交互投影意图与互斥约束）
+
+未自验（Shell 不可用，未能重跑 `npm run quality:studio`）。
+[gbx] ■ fixer:V2-S6-1+V2-S6-2 done exit=0 elapsed=59s

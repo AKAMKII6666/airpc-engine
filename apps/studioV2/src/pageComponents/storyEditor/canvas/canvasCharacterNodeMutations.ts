@@ -8,7 +8,7 @@ import {
 	readCallCardData,
 	readCharacterAnchorData,
 } from "@studio-v2/src/bis/pageBis/storyEditor/role/roleConnection";
-import type { CharacterAnchorNodeData } from "@studio-v2/typeFiles/story/editor/storyEditorMock";
+import type { CharacterAnchorNodeData } from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
 
 /**
 * 追加角色锚点节点；agentId 已存在时返回原数组。

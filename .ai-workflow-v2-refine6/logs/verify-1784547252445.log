@@ -1,0 +1,32 @@
+[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+
+> quality:studio
+> node scripts/studio-quality/quality-studio.mjs
+
+
+==> ensure-modal-layout (pre-typecheck)
+ensure-modal-layout: nothing to remove
+
+==> ensure-migrated-layout (pre-typecheck)
+ensure-migrated-layout: nothing to remove
+
+==> lint (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 lint
+> node ./scripts/run-eslint.mjs . --max-warnings 0
+
+
+==> typecheck (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 typecheck
+> tsc -p tsconfig.json --noEmit
+
+
+==> check:comments
+STUDIO-COMMENT-002  apps/studioV2/src/bis/pageBis/storyEditor/dock/dockNodeFactory.ts:25:2  严格契约字段「DockFlowPosition.x」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/src/bis/pageBis/storyEditor/dock/dockNodeFactory.ts:26:2  严格契约字段「DockFlowPosition.y」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+check:comments failed (2 issues, 248 files)
+check:comments failed (exit 1)
+
+quality:studio FAILED
+[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=7s

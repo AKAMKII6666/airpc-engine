@@ -1,0 +1,21 @@
+[gbx] ▶ fixer:V2-S6-5+V2-S6-6 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-S6-5+V2-S6-6 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-S6-5+V2-S6-6 still running (30s elapsed, no output for 30s)
+[gbx] … fixer:V2-S6-5+V2-S6-6 still running (45s elapsed, no output for 45s)
+## Fix 摘要（batch 3 · review_fail）
+
+审查报告两项 major（R3-1 / R3-2）均成立，但本环境 **Shell 全部 Rejected**，无法执行修复所需的门禁。
+
+| Issue | 结论 | 本轮动作 |
+|-------|------|----------|
+| **R3-1** | 需在仓库根跑通 `npm run quality:studio` | 多次尝试均被拒；**未自验** |
+| **R3-2** | verify 绿后勾选 V2-S6-5/S6-6 与需求 §5 | **未勾选**（依赖 R3-1） |
+
+静态对照（审查已确认、本轮未改代码）：
+- `ActionFlowNode` / `CommentGroupFlowNode`、独立 `EditorActionNodeData` / `EditorCommentGroupNodeData`、dock 工厂与测试已在
+- 向导稿 §3.4/§7.1、讨论记录 refine6 结论已写
+- `latest-verify.json` 仍为 batch-2（S6-3/S6-4），未覆盖本批
+
+**未自验** — 不得声称 `quality:studio` 通过；执行索引 V2-S6-5 / V2-S6-6 仍为 ⬜。  
+请在本机或恢复 Shell 后执行：`npm run quality:studio`，exit 0 后再勾选并重审。
+[gbx] ■ fixer:V2-S6-5+V2-S6-6 done exit=0 elapsed=58s

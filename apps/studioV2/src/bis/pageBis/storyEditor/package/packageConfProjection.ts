@@ -7,7 +7,7 @@ import {
 	listMockPackages,
 } from "@studio-v2/src/utils/ajaxProxy/packages/mockWorkbenchData";
 import type { CallCardLabelOption } from "@studio-v2/typeFiles/story/callCardLabels";
-import type { EditorStoryPackageConfProjection } from "@studio-v2/typeFiles/story/editor/editorStoryPackageConf";
+import type { EditorStoryPackageConfProjection } from "@studio-v2/typeFiles/story/editor/package/editorStoryPackageConf";
 
 /**
 	* 与画布初始卡对齐的包级种子；按 packageId 覆盖，缺省用 DEFAULT。

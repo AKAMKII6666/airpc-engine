@@ -5,7 +5,7 @@
 import type {
 	CharacterAnchorNodeData,
 	EditorCallCardProjection,
-} from "@studio-v2/typeFiles/story/editor/storyEditorMock";
+} from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
 import type { CharacterSummary } from "@studio-v2/typeFiles/library/characters/form/characterSummary";
 
 /**

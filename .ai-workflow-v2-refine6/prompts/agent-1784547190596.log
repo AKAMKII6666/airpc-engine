@@ -1,0 +1,26 @@
+[gbx] ▶ fixer:V2-S6-3+V2-S6-4 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-S6-3+V2-S6-4 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-S6-3+V2-S6-4 still running (30s elapsed, no output for 30s)
+[gbx] … fixer:V2-S6-3+V2-S6-4 still running (45s elapsed, no output for 45s)
+[gbx] … fixer:V2-S6-3+V2-S6-4 still running (60s elapsed, no output for 60s)
+## 修复结果（batch-2 · R2-1 / R2-2）
+
+审查问题只剩两项，且**不是代码行为缺陷**（reviewer 已写 behavior/negative = pass）：
+
+| ID | 问题 | 本轮处理 |
+|----|------|----------|
+| **R2-1** | 上轮执行者未跑 `npm run quality:studio` | 尝试多次 Shell 均被拒，**未能执行** |
+| **R2-2** | `V2-S6-3` / `V2-S6-4` 仍为 ⬜ | **未勾选**（须门禁 exit 0 后再改） |
+
+静态核对：`dockNodeFactory`（story/playback/free/schedule + chapter_end）、`createAddNodeAtCommand`、`dockNodeFactory.test.ts` 与需求 §2.3 一致；无业务代码改动。
+
+**未自验** — Shell 不可用，未重跑 `npm run quality:studio`，不得宣称门禁通过；执行索引两行保持 ⬜。
+
+请在本机或可跑 Shell 的环境执行：
+
+```bash
+npm run quality:studio
+```
+
+exit 0 后将执行索引中 `V2-S6-3`、`V2-S6-4` 改为 ✅，再让编排器续跑。
+[gbx] ■ fixer:V2-S6-3+V2-S6-4 done exit=0 elapsed=62s

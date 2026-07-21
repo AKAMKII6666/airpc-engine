@@ -2,14 +2,15 @@
 * CallCard 蓝图节点：顶角色 / 左 parent / 右 exit 触点。
 * 静态展示；点击仅本地选中态，不写卡内容。
 * 出口 Handle 按 exits[] 动态渲染；悬停 Tooltip 显示名称+概要。
+* 卡角 ❌ 请求删除（确认框在壳层）。
 */
 "use client";
 
-import type { FC } from "react";
-import { Tooltip } from "@mui/material";
+import type { FC, MouseEvent } from "react";
+import { IconButton, Tooltip } from "@mui/material";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
-import type { EditorCallCardProjection } from "@studio-v2/typeFiles/story/editor/editorCallCardProjection";
-import { exitCountFromProjection } from "@studio-v2/typeFiles/story/editor/editorCallCardProjection";
+import type { EditorCallCardProjection } from "@studio-v2/typeFiles/story/editor/callCard/editorCallCardProjection";
+import { exitCountFromProjection } from "@studio-v2/typeFiles/story/editor/callCard/editorCallCardProjection";
 import {
 	cardKindLabel,
 	entryModeLabel,
@@ -20,6 +21,7 @@ import {
 	callCardValidationClass,
 	callCardValidationText,
 } from "@studio-v2/src/pageComponents/storyEditor/canvas/nodes/callCardValidation";
+import { useStoryCanvasUi } from "@studio-v2/src/pageComponents/storyEditor/canvas/storyCanvasUiContext";
 import styles from "./editorNodes.module.scss";
 
 export const CallCardFlowNode: FC<NodeProps> = function (props) {
@@ -27,9 +29,28 @@ export const CallCardFlowNode: FC<NodeProps> = function (props) {
 	const selected = Boolean(props.selected || data.selected);
 	const rootClass = selected ? styles.callCardSelected : styles.callCard;
 	const exitCount = exitCountFromProjection(data);
+	const canvasUi = useStoryCanvasUi();
+
+	function handleDeleteClick(event: MouseEvent): void {
+		event.stopPropagation();
+		event.preventDefault();
+		canvasUi?.requestDeleteNode(
+			props.id,
+			data.title.trim() !== "" ? data.title : data.cardId,
+		);
+	}
 
 	return (
 		<div className={rootClass}>
+			{/* 引用了IconButton组件，用于删除通话卡确认入口 */}
+			<IconButton
+				size="small"
+				className={styles.deleteBtn}
+				aria-label={`删除通话卡 ${data.title || data.cardId}`}
+				onClick={handleDeleteClick}
+			>
+				×
+			</IconButton>
 			{/* 引用了Handle组件，用于角色归属连线出口 */}
 			<Handle
 				id="role"

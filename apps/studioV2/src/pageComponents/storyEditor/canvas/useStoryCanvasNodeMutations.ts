@@ -4,119 +4,65 @@
 	*/
 "use client";
 
-import {
-	useCallback,
-	useMemo,
-	type Dispatch,
-	type MutableRefObject,
-	type SetStateAction,
-} from "react";
+import { useMemo, type Dispatch, type MutableRefObject, type SetStateAction } from "react";
 import type { Edge, Node } from "@xyflow/react";
-import {
-	appendCharacterAnchorNode,
-	mapNodesForCharacterAnchorUpdate,
-} from "@studio-v2/src/pageComponents/storyEditor/canvas/canvasCharacterNodeMutations";
-import { createAssignCharacterToSelection } from "@studio-v2/src/pageComponents/storyEditor/canvas/canvasConnectHandlers";
-import type {
-	CharacterAnchorNodeData,
-	EditorCallCardProjection,
-	EditorChapterNodeData,
-	StoryEditorSelection,
-} from "@studio-v2/typeFiles/story/editor/storyEditorMock";
+import { createStoryCanvasNodeCommands } from "@studio-v2/src/pageComponents/storyEditor/canvas/createStoryCanvasNodeCommands";
+import type { StoryEditorSelection } from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
 import type { StoryCanvasStageApi } from "@studio-v2/src/pageComponents/storyEditor/canvas/storyCanvasTypes";
+import type { StoryCanvasToolModeApi } from "@studio-v2/src/pageComponents/storyEditor/canvas/useStoryCanvasToolMode";
 
 export type UseStoryCanvasNodeMutationsArgs = {
 	nodesRef: MutableRefObject<Node[]>;
+	edgesRef: MutableRefObject<Edge[]>;
 	selectedIdRef: MutableRefObject<string | null>;
 	setNodes: Dispatch<SetStateAction<Node[]>>;
 	setEdges: Dispatch<SetStateAction<Edge[]>>;
 	onSelectionChange: (selection: StoryEditorSelection | null) => void;
+	toolModeApi: Pick<
+		StoryCanvasToolModeApi,
+		"setToolMode" | "getToolMode"
+	> & {
+		fitView: () => void;
+	};
 };
 
-/** 组装 applyNodeData / 锚点 / assignCharacter 等会话写口 */
+/** 组装 applyNodeData / 锚点 / assign / remove / toolMode 等会话写口 */
 export function useStoryCanvasNodeMutations(
 	args: UseStoryCanvasNodeMutationsArgs,
 ): StoryCanvasStageApi {
 	const {
 		nodesRef,
+		edgesRef,
 		selectedIdRef,
 		setNodes,
 		setEdges,
 		onSelectionChange,
+		toolModeApi,
 	} = args;
 
-	const applyNodeData = useCallback(
-		(nodeId: string, next: EditorCallCardProjection) => {
-			setNodes((prev) =>
-				prev.map((node) =>
-					node.id === nodeId ? { ...node, data: next } : node,
-				),
-			);
-			onSelectionChange({
-				selectionKind: "callCard",
-				nodeId,
-				data: next,
-			});
-		},
-		[onSelectionChange, setNodes],
-	);
-
-	const applyChapterNodeData = useCallback(
-		(nodeId: string, next: EditorChapterNodeData) => {
-			setNodes((prev) =>
-				prev.map((node) =>
-					node.id === nodeId ? { ...node, data: next } : node,
-				),
-			);
-			onSelectionChange({
-				selectionKind: "chapter",
-				nodeId,
-				data: next,
-			});
-		},
-		[onSelectionChange, setNodes],
-	);
-
-	const assignCharacterToSelection = useMemo(
+	return useMemo(
 		() =>
-			createAssignCharacterToSelection({
+			createStoryCanvasNodeCommands({
 				nodesRef,
+				edgesRef,
 				selectedIdRef,
 				setNodes,
 				setEdges,
 				onSelectionChange,
+				setToolMode: toolModeApi.setToolMode,
+				getToolMode: toolModeApi.getToolMode,
+				fitView: toolModeApi.fitView,
 			}),
-		[nodesRef, onSelectionChange, selectedIdRef, setEdges, setNodes],
-	);
-
-	const addCharacterAnchor = useCallback(
-		(anchor: CharacterAnchorNodeData) => {
-			setNodes((prev) => appendCharacterAnchorNode(prev, anchor));
-		},
-		[setNodes],
-	);
-
-	const updateCharacterAnchor = useCallback(
-		(anchor: CharacterAnchorNodeData) => {
-			setNodes((prev) => mapNodesForCharacterAnchorUpdate(prev, anchor));
-		},
-		[setNodes],
-	);
-
-	return useMemo(
-		(): StoryCanvasStageApi => ({
-			applyNodeData,
-			applyChapterNodeData,
-			assignCharacterToSelection,
-			addCharacterAnchor,
-			updateCharacterAnchor,
-		}),
 		[
-			addCharacterAnchor,
-			applyChapterNodeData,
-			applyNodeData,
-			assignCharacterToSelection,
-			updateCharacterAnchor,
+			edgesRef,
+			nodesRef,
+			onSelectionChange,
+			selectedIdRef,
+			setEdges,
+			setNodes,
+			toolModeApi.fitView,
+			toolModeApi.getToolMode,
+			toolModeApi.setToolMode,
 		],
 	);
 }

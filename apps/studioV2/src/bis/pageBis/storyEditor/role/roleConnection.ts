@@ -7,7 +7,7 @@ import type {
 	CharacterAnchorNodeData,
 	EditorCallCardProjection,
 	EditorChapterNodeData,
-} from "@studio-v2/typeFiles/story/editor/storyEditorMock";
+} from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
 
 /** 边 data.edgeKind；role 与 story 视觉分流 */
 export type EditorEdgeKind = "role" | "story";

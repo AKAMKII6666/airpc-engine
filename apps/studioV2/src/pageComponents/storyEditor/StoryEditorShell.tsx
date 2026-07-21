@@ -9,9 +9,9 @@ import { StoryEditorTopBar } from "@studio-v2/src/pageComponents/storyEditor/Sto
 import { BottomToolBar } from "@studio-v2/src/pageComponents/storyEditor/BottomToolBar";
 // 引用了StoryEditorCanvasLayer组件，用于画布与浮窗叠层
 import { StoryEditorCanvasLayer } from "@studio-v2/src/pageComponents/storyEditor/com/shell/StoryEditorCanvasLayer";
-// 引用了StoryEditorShellModals组件，用于角色/资源弹层
+// 引用了StoryEditorShellModals组件，用于角色/资源/节点删除弹层
 import { StoryEditorShellModals } from "@studio-v2/src/pageComponents/storyEditor/com/shell/StoryEditorShellModals";
-import { useStoryEditorShellController } from "@studio-v2/src/pageComponents/storyEditor/hooks/useStoryEditorShellController";
+import { useStoryEditorShellController } from "@studio-v2/src/pageComponents/storyEditor/hooks/shell/useStoryEditorShellController";
 import styles from "./StoryEditorShell.module.scss";
 
 export type StoryEditorShellProps = {
@@ -41,11 +41,16 @@ export const StoryEditorShell: FC<StoryEditorShellProps> = function ({
 					assetFloat={shell.assetFloat}
 					packageFloat={shell.packageFloat}
 					assets={assetForms.assets}
+					characterAnchors={shell.characterAnchors}
 					onSelectionChange={shell.onSelectionChange}
 					onCharacterAnchorSelect={shell.onCharacterAnchorSelect}
 					onCanvasReady={shell.onCanvasReady}
+					onGraphMetaChange={shell.onGraphMetaChange}
+					onToolModeChange={shell.onToolModeChange}
 					onApplyNodeData={shell.onApplyNodeData}
 					onApplyChapterNodeData={shell.onApplyChapterNodeData}
+					onAssignOwner={shell.onAssignOwner}
+					onRequestDeleteNode={shell.onRequestDeleteNode}
 					onAddCharacter={characterForms.openCreate}
 					onCloseSelection={shell.closeSelection}
 					onCloseAssetFloat={shell.closeAssetFloat}
@@ -55,15 +60,23 @@ export const StoryEditorShell: FC<StoryEditorShellProps> = function ({
 					onRequestDeleteAsset={assetForms.onRequestDelete}
 				/>
 			</div>
-			{/* 引用了BottomToolBar组件，用于底栏资源与包配置入口 */}
+			{/* 引用了BottomToolBar组件，用于底栏工具模式与资源/包入口 */}
 			<BottomToolBar
+				activeToolId={shell.activeToolId}
+				onToolClick={shell.onToolClick}
+				chapterEndDisabled={shell.chapterEndDisabled}
 				onOpenAssets={shell.openAssetsFloat}
 				onOpenPackage={shell.openPackageFloat}
+				assetsActive={shell.assetFloat}
+				packageActive={shell.packageFloat}
 			/>
-			{/* 引用了StoryEditorShellModals组件，用于角色/资源弹层 */}
+			{/* 引用了StoryEditorShellModals组件，用于角色/资源/节点删除弹层 */}
 			<StoryEditorShellModals
 				character={characterForms}
 				asset={assetForms}
+				pendingDeleteNode={shell.pendingDelete}
+				onCloseDeleteNode={shell.closeDeleteNodeModal}
+				onConfirmDeleteNode={shell.onConfirmDeleteNode}
 			/>
 		</div>
 	);

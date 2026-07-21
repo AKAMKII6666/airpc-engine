@@ -5,7 +5,7 @@
 
 import type { FC } from "react";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
-import type { EditorChapterNodeData } from "@studio-v2/typeFiles/story/editor/editorCallCardProjection";
+import type { EditorChapterNodeData } from "@studio-v2/typeFiles/story/editor/callCard/editorCallCardProjection";
 import styles from "./editorNodes.module.scss";
 
 export const ChapterFlowNode: FC<NodeProps> = function (props) {

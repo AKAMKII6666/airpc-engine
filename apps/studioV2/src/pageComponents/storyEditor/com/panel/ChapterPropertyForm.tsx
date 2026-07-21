@@ -7,7 +7,7 @@
 import type { FC } from "react";
 import { Alert, Button, TextField, Typography } from "@mui/material";
 import type { FormikProps } from "formik";
-import type { EditorChapterNodeData } from "@studio-v2/typeFiles/story/editor/editorCallCardProjection";
+import type { EditorChapterNodeData } from "@studio-v2/typeFiles/story/editor/callCard/editorCallCardProjection";
 import type { ChapterPropertyFormValues } from "@studio-v2/src/bis/pageBis/storyEditor/form/chapter/chapterPropertyForm";
 // 引用了ChapterEndNextFields组件，用于 chapter_end 下一包/起点卡
 import { ChapterEndNextFields } from "@studio-v2/src/pageComponents/storyEditor/com/panel/ChapterEndNextFields";

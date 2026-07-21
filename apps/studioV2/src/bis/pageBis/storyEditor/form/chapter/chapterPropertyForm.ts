@@ -4,7 +4,7 @@
 	* chapter_start：仅轻量 title / summary，不含下一包配置。
 	*/
 import type { FormikErrors } from "formik";
-import type { EditorChapterNodeData } from "@studio-v2/typeFiles/story/editor/editorCallCardProjection";
+import type { EditorChapterNodeData } from "@studio-v2/typeFiles/story/editor/callCard/editorCallCardProjection";
 import { resolveChapterEntryCardId } from "@studio-v2/src/bis/pageBis/storyEditor/package/packageConfProjection";
 
 /** 章节属性浮窗 values；空串表示未选 */

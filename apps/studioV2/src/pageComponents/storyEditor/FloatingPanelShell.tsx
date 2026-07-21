@@ -8,10 +8,11 @@ import type { FC } from "react";
 import { Button, Typography } from "@mui/material";
 import { Formik } from "formik";
 import type {
+	CharacterAnchorNodeData,
 	EditorCallCardProjection,
 	EditorChapterNodeData,
 	StoryEditorSelection,
-} from "@studio-v2/typeFiles/story/editor/storyEditorMock";
+} from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
 import {
 	toNodePropertyFormValues,
 	validateNodePropertyForm,
@@ -45,6 +46,16 @@ export type FloatingPanelShellProps = {
 		nodeId: string,
 		next: EditorChapterNodeData,
 	) => void;
+	/** 画布角色锚点；CallCard 归属 Select */
+	characterAnchors: readonly CharacterAnchorNodeData[];
+	/**
+		* 归属即时写回；与 role 边双向同步。
+		*/
+	onAssignOwner: (
+		nodeId: string,
+		agentId: string,
+		displayName: string,
+	) => void;
 };
 
 export const FloatingPanelShell: FC<FloatingPanelShellProps> = function ({
@@ -56,6 +67,10 @@ export const FloatingPanelShell: FC<FloatingPanelShellProps> = function ({
 	onApplyNodeData,
 	// onApplyChapterNodeData 写回章节会话投影
 	onApplyChapterNodeData,
+	// characterAnchors 是归属 Select 选项
+	characterAnchors,
+	// onAssignOwner 即时写归属
+	onAssignOwner,
 }) {
 	if (!selection) return null;
 
@@ -123,6 +138,14 @@ export const FloatingPanelShell: FC<FloatingPanelShellProps> = function ({
 						<NodePropertyForm
 							nodeData={selection.data}
 							formik={formik}
+							characterAnchors={characterAnchors}
+							onAssignOwner={(agentId, displayName) => {
+								onAssignOwner(
+									selection.nodeId,
+									agentId,
+									displayName,
+								);
+							}}
 						/>
 					)}
 				</Formik>

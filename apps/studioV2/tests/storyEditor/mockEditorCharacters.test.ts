@@ -8,8 +8,8 @@ import {
   syncCallCardCharacterName,
 } from "@studio-v2/src/bis/pageBis/storyEditor/canvas/canvasCharacterAnchor";
 import type { CharacterSummary } from "@studio-v2/typeFiles/library/characters/form/characterSummary";
-import type { EditorCallCardProjection } from "@studio-v2/typeFiles/story/editor/editorCallCardProjection";
-import { MOCK_EDITOR_CHARACTERS } from "@studio-v2/typeFiles/story/editor/storyEditorMock";
+import type { EditorCallCardProjection } from "@studio-v2/typeFiles/story/editor/callCard/editorCallCardProjection";
+import { MOCK_EDITOR_CHARACTERS } from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
 
 function sampleSummary(): CharacterSummary {
   return {

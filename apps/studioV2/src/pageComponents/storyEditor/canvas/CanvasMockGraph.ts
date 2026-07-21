@@ -8,8 +8,8 @@ import type {
 	CharacterAnchorNodeData,
 	EditorCallCardProjection,
 	EditorChapterNodeData,
-} from "@studio-v2/typeFiles/story/editor/storyEditorMock";
-import { MOCK_EDITOR_CHARACTERS } from "@studio-v2/typeFiles/story/editor/storyEditorMock";
+} from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
+import { MOCK_EDITOR_CHARACTERS } from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
 import { ROLE_EDGE_STYLE } from "@studio-v2/src/bis/pageBis/storyEditor/role/roleConnection";
 
 export type EditorCanvasNodeData =

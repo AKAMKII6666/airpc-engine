@@ -11,7 +11,7 @@ import type {
 	EditorInteractionMode,
 	EditorScheduleMetaProjection,
 	EditorToolPolicyProjection,
-} from "@studio-v2/typeFiles/story/editor/editorCallCardProjection";
+} from "@studio-v2/typeFiles/story/editor/callCard/editorCallCardProjection";
 import {
 	BUILTIN_TOOL_ID_SET,
 	cardKindLabel,
@@ -33,9 +33,12 @@ export {
 
 /**
 	* 属性浮窗 values；嵌套路径与 AutoForm name 对齐。
-	* cardId / ownerAgentId / ownerDisplayName / cardKind / validationBadge 不在此可写。
+	* ownerAgentId / ownerDisplayName 经归属 Select 即时写回，不经 Formik 提交。
+	* validationBadge 不在此可写。
 	*/
 export type NodePropertyFormValues = {
+	/** 卡片类型；对齐 CardKind，可在面板切换 */
+	cardKind: CardKind;
 	/** 卡片人类标题；必填 */
 	title: string;
 	/** 对齐 EntryModeSchema */
@@ -129,6 +132,7 @@ export function toNodePropertyFormValues(
 ): NodePropertyFormValues {
 	const { toolPolicy, schedule } = toPolicyAndScheduleFormValues(data);
 	return {
+		cardKind: data.cardKind,
 		title: data.title,
 		entryMode: data.entryMode ?? "",
 		interactionMode: data.interactionMode ?? "",
@@ -212,7 +216,7 @@ function applySchedule(
 
 /**
 	* 将表单合并回节点 data。
-	* 保留 cardId / owner* / cardKind / validationBadge；exits/toolPolicy/promptScenes 可改。
+	* 保留 cardId / owner* / validationBadge；cardKind / exits/toolPolicy/promptScenes 可改。
 	* schedule 仅 cardKind=schedule 写回。
 	*/
 export function applyNodePropertyForm(
@@ -220,8 +224,10 @@ export function applyNodePropertyForm(
 	values: NodePropertyFormValues,
 ): EditorCallCardProjection {
 	const promptScenes = asPromptSceneList(values.context.promptScenes);
+	const cardKind = values.cardKind;
 	return {
 		...previous,
+		cardKind,
 		title: values.title.trim(),
 		entryMode: optionalMode(values.entryMode),
 		interactionMode: optionalMode(values.interactionMode),
@@ -247,9 +253,10 @@ export function applyNodePropertyForm(
 		exits: normalizeExitList(values.exits),
 		toolPolicy: applyToolPolicy(values.toolPolicy),
 		schedule:
-			previous.cardKind === "schedule"
-				? applySchedule(values.schedule)
-				: previous.schedule,
+			cardKind === "schedule"
+				? applySchedule(values.schedule) ??
+					previous.schedule ?? { mode: "daily", hour: 10 }
+				: undefined,
 	};
 }
 

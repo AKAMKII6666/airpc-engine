@@ -1,20 +1,23 @@
 /**
 	* 故事编辑器壳控制器：选择态、浮窗互斥、画布 API 与角色/资源表单编排。
-	* 不接 Host 写口；通话卡/包布局仅会话 mock。
+	* 底栏 / 删除 / 画布绑定见子 hook；不接 Host 写口。
 	*/
 "use client";
 
 import { useCallback, useRef, useState } from "react";
 import { findMockPackage } from "@studio-v2/src/utils/ajaxProxy/packages/mockWorkbenchData";
 import type { StoryCanvasStageApi } from "@studio-v2/src/pageComponents/storyEditor/canvas/storyCanvasTypes";
-import { useStoryEditorCharacterForms } from "@studio-v2/src/pageComponents/storyEditor/hooks/useStoryEditorCharacterForms";
-import { useStoryEditorAssetForms } from "@studio-v2/src/pageComponents/storyEditor/hooks/useStoryEditorAssetForms";
+import { useStoryEditorCharacterForms } from "@studio-v2/src/pageComponents/storyEditor/hooks/forms/useStoryEditorCharacterForms";
+import { useStoryEditorAssetForms } from "@studio-v2/src/pageComponents/storyEditor/hooks/forms/useStoryEditorAssetForms";
+import { useStoryEditorDockTools } from "@studio-v2/src/pageComponents/storyEditor/hooks/dock/useStoryEditorDockTools";
+import { useStoryEditorNodeDelete } from "@studio-v2/src/pageComponents/storyEditor/hooks/shell/useStoryEditorNodeDelete";
+import { useStoryEditorCanvasBindings } from "@studio-v2/src/pageComponents/storyEditor/hooks/shell/useStoryEditorCanvasBindings";
 import type {
 	CharacterAnchorNodeData,
-	EditorCallCardProjection,
-	EditorChapterNodeData,
 	StoryEditorSelection,
-} from "@studio-v2/typeFiles/story/editor/storyEditorMock";
+} from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
+
+export type { PendingDeleteNode } from "@studio-v2/src/pageComponents/storyEditor/hooks/shell/useStoryEditorNodeDelete";
 
 /**
 	* 壳层会话态：顶栏标题、画布选择、底栏浮窗互斥、角色/资源 FormModal。
@@ -33,29 +36,18 @@ export function useStoryEditorShellController(packageId: string) {
 
 	const characterForms = useStoryEditorCharacterForms({ getCanvasApi });
 	const assetForms = useStoryEditorAssetForms();
+	const dockTools = useStoryEditorDockTools({
+		canvasApiRef,
+		setAssetFloat,
+		setPackageFloat,
+	});
+	const nodeDelete = useStoryEditorNodeDelete(canvasApiRef);
+	const canvasBind = useStoryEditorCanvasBindings(canvasApiRef);
 	const { openEditForAnchor } = characterForms;
 
 	const onSelectionChange = useCallback(
 		(next: StoryEditorSelection | null) => {
 			setSelection(next);
-		},
-		[],
-	);
-
-	const onCanvasReady = useCallback((api: StoryCanvasStageApi) => {
-		canvasApiRef.current = api;
-	}, []);
-
-	const onApplyNodeData = useCallback(
-		(nodeId: string, next: EditorCallCardProjection) => {
-			canvasApiRef.current?.applyNodeData(nodeId, next);
-		},
-		[],
-	);
-
-	const onApplyChapterNodeData = useCallback(
-		(nodeId: string, next: EditorChapterNodeData) => {
-			canvasApiRef.current?.applyChapterNodeData(nodeId, next);
 		},
 		[],
 	);
@@ -67,16 +59,6 @@ export function useStoryEditorShellController(packageId: string) {
 		},
 		[openEditForAnchor],
 	);
-
-	const openAssetsFloat = useCallback(() => {
-		setPackageFloat(false);
-		setAssetFloat(true);
-	}, []);
-
-	const openPackageFloat = useCallback(() => {
-		setAssetFloat(false);
-		setPackageFloat(true);
-	}, []);
 
 	const closeSelection = useCallback(() => {
 		setSelection(null);
@@ -95,15 +77,26 @@ export function useStoryEditorShellController(packageId: string) {
 		selection,
 		assetFloat,
 		packageFloat,
+		chapterEndDisabled: canvasBind.chapterEndDisabled,
+		characterAnchors: canvasBind.characterAnchors,
+		pendingDelete: nodeDelete.pendingDelete,
+		activeToolId: dockTools.activeToolId,
 		characterForms,
 		assetForms,
 		onSelectionChange,
-		onCanvasReady,
-		onApplyNodeData,
-		onApplyChapterNodeData,
+		onCanvasReady: canvasBind.onCanvasReady,
+		onGraphMetaChange: canvasBind.onGraphMetaChange,
+		onToolModeChange: dockTools.onToolModeChange,
+		onToolClick: dockTools.onToolClick,
+		onApplyNodeData: canvasBind.onApplyNodeData,
+		onApplyChapterNodeData: canvasBind.onApplyChapterNodeData,
+		onAssignOwner: canvasBind.onAssignOwner,
+		onRequestDeleteNode: nodeDelete.onRequestDeleteNode,
+		closeDeleteNodeModal: nodeDelete.closeDeleteNodeModal,
+		onConfirmDeleteNode: nodeDelete.onConfirmDeleteNode,
 		onCharacterAnchorSelect,
-		openAssetsFloat,
-		openPackageFloat,
+		openAssetsFloat: dockTools.openAssetsFloat,
+		openPackageFloat: dockTools.openPackageFloat,
 		closeSelection,
 		closeAssetFloat,
 		closePackageFloat,

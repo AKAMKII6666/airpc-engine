@@ -28,7 +28,7 @@ import {
 	toChapterPropertyFormValues,
 	validateChapterPropertyForm,
 } from "@studio-v2/src/bis/pageBis/storyEditor/form/chapter/chapterPropertyForm";
-import type { EditorCallCardProjection } from "@studio-v2/typeFiles/story/editor/editorCallCardProjection";
+import type { EditorCallCardProjection } from "@studio-v2/typeFiles/story/editor/callCard/editorCallCardProjection";
 import {
 	BUILTIN_TOOL_OPTIONS,
 	cardKindLabel,

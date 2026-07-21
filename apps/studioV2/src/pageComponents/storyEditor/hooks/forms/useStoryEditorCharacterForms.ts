@@ -19,7 +19,7 @@ import {
 } from "@studio-v2/src/bis/pageBis/storyEditor/canvas/canvasCharacterAnchor";
 import { fetchCharacterDef } from "@studio-v2/src/utils/ajaxProxy/library/api/charactersApi";
 import type { CharacterSummary } from "@studio-v2/typeFiles/library/characters/form/characterSummary";
-import type { CharacterAnchorNodeData } from "@studio-v2/typeFiles/story/editor/storyEditorMock";
+import type { CharacterAnchorNodeData } from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
 import type { StoryCanvasStageApi } from "@studio-v2/src/pageComponents/storyEditor/canvas/storyCanvasTypes";
 
 export type UseStoryEditorCharacterFormsArgs = {

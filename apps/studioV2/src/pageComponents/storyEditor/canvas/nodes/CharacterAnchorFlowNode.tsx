@@ -6,7 +6,7 @@
 
 import type { FC } from "react";
 import { Handle, Position, type NodeProps } from "@xyflow/react";
-import type { CharacterAnchorNodeData } from "@studio-v2/typeFiles/story/editor/storyEditorMock";
+import type { CharacterAnchorNodeData } from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
 import styles from "./editorNodes.module.scss";
 
 export const CharacterAnchorFlowNode: FC<NodeProps> = function CharacterAnchorFlowNode({

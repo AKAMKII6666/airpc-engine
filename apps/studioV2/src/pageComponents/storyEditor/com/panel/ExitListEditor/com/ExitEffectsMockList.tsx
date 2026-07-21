@@ -6,7 +6,7 @@
 
 import type { FC } from "react";
 import { Button, IconButton, MenuItem, TextField, Typography } from "@mui/material";
-import type { EditorExitEffectProjection } from "@studio-v2/typeFiles/story/editor/editorCallCardProjection";
+import type { EditorExitEffectProjection } from "@studio-v2/typeFiles/story/editor/callCard/editorCallCardProjection";
 import { EFFECT_NAME_OPTIONS } from "@studio-v2/typeFiles/story/callCardLabels";
 import {
 	coerceKnownEffectName,

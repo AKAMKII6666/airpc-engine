@@ -7,7 +7,7 @@ import type {
 	EditorEntryMode,
 	EditorExitKind,
 	EditorInteractionMode,
-} from "@studio-v2/typeFiles/story/editor/editorCallCardProjection";
+} from "@studio-v2/typeFiles/story/editor/callCard/editorCallCardProjection";
 
 /**
 	* Select / 文案共用的 value→label 项。
@@ -77,6 +77,14 @@ export const INTERACTION_MODE_OPTIONS: readonly CallCardLabelOption[] = [
 	{ label: "实时对话", value: "realtime_dialogue" },
 	{ label: "仅播放", value: "playback_only" },
 	{ label: "混合", value: "hybrid" },
+];
+
+/** 属性浮窗 cardKind Select；新建默认 story，类型在面板改 */
+export const CARD_KIND_OPTIONS: readonly CallCardLabelOption[] = [
+	{ label: "剧情通话", value: "story" },
+	{ label: "自由通话", value: "free" },
+	{ label: "系统卡（过场）", value: "system" },
+	{ label: "调度卡（延迟外呼）", value: "schedule" },
 ];
 
 /** 出口 exitKind Select 选项 */

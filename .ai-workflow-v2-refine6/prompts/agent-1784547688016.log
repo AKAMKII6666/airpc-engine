@@ -1,0 +1,16 @@
+[gbx] ▶ fixer:V2-S6-5+V2-S6-6 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-S6-5+V2-S6-6 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-S6-5+V2-S6-6 still running (30s elapsed, no output for 30s)
+[gbx] … fixer:V2-S6-5+V2-S6-6 still running (45s elapsed, no output for 45s)
+**已修硬错误 STUDIO-STRUCT-018**：`ActionFlowNode.tsx` 里用途注释原先在 `<span>` 上方，门禁要求紧贴 `<IconAction>` 的上一行；已挪到组件正上方。
+
+**未改**：WARN 告警线、无关重构；因 verify 未绿，执行索引 / 需求 §5 勾选仍保持 ⬜。
+
+**未自验**（本环境 Shell 全部 Rejected，无法复跑 `npm run quality:studio`）。请本地执行：
+
+```bash
+npm run quality:studio
+```
+
+绿后将 `V2-S6-5` / `V2-S6-6` 与需求 §5、执行索引 §3 勾选为 ✅。
+[gbx] ■ fixer:V2-S6-5+V2-S6-6 done exit=0 elapsed=59s

@@ -31,8 +31,9 @@ export const NodePropertySubModules: FC<NodePropertySubModulesProps> =
 		// showSchedule 表示是否展示 ScheduleMeta 折叠区
 		showSchedule,
 	}) {
+		// 属性浮窗 enableReinitialize 切换选中瞬间 toolPolicy 可能尚未就绪，兜底空模式
 		const toolPolicyItems = buildNodeToolPolicyItems(
-			formik.values.toolPolicy.mode,
+			formik.values.toolPolicy?.mode ?? "",
 		);
 
 		return (

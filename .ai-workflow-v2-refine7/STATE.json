@@ -1,0 +1,20 @@
+{
+  "status": "BLOCKED",
+  "currentBatch": 1,
+  "batchFixAttempts": 0,
+  "fullFixAttempts": 0,
+  "checkboxFixAttempts": 0,
+  "iteration": 1,
+  "lastSuccessfulCommit": null,
+  "manualQaRequired": false,
+  "blockedReason": "working tree is dirty before execution; commit/stash first, use a clean worktree, or omit --checkpoint.",
+  "activeTaskIds": [],
+  "exFile": "/Users/bolbiao/workspace/airpc-engine/docs/AI和人类/里程碑/v2.0/细化修改7_执行索引.md",
+  "fixTrigger": null,
+  "lastVerifyOk": null,
+  "lastVerifySummary": null,
+  "lastVerifyFingerprint": null,
+  "lastVerifyReportPath": null,
+  "ineffectiveFixStreak": 0,
+  "updatedAt": "2026-07-21T09:34:27.229Z"
+}
