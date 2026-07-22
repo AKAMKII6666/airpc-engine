@@ -1,0 +1,398 @@
+{
+  "schemaVersion": 1,
+  "label": "batch-5",
+  "at": "2026-07-22T06:57:06.342Z",
+  "ok": false,
+  "phase": "batch",
+  "activeTaskIds": [
+    "V2-T3-5"
+  ],
+  "reason": "command failed",
+  "failedCommand": "npm run quality:studio",
+  "exitCode": 1,
+  "results": [
+    {
+      "command": "npm run quality:studio",
+      "exitCode": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> quality:studio\n> node scripts/studio-quality/quality-studio.mjs\n\n\n==> ensure-modal-layout (pre-typecheck)\nensure-modal-layout: nothing to remove\n\n==> ensure-migrated-layout (pre-typecheck)\nensure-migrated-layout: nothing to remove\n\n==> lint (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 lint\n> node ./scripts/run-eslint.mjs . --max-warnings 0\n\n\n==> typecheck (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n==> check:comments\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:47:2  严格契约字段「StudioCanvasLayoutNode.title」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:48:2  严格契约字段「StudioCanvasLayoutNode.summary」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:49:2  严格契约字段「StudioCanvasLayoutNode.nextPackageId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:50:2  严格契约字段「StudioCanvasLayoutNode.nextEntryCardId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:57:2  严格契约字段「StudioCanvasLayoutEdge.edgeId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:58:2  严格契约字段「StudioCanvasLayoutEdge.edgeKind」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:59:2  严格契约字段「StudioCanvasLayoutEdge.source」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:60:2  严格契约字段「StudioCanvasLayoutEdge.target」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:61:2  严格契约字段「StudioCanvasLayoutEdge.sourceHandle」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:62:2  严格契约字段「StudioCanvasLayoutEdge.targetHandle」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:63:2  严格契约字段「StudioCanvasLayoutEdge.label」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:64:2  严格契约字段「StudioCanvasLayoutEdge.effectKind」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:65:2  严格契约字段「StudioCanvasLayoutEdge.exitId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:66:2  严格契约字段「StudioCanvasLayoutEdge.effectId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:71:2  严格契约字段「StudioCanvasLayout.schemaVersion」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:72:2  严格契约字段「StudioCanvasLayout.packageId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:73:2  严格契约字段「StudioCanvasLayout.lanes」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:74:2  严格契约字段「StudioCanvasLayout.nodes」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:75:2  严格契约字段「StudioCanvasLayout.edges」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:76:2  严格契约字段「StudioCanvasLayout.note」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:84:2  严格契约字段「DiskStoryPackageBundle.conf」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:85:2  严格契约字段「DiskStoryPackageBundle.cards」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:86:2  严格契约字段「DiskStoryPackageBundle.layout」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\ncheck:comments failed (23 issues, 298 files)\ncheck:comments failed (exit 1)\n\nquality:studio FAILED\n[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=5s\n",
+      "stderr": "",
+      "stdoutTail": "[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> quality:studio\n> node scripts/studio-quality/quality-studio.mjs\n\n\n==> ensure-modal-layout (pre-typecheck)\nensure-modal-layout: nothing to remove\n\n==> ensure-migrated-layout (pre-typecheck)\nensure-migrated-layout: nothing to remove\n\n==> lint (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 lint\n> node ./scripts/run-eslint.mjs . --max-warnings 0\n\n\n==> typecheck (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 typecheck\n> tsc -p tsconfig.json --noEmit\n\n\n==> check:comments\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:47:2  严格契约字段「StudioCanvasLayoutNode.title」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:48:2  严格契约字段「StudioCanvasLayoutNode.summary」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:49:2  严格契约字段「StudioCanvasLayoutNode.nextPackageId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:50:2  严格契约字段「StudioCanvasLayoutNode.nextEntryCardId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:57:2  严格契约字段「StudioCanvasLayoutEdge.edgeId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:58:2  严格契约字段「StudioCanvasLayoutEdge.edgeKind」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:59:2  严格契约字段「StudioCanvasLayoutEdge.source」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:60:2  严格契约字段「StudioCanvasLayoutEdge.target」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:61:2  严格契约字段「StudioCanvasLayoutEdge.sourceHandle」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:62:2  严格契约字段「StudioCanvasLayoutEdge.targetHandle」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:63:2  严格契约字段「StudioCanvasLayoutEdge.label」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:64:2  严格契约字段「StudioCanvasLayoutEdge.effectKind」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:65:2  严格契约字段「StudioCanvasLayoutEdge.exitId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:66:2  严格契约字段「StudioCanvasLayoutEdge.effectId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:71:2  严格契约字段「StudioCanvasLayout.schemaVersion」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:72:2  严格契约字段「StudioCanvasLayout.packageId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:73:2  严格契约字段「StudioCanvasLayout.lanes」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:74:2  严格契约字段「StudioCanvasLayout.nodes」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:75:2  严格契约字段「StudioCanvasLayout.edges」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:76:2  严格契约字段「StudioCanvasLayout.note」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:84:2  严格契约字段「DiskStoryPackageBundle.conf」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:85:2  严格契约字段「DiskStoryPackageBundle.cards」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\nSTUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:86:2  严格契约字段「DiskStoryPackageBundle.layout」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明\ncheck:comments failed (23 issues, 298 files)\ncheck:comments failed (exit 1)\n\nquality:studio FAILED\n[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=5s\n",
+      "stderrTail": "",
+      "errorLocations": [
+        {
+          "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+          "line": 47,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「StudioCanvasLayoutNode.title」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+          "line": 48,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「StudioCanvasLayoutNode.summary」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+          "line": 49,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「StudioCanvasLayoutNode.nextPackageId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+          "line": 50,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「StudioCanvasLayoutNode.nextEntryCardId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+          "line": 57,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「StudioCanvasLayoutEdge.edgeId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+          "line": 58,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「StudioCanvasLayoutEdge.edgeKind」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+          "line": 59,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「StudioCanvasLayoutEdge.source」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+          "line": 60,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「StudioCanvasLayoutEdge.target」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+          "line": 61,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「StudioCanvasLayoutEdge.sourceHandle」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+          "line": 62,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「StudioCanvasLayoutEdge.targetHandle」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+          "line": 63,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「StudioCanvasLayoutEdge.label」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+          "line": 64,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「StudioCanvasLayoutEdge.effectKind」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+          "line": 65,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「StudioCanvasLayoutEdge.exitId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+          "line": 66,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「StudioCanvasLayoutEdge.effectId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+          "line": 71,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「StudioCanvasLayout.schemaVersion」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+          "line": 72,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「StudioCanvasLayout.packageId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+          "line": 73,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「StudioCanvasLayout.lanes」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+          "line": 74,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「StudioCanvasLayout.nodes」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+          "line": 75,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「StudioCanvasLayout.edges」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+          "line": 76,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「StudioCanvasLayout.note」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+          "line": 84,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「DiskStoryPackageBundle.conf」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+          "line": 85,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「DiskStoryPackageBundle.cards」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        },
+        {
+          "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+          "line": 86,
+          "column": 2,
+          "code": "STUDIO-COMMENT-002",
+          "message": "严格契约字段「DiskStoryPackageBundle.layout」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+          "severity": "error"
+        }
+      ]
+    }
+  ],
+  "errorLocations": [
+    {
+      "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+      "line": 47,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「StudioCanvasLayoutNode.title」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+      "line": 48,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「StudioCanvasLayoutNode.summary」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+      "line": 49,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「StudioCanvasLayoutNode.nextPackageId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+      "line": 50,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「StudioCanvasLayoutNode.nextEntryCardId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+      "line": 57,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「StudioCanvasLayoutEdge.edgeId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+      "line": 58,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「StudioCanvasLayoutEdge.edgeKind」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+      "line": 59,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「StudioCanvasLayoutEdge.source」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+      "line": 60,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「StudioCanvasLayoutEdge.target」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+      "line": 61,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「StudioCanvasLayoutEdge.sourceHandle」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+      "line": 62,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「StudioCanvasLayoutEdge.targetHandle」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+      "line": 63,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「StudioCanvasLayoutEdge.label」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+      "line": 64,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「StudioCanvasLayoutEdge.effectKind」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+      "line": 65,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「StudioCanvasLayoutEdge.exitId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+      "line": 66,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「StudioCanvasLayoutEdge.effectId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+      "line": 71,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「StudioCanvasLayout.schemaVersion」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+      "line": 72,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「StudioCanvasLayout.packageId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+      "line": 73,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「StudioCanvasLayout.lanes」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+      "line": 74,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「StudioCanvasLayout.nodes」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+      "line": 75,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「StudioCanvasLayout.edges」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+      "line": 76,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「StudioCanvasLayout.note」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+      "line": 84,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「DiskStoryPackageBundle.conf」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+      "line": 85,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「DiskStoryPackageBundle.cards」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    },
+    {
+      "file": "apps/studioV2/typeFiles/story/package/diskStoryPackage.ts",
+      "line": 86,
+      "column": 2,
+      "code": "STUDIO-COMMENT-002",
+      "message": "严格契约字段「DiskStoryPackageBundle.layout」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明",
+      "severity": "error"
+    }
+  ],
+  "historyFile": "batch-5-1784703426342.json"
+}

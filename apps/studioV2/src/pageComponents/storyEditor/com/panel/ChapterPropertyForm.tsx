@@ -8,6 +8,8 @@ import type { FC } from "react";
 import { Alert, Button, TextField, Typography } from "@mui/material";
 import type { FormikProps } from "formik";
 import type { EditorChapterNodeData } from "@studio-v2/typeFiles/story/editor/callCard/editorCallCardProjection";
+import type { CallCardLabelOption } from "@studio-v2/typeFiles/story/callCardLabels";
+import type { ChapterPackageDiskContext } from "@studio-v2/src/bis/pageBis/storyEditor/form/chapter/chapterPropertyForm";
 import type { ChapterPropertyFormValues } from "@studio-v2/src/bis/pageBis/storyEditor/form/chapter/chapterPropertyForm";
 // 引用了ChapterEndNextFields组件，用于 chapter_end 下一包/起点卡
 import { ChapterEndNextFields } from "@studio-v2/src/pageComponents/storyEditor/com/panel/ChapterEndNextFields";
@@ -18,6 +20,10 @@ export type ChapterPropertyFormProps = {
 	nodeData: EditorChapterNodeData;
 	/** 浮窗持有的 Formik 实例 */
 	formik: FormikProps<ChapterPropertyFormValues>;
+	/** chapter_end 下拉用的磁盘卡索引 */
+	chapterDiskCtx: ChapterPackageDiskContext;
+	/** 下一故事包 Select 选项 */
+	chapterPackageOptions: readonly CallCardLabelOption[];
 };
 
 function readFormError(
@@ -40,6 +46,10 @@ export const ChapterPropertyForm: FC<ChapterPropertyFormProps> =
 		nodeData,
 		// formik 是章节属性 Formik，用于字段绑定与提交
 		formik,
+		// chapterDiskCtx 是 chapter_end 磁盘卡索引，用于 entry 卡下拉
+		chapterDiskCtx,
+		// chapterPackageOptions 是下一故事包 Select 选项，用于 nextPackage 字段
+		chapterPackageOptions,
 	}) {
 		const formError = readFormError(formik.status);
 		const isEnd = nodeData.kind === "chapter_end";
@@ -50,6 +60,7 @@ export const ChapterPropertyForm: FC<ChapterPropertyFormProps> =
 				onSubmit={formik.handleSubmit}
 				noValidate
 			>
+				<div className={styles.body}>
 				{/* 引用了Typography组件，用于章节种类提示 */}
 				<Typography variant="caption" className={styles.hint}>
 					{isEnd
@@ -86,21 +97,29 @@ export const ChapterPropertyForm: FC<ChapterPropertyFormProps> =
 				/>
 				{isEnd ? (
 					// 引用了ChapterEndNextFields组件，用于下一包与起点卡
-					<ChapterEndNextFields formik={formik} />
+					<ChapterEndNextFields
+						formik={formik}
+						chapterDiskCtx={chapterDiskCtx}
+						chapterPackageOptions={chapterPackageOptions}
+					/>
 				) : null}
 				{formError ? (
 					// 引用了Alert组件，用于提交失败提示
 					<Alert severity="error">{formError}</Alert>
 				) : null}
-				{/* 引用了Button组件，用于应用到画布 */}
-				<Button
-					type="submit"
-					variant="contained"
-					size="small"
-					disabled={formik.isSubmitting}
-				>
-					应用到画布
-				</Button>
+				</div>
+
+				<div className={styles.actions}>
+					{/* 引用了Button组件，用于应用到画布 */}
+					<Button
+						type="submit"
+						variant="contained"
+						size="small"
+						disabled={formik.isSubmitting}
+					>
+						应用到画布
+					</Button>
+				</div>
 			</form>
 		);
 	};

@@ -1,0 +1,48 @@
+[gbx] ▶ executor:V2-T3-1 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … executor:V2-T3-1 still running (15s elapsed, no output for 15s)
+[gbx] … executor:V2-T3-1 still running (30s elapsed, no output for 30s)
+[gbx] … executor:V2-T3-1 still running (45s elapsed, no output for 45s)
+[gbx] … executor:V2-T3-1 still running (60s elapsed, no output for 60s)
+[gbx] … executor:V2-T3-1 still running (75s elapsed, no output for 75s)
+[gbx] … executor:V2-T3-1 still running (90s elapsed, no output for 90s)
+[gbx] … executor:V2-T3-1 still running (105s elapsed, no output for 105s)
+[gbx] … executor:V2-T3-1 still running (120s elapsed, no output for 120s)
+[gbx] … executor:V2-T3-1 still running (135s elapsed, no output for 135s)
+[gbx] … executor:V2-T3-1 still running (150s elapsed, no output for 150s)
+[gbx] … executor:V2-T3-1 still running (165s elapsed, no output for 165s)
+[gbx] … executor:V2-T3-1 still running (180s elapsed, no output for 180s)
+[gbx] … executor:V2-T3-1 still running (195s elapsed, no output for 195s)
+[gbx] … executor:V2-T3-1 still running (210s elapsed, no output for 210s)
+[gbx] … executor:V2-T3-1 still running (225s elapsed, no output for 225s)
+[gbx] … executor:V2-T3-1 still running (240s elapsed, no output for 240s)
+[gbx] … executor:V2-T3-1 still running (255s elapsed, no output for 255s)
+**V2-T3-1 内容已落盘；verify NOT run；执行索引保持 ⬜。**
+
+### 已完成（仅 A1）
+正式五人写入 `data/characters/`，与 golden（`doubao-sister` / `xiaoyu`）并存：
+
+| agentId | displayName | personalityCode |
+|---------|-------------|-----------------|
+| `lanxing` | 澜星姐姐 | ENFJ |
+| `xiaopi` | 小皮 | ENFP |
+| `qiang-shushu` | 强叔叔 | ESTP |
+| `zhang-boss` | 张老板 | INTJ |
+| `bai-bansian` | 白半仙 | INFJ |
+
+字段对齐 `CharacterDef`（含 `persona.personalityCode`、身份、人设、默认开场、过程话术、社交边、`meta.phoneNumber`）。
+
+### 未做（本轮禁止跳步）
+- 未改 mock、API、故事包、执行索引勾选
+- 未动 `STATE.json`
+
+### Verify
+本环境 Shell 对 `npm` / `node` 等均被拒，**verify NOT run**。按 gbx 规则：**不能**把 V2-T3-1 改为 ✅。
+
+请在本机批准 Shell 后执行：
+
+```bash
+cd /Users/bolbiao/workspace/airpc-engine && npm run quality:studio
+```
+
+绿了再勾选，或重新跑本批并批准执行权限。
+[gbx] ■ executor:V2-T3-1 done exit=0 elapsed=263s

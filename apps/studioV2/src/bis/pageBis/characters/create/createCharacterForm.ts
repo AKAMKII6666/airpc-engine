@@ -73,9 +73,10 @@ export function validateCreateCharacterForm(
 }
 
 /**
-	* 由表单值生成会话内角色投影（单测 / 离线）；agentId 系统生成。
+	* 由表单值生成 CharacterSummary 投影夹具（单测）；agentId 系统生成。
+	* 业务创建请走 commitCreateCharacter → /api/characters。
 	*/
-export function buildMockCharacterFromForm(
+export function buildCharacterSummaryFromForm(
 	values: CreateCharacterFormValues,
 ): CharacterSummary {
 	const displayName = values.displayName.trim();

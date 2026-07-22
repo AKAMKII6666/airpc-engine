@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "packageId": "wrong_number_act1",
+  "lanes": [
+    {
+      "agentId": "lanxing",
+      "order": 0
+    },
+    {
+      "agentId": "xiaopi",
+      "order": 1
+    }
+  ],
+  "nodes": [
+    {
+      "nodeId": "chapter_start",
+      "kind": "chapter_start",
+      "x": 200,
+      "y": 200,
+      "title": "第一幕 · 打错电话",
+      "summary": "老式电话铃响起；澜星误拨，再补打自报。"
+    },
+    {
+      "nodeId": "card_wrong_number",
+      "cardId": "lanxing_wrong_number",
+      "x": 420,
+      "y": 120
+    },
+    {
+      "nodeId": "card_callback",
+      "cardId": "lanxing_callback_intro",
+      "x": 760,
+      "y": 40
+    },
+    {
+      "nodeId": "card_voicemail",
+      "cardId": "lanxing_voicemail",
+      "x": 760,
+      "y": 320
+    },
+    {
+      "nodeId": "chapter_end",
+      "kind": "chapter_end",
+      "x": 1100,
+      "y": 200,
+      "title": "章节结束",
+      "summary": "小皮正往书包塞没电的手电筒；桌上纸条写着「不许乱跑。有事先打电话。」——他嘴硬，十秒后还是拿起了电话。",
+      "nextPackageId": "pkg_night_shift_2",
+      "nextEntryCardId": "night_shift_open"
+    }
+  ],
+  "edges": [
+    {
+      "edgeId": "e_start_wrong",
+      "edgeKind": "story",
+      "source": "chapter_start",
+      "target": "card_wrong_number",
+      "sourceHandle": "exit",
+      "targetHandle": "parent"
+    },
+    {
+      "edgeId": "e_wrong_callback",
+      "edgeKind": "story",
+      "source": "card_wrong_number",
+      "target": "card_callback",
+      "sourceHandle": "exit_callback",
+      "targetHandle": "parent",
+      "label": "挂机后补打"
+    },
+    {
+      "edgeId": "e_callback_known",
+      "edgeKind": "story",
+      "source": "card_callback",
+      "target": "chapter_end",
+      "sourceHandle": "exit_known",
+      "targetHandle": "parent",
+      "label": "记住名号"
+    },
+    {
+      "edgeId": "e_callback_voicemail",
+      "edgeKind": "story",
+      "source": "card_callback",
+      "target": "card_voicemail",
+      "sourceHandle": "exit_voicemail",
+      "targetHandle": "parent",
+      "label": "没说清→留言"
+    },
+    {
+      "edgeId": "e_voicemail_end",
+      "edgeKind": "story",
+      "source": "card_voicemail",
+      "target": "chapter_end",
+      "sourceHandle": "exit_end",
+      "targetHandle": "parent"
+    },
+    {
+      "edgeId": "role_wrong_lanxing",
+      "edgeKind": "role",
+      "source": "card_wrong_number",
+      "target": "lanxing",
+      "sourceHandle": "role",
+      "targetHandle": "role"
+    },
+    {
+      "edgeId": "role_callback_lanxing",
+      "edgeKind": "role",
+      "source": "card_callback",
+      "target": "lanxing",
+      "sourceHandle": "role",
+      "targetHandle": "role"
+    },
+    {
+      "edgeId": "role_voicemail_lanxing",
+      "edgeKind": "role",
+      "source": "card_voicemail",
+      "target": "lanxing",
+      "sourceHandle": "role",
+      "targetHandle": "role"
+    },
+    {
+      "edgeId": "effect_card_wrong_number_exit_callback_fx_attach_callback",
+      "edgeKind": "effect",
+      "source": "card_wrong_number",
+      "target": "card_callback",
+      "sourceHandle": "exit_callback",
+      "targetHandle": "parent",
+      "label": "挂载",
+      "effectKind": "attach",
+      "exitId": "exit_callback",
+      "effectId": "fx_attach_callback"
+    }
+  ],
+  "note": "引擎忽略本文件；章节节点与边仅 Studio 画布使用。内容真源在 cards/conf，layout 不重复存 objective 全文。"
+}

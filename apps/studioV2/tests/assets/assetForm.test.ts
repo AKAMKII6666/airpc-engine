@@ -1,5 +1,6 @@
 /**
- * 新建 / 详情资源表单校验与 mock 投影轻量回归；含删改会话一致性。
+ * 新建 / 详情资源表单校验与 mock 投影轻量回归；含资源删改会话一致性。
+ * 角色 CRUD 已切 API，不再测角色会话 mock。
  */
 import { describe, expect, it } from "vitest";
 import {
@@ -14,17 +15,9 @@ import {
 } from "@studio-v2/src/bis/pageBis/assets/assetDetailForm";
 import { commitDeleteAssetMock } from "@studio-v2/src/bis/pageBis/assets/delete/deleteAsset_bis";
 import {
-  applyCharacterDetailForm,
-  toCharacterDetailFormValues,
-} from "@studio-v2/src/bis/pageBis/characters/detail/form/characterDetailForm";
-import { buildMockCharacterFromForm } from "@studio-v2/src/bis/pageBis/characters/create/createCharacterForm";
-import {
   appendMockAsset,
-  appendMockCharacter,
   listMockAssets,
-  listMockCharacters,
   removeMockAsset,
-  removeMockCharacter,
 } from "@studio-v2/src/utils/ajaxProxy/library/mock/mockLibraryData";
 import { resetStudioIdSeq } from "@studio-v2/typeFiles/ids/createStudioId";
 
@@ -85,37 +78,6 @@ describe("assetDetailForm", () => {
     expect(next.kind).toBe("other");
     expect(next.availability).toBe("missing");
     expect(next.measureValue).toBe(4096);
-  });
-});
-
-describe("character delete mock", () => {
-  it("keeps list and detail selection consistent after remove", () => {
-    resetStudioIdSeq(30);
-    const created = buildMockCharacterFromForm({
-      displayName: "待删角色",
-      kind: "support",
-      bio: "列表标签",
-    });
-    appendMockCharacter(created);
-    expect(
-      listMockCharacters().some((c) => c.agentId === created.agentId),
-    ).toBe(true);
-
-    // 详情表单对齐 CharacterDef：改嵌套字段；bio 为列表标签，apply 须保留
-    const values = toCharacterDetailFormValues(created);
-    values.identity.fullName = "先改再删";
-    const updated = applyCharacterDetailForm(created, values);
-    expect(updated.identity.fullName).toBe("先改再删");
-    expect(updated.bio).toBe("列表标签");
-
-    removeMockCharacter(created.agentId);
-    expect(
-      listMockCharacters().some((c) => c.agentId === created.agentId),
-    ).toBe(false);
-  });
-
-  it("removeMockCharacter returns false for unknown id", () => {
-    expect(removeMockCharacter("agent_not_exists_zzz")).toBe(false);
   });
 });
 

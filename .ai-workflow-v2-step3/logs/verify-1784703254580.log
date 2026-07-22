@@ -1,0 +1,37 @@
+[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+
+> quality:studio
+> node scripts/studio-quality/quality-studio.mjs
+
+
+==> ensure-modal-layout (pre-typecheck)
+ensure-modal-layout: nothing to remove
+
+==> ensure-migrated-layout (pre-typecheck)
+ensure-migrated-layout: nothing to remove
+
+==> lint (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 lint
+> node ./scripts/run-eslint.mjs . --max-warnings 0
+
+
+/Users/bolbiao/workspace/airpc-engine/apps/studioV2/app/api/stories/route.ts
+  2:63  error  Parsing error: Invalid character
+
+/Users/bolbiao/workspace/airpc-engine/apps/studioV2/src/utils/server/packages/packagesList.server.ts
+  2:45  error  Parsing error: ';' expected
+
+✖ 2 problems (2 errors, 0 warnings)
+
+npm error Lifecycle script `lint` failed with error:
+npm error code 1
+npm error path /Users/bolbiao/workspace/airpc-engine/apps/studioV2
+npm error workspace @airpc/studio-v2@0.0.1
+npm error location /Users/bolbiao/workspace/airpc-engine/apps/studioV2
+npm error command failed
+npm error command sh -c node ./scripts/run-eslint.mjs . --max-warnings 0
+lint (@airpc/studio-v2) failed (exit 1)
+
+quality:studio FAILED
+[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=2s

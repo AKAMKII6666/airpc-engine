@@ -1,0 +1,53 @@
+[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+
+> quality:studio
+> node scripts/studio-quality/quality-studio.mjs
+
+
+==> ensure-modal-layout (pre-typecheck)
+ensure-modal-layout: nothing to remove
+
+==> ensure-migrated-layout (pre-typecheck)
+ensure-migrated-layout: nothing to remove
+
+==> lint (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 lint
+> node ./scripts/run-eslint.mjs . --max-warnings 0
+
+
+==> typecheck (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 typecheck
+> tsc -p tsconfig.json --noEmit
+
+
+==> check:comments
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:47:2  严格契约字段「StudioCanvasLayoutNode.title」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:48:2  严格契约字段「StudioCanvasLayoutNode.summary」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:49:2  严格契约字段「StudioCanvasLayoutNode.nextPackageId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:50:2  严格契约字段「StudioCanvasLayoutNode.nextEntryCardId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:57:2  严格契约字段「StudioCanvasLayoutEdge.edgeId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:58:2  严格契约字段「StudioCanvasLayoutEdge.edgeKind」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:59:2  严格契约字段「StudioCanvasLayoutEdge.source」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:60:2  严格契约字段「StudioCanvasLayoutEdge.target」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:61:2  严格契约字段「StudioCanvasLayoutEdge.sourceHandle」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:62:2  严格契约字段「StudioCanvasLayoutEdge.targetHandle」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:63:2  严格契约字段「StudioCanvasLayoutEdge.label」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:64:2  严格契约字段「StudioCanvasLayoutEdge.effectKind」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:65:2  严格契约字段「StudioCanvasLayoutEdge.exitId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:66:2  严格契约字段「StudioCanvasLayoutEdge.effectId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:71:2  严格契约字段「StudioCanvasLayout.schemaVersion」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:72:2  严格契约字段「StudioCanvasLayout.packageId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:73:2  严格契约字段「StudioCanvasLayout.lanes」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:74:2  严格契约字段「StudioCanvasLayout.nodes」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:75:2  严格契约字段「StudioCanvasLayout.edges」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:76:2  严格契约字段「StudioCanvasLayout.note」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:84:2  严格契约字段「DiskStoryPackageBundle.conf」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:85:2  严格契约字段「DiskStoryPackageBundle.cards」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/package/diskStoryPackage.ts:86:2  严格契约字段「DiskStoryPackageBundle.layout」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+check:comments failed (23 issues, 298 files)
+check:comments failed (exit 1)
+
+quality:studio FAILED
+[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=5s

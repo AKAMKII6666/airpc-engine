@@ -1,0 +1,49 @@
+[gbx] ▶ fixer:V2-S7-5+V2-S7-6 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-S7-5+V2-S7-6 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-S7-5+V2-S7-6 still running (30s elapsed, no output for 30s)
+[gbx] … fixer:V2-S7-5+V2-S7-6 still running (45s elapsed, no output for 45s)
+Connection lost, reconnecting to https://agentn.global.api5.cursor.sh (attempt 1)...
+Retry attempt 1...
+[gbx] … fixer:V2-S7-5+V2-S7-6 still running (75s elapsed, no output for 17s)
+[gbx] … fixer:V2-S7-5+V2-S7-6 still running (90s elapsed, no output for 32s)
+[gbx] … fixer:V2-S7-5+V2-S7-6 still running (105s elapsed, no output for 47s)
+[gbx] … fixer:V2-S7-5+V2-S7-6 still running (120s elapsed, no output for 62s)
+[gbx] … fixer:V2-S7-5+V2-S7-6 still running (135s elapsed, no output for 77s)
+[gbx] … fixer:V2-S7-5+V2-S7-6 still running (150s elapsed, no output for 92s)
+[gbx] … fixer:V2-S7-5+V2-S7-6 still running (165s elapsed, no output for 107s)
+[gbx] … fixer:V2-S7-5+V2-S7-6 still running (180s elapsed, no output for 122s)
+[gbx] … fixer:V2-S7-5+V2-S7-6 still running (195s elapsed, no output for 137s)
+[gbx] … fixer:V2-S7-5+V2-S7-6 still running (210s elapsed, no output for 152s)
+[gbx] … fixer:V2-S7-5+V2-S7-6 still running (225s elapsed, no output for 167s)
+[gbx] … fixer:V2-S7-5+V2-S7-6 still running (240s elapsed, no output for 182s)
+[gbx] … fixer:V2-S7-5+V2-S7-6 still running (255s elapsed, no output for 197s)
+[gbx] … fixer:V2-S7-5+V2-S7-6 still running (270s elapsed, no output for 212s)
+[gbx] … fixer:V2-S7-5+V2-S7-6 still running (285s elapsed, no output for 227s)
+[gbx] … fixer:V2-S7-5+V2-S7-6 still running (300s elapsed, no output for 242s)
+[gbx] … fixer:V2-S7-5+V2-S7-6 still running (315s elapsed, no output for 257s)
+[gbx] … fixer:V2-S7-5+V2-S7-6 still running (330s elapsed, no output for 272s)
+[gbx] … fixer:V2-S7-5+V2-S7-6 still running (345s elapsed, no output for 287s)
+[gbx] … fixer:V2-S7-5+V2-S7-6 still running (360s elapsed, no output for 302s)
+[gbx] … fixer:V2-S7-5+V2-S7-6 still running (375s elapsed, no output for 317s)
+[gbx] … fixer:V2-S7-5+V2-S7-6 still running (390s elapsed, no output for 332s)
+[gbx] … fixer:V2-S7-5+V2-S7-6 still running (405s elapsed, no output for 347s)
+Shell execution is denied in this environment, so I could not re-run the gate.
+
+## 修复总结（fixTrigger = verify_fail，batch-3 / V2-S7-5, V2-S7-6）
+
+我只针对 `latest-verify.json` 中仍为红的 **5 个硬错误**（其余 63 项均为 WARN/告警线，不阻断，未动）：
+
+**1. `MountTargetModal.tsx` — STUDIO-STRUCT-019（3 处）**
+根因：结构检查 `hasBindingComment` 要求解构字段上方注释含关键字 `用于/是什么/说明/表示`。`open`、`onClose`、`onConfirm` 三个字段的注释缺关键字，故被判缺失。
+修复：补齐关键字（如 `// open 用于控制 Dialog 显隐`、`// onClose 用于取消关闭 Dialog`、`// onConfirm 用于把草稿写回该行 params`）。
+
+**2. `MountTargetModal.tsx` — STUDIO-STRUCT-002 硬上限（106 > 100）**
+修复：把 attach 专属的「故事包 + 入口模式」两段 JSX 抽成模块级 `renderAttachExtraFields(draft, patchDraft, sources)`（与 `AutoForm/index.tsx` 既有 `renderMappedItem` 同款 render-helper 模式，lint 已验证可用），组件 body 有效行降到约 71 行。
+
+**3. `useStoryCanvasGraph.ts` — STUDIO-STRUCT-002 硬上限（111 > 100）**
+修复：把效果边反向同步的 `applyEffectRowRemovals` + `onEdgesChange` 抽到新 hook `canvas/useStoryCanvasEffectEdges.ts`（沿用 `useStoryCanvasNodeMutations` 的 args/deps 约定），并清理由此变为未用的 `applyEdgeChanges`/`EdgeChange`/`RemovedEffectRef` 导入。body 有效行降到约 87 行。canvas/ 已有 `nodes/` 子目录，新增文件不触发聚类门禁。
+
+未做任何顺手重构、未改 STATE.json、未勾选执行索引（verify 尚待 orchestrator 重跑确认）。
+
+**⚠️ 未自验**：本环境 Shell 被拒绝（`npm run quality:studio` / 结构脚本均无法执行），我**无法**声称 verify 已通过。以上均为对照 `check-studio-structure.mjs` 判定逻辑做的静态核对，实际结果以 orchestrator 重跑 `npm run quality:studio` 为准。
+[gbx] ■ fixer:V2-S7-5+V2-S7-6 done exit=0 elapsed=416s

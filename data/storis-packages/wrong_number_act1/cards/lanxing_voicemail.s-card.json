@@ -1,0 +1,48 @@
+{
+  "cardId": "lanxing_voicemail",
+  "cardKind": "story",
+  "title": "语音留言",
+  "ownerAgentId": "lanxing",
+  "entryMode": "outbound_auto",
+  "interactionMode": "realtime_dialogue",
+  "context": {
+    "objective": "留言补全姓名与号码；提醒小皮可能来电别怕。",
+    "privateBrief": "比通话更不好意思；慢念号码；不替用户做决定。",
+    "speakableBrief": "喂？是我，澜星。就是刚才打错电话、又补打一遍那个。可以叫我澜星姐姐。电话号码 2267070。有空打给我哦。如果有个叫小皮的小孩突然打电话给你……你先别怕。他小麻烦很多，但有时候也需要有人听见。",
+    "background": "",
+    "premise": "补打未说清名号；语音信箱兜底。",
+    "emotion": "不好意思、温柔",
+    "forbidden": [
+      "替用户决定是否接小皮电话"
+    ],
+    "promptScenes": []
+  },
+  "objectives": {
+    "requiredBeats": [
+      "留言自报",
+      "再念号码",
+      "小皮预警"
+    ]
+  },
+  "toolPolicy": {
+    "mode": "deny_all"
+  },
+  "exits": [
+    {
+      "exitId": "exit_end",
+      "exitKind": "terminal",
+      "title": "留言结束",
+      "priority": 0,
+      "condition": {
+        "op": "always"
+      },
+      "effects": [
+        {
+          "id": "fx_end_mail",
+          "effect": "end_story",
+          "reason": "留言收束"
+        }
+      ]
+    }
+  ]
+}

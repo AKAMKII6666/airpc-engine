@@ -1,6 +1,6 @@
 /**
 	* chapter_end 下一包 / 起点卡 Select 区：从 ChapterPropertyForm 拆出以降有效行数。
-	* 禁止自由文本 packageId / cardId；换包时校正 entry。
+	* 选项来自磁盘包列表；禁止自由文本 packageId / cardId。
 	*/
 "use client";
 
@@ -9,26 +9,37 @@ import { MenuItem, TextField } from "@mui/material";
 import type { FormikProps } from "formik";
 import {
 	listChapterEntryCardOptions,
-	listChapterNextPackageOptions,
-} from "@studio-v2/src/bis/pageBis/storyEditor/package/packageConfProjection";
+} from "@studio-v2/src/bis/pageBis/storyEditor/package/conf/packageConfProjection";
 import {
 	syncEntryAfterPackageChange,
+	type ChapterPackageDiskContext,
 	type ChapterPropertyFormValues,
 } from "@studio-v2/src/bis/pageBis/storyEditor/form/chapter/chapterPropertyForm";
+import type { CallCardLabelOption } from "@studio-v2/typeFiles/story/callCardLabels";
 
 export type ChapterEndNextFieldsProps = {
 	/** 章节属性 Formik；读写 nextPackageId / nextEntryCardId */
 	formik: FormikProps<ChapterPropertyFormValues>;
+	/** chapter_end 下拉用的磁盘卡索引 */
+	chapterDiskCtx: ChapterPackageDiskContext;
+	/** 下一故事包 Select 选项 */
+	chapterPackageOptions: readonly CallCardLabelOption[];
 };
 
 export const ChapterEndNextFields: FC<ChapterEndNextFieldsProps> =
 	function ChapterEndNextFields({
 		// formik 是章节属性 Formik，用于下一包与起点卡 Select 绑定
 		formik,
+		// chapterDiskCtx 是磁盘卡索引，用于 entry 卡下拉
+		chapterDiskCtx,
+		// chapterPackageOptions 是下一故事包选项，用于 nextPackage Select
+		chapterPackageOptions,
 	}) {
-		const packageOptions = listChapterNextPackageOptions();
 		const nextPackageId = formik.values.nextPackageId ?? "";
-		const entryOptions = listChapterEntryCardOptions(nextPackageId);
+		const entryOptions = listChapterEntryCardOptions(
+			nextPackageId,
+			chapterDiskCtx.cardIndex,
+		);
 
 		return (
 			<>
@@ -44,17 +55,18 @@ export const ChapterEndNextFields: FC<ChapterEndNextFieldsProps> =
 						const synced = syncEntryAfterPackageChange(
 							e.target.value,
 							formik.values.nextEntryCardId,
+							chapterDiskCtx,
 						);
 						void formik.setValues({
 							...formik.values,
 							...synced,
 						});
 					}}
-					helperText="从 mock 包列表选择；禁止手填 packageId。"
+					helperText="从磁盘包列表选择；禁止手填 packageId。"
 				>
 					{/* 引用了MenuItem组件，用于清空下一包 */}
 					<MenuItem value="">（未设）</MenuItem>
-					{packageOptions.map((opt) => (
+					{chapterPackageOptions.map((opt) => (
 						// 引用了MenuItem组件，用于故事包选项
 						<MenuItem key={opt.value} value={opt.value}>
 							{opt.label}

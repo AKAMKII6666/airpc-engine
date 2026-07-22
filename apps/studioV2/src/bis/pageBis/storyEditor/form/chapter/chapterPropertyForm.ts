@@ -5,7 +5,22 @@
 	*/
 import type { FormikErrors } from "formik";
 import type { EditorChapterNodeData } from "@studio-v2/typeFiles/story/editor/callCard/editorCallCardProjection";
-import { resolveChapterEntryCardId } from "@studio-v2/src/bis/pageBis/storyEditor/package/packageConfProjection";
+import { resolveChapterEntryCardId } from "@studio-v2/src/bis/pageBis/storyEditor/package/conf/packageConfProjection";
+
+/** chapter_end 下拉用的磁盘卡索引；由编辑器会话注入 */
+export type ChapterPackageDiskContext = {
+	/** 包 id → 该包内可选下一入口卡列表；只读索引，来自磁盘 bundle */
+	cardIndex: Readonly<
+		Record<string, readonly { cardId: string; title?: string }[]>
+	>;
+	/** 包 id → 默认入口卡 cardId；无配置时由 resolveChapterEntryCardId 回落 */
+	entryCardIdByPackage: Readonly<Record<string, string>>;
+};
+
+const EMPTY_CHAPTER_DISK_CTX: ChapterPackageDiskContext = {
+	cardIndex: {},
+	entryCardIdByPackage: {},
+};
 
 /** 章节属性浮窗 values；空串表示未选 */
 export type ChapterPropertyFormValues = {
@@ -49,6 +64,7 @@ export function validateChapterPropertyForm(
 export function syncEntryAfterPackageChange(
 	nextPackageId: string | undefined,
 	currentEntryCardId: string | undefined,
+	diskCtx: ChapterPackageDiskContext = EMPTY_CHAPTER_DISK_CTX,
 ): Pick<ChapterPropertyFormValues, "nextPackageId" | "nextEntryCardId"> {
 	const packageId = (nextPackageId ?? "").trim();
 	if (packageId === "") {
@@ -56,7 +72,13 @@ export function syncEntryAfterPackageChange(
 	}
 	return {
 		nextPackageId: packageId,
-		nextEntryCardId: resolveChapterEntryCardId(packageId, currentEntryCardId) ?? "",
+		nextEntryCardId:
+			resolveChapterEntryCardId(
+				packageId,
+				currentEntryCardId,
+				diskCtx.cardIndex,
+				diskCtx.entryCardIdByPackage,
+			) ?? "",
 	};
 }
 
@@ -67,6 +89,7 @@ export function syncEntryAfterPackageChange(
 export function applyChapterPropertyForm(
 	previous: EditorChapterNodeData,
 	values: ChapterPropertyFormValues,
+	diskCtx: ChapterPackageDiskContext = EMPTY_CHAPTER_DISK_CTX,
 ): EditorChapterNodeData {
 	const title = values.title.trim();
 	const summary = values.summary.trim();
@@ -90,6 +113,8 @@ export function applyChapterPropertyForm(
 		values.nextEntryCardId.trim() !== ""
 			? values.nextEntryCardId.trim()
 			: undefined,
+		diskCtx.cardIndex,
+		diskCtx.entryCardIdByPackage,
 	);
 	return {
 		...base,

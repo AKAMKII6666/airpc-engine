@@ -1,0 +1,55 @@
+[gbx] ▶ fixer:V2-S7-3+V2-S7-4 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (30s elapsed, no output for 30s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (45s elapsed, no output for 45s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (60s elapsed, no output for 60s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (75s elapsed, no output for 75s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (90s elapsed, no output for 90s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (105s elapsed, no output for 105s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (120s elapsed, no output for 120s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (135s elapsed, no output for 135s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (150s elapsed, no output for 150s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (165s elapsed, no output for 165s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (180s elapsed, no output for 180s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (195s elapsed, no output for 195s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (210s elapsed, no output for 210s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (225s elapsed, no output for 225s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (240s elapsed, no output for 240s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (255s elapsed, no output for 255s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (270s elapsed, no output for 270s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (285s elapsed, no output for 285s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (300s elapsed, no output for 300s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (315s elapsed, no output for 315s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (330s elapsed, no output for 330s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (345s elapsed, no output for 345s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (360s elapsed, no output for 360s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (375s elapsed, no output for 375s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (390s elapsed, no output for 390s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (405s elapsed, no output for 405s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (420s elapsed, no output for 420s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (435s elapsed, no output for 435s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (450s elapsed, no output for 450s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (465s elapsed, no output for 465s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (480s elapsed, no output for 480s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (495s elapsed, no output for 495s)
+[gbx] … fixer:V2-S7-3+V2-S7-4 still running (510s elapsed, no output for 510s)
+已按 prompt 修复 `review_fail`（fixTrigger=review_fail；latest-verify ok=true 全为 WARN/告警线，未追）。
+
+## 修复的问题
+
+**major（S7-4 核心功能缺口）**：A 类下拉数据源 `sources` 从未接入画布，恒为空。已完成从画布/包/资源到 `ExitEffectsMockList` 的完整接线（不改契约、不改面板）：
+
+- 新增 `bis/.../exitList/effects/effectPanelSources.ts`：纯映射 `buildEffectPanelSources`，把角色锚点/CallCard 节点/工作台包/会话资源收敛为 `EffectPanelSources`（value=agentId/cardId/packageId/assetId）。
+- `useStoryCanvasGraph.ts`：`StoryCanvasGraphMeta` 增 `callCards`，新增 `collectCallCards` 从画布 callCard 节点收集投影。
+- `useStoryEditorCanvasBindings.ts`：新增 `callCards` state，随 graph meta 刷新。
+- `useStoryEditorShellController.ts`：`useMemo` 装配 `effectPanelSources`（角色/卡 + `listMockPackages()` + `assetForms.assets`）并导出。
+- 逐层下传 `sources`：`StoryEditorShell → StoryEditorCanvasLayer → FloatingPanelShell → NodePropertyForm → NodePropertySubModules → ExitListEditor → ExitListRow → ExitEffectsMockList`（每处补入口解构注释与字段说明）。
+
+**minor**：执行索引 `V2-S7-3` / `V2-S7-4` 由 ⬜ 改为 ✅。
+
+未做 drive-by 重构；未写 STATE.json；未 commit。
+
+## 自验状态
+
+**未自验**：Shell 运行 `npm run quality:studio` 被拒（两次均 Rejected），无法运行门禁。因此不声称 quality/verify 通过。已做静态核对：所有新/改 required 属性的调用点均在同一链路内且全部更新；`StoryCanvasGraphMeta` 唯一构造点已补 `callCards`；导入路径（`storyEditorMock` 再导出 `EditorCallCardProjection`、`storyPackageSummary`、`assetSummary`、`editorEffectParams`）均已确认；新文件使用 tab 缩进、含字段级注释。触碰的函数（如 `ExitListRow` ~94、`FloatingPanelShell` ~80）仍在函数硬上限 100 以下，仅 WARN 告警线。建议在 Shell 可用时执行 `npm run quality:studio` 复核。
+[gbx] ■ fixer:V2-S7-3+V2-S7-4 done exit=0 elapsed=515s

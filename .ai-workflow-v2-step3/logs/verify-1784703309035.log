@@ -1,0 +1,41 @@
+[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+
+> quality:studio
+> node scripts/studio-quality/quality-studio.mjs
+
+
+==> ensure-modal-layout (pre-typecheck)
+ensure-modal-layout: nothing to remove
+
+==> ensure-migrated-layout (pre-typecheck)
+ensure-migrated-layout: nothing to remove
+
+==> lint (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 lint
+> node ./scripts/run-eslint.mjs . --max-warnings 0
+
+
+==> typecheck (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 typecheck
+> tsc -p tsconfig.json --noEmit
+
+src/utils/server/packages/packagesFs.server.ts(11,7): error TS2305: Module '"@airpc/rpg-engine"' has no exported member 'StoryPackageConf'.
+src/utils/server/packages/packagesFs.server.ts(133,29): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/utils/server/packages/packagesFs.server.ts(198,28): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/utils/server/packages/packagesFs.server.ts(246,28): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/utils/server/packages/packagesFs.server.ts(251,25): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'string'.
+src/utils/server/packages/packagesFs.server.ts(263,43): error TS7006: Parameter 'ref' implicitly has an 'any' type.
+typeFiles/story/package/diskStoryPackage.ts(7,2): error TS2305: Module '"@airpc/rpg-engine"' has no exported member 'StoryPackageConf'.
+npm error Lifecycle script `typecheck` failed with error:
+npm error code 2
+npm error path /Users/bolbiao/workspace/airpc-engine/apps/studioV2
+npm error workspace @airpc/studio-v2@0.0.1
+npm error location /Users/bolbiao/workspace/airpc-engine/apps/studioV2
+npm error command failed
+npm error command sh -c tsc -p tsconfig.json --noEmit
+typecheck (@airpc/studio-v2) failed (exit 2)
+
+quality:studio FAILED
+[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=5s

@@ -58,6 +58,11 @@ export type CharacterIdentityProjection = {
 export type CharacterPersonaProjection = {
 	/** 系统人设提示词；空串表示未填，落盘 CharacterDef.persona */
 	systemPrompt: string;
+	/**
+		* 人格扮演码（约定 MBTI 四字母）；空串表示未填。
+		* Composer 写入 systemHard；编辑 UI 用 PERSONALITY_CODE_OPTIONS。
+		*/
+	personalityCode: string;
 	/** 职业/身份标签；空串表示未填 */
 	profession: string;
 	/** 说话风格说明；空串表示未填 */

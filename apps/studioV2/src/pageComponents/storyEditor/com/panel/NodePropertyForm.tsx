@@ -5,11 +5,13 @@
 "use client";
 
 import type { FC } from "react";
+import { useMemo } from "react";
 import { Alert, Button, Chip, Typography } from "@mui/material";
 import type { FormikProps } from "formik";
 // 引用了AutoForm组件，用于声明式字段编排
 import { AutoForm } from "@studio-v2/src/commonUiComponents/form/AutoForm";
 import type { EditorCallCardProjection } from "@studio-v2/typeFiles/story/editor/callCard/editorCallCardProjection";
+import type { EffectPanelSources } from "@studio-v2/typeFiles/story/editor/callCard/editorEffectParams";
 import type { CharacterAnchorNodeData } from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
 import {
 	NODE_BASIC_ITEMS,
@@ -29,6 +31,8 @@ export type NodePropertyFormProps = {
 	formik: FormikProps<NodePropertyFormValues>;
 	/** 画布角色锚点；归属 Select 选项 */
 	characterAnchors: readonly CharacterAnchorNodeData[];
+	/** Effect 面板 id 下拉候选源；下传出口列表 */
+	effectPanelSources: EffectPanelSources;
 	/**
 		* 归属变更即时写回；空串清空归属与 role 边。
 		* 与顶口连线双向同步。
@@ -58,15 +62,28 @@ export const NodePropertyForm: FC<NodePropertyFormProps> =
 		formik,
 		// characterAnchors 是画布锚点列表，用于归属 Select
 		characterAnchors,
+		// effectPanelSources 是 Effect id 下拉候选源，用于出口列表
+		effectPanelSources,
 		// onAssignOwner 是归属写回回调，用于即时同步 role 边
 		onAssignOwner,
 	}) {
 		const formError = readFormError(formik.status);
 		const exitCount = exitCountFromProjection(nodeData);
 		const showSchedule = formik.values.cardKind === "schedule";
+		// Effect 目标卡下拉排除本卡：卡的 attach/unmount/调度等目标应指向其它卡
+		const effectSources = useMemo(
+			() => ({
+				...effectPanelSources,
+				cards: effectPanelSources.cards.filter(
+					(card) => card.value !== nodeData.cardId,
+				),
+			}),
+			[effectPanelSources, nodeData.cardId],
+		);
 
 		return (
 			<form onSubmit={formik.handleSubmit} noValidate className={styles.form}>
+				<div className={styles.body}>
 				{formError ? (
 					// 引用了Alert组件，用于展示提交级错误
 					<Alert severity="error" role="alert">
@@ -128,7 +145,9 @@ export const NodePropertyForm: FC<NodePropertyFormProps> =
 				<NodePropertySubModules
 					formik={formik}
 					showSchedule={showSchedule}
+					effectPanelSources={effectSources}
 				/>
+				</div>
 
 				<div className={styles.actions}>
 					{/* 引用了Button组件，用于提交到画布会话态 */}

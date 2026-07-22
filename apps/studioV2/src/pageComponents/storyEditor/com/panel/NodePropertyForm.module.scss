@@ -1,10 +1,21 @@
 @use "../../../../../typeFiles/theme/tokens.scss" as t;
 
 .form {
+	flex: 1;
 	display: flex;
 	flex-direction: column;
 	gap: 8px;
 	min-height: 0;
+}
+
+.body {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding-right: 4px;
 }
 
 .badgeRow {
@@ -50,10 +61,13 @@
 }
 
 .actions {
+	flex-shrink: 0;
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
-	margin-top: 4px;
+	padding-top: 8px;
+	border-top: 1px solid t.$border-panel;
+	background: t.$bg-panel-elevated;
 }
 
 .hint {

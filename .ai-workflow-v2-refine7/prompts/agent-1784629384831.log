@@ -1,0 +1,38 @@
+[gbx] ▶ batch-reviewer:V2-S7-3+V2-S7-4 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … batch-reviewer:V2-S7-3+V2-S7-4 still running (15s elapsed, no output for 15s)
+[gbx] … batch-reviewer:V2-S7-3+V2-S7-4 still running (30s elapsed, no output for 30s)
+[gbx] … batch-reviewer:V2-S7-3+V2-S7-4 still running (45s elapsed, no output for 45s)
+[gbx] … batch-reviewer:V2-S7-3+V2-S7-4 still running (60s elapsed, no output for 60s)
+[gbx] … batch-reviewer:V2-S7-3+V2-S7-4 still running (75s elapsed, no output for 75s)
+[gbx] … batch-reviewer:V2-S7-3+V2-S7-4 still running (90s elapsed, no output for 90s)
+[gbx] … batch-reviewer:V2-S7-3+V2-S7-4 still running (105s elapsed, no output for 105s)
+[gbx] … batch-reviewer:V2-S7-3+V2-S7-4 still running (120s elapsed, no output for 120s)
+[gbx] … batch-reviewer:V2-S7-3+V2-S7-4 still running (135s elapsed, no output for 135s)
+[gbx] … batch-reviewer:V2-S7-3+V2-S7-4 still running (150s elapsed, no output for 150s)
+[gbx] … batch-reviewer:V2-S7-3+V2-S7-4 still running (165s elapsed, no output for 165s)
+[gbx] … batch-reviewer:V2-S7-3+V2-S7-4 still running (180s elapsed, no output for 180s)
+[gbx] … batch-reviewer:V2-S7-3+V2-S7-4 still running (195s elapsed, no output for 195s)
+[gbx] … batch-reviewer:V2-S7-3+V2-S7-4 still running (210s elapsed, no output for 210s)
+[gbx] … batch-reviewer:V2-S7-3+V2-S7-4 still running (225s elapsed, no output for 225s)
+[gbx] … batch-reviewer:V2-S7-3+V2-S7-4 still running (240s elapsed, no output for 240s)
+[gbx] … batch-reviewer:V2-S7-3+V2-S7-4 still running (255s elapsed, no output for 255s)
+[gbx] … batch-reviewer:V2-S7-3+V2-S7-4 still running (270s elapsed, no output for 270s)
+[gbx] … batch-reviewer:V2-S7-3+V2-S7-4 still running (285s elapsed, no output for 285s)
+[gbx] … batch-reviewer:V2-S7-3+V2-S7-4 still running (300s elapsed, no output for 300s)
+Review complete. I executed the batch-reviewer role for batch 2 (V2-S7-3, V2-S7-4) and wrote `.ai-workflow-v2-refine7/reviews/latest.json`.
+
+**Result: `fail`** — `blocker=0, critical=0, major=1, minor=1`, `recommendedNextState=FIX_BATCH`.
+
+What I verified as compliant:
+- **S7-3** `end_story` composite panel (reason + cleanup collapse + next sub-panel with target/activation) and `schedule_recurring_call` (agent optional, card-ref two-choice, daily/weekly, hour/minute, weekly weekday multi-select) — complete.
+- **S7-4** four A-class panels use `EffectNodeSelect` dropdowns, not free-text id.
+- Contract is a discriminated union in `typeFiles/.../editorEffectParams.ts` (not stuffed into `EditorCallCardProjection` top-level).
+- `ExitEffectsMockList` is split into `ExitEffectRow` + `com/effects/` subcomponents (not one file with 14 panels).
+- Field names match the engine truth (`effectExecutor.ts` / `writeRecurringIntentFromEffect.ts`): `scheduleCardId`, `cardId`, `packageId`, `hour`, `minute`, `scheduleMode`, `weekdays`, `clearStoryCards`, `preserveFreeCards`, `acquireLockEarly`, `redialSlot`.
+- No engine changes, no disk writes; scss uses `px`, no bare CSS-unit-in-JS traps, no `sx` unit traps.
+
+The blocking defect (major):
+- S7-4 requires "角色/卡下拉取画布节点", but the dropdown `sources` are never wired to the canvas. `ExitListEditor` (only holds `formik`) → `ExitListRow` (no `sources` prop) → `ExitEffectsMockList` always falls back to `EMPTY_EFFECT_PANEL_SOURCES`. Result: every role/card/package/clip dropdown is permanently empty (helperText only), so the feature is non-functional. Fix is wiring-only (build `EffectPanelSources` from `createListCharacterAnchorsQuery` + canvas CallCard nodes + package/asset sources and thread it down); the contract and panels are fine.
+
+Note: `quality:studio` hasn't run for batch 2 yet (`latest-verify.json` still holds the batch-1 record); per gbx flow verify runs after review, so I didn't penalize that separately — the fail is driven by the functional gap. I did not modify any application code or `STATE.json`.
+[gbx] ■ batch-reviewer:V2-S7-3+V2-S7-4 done exit=0 elapsed=303s

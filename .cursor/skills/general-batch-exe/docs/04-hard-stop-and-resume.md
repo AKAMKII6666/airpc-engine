@@ -1,4 +1,4 @@
-# Hard-stop 与 BLOCKED 恢复（v0.4.4）
+# Hard-stop 与 BLOCKED 恢复（v0.6.1）
 
 ## 否定语境
 
@@ -18,7 +18,25 @@ hard_stop_patterns:
 
 避免单独的 `Host 写口` / `Realtime`——Reviewer 写「未见 Host 写口」时容易误伤（否定词虽已放宽，行动句更稳）。
 
+## 自动恢复期间的扫描边界
+
+`BLOCK_ANALYZE`、`BLOCK_REPAIR`、`BLOCK_VERIFY` 不运行常规 hard-stop
+扫描。Analyzer / Resolver 的 prompt、报告必须引用原阻断原因；若继续扫描这些
+元文本，会把引用误判成新违规，使 Resolver 在 spawn 前反复退回 Analyzer。
+
+分析通过策略门后，`latest.json` 中已消费的旧审查证据会被清除；恢复交接时
+也会清空恢复角色 stdout/stderr。完整审计仍保留在 prompt agent log、block
+analysis 和 block repair 报告中。
+
+v0.6.1 启动时还会修复 v0.6.0 循环遗留的
+`recoveryResumeState=BLOCK_ANALYZE|BLOCK_REPAIR|BLOCK_VERIFY`：
+普通批次回到 `VERIFY_BATCH`，全量修复回到 `FULL_VERIFY`。
+
 ## `--clear-blocked` / `--after-manual`
+
+v0.5 会自动重新打开 verify/fix/checkbox/hard-stop 类的旧 `BLOCKED`
+状态，先走阻断分析与策略门。若分析已经明确要求人工，或阻断类型不在
+自动重开范围，仍使用以下人工恢复命令。
 
 当 `STATE.status=BLOCKED`：
 

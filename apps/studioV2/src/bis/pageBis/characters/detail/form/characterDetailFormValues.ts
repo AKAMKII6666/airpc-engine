@@ -28,6 +28,8 @@ export type CharacterDetailFormValues = {
 		voiceId: string;
 		voiceNotes: string;
 		systemPrompt: string;
+		/** MBTI / personalityCode；空串表示未选 */
+		personalityCode: string;
 		speakingStyle: string;
 		exampleLines: string[];
 		profession: string;

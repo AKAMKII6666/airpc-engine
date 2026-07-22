@@ -9,8 +9,8 @@ import type {
 	EditorChapterNodeData,
 } from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
 
-/** 边 data.edgeKind；role 与 story 视觉分流 */
-export type EditorEdgeKind = "role" | "story";
+/** 边 data.edgeKind；role / story / effect 三类视觉分流（effect 见 effectEdgeSync） */
+export type EditorEdgeKind = "role" | "story" | "effect";
 
 /** 角色归属线视觉：半透明虚线、无箭头，不抢剧情出口线 */
 export const ROLE_EDGE_STYLE = {

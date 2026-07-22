@@ -1,0 +1,15 @@
+[gbx] ▶ batch-reviewer:V2-T3-2 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … batch-reviewer:V2-T3-2 still running (15s elapsed, no output for 15s)
+[gbx] … batch-reviewer:V2-T3-2 still running (30s elapsed, no output for 30s)
+[gbx] … batch-reviewer:V2-T3-2 still running (45s elapsed, no output for 45s)
+[gbx] … batch-reviewer:V2-T3-2 still running (60s elapsed, no output for 60s)
+[gbx] … batch-reviewer:V2-T3-2 still running (75s elapsed, no output for 75s)
+[gbx] … batch-reviewer:V2-T3-2 still running (90s elapsed, no output for 90s)
+Batch 2（V2-T3-2）审查已写入 `.ai-workflow-v2-step3/reviews/latest.json`。
+
+**结论：`fail`（major=1）** → 建议 `FIX_BATCH`
+
+- 磁盘内容符合 §2.3 / §2.6：`wrong_number_act1` 的 conf、三张卡、layout 齐全，未用 `pkg_memory_bar_1`，与 `golden_handoff` 并存。
+- 执行摘要写明 **verify NOT run（Shell 被拒）**，按审查铁律实现批必须 fail，不可 pass。
+- Fixer 需补跑 `npm run quality:studio`（exit 0）后再勾选 V2-T3-2。
+[gbx] ■ batch-reviewer:V2-T3-2 done exit=0 elapsed=99s

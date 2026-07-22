@@ -1,0 +1,16 @@
+[gbx] ▶ fixer:V2-T3-5 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-T3-5 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-T3-5 still running (30s elapsed, no output for 30s)
+[gbx] … fixer:V2-T3-5 still running (45s elapsed, no output for 45s)
+## 修复摘要
+
+**根因**：两处 JSDoc 注释里写了 `data/storis-packages/*/story.conf.json`，其中的 `*/` 被解析器当成块注释结束符，触发 ESLint `Parsing error`。
+
+**修改**：
+1. `apps/studioV2/app/api/stories/route.ts` — 注释改为「扫描 data/storis-packages 下各包的 story.conf.json」
+2. `apps/studioV2/src/utils/server/packages/packagesList.server.ts` — 注释改为「扫描 data/storis-packages 下各包 story.conf.json 为列表摘要」
+
+**验证**：**未自验** — Shell 不可用，未能重跑 `npm run quality:studio`。IDE linter 对这两个文件已无报错；按 verify 日志，修复应能消除 lint 阶段的 2 个 parsing error。
+
+**未改动**：执行索引、STATE.json、无关模块均未触碰。
+[gbx] ■ fixer:V2-T3-5 done exit=0 elapsed=52s

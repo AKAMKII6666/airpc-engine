@@ -9,6 +9,8 @@ const path = require('path');
 
 const ADAPTERS = new Set([null, 'table', 'checkbox', 'batch-block', 'batchBlock']);
 const GROUPS = new Set(['order', 'milestone']);
+const RECOVERY_CONFIDENCE = new Set(['medium', 'high']);
+const DEPENDENCY_POLICIES = new Set(['none', 'declared-only']);
 
 function fail(message) {
   const error = new Error(`invalid workflow config: ${message}`);
@@ -74,7 +76,7 @@ function validateConfig(config, workdir) {
   assertBoolean(config, 'checkpoint_require_clean');
   assertBoolean(config, 'continue_on_executor_fail');
   assertBoolean(config, 'quiet');
-  assertInteger(config, 'heartbeat_ms', { min: 5000 });
+  assertInteger(config, 'heartbeat_ms', { min: 0 });
   assertInteger(config, 'max_ineffective_fixes', { min: 1 });
   assertInteger(config, 'verify_capture_max_bytes', { min: 4096 });
   assertStringArray(config, 'verify_default');
@@ -125,6 +127,124 @@ function validateConfig(config, workdir) {
   }
   if (typeof config.agent.print_flag !== 'string' || config.agent.print_flag.trim() === '') {
     fail('agent.print_flag must be a non-empty string');
+  }
+  const outputFormats = new Set(['text', 'json', 'stream-json']);
+  if (config.agent.output_format != null) {
+    if (!outputFormats.has(config.agent.output_format)) {
+      fail('agent.output_format must be text, json, or stream-json');
+    }
+  }
+  if (
+    config.agent.stream_partial_output != null &&
+    typeof config.agent.stream_partial_output !== 'boolean'
+  ) {
+    fail('agent.stream_partial_output must be a boolean when configured');
+  }
+  if (config.agent.force != null && typeof config.agent.force !== 'boolean') {
+    fail('agent.force must be a boolean when configured');
+  }
+  if (config.agent.trust != null && typeof config.agent.trust !== 'boolean') {
+    fail('agent.trust must be a boolean when configured');
+  }
+  if (config.agent.approve_mcps != null && typeof config.agent.approve_mcps !== 'boolean') {
+    fail('agent.approve_mcps must be a boolean when configured');
+  }
+  if (
+    config.agent.sandbox != null &&
+    config.agent.sandbox !== 'enabled' &&
+    config.agent.sandbox !== 'disabled'
+  ) {
+    fail('agent.sandbox must be enabled, disabled, or omitted');
+  }
+
+  const theme = config.console_theme;
+  if (theme != null) {
+    if (typeof theme !== 'object' || Array.isArray(theme)) {
+      fail('console_theme must be a mapping');
+    }
+    for (const key of ['enabled', 'color', 'show_role_banner', 'show_agent_events']) {
+      if (theme[key] != null && typeof theme[key] !== 'boolean') {
+        fail(`console_theme.${key} must be a boolean`);
+      }
+    }
+  }
+
+  const consoleUi = config.console_ui;
+  if (consoleUi != null) {
+    if (typeof consoleUi !== 'object' || Array.isArray(consoleUi)) {
+      fail('console_ui must be a mapping');
+    }
+    if (
+      consoleUi.mode != null &&
+      !['auto', 'tui', 'plain'].includes(consoleUi.mode)
+    ) {
+      fail('console_ui.mode must be auto, tui, or plain');
+    }
+    for (const key of ['mouse', 'show_shortcuts']) {
+      if (consoleUi[key] != null && typeof consoleUi[key] !== 'boolean') {
+        fail(`console_ui.${key} must be a boolean`);
+      }
+    }
+  }
+
+  const recovery = config.block_recovery;
+  if (!recovery || typeof recovery !== 'object' || Array.isArray(recovery)) {
+    fail('block_recovery must be a mapping');
+  }
+  if (typeof recovery.enabled !== 'boolean') {
+    fail('block_recovery.enabled must be a boolean');
+  }
+  if (!Number.isInteger(recovery.max_attempts) || recovery.max_attempts < 0) {
+    fail('block_recovery.max_attempts must be an integer >= 0');
+  }
+  if (!RECOVERY_CONFIDENCE.has(recovery.min_confidence)) {
+    fail('block_recovery.min_confidence must be medium or high');
+  }
+  if (typeof recovery.require_declared_scope !== 'boolean') {
+    fail('block_recovery.require_declared_scope must be a boolean');
+  }
+  if (!DEPENDENCY_POLICIES.has(recovery.dependency_policy)) {
+    fail('block_recovery.dependency_policy must be none or declared-only');
+  }
+  for (const key of ['allowed_kinds', 'deny_paths']) {
+    if (
+      !Array.isArray(recovery[key]) ||
+      recovery[key].some((item) => typeof item !== 'string' || item.trim() === '')
+    ) {
+      fail(`block_recovery.${key} must be an array of non-empty strings`);
+    }
+  }
+  for (const key of ['analyzer_extra', 'resolver_extra']) {
+    if (typeof recovery[key] !== 'string') {
+      fail(`block_recovery.${key} must be a string`);
+    }
+  }
+  if (
+    !recovery.task_scopes ||
+    typeof recovery.task_scopes !== 'object' ||
+    Array.isArray(recovery.task_scopes)
+  ) {
+    fail('block_recovery.task_scopes must be a mapping');
+  }
+  for (const [taskId, scope] of Object.entries(recovery.task_scopes)) {
+    if (!scope || typeof scope !== 'object' || Array.isArray(scope)) {
+      fail(`block_recovery.task_scopes.${taskId} must be a mapping`);
+    }
+    for (const key of ['allowed_paths', 'related_paths']) {
+      if (scope[key] == null) continue;
+      if (
+        !Array.isArray(scope[key]) ||
+        scope[key].some((item) => typeof item !== 'string' || item.trim() === '')
+      ) {
+        fail(`block_recovery.task_scopes.${taskId}.${key} must be an array of paths`);
+      }
+      for (const configuredPath of scope[key]) {
+        const prefix = configuredPath.split('*', 1)[0] || '.';
+        assertInsideWorkdir(workdir, prefix, `block_recovery scope ${taskId}`, {
+          allowRoot: true,
+        });
+      }
+    }
   }
 }
 

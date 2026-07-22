@@ -73,6 +73,9 @@ function validatePersona(
 		"请填写音色备注",
 	);
 	if (voiceNotesErr) personaErrors.voiceNotes = voiceNotesErr;
+	if (!values.persona.personalityCode) {
+		personaErrors.personalityCode = "请选择人格类型";
+	}
 	const systemErr = requireNonEmpty(
 		values.persona.systemPrompt,
 		"请填写系统人设",

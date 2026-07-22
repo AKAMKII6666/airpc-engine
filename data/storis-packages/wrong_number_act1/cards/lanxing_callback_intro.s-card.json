@@ -1,0 +1,108 @@
+{
+  "cardId": "lanxing_callback_intro",
+  "cardKind": "story",
+  "title": "补打自报",
+  "ownerAgentId": "lanxing",
+  "entryMode": "outbound_auto",
+  "interactionMode": "realtime_dialogue",
+  "context": {
+    "objective": "确认还是刚才那通；自报澜星姐姐；问称呼；留下 2267070；提及小皮在收拾露营。",
+    "privateBrief": "一位一位念号码。愿意聊再约；不愿也没关系。若未说清名号则走留言出口。",
+    "speakableBrief": "喂？还是刚才那个电话吗？太好了。我叫澜星，可以叫我澜星姐姐。你怎么称呼呀？……我的电话是 2267070。小皮好像真在收拾书包——饼干、雨衣、恐龙图鉴，还有没装电池的手电筒。今天谢谢你听我讲这些。晚点见。",
+    "background": "",
+    "premise": "挂机后想起没自报；片刻后再拨同一号码。",
+    "emotion": "认真、带一点懊恼的笑",
+    "forbidden": [
+      "替用户做决定是否接下小皮"
+    ],
+    "promptScenes": [
+      {
+        "layerId": "callback_open",
+        "priority": 0,
+        "match": {
+          "callDirection": "outbound",
+          "localHourRange": { "from": 0, "to": 24 }
+        },
+        "patch": {
+          "openingSpeakable": "喂？还是刚才那个电话吗？",
+          "openingPrivate": "急忙确认没又打错；再自报姓名。",
+          "emotion": "急切转温和",
+          "toneHint": "认真留号",
+          "appendSpeakable": "",
+          "appendPrivate": ""
+        }
+      }
+    ]
+  },
+  "objectives": {
+    "requiredBeats": [
+      "自报姓名",
+      "留下号码",
+      "提起小皮露营"
+    ]
+  },
+  "toolPolicy": {
+    "mode": "inherit_free"
+  },
+  "exits": [
+    {
+      "exitId": "exit_known",
+      "exitKind": "terminal",
+      "title": "记住名号",
+      "priority": 10,
+      "condition": {
+        "op": "and",
+        "items": [
+          {
+            "op": "outcome_flag",
+            "flag": "answered_completed",
+            "equals": true
+          },
+          {
+            "op": "all_required_beats_completed"
+          }
+        ]
+      },
+      "effects": [
+        {
+          "id": "fx_end_known",
+          "effect": "end_story",
+          "reason": "初识成立"
+        }
+      ]
+    },
+    {
+      "exitId": "exit_voicemail",
+      "exitKind": "callback",
+      "title": "没说清→留言",
+      "priority": 0,
+      "condition": {
+        "op": "or",
+        "items": [
+          {
+            "op": "outcome_flag",
+            "flag": "hangup_early",
+            "equals": true
+          },
+          {
+            "op": "beat_missing",
+            "beatId": "自报姓名"
+          },
+          {
+            "op": "beat_missing",
+            "beatId": "留下号码"
+          }
+        ]
+      },
+      "effects": [
+        {
+          "id": "fx_voicemail",
+          "effect": "create_voicemail",
+          "agentId": "lanxing",
+          "cardId": "lanxing_voicemail",
+          "topicHint": "自报澜星姐姐、号码 2267070、小皮可能来电别怕"
+        }
+      ]
+    }
+  ]
+}

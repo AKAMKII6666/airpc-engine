@@ -6,22 +6,21 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-	applyEdgeChanges,
 	applyNodeChanges,
 	type Edge,
-	type EdgeChange,
 	type Node,
 	type NodeChange,
 } from "@xyflow/react";
 import {
-	INITIAL_EDITOR_EDGES,
-	INITIAL_EDITOR_NODES,
-} from "@studio-v2/src/pageComponents/storyEditor/canvas/CanvasMockGraph";
-import {
 	graphHasChapterEnd,
 	withoutLightweightDockNodes,
 } from "@studio-v2/src/bis/pageBis/storyEditor/dock/dockNodeFactory";
-import { readCharacterAnchorData } from "@studio-v2/src/bis/pageBis/storyEditor/role/roleConnection";
+import type { EditorGraphSeed } from "@studio-v2/src/bis/pageBis/storyEditor/package/graph/diskBundleGraph";
+import {
+	readCallCardData,
+	readCharacterAnchorData,
+} from "@studio-v2/src/bis/pageBis/storyEditor/role/roleConnection";
+import { useStoryCanvasEffectEdges } from "@studio-v2/src/pageComponents/storyEditor/canvas/useStoryCanvasEffectEdges";
 import { createCanvasOnConnect } from "@studio-v2/src/pageComponents/storyEditor/canvas/canvasConnectHandlers";
 import {
 	toStoryCanvasSelection,
@@ -31,18 +30,24 @@ import {
 import { useStoryCanvasNodeMutations } from "@studio-v2/src/pageComponents/storyEditor/canvas/useStoryCanvasNodeMutations";
 import type {
 	CharacterAnchorNodeData,
+	EditorCallCardProjection,
 	StoryEditorSelection,
 } from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
 import type { StoryCanvasStageApi } from "@studio-v2/src/pageComponents/storyEditor/canvas/storyCanvasTypes";
 import type { StoryCanvasToolModeApi } from "@studio-v2/src/pageComponents/storyEditor/canvas/useStoryCanvasToolMode";
 
-function initialIntroSelection(): StoryEditorSelection | null {
-	const intro = INITIAL_EDITOR_NODES.find((n) => n.id === "card_intro");
+function initialIntroSelection(
+	seed: EditorGraphSeed,
+): StoryEditorSelection | null {
+	if (!seed.initialSelectionNodeId) return null;
+	const intro = seed.nodes.find(function (n) {
+		return n.id === seed.initialSelectionNodeId;
+	});
 	return toStoryCanvasSelection(intro as Node | undefined);
 }
 
-function initialNodesWithoutLightweight(): Node[] {
-	return withoutLightweightDockNodes(INITIAL_EDITOR_NODES as Node[]);
+function initialNodesWithoutLightweight(seed: EditorGraphSeed): Node[] {
+	return withoutLightweightDockNodes(seed.nodes as Node[]);
 }
 
 export type StoryCanvasGraphMeta = {
@@ -50,9 +55,13 @@ export type StoryCanvasGraphMeta = {
 	hasChapterEnd: boolean;
 	/** 角色锚点列表；归属 Select 用 */
 	characterAnchors: CharacterAnchorNodeData[];
+	/** CallCard 节点投影列表；Effect 面板卡下拉候选用 */
+	callCards: EditorCallCardProjection[];
 };
 
 export type UseStoryCanvasGraphArgs = {
+	/** 磁盘包打开后的初始图；由 loadStoryPackageForEditor 提供 */
+	graphSeed: EditorGraphSeed;
 	onSelectionChange: (selection: StoryEditorSelection | null) => void;
 	onCharacterAnchorSelect: (anchor: CharacterAnchorNodeData | null) => void;
 	onReady: (api: StoryCanvasStageApi) => void;
@@ -76,19 +85,37 @@ function collectAnchors(nodes: readonly Node[]): CharacterAnchorNodeData[] {
 	return out;
 }
 
+function collectCallCards(
+	nodes: readonly Node[],
+): EditorCallCardProjection[] {
+	const out: EditorCallCardProjection[] = [];
+	for (const node of nodes) {
+		const card = readCallCardData(node);
+		if (card) out.push(card);
+	}
+	return out;
+}
+
 export function useStoryCanvasGraph(args: UseStoryCanvasGraphArgs) {
 	const {
+		graphSeed,
 		onSelectionChange,
 		onCharacterAnchorSelect,
 		onReady,
 		onGraphMetaChange,
 		toolModeApi,
 	} = args;
-	const [nodes, setNodes] = useState<Node[]>(initialNodesWithoutLightweight);
-	const [edges, setEdges] = useState<Edge[]>(() => INITIAL_EDITOR_EDGES);
+	const [nodes, setNodes] = useState<Node[]>(() =>
+		initialNodesWithoutLightweight(graphSeed),
+	);
+	const [edges, setEdges] = useState<Edge[]>(() => graphSeed.edges);
 	const nodesRef = useRef(nodes);
 	const edgesRef = useRef(edges);
-	const selectedIdRef = useRef<string | null>("card_intro");
+	const selectedIdRef = useRef<string | null>(
+		graphSeed.initialSelectionNodeId,
+	);
+	// onConnectStart 依修饰键置位；onConnect 据此把本次连接当作 attach 效果边（反向写 effects 行）
+	const effectConnectArmedRef = useRef(false);
 
 	useEffect(() => {
 		nodesRef.current = nodes;
@@ -102,6 +129,7 @@ export function useStoryCanvasGraph(args: UseStoryCanvasGraphArgs) {
 		onGraphMetaChange?.({
 			hasChapterEnd: graphHasChapterEnd(nodes),
 			characterAnchors: collectAnchors(nodes),
+			callCards: collectCallCards(nodes),
 		});
 	}, [nodes, onGraphMetaChange]);
 
@@ -123,8 +151,18 @@ export function useStoryCanvasGraph(args: UseStoryCanvasGraphArgs) {
 				setNodes,
 				setEdges,
 				onSelectionChange,
+				effectConnectArmedRef,
 			}),
 		[onSelectionChange],
+	);
+
+	const onConnectStart = useCallback(
+		(event: MouseEvent | TouchEvent) => {
+			// 修饰键（Alt/Meta）拖 = 效果边；普通拖 = 剧情流转/归属线
+			effectConnectArmedRef.current =
+				"altKey" in event && Boolean(event.altKey || event.metaKey);
+		},
+		[],
 	);
 
 	useRegisterStoryCanvasApi(canvasApi, onReady);
@@ -132,7 +170,7 @@ export function useStoryCanvasGraph(args: UseStoryCanvasGraphArgs) {
 	const handleSelectionChange = useStoryCanvasSelection({
 		onSelectionChange,
 		onCharacterAnchorSelect,
-		initialSelection: initialIntroSelection(),
+		initialSelection: initialIntroSelection(graphSeed),
 		selectedIdRef,
 	});
 
@@ -140,9 +178,14 @@ export function useStoryCanvasGraph(args: UseStoryCanvasGraphArgs) {
 		setNodes((prev) => applyNodeChanges(changes, prev));
 	}, []);
 
-	const onEdgesChange = useCallback((changes: EdgeChange[]) => {
-		setEdges((prev) => applyEdgeChanges(changes, prev));
-	}, []);
+	const { onEdgesChange } = useStoryCanvasEffectEdges({
+		nodesRef,
+		edgesRef,
+		selectedIdRef,
+		setNodes,
+		setEdges,
+		onSelectionChange,
+	});
 
 	return {
 		nodes,
@@ -150,6 +193,7 @@ export function useStoryCanvasGraph(args: UseStoryCanvasGraphArgs) {
 		onNodesChange,
 		onEdgesChange,
 		onConnect,
+		onConnectStart,
 		handleSelectionChange,
 		addNodeAt: canvasApi.addNodeAt,
 	};

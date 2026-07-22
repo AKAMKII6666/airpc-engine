@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "label": "batch-5",
+  "at": "2026-07-22T06:54:16.722Z",
+  "ok": false,
+  "phase": "batch",
+  "activeTaskIds": [
+    "V2-T3-5"
+  ],
+  "reason": "command failed",
+  "failedCommand": "npm run quality:studio",
+  "exitCode": 1,
+  "results": [
+    {
+      "command": "npm run quality:studio",
+      "exitCode": 1,
+      "signal": null,
+      "error": null,
+      "stdout": "[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> quality:studio\n> node scripts/studio-quality/quality-studio.mjs\n\n\n==> ensure-modal-layout (pre-typecheck)\nensure-modal-layout: nothing to remove\n\n==> ensure-migrated-layout (pre-typecheck)\nensure-migrated-layout: nothing to remove\n\n==> lint (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 lint\n> node ./scripts/run-eslint.mjs . --max-warnings 0\n\n\n/Users/bolbiao/workspace/airpc-engine/apps/studioV2/app/api/stories/route.ts\n  2:63  error  Parsing error: Invalid character\n\n/Users/bolbiao/workspace/airpc-engine/apps/studioV2/src/utils/server/packages/packagesList.server.ts\n  2:45  error  Parsing error: ';' expected\n\n✖ 2 problems (2 errors, 0 warnings)\n\nnpm error Lifecycle script `lint` failed with error:\nnpm error code 1\nnpm error path /Users/bolbiao/workspace/airpc-engine/apps/studioV2\nnpm error workspace @airpc/studio-v2@0.0.1\nnpm error location /Users/bolbiao/workspace/airpc-engine/apps/studioV2\nnpm error command failed\nnpm error command sh -c node ./scripts/run-eslint.mjs . --max-warnings 0\nlint (@airpc/studio-v2) failed (exit 1)\n\nquality:studio FAILED\n[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=2s\n",
+      "stderr": "",
+      "stdoutTail": "[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n\n> quality:studio\n> node scripts/studio-quality/quality-studio.mjs\n\n\n==> ensure-modal-layout (pre-typecheck)\nensure-modal-layout: nothing to remove\n\n==> ensure-migrated-layout (pre-typecheck)\nensure-migrated-layout: nothing to remove\n\n==> lint (@airpc/studio-v2)\n\n> @airpc/studio-v2@0.0.1 lint\n> node ./scripts/run-eslint.mjs . --max-warnings 0\n\n\n/Users/bolbiao/workspace/airpc-engine/apps/studioV2/app/api/stories/route.ts\n  2:63  error  Parsing error: Invalid character\n\n/Users/bolbiao/workspace/airpc-engine/apps/studioV2/src/utils/server/packages/packagesList.server.ts\n  2:45  error  Parsing error: ';' expected\n\n✖ 2 problems (2 errors, 0 warnings)\n\nnpm error Lifecycle script `lint` failed with error:\nnpm error code 1\nnpm error path /Users/bolbiao/workspace/airpc-engine/apps/studioV2\nnpm error workspace @airpc/studio-v2@0.0.1\nnpm error location /Users/bolbiao/workspace/airpc-engine/apps/studioV2\nnpm error command failed\nnpm error command sh -c node ./scripts/run-eslint.mjs . --max-warnings 0\nlint (@airpc/studio-v2) failed (exit 1)\n\nquality:studio FAILED\n[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=2s\n",
+      "stderrTail": "",
+      "errorLocations": []
+    }
+  ],
+  "errorLocations": [],
+  "historyFile": "batch-5-1784703256722.json"
+}

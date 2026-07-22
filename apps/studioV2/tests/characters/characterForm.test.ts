@@ -1,9 +1,12 @@
 /**
-	* 新建 / 详情角色表单校验与 mock 投影轻量回归。
+	* 新建 / 详情角色表单校验与投影轻量回归。
+	* 正式五人 personalityCode 对照 data/characters 磁盘夹具。
 	*/
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
-	buildMockCharacterFromForm,
+	buildCharacterSummaryFromForm,
 	validateCreateCharacterForm,
 	CREATE_CHARACTER_INITIAL_VALUES,
 } from "@studio-v2/src/bis/pageBis/characters/create/createCharacterForm";
@@ -16,15 +19,18 @@ import {
 } from "@studio-v2/src/bis/pageBis/characters/detail/form/characterDetailForm";
 import { resetStudioIdSeq } from "@studio-v2/typeFiles/ids/createStudioId";
 
+/** 仓库根：tests/characters → apps/studioV2 → apps → repo */
+const REPO_ROOT = join(__dirname, "../../../..");
+
 describe("createCharacterForm", () => {
 	it("rejects empty displayName", () => {
 		const errors = validateCreateCharacterForm(CREATE_CHARACTER_INITIAL_VALUES);
 		expect(errors.displayName).toBe("请填写显示名");
 	});
 
-	it("builds session mock with CharacterDef-aligned slots", () => {
+	it("builds summary fixture with CharacterDef-aligned slots", () => {
 		resetStudioIdSeq(0);
-		const summary = buildMockCharacterFromForm({
+		const summary = buildCharacterSummaryFromForm({
 			displayName: " 试写角色 ",
 			kind: "support",
 			bio: "简介",
@@ -54,6 +60,7 @@ describe("characterDetailForm", () => {
 			(i) => i.name,
 		);
 		expect(names).toContain("identity.fullName");
+		expect(names).toContain("persona.personalityCode");
 		expect(names).toContain("persona.exampleLines");
 		expect(names).toContain("defaultPromptScenes");
 		expect(names).not.toContain("bio");
@@ -64,11 +71,15 @@ describe("characterDetailForm", () => {
 				(i) => i.required === true,
 			),
 		).toBe(true);
+		const personality = CHARACTER_PROMPT_ITEMS.find(
+			(i) => i.name === "persona.personalityCode",
+		);
+		expect(personality?.comType).toBe("Select");
 	});
 
 	it("rejects empty displayName on detail edit", () => {
 		resetStudioIdSeq(10);
-		const base = buildMockCharacterFromForm({
+		const base = buildCharacterSummaryFromForm({
 			displayName: "基线",
 			kind: "story",
 			bio: "",
@@ -81,7 +92,7 @@ describe("characterDetailForm", () => {
 
 	it("applies nested identity and persona without changing agentId", () => {
 		resetStudioIdSeq(20);
-		const base = buildMockCharacterFromForm({
+		const base = buildCharacterSummaryFromForm({
 			displayName: "可编辑",
 			kind: "story",
 			bio: "旧简介",
@@ -96,6 +107,7 @@ describe("characterDetailForm", () => {
 		values.meta.avatarAssetId = "asset_avatar_x";
 		values.persona.profession = "顾问";
 		values.persona.systemPrompt = "人设";
+		values.persona.personalityCode = "ENFP";
 		values.persona.speakingStyle = "稳";
 		values.persona.voiceNotes = "备注";
 		values.persona.exampleLines = ["你好"];
@@ -128,10 +140,34 @@ describe("characterDetailForm", () => {
 		expect(next.agentId).toBe(base.agentId);
 		expect(next.bio).toBe("旧简介");
 		expect(next.persona.profession).toBe("顾问");
+		expect(next.persona.personalityCode).toBe("ENFP");
 		expect(next.identity.fullName).toBe("全名");
 		expect(next.identity.gender).toBe("female");
 		expect(next.meta.phoneNumber).toBe("13800000000");
 		expect(next.defaultPromptScenes[0]?.priority).toBe(0);
 		expect(next.kind).toBe("story");
+	});
+});
+
+describe("data/characters formal cast personalityCode", () => {
+	it("fills MBTI codes for formal five agents on disk", () => {
+		const expected: Record<string, string> = {
+			lanxing: "ENFJ",
+			xiaopi: "ENFP",
+			"qiang-shushu": "ESTP",
+			"zhang-boss": "INTJ",
+			"bai-bansian": "INFJ",
+		};
+		const byId: Record<string, string> = {};
+		for (const agentId of Object.keys(expected)) {
+			const raw = JSON.parse(
+				readFileSync(
+					join(REPO_ROOT, "data/characters", `${agentId}.json`),
+					"utf8",
+				),
+			) as { persona?: { personalityCode?: string } };
+			byId[agentId] = raw.persona?.personalityCode ?? "";
+		}
+		expect(byId).toEqual(expected);
 	});
 });

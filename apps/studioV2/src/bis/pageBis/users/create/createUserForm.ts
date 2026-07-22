@@ -14,7 +14,7 @@ import { validateUserForm } from "../form/userFormValidate";
 /** 新建玩家 Formik values；与详情共用 UserFormValues，避免两套字段漂移 */
 export type CreateUserFormValues = UserFormValues;
 
-/** 新建弹窗初始空表；userId / 时间戳由 buildMockUserFromForm 系统写入 */
+/** 新建弹窗初始空表；userId / 时间戳由 buildUserFromForm 系统写入 */
 export const CREATE_USER_INITIAL_VALUES = USER_FORM_INITIAL_VALUES;
 
 /** 与详情可编辑区同一套 items[] */
@@ -25,8 +25,9 @@ export const validateCreateUserForm = validateUserForm;
 
 /**
 	* 由表单值生成待写盘的玩家投影；userId 与时间戳系统生成。
+	* 命名不含 Mock：投影后经 createUser_bis → /api/users 落盘。
 	*/
-export function buildMockUserFromForm(
+export function buildUserFromForm(
 	values: CreateUserFormValues,
 ): UserProfileSummary {
 	const nickname = values.nickname.trim();

@@ -1,5 +1,5 @@
 /**
-	* 出口列表单行：名称 / 类别 / 优先级 / 条件概要 / effects mock。
+	* 出口列表单行：名称 / 类别 / 优先级 / 条件概要 / effects 列表。
 	* 从 ExitListEditor 拆出，压低父组件有效行数。
 	*/
 "use client";
@@ -7,14 +7,17 @@
 import type { FC } from "react";
 import { IconButton, MenuItem, TextField, Typography } from "@mui/material";
 import type { ExitListFormRow } from "@studio-v2/src/bis/pageBis/storyEditor/form/exitList/exitListForm";
+import type { EffectPanelSources } from "@studio-v2/typeFiles/story/editor/callCard/editorEffectParams";
 import { EXIT_KIND_OPTIONS } from "@studio-v2/typeFiles/story/callCardLabels";
-// 引用了ExitEffectsMockList组件，用于出口 effects 列表 mock
-import { ExitEffectsMockList } from "@studio-v2/src/pageComponents/storyEditor/com/panel/ExitListEditor/com/ExitEffectsMockList";
+// 引用了ExitEffectsList组件，用于出口 effects 列表编辑
+import { ExitEffectsList } from "@studio-v2/src/pageComponents/storyEditor/com/panel/ExitListEditor/com/ExitEffectsList";
 import styles from "../index.module.scss";
 
 export type ExitListRowProps = {
 	row: ExitListFormRow;
 	index: number;
+	/** Effect id 下拉候选源；下传 effects 列表 */
+	sources: EffectPanelSources;
 	onPatch: (index: number, patch: Partial<ExitListFormRow>) => void;
 	onRemove: (index: number) => void;
 };
@@ -24,6 +27,8 @@ export const ExitListRow: FC<ExitListRowProps> = function ExitListRow({
 	row,
 	// index 是在 exits[] 中的下标，用于写回定位
 	index,
+	// sources 是 Effect id 下拉候选源，用于 effects 列表
+	sources,
 	// onPatch 是局部字段写回，用于改名称/类别等
 	onPatch,
 	// onRemove 是删除本行，用于从列表移除出口
@@ -112,9 +117,10 @@ export const ExitListRow: FC<ExitListRowProps> = function ExitListRow({
 				}}
 				helperText="供节点 Tooltip 与列表预览；非完整 ExitCondition 树。"
 			/>
-			{/* 引用了ExitEffectsMockList组件，用于出口 effects 列表 mock */}
-			<ExitEffectsMockList
+			{/* 引用了ExitEffectsList组件，用于出口 effects 列表编辑 */}
+			<ExitEffectsList
 				effects={row.effects ?? []}
+				sources={sources}
 				onChange={(next) => {
 					onPatch(index, { effects: next });
 				}}

@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "repairRunId": "block-repair-1784707371707-7fc2bc38",
+  "role": "block-resolver",
+  "result": "needs_human",
+  "summary": "V2-T3-6 阻塞根因已确认为 CanvasMockGraph.ts 与 CanvasMockGraph.edges.ts 以 @deprecated export {} 空壳残留，应物理删除。已确认业务代码无 import 引用（仅注释提及）。BLOCK_REPAIR 尝试 Delete/rm/git rm 均被环境拒绝，无法完成物理删除；npm run quality:studio 未执行。需人工删除两文件后由 gbx 重跑 VERIFY_BATCH，通过后再将执行索引 V2-T3-6 勾选为 ✅。",
+  "changedPaths": [],
+  "dependencyAction": "none"
+}

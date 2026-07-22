@@ -1,0 +1,30 @@
+{
+  "status": "EXECUTE_BATCH",
+  "currentBatch": 1,
+  "batchFixAttempts": 0,
+  "fullFixAttempts": 0,
+  "checkboxFixAttempts": 0,
+  "iteration": 1,
+  "lastSuccessfulCommit": null,
+  "manualQaRequired": false,
+  "blockedReason": null,
+  "activeTaskIds": [
+    "V2-S8-1"
+  ],
+  "exFile": "/Users/bolbiao/workspace/airpc-engine/docs/AI和人类/里程碑/v2.0/细化修改8_执行索引.md",
+  "fixTrigger": null,
+  "lastVerifyOk": null,
+  "lastVerifySummary": null,
+  "lastVerifyFingerprint": null,
+  "lastVerifyReportPath": null,
+  "ineffectiveFixStreak": 0,
+  "recoveryAttempts": 0,
+  "recoveryOriginStatus": null,
+  "recoveryResumeState": null,
+  "recoveryOriginReason": null,
+  "recoveryKind": null,
+  "recoveryAnalysisRunId": null,
+  "recoveryAnalysisReportPath": null,
+  "recoveryApprovedPaths": [],
+  "updatedAt": "2026-07-22T10:23:21.304Z"
+}

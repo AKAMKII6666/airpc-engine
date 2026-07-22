@@ -39,7 +39,7 @@ export const CREATE_PACKAGE_FORM_ITEMS: AutoFormItem[] = [
 		label: "故事包名称",
 		comType: "TextField",
 		required: true,
-		placeholder: "例如：第一章：内存条事件",
+		placeholder: "例如：第一幕：打错电话",
 	},
 	{
 		name: "description",

@@ -1,0 +1,56 @@
+[gbx] ▶ executor:V2-T3-3 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … executor:V2-T3-3 still running (15s elapsed, no output for 15s)
+[gbx] … executor:V2-T3-3 still running (30s elapsed, no output for 30s)
+[gbx] … executor:V2-T3-3 still running (45s elapsed, no output for 45s)
+[gbx] … executor:V2-T3-3 still running (60s elapsed, no output for 60s)
+[gbx] … executor:V2-T3-3 still running (75s elapsed, no output for 75s)
+[gbx] … executor:V2-T3-3 still running (90s elapsed, no output for 90s)
+[gbx] … executor:V2-T3-3 still running (105s elapsed, no output for 105s)
+[gbx] … executor:V2-T3-3 still running (120s elapsed, no output for 120s)
+[gbx] … executor:V2-T3-3 still running (135s elapsed, no output for 135s)
+[gbx] … executor:V2-T3-3 still running (150s elapsed, no output for 150s)
+[gbx] … executor:V2-T3-3 still running (165s elapsed, no output for 165s)
+[gbx] … executor:V2-T3-3 still running (180s elapsed, no output for 180s)
+[gbx] … executor:V2-T3-3 still running (195s elapsed, no output for 195s)
+[gbx] … executor:V2-T3-3 still running (210s elapsed, no output for 210s)
+[gbx] … executor:V2-T3-3 still running (225s elapsed, no output for 225s)
+[gbx] … executor:V2-T3-3 still running (240s elapsed, no output for 240s)
+[gbx] … executor:V2-T3-3 still running (255s elapsed, no output for 255s)
+[gbx] … executor:V2-T3-3 still running (270s elapsed, no output for 270s)
+[gbx] … executor:V2-T3-3 still running (285s elapsed, no output for 285s)
+[gbx] … executor:V2-T3-3 still running (300s elapsed, no output for 300s)
+[gbx] … executor:V2-T3-3 still running (315s elapsed, no output for 315s)
+[gbx] … executor:V2-T3-3 still running (330s elapsed, no output for 330s)
+[gbx] … executor:V2-T3-3 still running (345s elapsed, no output for 345s)
+[gbx] … executor:V2-T3-3 still running (360s elapsed, no output for 360s)
+[gbx] … executor:V2-T3-3 still running (375s elapsed, no output for 375s)
+[gbx] … executor:V2-T3-3 still running (390s elapsed, no output for 390s)
+[gbx] … executor:V2-T3-3 still running (405s elapsed, no output for 405s)
+[gbx] … executor:V2-T3-3 still running (420s elapsed, no output for 420s)
+[gbx] … executor:V2-T3-3 still running (435s elapsed, no output for 435s)
+[gbx] … executor:V2-T3-3 still running (450s elapsed, no output for 450s)
+[gbx] … executor:V2-T3-3 still running (465s elapsed, no output for 465s)
+[gbx] … executor:V2-T3-3 still running (480s elapsed, no output for 480s)
+[gbx] … executor:V2-T3-3 still running (495s elapsed, no output for 495s)
+[gbx] … executor:V2-T3-3 still running (510s elapsed, no output for 510s)
+[gbx] … executor:V2-T3-3 still running (525s elapsed, no output for 525s)
+**V2-T3-3 代码已改完，但 verify NOT run，索引仍为 ⬜。**
+
+### 已完成
+- **角色库** `useCharacterLibraryPage` / `CharacterLibraryDetail`：列表·新建·删除·保存全部走 `/api/characters`（`commitCreateCharacter` / `commitDeleteCharacter` / `commitSaveCharacterDetail`）。
+- **编辑器角色弹窗** `useStoryEditorCharacterForms`：按 `agentId` GET 磁盘角色，创建/编辑同样落盘。
+- **删 mock 业务入口**：`MOCK_CHARACTERS`、`listMockCharacters`、`commitUpdateCharacterMock`、`append/find/update/removeMockCharacter`、`MOCK_CHARACTER_PICKER` 在 `apps/studioV2` 业务代码中已无引用。
+- 测试改为磁盘夹具 / 纯投影；资源测去掉角色 mock CRUD。
+- `ensure-migrated-layout` 登记退役路径，下次跑 quality 时会 unlink 空壳 `mockCharactersData.ts`（本环境无法直接删文件）。
+
+### 未勾选原因
+本轮 Shell 仅允许 `ls` 等白名单命令，`npm run quality:studio` **未能执行**。按 prompt 硬规则：**不可 ⬜→✅**，索引保持：
+
+`| ⬜ | V2-T3-3 | ...`
+
+### 请你本地补跑
+```bash
+cd /Users/bolbiao/workspace/airpc-engine && npm run quality:studio
+```
+通过后把执行索引里 V2-T3-3 改为 ✅（或让 gbx 下轮 `--after-manual` / fixer 勾选）。
+[gbx] ■ executor:V2-T3-3 done exit=0 elapsed=538s

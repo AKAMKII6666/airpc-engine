@@ -86,6 +86,7 @@ describe("characterDefMapper", () => {
 		const values = toCharacterDetailFormValues(summary);
 		values.identity.fullName = "全名回读";
 		values.identity.nickname = "昵称回读";
+		values.persona.personalityCode = "INFJ";
 		values.persona.exampleLines = ["句一", "句二"];
 		values.callFlowPrompts.longSilence = [
 			{ variantId: "s1", text: "静默" },
@@ -111,6 +112,7 @@ describe("characterDefMapper", () => {
 		const merged = mergeDetailFormIntoCharacterDef(created, values);
 		expect(merged.identity?.fullName).toBe("全名回读");
 		expect(merged.identity?.nickname).toBe("昵称回读");
+		expect(merged.persona?.personalityCode).toBe("INFJ");
 		expect(merged.persona?.exampleLines).toEqual(["句一", "句二"]);
 		expect(merged.callFlowPrompts?.longSilence?.[0]?.text).toBe("静默");
 		expect(merged.defaultPromptScenes?.[0]?.match.localHourRange).toEqual({

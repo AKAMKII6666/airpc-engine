@@ -1,27 +1,20 @@
 /**
- * 新建故事包编排（静态阶段）：Formik 校验后写入会话 mock。
- * 禁止 Host 写口与「已保存到磁盘」文案。
- */
-import { appendMockPackage } from "@studio-v2/src/utils/ajaxProxy/packages/mockWorkbenchData";
-import {
-  buildMockPackageFromForm,
-  type CreatePackageFormValues,
-} from "./createPackageForm";
+	* 新建故事包编排：本步未接磁盘落盘；调用方应禁用入口或提示后续批次。
+	*/
+import type { CreatePackageFormValues } from "./createPackageForm";
 
-/** 新建故事包 mock 提交结果；仅返回路由用 packageId，无磁盘路径 */
+/** 新建故事包结果；packageId 仅当落盘成功时有意义 */
 export type CreatePackageResult = {
-  /** 新建后的路由用 packageId */
-  packageId: string;
+	/** 落盘成功后的故事包目录键；与 data/storis-packages 下文件夹名一致 */
+	packageId: string;
 };
 
 /**
- * 将会话内 mock 列表前置一条新包，供列表分页与返回工作台可见。
- * @returns packageId，调用方决定跳编辑器或仅关弹层
- */
+	* 新建故事包落盘尚未接通（第三步 B 末可选）。
+	* @throws 始终抛错，防止误写会话 mock
+	*/
 export function commitCreatePackageMock(
-  values: CreatePackageFormValues,
+	_values: CreatePackageFormValues,
 ): CreatePackageResult {
-  const summary = buildMockPackageFromForm(values);
-  appendMockPackage(summary);
-  return { packageId: summary.packageId };
+	throw new Error("新建故事包落盘尚未接通；请打开已有磁盘包或等待后续批次");
 }

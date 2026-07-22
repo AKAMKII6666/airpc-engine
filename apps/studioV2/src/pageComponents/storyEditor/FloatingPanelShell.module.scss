@@ -4,10 +4,11 @@
 	position: absolute;
 	top: 72px;
 	right: 20px;
-	width: 400px;
-	max-width: min(420px, calc(100% - 40px));
+	width: 452px;
+	max-width: min(468px, calc(100% - 40px));
+	height: calc(100% - 100px);
 	max-height: calc(100% - 100px);
-	overflow: auto;
+	overflow: hidden;
 	padding: 12px 14px;
 	background: t.$bg-panel-elevated;
 	border: 1px solid t.$border-panel;
@@ -20,9 +21,27 @@
 }
 
 .head {
+	flex-shrink: 0;
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
+	gap: 8px;
+}
+
+.dragZone {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	cursor: move;
+	user-select: none;
+}
+
+.grip {
+	color: t.$text-muted;
+	font-size: 14px;
+	line-height: 1;
 }
 
 .title {
@@ -31,6 +50,7 @@
 }
 
 .hint {
+	flex-shrink: 0;
 	color: t.$text-muted;
 	line-height: 1.45;
 }

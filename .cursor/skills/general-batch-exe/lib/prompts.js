@@ -137,6 +137,51 @@ ${listReadFirst(readFirstStatus) || '(none)'}
 `.trim();
 }
 
+function blockAnalysisContract(ctx) {
+  return `
+Write ONLY this workflow report (application source remains read-only):
+${ctx.latestBlockAnalysisPath}
+
+Schema:
+{
+  "schemaVersion": 1,
+  "analysisRunId": "${ctx.analysisRunId}",
+  "role": "block-analyzer",
+  "kind": "INDEX_SCHEMA_CORRUPTION" | "HARD_STOP_FALSE_POSITIVE" | "FIXER_ACCUMULATION" | "IN_SCOPE_VERIFY" | "PROJECT_DEPENDENCY_MISSING" | "OUT_OF_SCOPE_MODULE" | "EXTERNAL_ENVIRONMENT" | "GBX_INTERNAL_FAILURE" | "AUTH_OR_SECRET_REQUIRED" | "UNKNOWN",
+  "recoverable": true | false,
+  "confidence": "low" | "medium" | "high",
+  "rootCause": "concrete root cause",
+  "requiredPaths": ["every project-relative path the resolver would need to modify"],
+  "scopeEvidence": "why these paths are inside or outside the active task",
+  "touchesGbx": false,
+  "touchesExternalSystem": false,
+  "dependencyAction": "none" | "install_declared",
+  "recommendedAction": "short repair plan",
+  "humanReason": ""
+}
+Do not write STATE.json. Do not modify the execution index, application source, package manifests, lockfiles, or gbx.
+`.trim();
+}
+
+function blockRepairContract(ctx) {
+  return `
+After the repair, write this workflow report:
+${ctx.latestBlockRepairPath}
+
+Schema:
+{
+  "schemaVersion": 1,
+  "repairRunId": "${ctx.repairRunId}",
+  "role": "block-resolver",
+  "result": "repaired" | "needs_human",
+  "summary": "what changed and why",
+  "changedPaths": ["project-relative paths changed by this repair"],
+  "dependencyAction": "none" | "install_declared"
+}
+Do not write STATE.json.
+`.trim();
+}
+
 function buildPrompt(role, ctx) {
   const { config, workflowDir } = ctx;
 
@@ -230,6 +275,78 @@ ${common}
 ${config.fixer_extra || ''}
 
 ${fixSourcesBlock(ctx)}
+`.trim();
+  }
+
+  if (role === 'block-analyzer') {
+    return `
+You are the BLOCK ANALYZER for general-batch-exe. You may read the whole project,
+but may write only the analysis report named below.
+
+${common}
+
+Block origin status: ${ctx.recoveryOriginStatus || '(unknown)'}
+Block reason: ${ctx.recoveryOriginReason || '(unknown)'}
+Latest verify report: ${ctx.latestVerifyPath || '(missing)'}
+Latest review report: ${pathJoin(ctx.workdir, ctx.workflowDir, 'reviews', 'latest.json')}
+Recent agent stdout/stderr are recorded in STATE.json and workflow logs.
+
+${(config.block_recovery && config.block_recovery.analyzer_extra) || ''}
+
+Analysis rules:
+- Reconstruct what happened before the block from the execution index, read_first,
+  latest verify/review reports, recent workflow logs, and the current diff.
+- WARN-only diagnostics are not the blocking root cause.
+- recoverable=true only when every required change is inside this active task or
+  its direct import/test dependency closure.
+- A syntactic execution-index repair must preserve product semantics. A genuine
+  requirement conflict is UNKNOWN or OUT_OF_SCOPE_MODULE and needs a human.
+- PROJECT_DEPENDENCY_MISSING is recoverable only for project-local dependencies
+  already declared by the active task/manifest; never request global installs,
+  sudo, credentials, proxy, certificates, or environment-variable changes.
+- If fixing requires modifying general-batch-exe itself, set touchesGbx=true and
+  kind=GBX_INTERNAL_FAILURE.
+- If fixing requires anything outside Workdir, set touchesExternalSystem=true.
+- requiredPaths must be complete, including imports/tests/manifests/lockfiles.
+- Do not repair anything in this role.
+
+${blockAnalysisContract(ctx)}
+`.trim();
+  }
+
+  if (role === 'block-resolver') {
+    return `
+You are the BLOCK RESOLVER for general-batch-exe. This is a bounded recovery
+attempt after ordinary Fixer attempts were exhausted.
+
+${common}
+
+Root cause: ${ctx.recoveryRootCause || '(missing)'}
+Recovery kind: ${ctx.recoveryKind || '(missing)'}
+Approved paths (complete allow-scope):
+${(ctx.recoveryApprovedPaths || []).map((item) => `- ${item}`).join('\n') || '(none)'}
+
+Recommended action:
+${ctx.recoveryRecommendedAction || '(none)'}
+
+${(config.block_recovery && config.block_recovery.resolver_extra) || ''}
+
+Hard rules:
+- Fix only the diagnosed block and only within Approved paths.
+- Do not chase warnings, later tasks, or unrelated cleanup.
+- Never modify .cursor/skills/general-batch-exe/**, STATE.json, project-external
+  files, global packages, system settings, credentials, proxy, certificates, or
+  environment variables.
+- Dependency recovery is limited to the configured policy:
+  ${(config.block_recovery && config.block_recovery.dependency_policy) || 'none'}.
+  "declared-only" means project-local install of an already declared dependency;
+  no sudo/global install and no speculative package addition.
+- If an approved repair is no longer sufficient, stop without touching the new
+  path and report result=needs_human.
+- You may run the failed verification command, but BLOCK_VERIFY remains the
+  authoritative machine gate.
+
+${blockRepairContract(ctx)}
 `.trim();
   }
 

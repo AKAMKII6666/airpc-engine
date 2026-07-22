@@ -13,6 +13,7 @@ import {
 } from "@studio-v2/src/bis/pageBis/storyEditor/form/node/nodePropertyForm";
 import {
 	applyChapterPropertyForm,
+	type ChapterPackageDiskContext,
 	type ChapterPropertyFormValues,
 } from "@studio-v2/src/bis/pageBis/storyEditor/form/chapter/chapterPropertyForm";
 
@@ -51,11 +52,22 @@ export async function submitChapterPropertyForm(args: {
 		nodeId: string,
 		next: EditorChapterNodeData,
 	) => void;
+	chapterDiskCtx?: ChapterPackageDiskContext;
 }): Promise<void> {
-	const { data, nodeId, values, helpers, onApplyChapterNodeData } = args;
+	const {
+		data,
+		nodeId,
+		values,
+		helpers,
+		onApplyChapterNodeData,
+		chapterDiskCtx,
+	} = args;
 	helpers.setStatus({ formError: undefined });
 	try {
-		onApplyChapterNodeData(nodeId, applyChapterPropertyForm(data, values));
+		onApplyChapterNodeData(
+			nodeId,
+			applyChapterPropertyForm(data, values, chapterDiskCtx),
+		);
 	} catch (error) {
 		helpers.setStatus({ formError: formErrorMessage(error) });
 	} finally {

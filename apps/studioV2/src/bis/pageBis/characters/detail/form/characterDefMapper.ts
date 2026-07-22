@@ -14,6 +14,7 @@ import type {
 	CharacterSummary,
 	FreeCallReadiness,
 } from "@studio-v2/typeFiles/library/characters/form/characterSummary";
+import { PERSONALITY_CODE_OPTIONS } from "@studio-v2/typeFiles/library/characters/persona/personalityCodeOptions";
 import { REALTIME_VOICE_OPTIONS } from "@studio-v2/typeFiles/library/characters/realtime/realtimeVoiceOptions";
 import type { CharacterDetailFormValues } from "./characterDetailFormValues";
 
@@ -184,6 +185,7 @@ export function characterDefToSummary(def: CharacterDef): CharacterSummary {
 		},
 		persona: {
 			systemPrompt: asString(persona.systemPrompt),
+			personalityCode: asString(persona.personalityCode),
 			profession: asString(persona.profession),
 			speakingStyle: asString(persona.speakingStyle),
 			exampleLines: Array.isArray(persona.exampleLines)
@@ -279,6 +281,7 @@ export function mergeDetailFormIntoCharacterDef(
 		persona: {
 			...(previous.persona ?? {}),
 			systemPrompt: values.persona.systemPrompt.trim(),
+			personalityCode: values.persona.personalityCode.trim(),
 			speakingStyle: values.persona.speakingStyle.trim(),
 			profession: values.persona.profession.trim(),
 			exampleLines: values.persona.exampleLines.map(function (l) {
@@ -338,6 +341,7 @@ export function buildCreateCharacterDef(input: {
 		},
 		persona: {
 			systemPrompt: "",
+			personalityCode: PERSONALITY_CODE_OPTIONS[0]?.value ?? "",
 			speakingStyle: "",
 			exampleLines: [],
 			profession: "",

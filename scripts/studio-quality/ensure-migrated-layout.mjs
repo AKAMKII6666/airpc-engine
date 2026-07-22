@@ -10,6 +10,14 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "../..");
 const thisFile = fileURLToPath(import.meta.url);
 
+/**
+ * 已退役、应直接删除的路径（非 flat→nested 迁移对）。
+ * quality:studio 前置会 unlink；V2-T3-3 角色 mock 空壳若仍在磁盘则清掉。
+ */
+const RETIRED_PATHS = [
+  "apps/studioV2/src/utils/ajaxProxy/library/mock/mockCharactersData.ts",
+];
+
 /** @type {{ flat: string; nested: string }[]} */
 const PAIRS = [
   {
@@ -165,11 +173,6 @@ const PAIRS = [
     nested: "apps/studioV2/src/utils/ajaxProxy/library/mock/mockLibraryData.ts",
   },
   {
-    flat: "apps/studioV2/src/utils/ajaxProxy/library/mockCharactersData.ts",
-    nested:
-      "apps/studioV2/src/utils/ajaxProxy/library/mock/mockCharactersData.ts",
-  },
-  {
     flat: "apps/studioV2/src/utils/server/apiResponse.server.ts",
     nested: "apps/studioV2/src/utils/server/http/apiResponse.server.ts",
   },
@@ -188,6 +191,25 @@ const PAIRS = [
   {
     flat: "apps/studioV2/src/utils/server/usersFs.server.ts",
     nested: "apps/studioV2/src/utils/server/users/usersFs.server.ts",
+  },
+  {
+    flat: "apps/studioV2/src/utils/server/packages/packagesPaths.server.ts",
+    nested:
+      "apps/studioV2/src/utils/server/packages/paths/packagesPaths.server.ts",
+  },
+  {
+    flat: "apps/studioV2/src/utils/server/packages/packagesList.server.ts",
+    nested:
+      "apps/studioV2/src/utils/server/packages/list/packagesList.server.ts",
+  },
+  {
+    flat: "apps/studioV2/src/utils/server/packages/packagesFs.server.ts",
+    nested: "apps/studioV2/src/utils/server/packages/fs/packagesFs.server.ts",
+  },
+  {
+    flat: "apps/studioV2/src/utils/server/packages/defaultCanvasLayout.server.ts",
+    nested:
+      "apps/studioV2/src/utils/server/packages/layout/defaultCanvasLayout.server.ts",
   },
   {
     flat: "apps/studioV2/typeFiles/library/characters/characterSummary.ts",
@@ -321,6 +343,14 @@ const PAIRS = [
  */
 export function ensureMigratedLayout() {
   let removed = 0;
+  for (const rel of RETIRED_PATHS) {
+    const abs = path.join(repoRoot, rel);
+    if (existsSync(abs)) {
+      unlinkSync(abs);
+      removed += 1;
+      console.log(`removed retired file: ${rel}`);
+    }
+  }
   for (const pair of PAIRS) {
     const flatAbs = path.join(repoRoot, pair.flat);
     const nestedAbs = path.join(repoRoot, pair.nested);

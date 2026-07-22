@@ -18,6 +18,8 @@ export type CallCardLabelOption = {
 	label: string;
 	/** 写入 Formik 的枚举字符串；与 CallCardDefinition 对齐 */
 	value: string;
+	/** 悬停 tooltip 说明；缺省表示该选项无需额外解释 */
+	description?: string;
 };
 
 /** entryMode → 界面人话 */
@@ -164,21 +166,81 @@ export function effectNameLabel(effect: string | undefined): string {
 	* value 写入枚举字符串；label 为中文；禁止自由文本。
 	*/
 export const EFFECT_NAME_OPTIONS: readonly CallCardLabelOption[] = [
-	{ label: "解锁角色", value: "set_character_unlocked" },
-	{ label: "挂载通话卡", value: "attach_call_card" },
-	{ label: "设置重拨槽", value: "set_redial_slot" },
-	{ label: "卸载通话卡", value: "unmount_call_card" },
-	{ label: "保持卡待处理", value: "keep_card_pending" },
-	{ label: "调度通话卡", value: "schedule_call_card" },
-	{ label: "登记重复外呼", value: "schedule_recurring_call" },
-	{ label: "创建研究承诺", value: "create_research_commitment" },
-	{ label: "更新用户档案", value: "update_user_profile" },
-	{ label: "补丁记忆", value: "patch_memory" },
-	{ label: "写入世界事实", value: "set_world_fact" },
-	{ label: "更新 NPC 知识", value: "update_npc_knowledge" },
-	{ label: "结束故事", value: "end_story" },
-	{ label: "创建语音信箱", value: "create_voicemail" },
-	{ label: "播放系统提示", value: "play_system_prompt" },
+	{
+		label: "解锁角色",
+		value: "set_character_unlocked",
+		description: "把指定角色标记为已解锁/可拨，写入用户 Profile 的角色解锁位",
+	},
+	{
+		label: "挂载通话卡",
+		value: "attach_call_card",
+		description: "向指定角色的待办板挂一张待处理卡，使其后续可被拨打或外呼",
+	},
+	{
+		label: "设置重拨槽",
+		value: "set_redial_slot",
+		description: "设定用户「重拨」时默认接通的角色（及可选卡）",
+	},
+	{
+		label: "卸载通话卡",
+		value: "unmount_call_card",
+		description: "从指定角色待办板移除一张待处理卡；缺省作用于当前通话卡",
+	},
+	{
+		label: "保持卡待处理",
+		value: "keep_card_pending",
+		description: "让当前卡保持待处理，不因本次通话结束而被消费；无需参数",
+	},
+	{
+		label: "调度通话卡",
+		value: "schedule_call_card",
+		description: "登记一次性定时外呼意图（角色+包+卡+延迟），到点触发",
+	},
+	{
+		label: "登记重复外呼",
+		value: "schedule_recurring_call",
+		description: "登记每日/每周循环外呼意图（时/分/可选周几）",
+	},
+	{
+		label: "创建研究承诺",
+		value: "create_research_commitment",
+		description: "记录一个待研究问题，在下次通话或指定时机回访",
+	},
+	{
+		label: "更新用户档案",
+		value: "update_user_profile",
+		description: "写入用户昵称/全名到用户档案",
+	},
+	{
+		label: "补丁记忆",
+		value: "patch_memory",
+		description: "向指定角色的记忆层写入一条记忆文本",
+	},
+	{
+		label: "写入世界事实",
+		value: "set_world_fact",
+		description: "写入或更新一条世界事实（键+值+可见范围）",
+	},
+	{
+		label: "更新 NPC 知识",
+		value: "update_npc_knowledge",
+		description: "让指定角色「知道/忘记」某条世界事实",
+	},
+	{
+		label: "结束故事",
+		value: "end_story",
+		description: "结束当前故事包，可清场并安排下一章入口卡",
+	},
+	{
+		label: "创建语音信箱",
+		value: "create_voicemail",
+		description: "生成一条语音信箱桩，真正播放由电话壳执行",
+	},
+	{
+		label: "播放系统提示",
+		value: "play_system_prompt",
+		description: "记录一条系统提示播放桩（片段 id），引擎不直接播放音频",
+	},
 ];
 
 /**

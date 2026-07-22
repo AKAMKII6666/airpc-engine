@@ -1,17 +1,18 @@
 /**
 	* 故事包配置浮窗：StoryPackageConf 字段只读 Label。
-	* 包级元数据与单卡属性分离；数据来自会话 mock，不写盘。
+	* 数据来自已加载磁盘 bundle；整包保存见顶栏。
 	*/
 "use client";
 
 import type { FC } from "react";
 import { Button, Typography } from "@mui/material";
-import { projectEditorPackageConf } from "@studio-v2/src/bis/pageBis/storyEditor/package/packageConfProjection";
+import { projectEditorPackageConfFromBundle } from "@studio-v2/src/bis/pageBis/storyEditor/package/conf/packageConfProjection";
+import type { DiskStoryPackageBundle } from "@studio-v2/typeFiles/story/package/diskStoryPackage";
 import styles from "./EditorLibraryFloat.module.scss";
 
 export type PackageConfigFloatProps = {
-	/** 路由包键；用于投影 mock 包配置 */
-	packageId: string;
+	/** 当前打开的磁盘整包 */
+	bundle: DiskStoryPackageBundle;
 	open: boolean;
 	onClose: () => void;
 };
@@ -22,8 +23,8 @@ function labelOrDash(value: string): string {
 
 export const PackageConfigFloat: FC<PackageConfigFloatProps> =
 	function PackageConfigFloat({
-		// packageId 是路由包键，用于只读投影
-		packageId,
+		// bundle 是当前磁盘整包，用于只读投影
+		bundle,
 		// open 表示浮窗是否可见，用于条件渲染
 		open,
 		// onClose 是关闭回调，用于收起浮窗
@@ -31,7 +32,7 @@ export const PackageConfigFloat: FC<PackageConfigFloatProps> =
 	}) {
 		if (!open) return null;
 
-		const conf = projectEditorPackageConf(packageId);
+		const conf = projectEditorPackageConfFromBundle(bundle);
 
 		return (
 			<aside className={styles.floatRight} aria-label="包配置浮窗">
@@ -47,7 +48,7 @@ export const PackageConfigFloat: FC<PackageConfigFloatProps> =
 				</div>
 				{/* 引用了Typography组件，用于只读说明 */}
 				<Typography variant="caption" className={styles.hint}>
-					包级元数据只读。编辑单卡请点画布 CallCard；本步不写
+					包级元数据只读。编辑单卡请点画布 CallCard；保存请用顶栏「保存」写回
 					data/storis-packages。
 				</Typography>
 

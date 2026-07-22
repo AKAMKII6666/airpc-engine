@@ -1,0 +1,84 @@
+[gbx] ▶ executor:V2-T3-6 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … executor:V2-T3-6 still running (15s elapsed, no output for 15s)
+[gbx] … executor:V2-T3-6 still running (30s elapsed, no output for 30s)
+[gbx] … executor:V2-T3-6 still running (45s elapsed, no output for 45s)
+[gbx] … executor:V2-T3-6 still running (60s elapsed, no output for 60s)
+[gbx] … executor:V2-T3-6 still running (75s elapsed, no output for 75s)
+[gbx] … executor:V2-T3-6 still running (90s elapsed, no output for 90s)
+[gbx] … executor:V2-T3-6 still running (105s elapsed, no output for 105s)
+[gbx] … executor:V2-T3-6 still running (120s elapsed, no output for 120s)
+[gbx] … executor:V2-T3-6 still running (135s elapsed, no output for 135s)
+[gbx] … executor:V2-T3-6 still running (150s elapsed, no output for 150s)
+[gbx] … executor:V2-T3-6 still running (165s elapsed, no output for 165s)
+[gbx] … executor:V2-T3-6 still running (180s elapsed, no output for 180s)
+[gbx] … executor:V2-T3-6 still running (195s elapsed, no output for 195s)
+[gbx] … executor:V2-T3-6 still running (210s elapsed, no output for 210s)
+[gbx] … executor:V2-T3-6 still running (225s elapsed, no output for 225s)
+[gbx] … executor:V2-T3-6 still running (240s elapsed, no output for 240s)
+[gbx] … executor:V2-T3-6 still running (255s elapsed, no output for 255s)
+[gbx] … executor:V2-T3-6 still running (270s elapsed, no output for 270s)
+[gbx] … executor:V2-T3-6 still running (285s elapsed, no output for 285s)
+[gbx] … executor:V2-T3-6 still running (300s elapsed, no output for 300s)
+[gbx] … executor:V2-T3-6 still running (315s elapsed, no output for 315s)
+[gbx] … executor:V2-T3-6 still running (330s elapsed, no output for 330s)
+[gbx] … executor:V2-T3-6 still running (345s elapsed, no output for 345s)
+[gbx] … executor:V2-T3-6 still running (360s elapsed, no output for 360s)
+[gbx] … executor:V2-T3-6 still running (375s elapsed, no output for 375s)
+[gbx] … executor:V2-T3-6 still running (390s elapsed, no output for 390s)
+[gbx] … executor:V2-T3-6 still running (405s elapsed, no output for 405s)
+[gbx] … executor:V2-T3-6 still running (420s elapsed, no output for 420s)
+[gbx] … executor:V2-T3-6 still running (435s elapsed, no output for 435s)
+[gbx] … executor:V2-T3-6 still running (450s elapsed, no output for 450s)
+[gbx] … executor:V2-T3-6 still running (465s elapsed, no output for 465s)
+[gbx] … executor:V2-T3-6 still running (480s elapsed, no output for 480s)
+[gbx] … executor:V2-T3-6 still running (495s elapsed, no output for 495s)
+## V2-T3-6 执行摘要
+
+本批已完成 **列表/编辑器磁盘读写接线** 与 **包列表/打开路径 mock 清理**（业务路径不再使用 `MOCK_STORY_PACKAGES`、`CanvasMockGraph` 种子）。
+
+### 已实现
+
+**磁盘管道（bis）**
+- `listStoryPackages_bis.ts` — 列表读 `/api/stories`
+- `loadStoryPackageForEditor` — 打开整包 + 角色 displayName
+- `saveStoryPackageToDisk` — 会话图 → 整包 PUT
+- `diskBundleGraph.ts` / `callCardProjectionMapper.ts` — bundle ↔ 画布 nodes/edges
+
+**UI 接线**
+- **故事包列表**（`PackageListView`）、**工作台**（`WorkbenchShell`）、**导出选包** — 均来自磁盘
+- **编辑器** — 加载 `wrong_number_act1` 等真包；顶栏 **保存** 写回 `data/storis-packages`
+- **包配置浮窗** — 读已加载 bundle，不再走 mock 种子
+
+**Mock 清理**
+- `mockWorkbenchData.ts` 仅保留工程状态/调试 mock（允许暂留）
+- `CanvasMockGraph.ts` / `.edges.ts` 已清空为 `@deprecated` 空壳（业务无 import）
+- `createPackage_bis` / `importPackage_bis` 改为抛错，避免误写会话 mock
+
+**测试**
+- 新增 `diskBundleGraph.test.ts`
+- 更新 `packageAndAssetFloat.test.ts`、`nodePropertyAndRole.test.ts`
+
+### 验证状态
+
+**verify NOT run** — 当前环境 Shell 不可用，未能执行 `npm run quality:studio`。
+
+请在本地运行：
+
+```bash
+cd /Users/bolbiao/workspace/airpc-engine && npm run quality:studio
+```
+
+通过后可将执行索引中 **V2-T3-6** 从 `⬜` 改为 `✅`。
+
+### 建议本地验收
+
+1. 打开 `/packages` — 应看到 `wrong_number_act1`、`golden_handoff` 等磁盘包  
+2. 进入 `/stories/wrong_number_act1` — 画布三张卡与 layout 一致  
+3. 点顶栏 **保存** — 刷新后改动仍在  
+4. `rg 'MOCK_STORY_PACKAGES|listMockPackages|CanvasMockGraph'` 在 `pageComponents`/`bis` 业务路径应无真源引用  
+
+### 未做（按刀序留给 V2-T3-7）
+
+- 属性浮窗/出口/Effect 编辑的完整落盘验收（C 阶段）
+- 新建/导入故事包落盘（B 末可选，入口已禁用或抛错）
+[gbx] ■ executor:V2-T3-6 done exit=0 elapsed=503s

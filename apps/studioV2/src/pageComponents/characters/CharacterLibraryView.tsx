@@ -1,5 +1,6 @@
 /**
-	* 角色库独立页：列表 + 详情落盘 + 新建 FormModal + 删除确认。
+	* 角色库独立页：列表 + 详情 + 新建 FormModal + 删除确认。
+	* 增删改经 /api/characters 读写 data/characters。
 	*/
 "use client";
 
@@ -95,7 +96,7 @@ export const CharacterLibraryView: FC = function () {
 			<DeleteConfirmModal
 				open={page.deleteTarget != null}
 				title="确认删除角色"
-				description="将从 data/characters 删除该角色 JSON。若仍有引用，相关校验可能报错。"
+				description="将删除 data/characters 中该角色 JSON；刷新后不可恢复。若故事包仍引用该 agentId，需另行处理。"
 				displayName={page.deleteTarget?.displayName ?? ""}
 				referenceLines={page.deleteTarget?.referenceLines ?? []}
 				error={page.deleteError}

@@ -6,6 +6,7 @@
 import type { FC } from "react";
 import Link from "next/link";
 import { Button, Typography } from "@mui/material";
+import type { EditorPackageSaveState } from "@studio-v2/src/pageComponents/storyEditor/hooks/package/useStoryEditorPackageSession";
 import styles from "./StoryEditorTopBar.module.scss";
 
 export type StoryEditorTopBarProps = {
@@ -13,13 +14,36 @@ export type StoryEditorTopBarProps = {
 	packageTitle: string;
 	/** 章节显示名 */
 	chapterTitle: string;
+	/** 整包保存状态 */
+	saveState: EditorPackageSaveState;
+	/** 保存失败文案 */
+	saveError?: string;
+	/** 触发整包写盘 */
+	onSave: () => void;
+	/** 加载中禁用保存 */
+	saveDisabled?: boolean;
 };
+
+function saveStateLabel(state: EditorPackageSaveState): string {
+	if (state === "saving") return "保存中…";
+	if (state === "saved") return "已保存";
+	if (state === "error") return "保存失败";
+	return "未保存";
+}
 
 export const StoryEditorTopBar: FC<StoryEditorTopBarProps> = function ({
 	// packageTitle 是故事包标题，用于顶栏主文案
 	packageTitle,
 	// chapterTitle 是章节名，用于副标题
 	chapterTitle,
+	// saveState 是整包保存状态
+	saveState,
+	// saveError 是保存失败说明
+	saveError,
+	// onSave 触发整包写盘
+	onSave,
+	// saveDisabled 加载失败时禁用保存
+	saveDisabled,
 }) {
 	return (
 		<header className={styles.bar}>
@@ -35,11 +59,22 @@ export const StoryEditorTopBar: FC<StoryEditorTopBarProps> = function ({
 					</Typography>
 					{/* 引用了Typography组件，用于章节与状态副标题 */}
 					<Typography variant="caption" className={styles.chapter}>
-						{chapterTitle} · 已保存 · 校验正常
+						{chapterTitle} · {saveStateLabel(saveState)}
+						{saveError ? ` · ${saveError}` : ""} · 校验正常
 					</Typography>
 				</div>
 			</div>
 			<div className={styles.actions}>
+				{/* 引用了Button组件，用于整包保存 */}
+				<Button
+					size="small"
+					variant="contained"
+					color="primary"
+					disabled={saveDisabled || saveState === "saving"}
+					onClick={onSave}
+				>
+					保存
+				</Button>
 				{/* 引用了Button组件，用于搜索占位 */}
 				<Button size="small" variant="text" disabled>
 					搜索

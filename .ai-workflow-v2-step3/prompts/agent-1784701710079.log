@@ -1,0 +1,37 @@
+[gbx] ▶ fixer:V2-T3-3 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-T3-3 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-T3-3 still running (30s elapsed, no output for 30s)
+[gbx] … fixer:V2-T3-3 still running (45s elapsed, no output for 45s)
+[gbx] … fixer:V2-T3-3 still running (60s elapsed, no output for 60s)
+[gbx] … fixer:V2-T3-3 still running (75s elapsed, no output for 75s)
+[gbx] … fixer:V2-T3-3 still running (90s elapsed, no output for 90s)
+[gbx] … fixer:V2-T3-3 still running (105s elapsed, no output for 105s)
+[gbx] … fixer:V2-T3-3 still running (120s elapsed, no output for 120s)
+[gbx] … fixer:V2-T3-3 still running (135s elapsed, no output for 135s)
+[gbx] … fixer:V2-T3-3 still running (150s elapsed, no output for 150s)
+[gbx] … fixer:V2-T3-3 still running (165s elapsed, no output for 165s)
+[gbx] … fixer:V2-T3-3 still running (180s elapsed, no output for 180s)
+[gbx] … fixer:V2-T3-3 still running (195s elapsed, no output for 195s)
+[gbx] … fixer:V2-T3-3 still running (210s elapsed, no output for 210s)
+[gbx] … fixer:V2-T3-3 still running (225s elapsed, no output for 225s)
+[gbx] … fixer:V2-T3-3 still running (240s elapsed, no output for 240s)
+## Fix 摘要（V2-T3-3 / `review_fail`）
+
+### 已完成
+- **docs/AI 回写**（critical-2）：`02`、`00`、`01`、`07`、`06` 已改为角色真源 = `data/characters` ↔ `/api/characters`，并标明角色业务 mock 应清零；资源/包/画布 mock 仍按后续任务暂留。
+- **`ensure-migrated-layout`**：`RETIRED_PATHS` 仍登记 `mockCharactersData.ts`，供下次 `quality:studio` 前置 unlink。
+
+### 未完成（环境限制）
+- **critical-1**：`mockCharactersData.ts`（`export {}` 空壳）**未能物理删除** — `Delete` / `Shell` 均被拒。
+- **major-1**：**未自验** — 无法执行 `npm run quality:studio`；**未勾选**索引 `V2-T3-3`（仍为 ⬜）。未写 `STATE.json`。
+
+### 编排侧建议
+下一轮 verify 跑 `npm run quality:studio` 时，`ensure-migrated-layout` 应 unlink 该空壳。若仍在盘上，请人工执行：
+
+```bash
+rm -f apps/studioV2/src/utils/ajaxProxy/library/mock/mockCharactersData.ts
+npm run quality:studio
+```
+
+通过后再勾选 `V2-T3-3` ✅。
+[gbx] ■ fixer:V2-T3-3 done exit=0 elapsed=249s

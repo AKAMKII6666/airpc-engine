@@ -28,6 +28,11 @@ export const CharacterDefSchema = z
     persona: z
       .object({
         systemPrompt: z.string().optional(),
+        /**
+         * 人格扮演码；当前约定为 MBTI 四字母（如 ENFP）。
+         * Composer 写入 systemHard，供 LLM 按该人格说话与决策。
+         */
+        personalityCode: z.string().optional(),
         speakingStyle: z.string().optional(),
         exampleLines: z.array(z.string()).optional(),
         profession: z.string().optional(),

@@ -51,6 +51,17 @@ hard_stop_patterns:
   - "协议未定|待确认"
   - "需要人工|密钥|生产数据"
 
+# --- 普通 Fixer 耗尽后的自动阻断恢复（可选，默认开启）---
+block_recovery:
+  enabled: true
+  max_attempts: 2
+  min_confidence: high
+  dependency_policy: declared-only
+  task_scopes:
+    M1-1:
+      allowed_paths: [src/foo/**]
+      related_paths: [tests/foo/**]
+
 # --- 角色附加（可选）---
 executor_extra: |
   只实现 ACTIVE 批次；不要改需求文档。
@@ -133,6 +144,12 @@ Status: ACTIVE
 ---
 
 ## 5. 与 `--config` 的分工
+
+`block_recovery.task_scopes` 可以放在单次执行索引，也可以放在项目
+config。涉及多个模块的长任务建议按 task ID 声明 `allowed_paths` 与
+`related_paths`；设为 `require_declared_scope: true` 后，未声明范围的任务
+会直接要求人工评审。完整策略见
+[05-automatic-block-recovery.md](./05-automatic-block-recovery.md)。
 
 | 内容 | 优先放哪 |
 |------|----------|

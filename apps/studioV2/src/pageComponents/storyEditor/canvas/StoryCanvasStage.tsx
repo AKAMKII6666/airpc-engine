@@ -21,6 +21,7 @@ import { ChapterFlowNode } from "@studio-v2/src/pageComponents/storyEditor/canva
 import { CharacterAnchorFlowNode } from "@studio-v2/src/pageComponents/storyEditor/canvas/nodes/CharacterAnchorFlowNode";
 import { ActionFlowNode } from "@studio-v2/src/pageComponents/storyEditor/canvas/nodes/ActionFlowNode";
 import { CommentGroupFlowNode } from "@studio-v2/src/pageComponents/storyEditor/canvas/nodes/CommentGroupFlowNode";
+import type { EditorGraphSeed } from "@studio-v2/src/bis/pageBis/storyEditor/package/graph/diskBundleGraph";
 import {
 	useStoryCanvasGraph,
 	type StoryCanvasGraphMeta,
@@ -46,6 +47,8 @@ const NODE_TYPES = {
 };
 
 export type StoryCanvasStageProps = {
+	/** 磁盘包打开后的初始图 */
+	graphSeed: EditorGraphSeed;
 	/** 选中 CallCard / 章节节点投影变化；null 表示无选中 */
 	onSelectionChange: (selection: StoryEditorSelection | null) => void;
 	/**
@@ -67,6 +70,8 @@ export type StoryCanvasStageProps = {
 };
 
 const StoryCanvasInner: FC<StoryCanvasStageProps> = function StoryCanvasInner({
+	// graphSeed 是磁盘打开的初始图，用于画布会话 seed
+	graphSeed,
 	// onSelectionChange 同步 CallCard 选中投影，用于属性浮窗
 	onSelectionChange,
 	// onCharacterAnchorSelect 选中角色锚点，用于打开编辑 FormModal
@@ -97,6 +102,7 @@ const StoryCanvasInner: FC<StoryCanvasStageProps> = function StoryCanvasInner({
 	);
 
 	const graph = useStoryCanvasGraph({
+		graphSeed,
 		onSelectionChange,
 		onCharacterAnchorSelect,
 		onReady,
@@ -144,6 +150,7 @@ const StoryCanvasInner: FC<StoryCanvasStageProps> = function StoryCanvasInner({
 					onNodesChange={graph.onNodesChange}
 					onEdgesChange={graph.onEdgesChange}
 					onConnect={graph.onConnect}
+					onConnectStart={graph.onConnectStart}
 					onSelectionChange={graph.handleSelectionChange}
 					onPaneClick={onPaneClick}
 					fitView
@@ -171,6 +178,8 @@ const StoryCanvasInner: FC<StoryCanvasStageProps> = function StoryCanvasInner({
 };
 
 export const StoryCanvasStage: FC<StoryCanvasStageProps> = function StoryCanvasStage({
+	// graphSeed 是磁盘打开的初始图，用于画布会话 seed
+	graphSeed,
 	// onSelectionChange 同步 CallCard 选中投影，用于属性浮窗
 	onSelectionChange,
 	// onCharacterAnchorSelect 选中角色锚点，用于打开编辑 FormModal
@@ -189,6 +198,7 @@ export const StoryCanvasStage: FC<StoryCanvasStageProps> = function StoryCanvasS
 		<ReactFlowProvider>
 			{/* 引用了StoryCanvasInner组件，用于实际画布舞台 */}
 			<StoryCanvasInner
+				graphSeed={graphSeed}
 				onSelectionChange={onSelectionChange}
 				onCharacterAnchorSelect={onCharacterAnchorSelect}
 				onReady={onReady}

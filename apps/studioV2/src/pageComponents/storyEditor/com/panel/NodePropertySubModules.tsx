@@ -16,12 +16,15 @@ import {
 } from "@studio-v2/src/bis/pageBis/storyEditor/form/node/nodePropertyForm";
 // 引用了ExitListEditor组件，用于 exits[] 增删与概要
 import { ExitListEditor } from "@studio-v2/src/pageComponents/storyEditor/com/panel/ExitListEditor/ExitListEditor";
+import type { EffectPanelSources } from "@studio-v2/typeFiles/story/editor/callCard/editorEffectParams";
 import styles from "./NodePropertyForm.module.scss";
 
 export type NodePropertySubModulesProps = {
 	formik: FormikProps<NodePropertyFormValues>;
 	/** 仅 schedule 卡展示调度折叠区 */
 	showSchedule: boolean;
+	/** Effect 面板 id 下拉候选源；下传出口列表 */
+	effectPanelSources: EffectPanelSources;
 };
 
 export const NodePropertySubModules: FC<NodePropertySubModulesProps> =
@@ -30,6 +33,8 @@ export const NodePropertySubModules: FC<NodePropertySubModulesProps> =
 		formik,
 		// showSchedule 表示是否展示 ScheduleMeta 折叠区
 		showSchedule,
+		// effectPanelSources 是 Effect id 下拉候选源，用于出口列表
+		effectPanelSources,
 	}) {
 		// 属性浮窗 enableReinitialize 切换选中瞬间 toolPolicy 可能尚未就绪，兜底空模式
 		const toolPolicyItems = buildNodeToolPolicyItems(
@@ -52,7 +57,10 @@ export const NodePropertySubModules: FC<NodePropertySubModulesProps> =
 				<details className={styles.fold} open>
 					<summary>出口列表</summary>
 					{/* 引用了ExitListEditor组件，用于 exits[] 增删与概要 */}
-					<ExitListEditor formik={formik} />
+					<ExitListEditor
+						formik={formik}
+						sources={effectPanelSources}
+					/>
 				</details>
 
 				<details className={styles.fold}>

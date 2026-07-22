@@ -6,7 +6,7 @@
  * Default: live stdout/stderr (+ optional heartbeat via teeChild).
  */
 
-const { spawnSync } = require('child_process');
+const { spawn, spawnSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
@@ -15,6 +15,8 @@ const {
   writeVerifyReports,
   verifyFingerprint,
 } = require('./verifyReport');
+const { gbxErr } = require('./ui/emit');
+const { runTeeWithUi } = require('./agent/runner');
 
 function runOneQuiet(command, workdir, timeoutMs = 600_000, maxBytes = 65536) {
   const result = spawnSync(command, {
@@ -60,6 +62,8 @@ function runOneLive(command, workdir, paths, timeoutMs = 600_000, maxBytes = 655
         logFile,
         heartbeatMs: 30_000,
         label: `verify:${command.slice(0, 60)}`,
+        role: 'verify',
+        uiPipe: Boolean(paths?._ui && paths._ui.mode === 'tui'),
       },
       null,
       2,
@@ -67,12 +71,29 @@ function runOneLive(command, workdir, paths, timeoutMs = 600_000, maxBytes = 655
     'utf8',
   );
 
-  const result = spawnSync(process.execPath, [teeChild, payloadFile], {
-    cwd: workdir,
-    stdio: 'inherit',
-    timeout: timeoutMs,
-    env: process.env,
-  });
+  const useUi = paths?._ui && paths._ui.mode === 'tui';
+  let exitCode = 1;
+  if (useUi) {
+    paths._ui.setAgent({
+      label: `verify:${command.slice(0, 40)}`,
+      role: 'verify',
+      lastActivity: command,
+    });
+    const child = spawn(process.execPath, [teeChild, payloadFile], {
+      cwd: workdir,
+      env: process.env,
+      stdio: ['ignore', 'pipe', 'ignore'],
+    });
+    exitCode = runTeeWithUi(child, paths._ui, timeoutMs);
+  } else {
+    const result = spawnSync(process.execPath, [teeChild, payloadFile], {
+      cwd: workdir,
+      stdio: 'inherit',
+      timeout: timeoutMs,
+      env: process.env,
+    });
+    exitCode = result.status == null ? 1 : result.status;
+  }
 
   let captured = '';
   try {
@@ -83,11 +104,11 @@ function runOneLive(command, workdir, paths, timeoutMs = 600_000, maxBytes = 655
 
   return {
     command,
-    exitCode: result.status == null ? 1 : result.status,
-    signal: result.signal || null,
+    exitCode,
+    signal: null,
     stdout: captured.slice(0, maxBytes),
-    stderr: result.error ? String(result.error.message) : '',
-    error: result.error ? String(result.error.message) : null,
+    stderr: '',
+    error: null,
   };
 }
 
@@ -143,18 +164,18 @@ function runVerifyCommands(commands, workdir, paths, label = 'verify', options =
 
   for (const cmd of commands) {
     if (!quiet) {
-      process.stderr.write(`[gbx] verify → ${cmd}\n`);
+      gbxErr(paths, `[gbx] verify → ${cmd}`);
     }
     const r = runOne(cmd, workdir, 600_000, { quiet, paths, maxBytes });
     results.push(r);
     if (r.exitCode !== 0) {
       if (!quiet) {
-        process.stderr.write(`[gbx] verify FAILED exit=${r.exitCode} cmd=${cmd}\n`);
+        gbxErr(paths, `[gbx] verify FAILED exit=${r.exitCode} cmd=${cmd}`);
       }
       break;
     }
     if (!quiet) {
-      process.stderr.write(`[gbx] verify OK cmd=${cmd}\n`);
+      gbxErr(paths, `[gbx] verify OK cmd=${cmd}`);
     }
   }
 

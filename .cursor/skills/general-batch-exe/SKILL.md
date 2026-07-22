@@ -11,7 +11,7 @@ description: >-
 
 用 **独立 Node/JS CLI（`gbx`）** 驱动「执行 → 审查 → 修复 → 验证 → 全量审查」状态机。进度落在执行索引与工作目录文件上，每轮起干净 Agent 上下文。
 
-**v0.4.4：** 门禁绿但未勾选 → `checkbox_missing`（独立预算）；勿与硬 verify 失败混报。
+**v0.5.0：** 普通 Fixer 熔断后自动进入阻断分析 → 策略门 → 受限修复 → 复验；任务内问题断点续跑，越界/项目外/gbx 自身问题才人工 BLOCKED。
 
 ## 独立性（必须）
 
@@ -38,7 +38,7 @@ description: >-
    # 默认直播 Agent／verify 输出；要静默：--quiet
    # 无 cursor-agent 时：--mock-agent（索引请用副本）
    # 需要 git checkpoint 时显式：--checkpoint（脏树会 BLOCKED）
-  # BLOCKED 后人类补跑 verify/勾选：--clear-blocked --after-manual
+  # 自动恢复仍判定需人工后：--clear-blocked --after-manual
   # 不要心跳刷屏：--no-heartbeat
    ```
 5. **禁止**调用或改写 `batch-execute` skill
@@ -56,3 +56,4 @@ description: >-
 | [docs/02-review-json.md](./docs/02-review-json.md) | 审查报告 JSON |
 | [docs/03-verify-fix.md](./docs/03-verify-fix.md) | Verify 失败与 Fixer 契约 |
 | [docs/04-hard-stop-and-resume.md](./docs/04-hard-stop-and-resume.md) | hard_stop 否定语境与 --clear-blocked |
+| [docs/05-automatic-block-recovery.md](./docs/05-automatic-block-recovery.md) | 自动阻断分析、策略门与断点续跑 |

@@ -9,7 +9,7 @@ import {
 	userToSummary,
 } from "../form/mapper/mapUserProfile";
 import {
-	buildMockUserFromForm,
+	buildUserFromForm,
 	type CreateUserFormValues,
 } from "./createUserForm";
 
@@ -27,7 +27,7 @@ export type CreateUserResult = {
 export async function commitCreateUser(
 	values: CreateUserFormValues,
 ): Promise<CreateUserResult> {
-	const draft = buildMockUserFromForm(values);
+	const draft = buildUserFromForm(values);
 	const saved = await postProfileUser(summaryToUser(draft));
 	const summary = userToSummary(saved);
 	return { userId: summary.userId, summary };

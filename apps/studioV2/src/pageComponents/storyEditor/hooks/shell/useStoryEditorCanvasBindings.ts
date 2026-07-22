@@ -19,6 +19,8 @@ export function useStoryEditorCanvasBindings(
 	const [characterAnchors, setCharacterAnchors] = useState<
 		CharacterAnchorNodeData[]
 	>([]);
+	// 画布 CallCard 投影快照；供 Effect 面板卡下拉候选，随 graph meta 刷新
+	const [callCards, setCallCards] = useState<EditorCallCardProjection[]>([]);
 
 	const onCanvasReady = useCallback((api: StoryCanvasStageApi) => {
 		canvasApiRef.current = api;
@@ -29,6 +31,7 @@ export function useStoryEditorCanvasBindings(
 	const onGraphMetaChange = useCallback((meta: StoryCanvasGraphMeta) => {
 		setChapterEndDisabled(meta.hasChapterEnd);
 		setCharacterAnchors(meta.characterAnchors);
+		setCallCards(meta.callCards);
 	}, []);
 
 	const onApplyNodeData = useCallback(
@@ -59,6 +62,7 @@ export function useStoryEditorCanvasBindings(
 	return {
 		chapterEndDisabled,
 		characterAnchors,
+		callCards,
 		onCanvasReady,
 		onGraphMetaChange,
 		onApplyNodeData,

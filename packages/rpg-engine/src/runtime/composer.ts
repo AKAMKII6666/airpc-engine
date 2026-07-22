@@ -9,7 +9,8 @@ import {
   validatePromptScenePatches,
   type PromptSceneLayer,
 } from "../schema/promptScene.js";
-import { engineError, type EngineError } from "../host/errors.js";
+import type { EngineError } from "../host/errors.js";
+import { appendPersonaHardBlocks } from "./personalityPrompt.js";
 
 interface CardContextView {
   objective?: string;
@@ -188,14 +189,9 @@ export function composeRenderedPrompt(
     systemHard.push(`[toneHint]\n${draft.toneHint}`);
   }
 
+  appendPersonaHardBlocks(systemHard, input.characterDef?.persona);
+
   const softContext: string[] = [];
-  const persona = input.characterDef?.persona;
-  if (persona && typeof persona === "object") {
-    const systemPrompt = (persona as { systemPrompt?: unknown }).systemPrompt;
-    if (typeof systemPrompt === "string" && systemPrompt.length > 0) {
-      systemHard.push(`[persona.systemPrompt]\n${systemPrompt}`);
-    }
-  }
   const identity = input.characterDef?.identity;
   if (identity && typeof identity === "object") {
     softContext.push(`[identity]\n${JSON.stringify(identity)}`);

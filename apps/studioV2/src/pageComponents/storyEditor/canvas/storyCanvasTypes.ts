@@ -2,6 +2,7 @@
 	* 故事画布壳层命令口类型。
 	* 与 React Flow 舞台解耦，避免类型循环依赖。
 	*/
+import type { Edge, Node } from "@xyflow/react";
 import type {
 	EditorCallCardProjection,
 	EditorChapterNodeData,
@@ -83,4 +84,6 @@ export type StoryCanvasStageApi = {
 		kind: DockPlacementKind,
 		position: { x: number; y: number },
 	) => void;
+	/** 保存用：当前 nodes/edges 快照（浅拷贝数组） */
+	getGraphSnapshot: () => { nodes: Node[]; edges: Edge[] };
 };

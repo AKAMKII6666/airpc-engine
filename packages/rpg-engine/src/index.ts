@@ -148,6 +148,10 @@ export {
   composeRenderedPrompt,
   type ComposeInput,
 } from "./runtime/composer.js";
+export {
+  normalizePersonalityCode,
+  buildPersonalityHardBlock,
+} from "./runtime/personalityPrompt.js";
 
 export {
   createNoopEffectSink,
@@ -212,6 +216,7 @@ export {
   formatZodError,
   isScheduleCard,
   type CallCardDefinition,
+  type StoryPackageConf,
   type ScheduleMeta,
   type CardKind,
 } from "./schema/callCard.js";

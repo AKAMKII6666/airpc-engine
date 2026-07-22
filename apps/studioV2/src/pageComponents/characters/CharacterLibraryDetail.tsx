@@ -1,5 +1,5 @@
 /**
-	* 角色库详情：按需求 §4 用 AutoForm 编排；保存经 API 写盘。
+	* 角色库详情：按需求 §4 用 AutoForm 编排；保存经 /api/characters 写盘。
 	* 记忆区只读，见 CharacterMemoryPanel。
 	*/
 "use client";
@@ -31,7 +31,7 @@ function toErrorMessage(error: unknown): string {
 export type CharacterLibraryDetailProps = {
 	character: CharacterSummary;
 	/**
-		* 落盘成功后回调，供列表与选中态同步。
+		* 落盘并回读成功后回调，供列表与选中态同步。
 		*/
 	onSaved: (next: CharacterSummary) => void;
 };
@@ -67,7 +67,7 @@ export const CharacterLibraryDetail: FC<CharacterLibraryDetailProps> =
 					<div>
 						<h2 className={styles.detailTitle}>{character.displayName}</h2>
 						<p className={styles.detailMeta}>
-							编辑后保存到 data/characters；全名 / 昵称 / 话术 / 场景卡可回读。
+							编辑后保存到 data/characters；刷新后字段仍在。
 						</p>
 					</div>
 				</div>

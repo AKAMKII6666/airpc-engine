@@ -25,6 +25,18 @@ function parseArgs(argv) {
     quiet: process.env.GBX_QUIET === '1' || process.env.GBX_QUIET === 'true',
     /** Disable tee heartbeats (agent stdout/stderr still live). */
     noHeartbeat: false,
+    /** Force plain text console (no ANSI). */
+    noColor: process.env.GBX_NO_COLOR === '1' || process.env.GBX_NO_COLOR === 'true',
+    /** Force neo-blessed dashboard (when TTY). */
+    tui: process.env.GBX_TUI === '1' || process.env.GBX_TUI === 'true',
+    /** Force line-based console (v0.6). */
+    plainConsole: false,
+    /** auto | tui | plain */
+    consoleUi: null,
+    /** Disable cursor-agent --force (shell/delete still need interactive approval). */
+    noAgentForce: process.env.GBX_AGENT_FORCE === '0' || process.env.GBX_AGENT_FORCE === 'false',
+    /** Disable cursor-agent --trust. */
+    noAgentTrust: process.env.GBX_AGENT_TRUST === '0' || process.env.GBX_AGENT_TRUST === 'false',
     exFile: null,
     config: null,
     workdir: process.cwd(),
@@ -118,6 +130,26 @@ function parseArgs(argv) {
     }
     if (arg === '--no-heartbeat') {
       out.noHeartbeat = true;
+      continue;
+    }
+    if (arg === '--no-color') {
+      out.noColor = true;
+      continue;
+    }
+    if (arg === '--no-agent-force') {
+      out.noAgentForce = true;
+      continue;
+    }
+    if (arg === '--no-agent-trust') {
+      out.noAgentTrust = true;
+      continue;
+    }
+    if (arg === '--tui') {
+      out.tui = true;
+      continue;
+    }
+    if (arg === '--plain') {
+      out.plainConsole = true;
       continue;
     }
     if (valueOptions.has(arg)) {

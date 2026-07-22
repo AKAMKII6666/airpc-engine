@@ -32,6 +32,30 @@ const DEFAULTS = {
   agent: {
     command: process.env.GBX_AGENT_CMD || 'cursor-agent',
     print_flag: '-p',
+    /** stream-json enables live tool_call activity lines in teeChild. */
+    output_format: 'stream-json',
+    stream_partial_output: false,
+    /** cursor-agent --force: auto-approve shell/delete in headless batch runs. */
+    force: process.env.GBX_AGENT_FORCE !== '0' && process.env.GBX_AGENT_FORCE !== 'false',
+    /** cursor-agent --trust: trust workspace without interactive prompt. */
+    trust: process.env.GBX_AGENT_TRUST !== '0' && process.env.GBX_AGENT_TRUST !== 'false',
+    /** cursor-agent --approve-mcps (off by default). */
+    approve_mcps: process.env.GBX_AGENT_APPROVE_MCPS === '1' || process.env.GBX_AGENT_APPROVE_MCPS === 'true',
+    /** cursor-agent --sandbox enabled|disabled (null = omit flag). */
+    sandbox: null,
+  },
+  console_ui: {
+    /** auto | tui | plain — auto enables TUI when stderr is a TTY */
+    mode: process.env.GBX_TUI === '0' || process.env.GBX_TUI === 'false' ? 'plain' : 'auto',
+    /** Default off so terminal-native text selection remains available. */
+    mouse: false,
+    show_shortcuts: true,
+  },
+  console_theme: {
+    enabled: true,
+    color: true,
+    show_role_banner: true,
+    show_agent_events: true,
   },
   /** false = live tee + heartbeats (default). true = capture-only. */
   quiet: false,
@@ -39,6 +63,31 @@ const DEFAULTS = {
   /** Same verify fingerprint failures before BLOCKED (even if fix budget remains). */
   max_ineffective_fixes: 2,
   verify_capture_max_bytes: 65536,
+  /**
+   * A fresh analyzer/resolver pair gets a separate, tightly bounded budget after
+   * ordinary Fixer attempts are exhausted. This widens diagnostic context, not
+   * operating-system permissions.
+   */
+  block_recovery: {
+    enabled: true,
+    max_attempts: 2,
+    min_confidence: 'high',
+    require_declared_scope: false,
+    dependency_policy: 'declared-only',
+    allowed_kinds: [
+      'INDEX_SCHEMA_CORRUPTION',
+      'HARD_STOP_FALSE_POSITIVE',
+      'FIXER_ACCUMULATION',
+      'IN_SCOPE_VERIFY',
+      'PROJECT_DEPENDENCY_MISSING',
+    ],
+    deny_paths: [
+      '.cursor/skills/general-batch-exe/**',
+    ],
+    task_scopes: {},
+    analyzer_extra: '',
+    resolver_extra: '',
+  },
 };
 
 function isPlainObject(v) {
@@ -76,6 +125,12 @@ function mergeConfig({ projectConfig = {}, frontmatter = {}, cli = {} } = {}) {
   if (cli.agentCmd) {
     cfg.agent = { ...cfg.agent, command: cli.agentCmd };
   }
+  if (cli.noAgentForce === true) {
+    cfg.agent = { ...cfg.agent, force: false };
+  }
+  if (cli.noAgentTrust === true) {
+    cfg.agent = { ...cfg.agent, trust: false };
+  }
   if (cli.maxIterations != null && !Number.isNaN(cli.maxIterations)) {
     cfg.max_rounds = cli.maxIterations;
   }
@@ -100,6 +155,18 @@ function mergeConfig({ projectConfig = {}, frontmatter = {}, cli = {} } = {}) {
   }
   if (cli.noHeartbeat === true) {
     cfg.heartbeat_ms = 0;
+  }
+  if (cli.noColor === true) {
+    cfg.console_theme = { ...cfg.console_theme, color: false };
+  }
+  if (cli.consoleUi) {
+    cfg.console_ui = { ...cfg.console_ui, mode: cli.consoleUi };
+  }
+  if (cli.plainConsole === true) {
+    cfg.console_ui = { ...cfg.console_ui, mode: 'plain' };
+  }
+  if (cli.tui === true) {
+    cfg.console_ui = { ...cfg.console_ui, mode: 'tui' };
   }
 
   return cfg;

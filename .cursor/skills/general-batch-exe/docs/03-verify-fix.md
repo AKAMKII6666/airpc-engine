@@ -1,4 +1,4 @@
-# Verify ↔ Fix 契约（v0.4.4）
+# Verify ↔ Fix 契约（v0.5.0）
 
 > 解决：Reviewer `pass` 但机器 verify 失败时，Fixer 只读 `reviews/latest.json` 导致空转直至预算耗尽。  
 > **v0.4.4：** 「门禁绿但未勾选」与「门禁红」分轨，避免误报 `batch verify failed` 并烧光硬修预算。
@@ -28,11 +28,16 @@
 
 `checkbox_missing` **不**占用硬修 `batchFixAttempts`。BLOCKED 文案写清 missing IDs，不以 WARN/告警线为主因。
 
-## 停条件
+## 普通 Fixer 熔断条件
 
 1. 硬红：`batchFixAttempts >= max_fix_attempts`（默认 **5**）
 2. 勾选缺口：`checkboxFixAttempts >= max_checkbox_fix_attempts`（默认 **2**）
 3. `ineffectiveFixStreak >= max_ineffective_fixes`（默认 **2**）— 同一硬 verify 指纹反复失败
+
+v0.5 起，上述条件先进入 `BLOCK_ANALYZE`，不会直接等同于人工
+`BLOCKED`。只有分析判定越界/外部环境/gbx 自身问题，或独立
+`block_recovery.max_attempts` 预算也耗尽后才终止。见
+[05-automatic-block-recovery.md](./05-automatic-block-recovery.md)。
 
 ## Executor 硬句
 

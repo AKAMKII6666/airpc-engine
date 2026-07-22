@@ -3,11 +3,18 @@
 .row {
 	display: flex;
 	align-items: center;
-	gap: 10px;
-	flex-wrap: wrap;
+	gap: 8px;
+	flex-wrap: nowrap;
+}
+
+.hourInput {
+	flex: 1 1 0;
+	min-width: 0;
 }
 
 .sep {
+	flex: 0 0 auto;
+	white-space: nowrap;
 	font-size: 0.8125rem;
 	color: t.$text-muted;
 }

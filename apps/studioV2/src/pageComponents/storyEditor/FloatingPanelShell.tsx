@@ -13,6 +13,9 @@ import type {
 	EditorChapterNodeData,
 	StoryEditorSelection,
 } from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
+import type { ChapterPackageDiskContext } from "@studio-v2/src/bis/pageBis/storyEditor/form/chapter/chapterPropertyForm";
+import type { CallCardLabelOption } from "@studio-v2/typeFiles/story/callCardLabels";
+import type { EffectPanelSources } from "@studio-v2/typeFiles/story/editor/callCard/editorEffectParams";
 import {
 	toNodePropertyFormValues,
 	validateNodePropertyForm,
@@ -28,6 +31,8 @@ import {
 import { NodePropertyForm } from "@studio-v2/src/pageComponents/storyEditor/com/panel/NodePropertyForm";
 // 引用了ChapterPropertyForm组件，用于章节起止节点属性
 import { ChapterPropertyForm } from "@studio-v2/src/pageComponents/storyEditor/com/panel/ChapterPropertyForm";
+// 引用了useFloatingPanelDrag hook，用于标题栏拖拽浮窗
+import { useFloatingPanelDrag } from "@studio-v2/src/pageComponents/storyEditor/hooks/panel/useFloatingPanelDrag";
 import styles from "./FloatingPanelShell.module.scss";
 
 export type FloatingPanelShellProps = {
@@ -48,6 +53,12 @@ export type FloatingPanelShellProps = {
 	) => void;
 	/** 画布角色锚点；CallCard 归属 Select */
 	characterAnchors: readonly CharacterAnchorNodeData[];
+	/** Effect 面板 id 下拉候选源；下传 CallCard 属性表单出口列表 */
+	effectPanelSources: EffectPanelSources;
+	/** chapter_end 下一包/卡下拉用的磁盘索引 */
+	chapterDiskCtx: ChapterPackageDiskContext;
+	/** 下一故事包 Select 选项（磁盘列表） */
+	chapterPackageOptions: readonly CallCardLabelOption[];
 	/**
 		* 归属即时写回；与 role 边双向同步。
 		*/
@@ -69,21 +80,41 @@ export const FloatingPanelShell: FC<FloatingPanelShellProps> = function ({
 	onApplyChapterNodeData,
 	// characterAnchors 是归属 Select 选项
 	characterAnchors,
+	// effectPanelSources 是 Effect id 下拉候选源，用于出口列表
+	effectPanelSources,
+	// chapterDiskCtx 是 chapter_end 磁盘卡索引
+	chapterDiskCtx,
+	// chapterPackageOptions 是下一故事包 Select 选项
+	chapterPackageOptions,
 	// onAssignOwner 即时写归属
 	onAssignOwner,
 }) {
+	// 浮窗拖拽：标题栏按住移动，返回根 ref、定位样式与按下回调
+	const { panelRef, panelStyle, onDragStart } = useFloatingPanelDrag();
+
 	if (!selection) return null;
 
 	const panelTitle =
 		selection.selectionKind === "chapter" ? "章节属性" : "卡片属性";
 
 	return (
-		<aside className={styles.panel} aria-label={`${panelTitle}浮窗`}>
+		<aside
+			ref={panelRef}
+			className={styles.panel}
+			style={panelStyle}
+			aria-label={`${panelTitle}浮窗`}
+		>
 			<div className={styles.head}>
-				{/* 引用了Typography组件，用于浮窗标题 */}
-				<Typography variant="subtitle2" className={styles.title}>
-					{panelTitle}
-				</Typography>
+				{/* 引用了div拖拽区，用于按住标题栏移动浮窗 */}
+				<div className={styles.dragZone} onMouseDown={onDragStart}>
+					<span className={styles.grip} aria-hidden>
+						⠿
+					</span>
+					{/* 引用了Typography组件，用于浮窗标题 */}
+					<Typography variant="subtitle2" className={styles.title}>
+						{panelTitle}
+					</Typography>
+				</div>
 				{/* 引用了Button组件，用于关闭浮窗 */}
 				<Button size="small" onClick={onClose} aria-label="关闭浮窗">
 					关闭
@@ -91,7 +122,7 @@ export const FloatingPanelShell: FC<FloatingPanelShellProps> = function ({
 			</div>
 			{/* 引用了Typography组件，用于不写盘提示 */}
 			<Typography variant="caption" className={styles.hint}>
-				编辑本地投影。JSON 高级视图另开；本步不写 data/。
+				编辑本地投影；点顶栏「保存」整包写回 data/storis-packages。
 			</Typography>
 			{selection.selectionKind === "chapter" ? (
 				// 引用了Formik组件，用于章节属性表单状态
@@ -106,6 +137,7 @@ export const FloatingPanelShell: FC<FloatingPanelShellProps> = function ({
 							values,
 							helpers,
 							onApplyChapterNodeData,
+							chapterDiskCtx,
 						})
 					}
 				>
@@ -114,6 +146,8 @@ export const FloatingPanelShell: FC<FloatingPanelShellProps> = function ({
 						<ChapterPropertyForm
 							nodeData={selection.data}
 							formik={formik}
+							chapterDiskCtx={chapterDiskCtx}
+							chapterPackageOptions={chapterPackageOptions}
 						/>
 					)}
 				</Formik>
@@ -139,6 +173,7 @@ export const FloatingPanelShell: FC<FloatingPanelShellProps> = function ({
 							nodeData={selection.data}
 							formik={formik}
 							characterAnchors={characterAnchors}
+							effectPanelSources={effectPanelSources}
 							onAssignOwner={(agentId, displayName) => {
 								onAssignOwner(
 									selection.nodeId,

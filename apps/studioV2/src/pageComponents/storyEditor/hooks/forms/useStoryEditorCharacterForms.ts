@@ -1,6 +1,6 @@
 /**
-	* 故事编辑器画布角色：新建 / 编辑复用 /characters FormModal + bis。
-	* 写 data/characters；画布锚点仅会话同步。
+	* 故事编辑器画布角色：新建 / 编辑复用 /characters FormModal。
+	* 读写经 /api/characters 落盘；画布锚点同步 displayName，不改 layout 真源（本步）。
 	*/
 "use client";
 
@@ -28,7 +28,7 @@ export type UseStoryEditorCharacterFormsArgs = {
 };
 
 /**
-	* 画布角色 FormModal 会话态：创建落盘加锚点；选中锚点拉盘编辑。
+	* 画布角色 FormModal：创建/编辑经 API 落盘；选中锚点按 agentId 拉磁盘投影。
 	*/
 export function useStoryEditorCharacterForms(
 	args: UseStoryEditorCharacterFormsArgs,
@@ -58,7 +58,7 @@ export function useStoryEditorCharacterForms(
 	}, []);
 
 	/**
-		* 选中画布锚点后拉 data/characters；成功才打开编辑 FormModal。
+		* 选中画布锚点后 GET /api/characters/:id；成功才打开编辑 FormModal。
 		*/
 	const openEditForAnchor = useCallback(
 		async (anchor: CharacterAnchorNodeData) => {
@@ -69,11 +69,13 @@ export function useStoryEditorCharacterForms(
 				const def = await fetchCharacterDef(anchor.agentId);
 				setEditCharacter(characterDefToSummary(def));
 			} catch (error) {
-				const message =
+				const detail =
 					error instanceof Error && error.message.trim() !== ""
 						? error.message
-						: "无法加载角色，请确认已写入 data/characters";
-				setEditLoadError(message);
+						: "请确认 data/characters 已有该角色";
+				setEditLoadError(
+					`无法加载角色「${anchor.displayName}」（${anchor.agentId}）：${detail}`,
+				);
 				setEditCharacter(null);
 			}
 		},
@@ -115,7 +117,7 @@ export function useStoryEditorCharacterForms(
 		editInitialValues: editCharacter
 			? toCharacterDetailFormValues(editCharacter)
 			: null,
-		/** 拉盘失败时展示；与 editOpen 互斥 */
+		/** 磁盘缺失时展示；与 editOpen 互斥 */
 		editLoadError,
 		hasEditLoadError: editLoadError != null && editCharacter == null,
 		openEditForAnchor,

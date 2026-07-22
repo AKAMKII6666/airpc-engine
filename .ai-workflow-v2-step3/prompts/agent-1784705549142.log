@@ -1,0 +1,33 @@
+[gbx] ▶ block-analyzer:V2-T3-5 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … block-analyzer:V2-T3-5 still running (15s elapsed, no output for 15s)
+[gbx] … block-analyzer:V2-T3-5 still running (30s elapsed, no output for 30s)
+[gbx] … block-analyzer:V2-T3-5 still running (45s elapsed, no output for 45s)
+[gbx] … block-analyzer:V2-T3-5 still running (60s elapsed, no output for 60s)
+## 阻塞分析完成
+
+已写入报告：`.ai-workflow-v2-step3/reports/latest-block-analysis.json`
+
+### 结论摘要
+
+| 字段 | 值 |
+|------|-----|
+| **kind** | `IN_SCOPE_VERIFY` |
+| **recoverable** | `true` |
+| **confidence** | `high` |
+
+### 根因
+
+Batch 5 / **V2-T3-5**（故事包 BFF）在 `apps/studioV2/src/utils/server/packages/` 平铺了 4 个 server 文件，触发 **`STUDIO-STRUCT-008`** 硬错误：
+
+- `defaultCanvasLayout.server.ts` 因文件名含 `Layout` 被归为 **shell**
+- 其余 `packages*.server.ts` 归为 **packag**
+- 同层 ≥4 文件且职责组 ≥2 → 必须分子目录
+
+5 轮 fix 依次处理了 lint 解析错误、typecheck、`check:comments`，但**末轮只补了 `diskStoryPackage.ts` 注释**，未做目录拆分，fix budget 用尽后 BLOCKED。65 条 WARN 不是阻断根因。
+
+### 建议修复
+
+将 4 个文件迁入子目录（如 `paths/`、`list/`、`fs/`、`layout/`），更新 API 路由与测试的 import，在 `ensure-migrated-layout.mjs` 登记 flat→nested PAIR，然后重跑 `npm run quality:studio`。
+
+未修改应用源码、STATE.json 或执行索引（符合 block-analyzer 角色约束）。
+[gbx] ■ block-analyzer:V2-T3-5 done exit=0 elapsed=74s

@@ -1,0 +1,44 @@
+[gbx] ▶ batch-reviewer:V2-T3-5 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … batch-reviewer:V2-T3-5 still running (15s elapsed, no output for 15s)
+[gbx] … batch-reviewer:V2-T3-5 still running (30s elapsed, no output for 30s)
+[gbx] … batch-reviewer:V2-T3-5 still running (45s elapsed, no output for 45s)
+[gbx] … batch-reviewer:V2-T3-5 still running (60s elapsed, no output for 60s)
+**批次 5 审查完成** — 已写入 `.ai-workflow-v2-step3/reviews/latest.json`
+
+## 结论：`fail` → 建议 `VERIFY_BATCH`
+
+| 计数 | 值 |
+|------|-----|
+| blocker | 0 |
+| critical | 0 |
+| major | 2 |
+| minor | 1 |
+
+### 实现侧（静态审查通过）
+
+V2-T3-5 故事包 BFF 已按 **第三步需求 §2.4** 落地：
+
+- **列包**：`GET /api/stories` → 扫描 `data/storis-packages/*/story.conf.json`
+- **读包**：`GET /api/stories/[packageId]` → conf + cards + layout（缺 layout 时用默认坐标）
+- **写包**：`PUT` 整包落盘，并清理 conf 未引用的孤儿卡
+- **落点**：`src/utils/server/packages/*`、`ajaxProxy/packages/api/storiesApi.ts`、`typeFiles/story/package/diskStoryPackage.ts`
+- **测试**：`tests/packages/storiesFs.test.ts` 覆盖 `golden_handoff` / `wrong_number_act1`
+
+本批**未**接 UI、**未**删 mock（属 V2-T3-6），符合刀序。
+
+### 未通过原因（major）
+
+1. **verify 未跑**：执行者报告 `verify NOT run`（Shell 被拒）；`latest-verify.json` 仍是 **batch-4 / V2-T3-4**，无法证明本批改动通过 `quality:studio`。
+2. **任务未勾选**：执行索引中 **V2-T3-5 仍为 ⬜**，批次 5 未收口。
+
+### 下一步
+
+在本机执行：
+
+```bash
+cd /Users/bolbiao/workspace/airpc-engine
+npm run quality:studio
+```
+
+全绿后将执行索引 **V2-T3-5 改为 ✅**，或让 gbx 走 `VERIFY_BATCH` 流程。
+[gbx] ■ batch-reviewer:V2-T3-5 done exit=0 elapsed=74s

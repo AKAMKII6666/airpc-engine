@@ -1,0 +1,28 @@
+[gbx] ▶ fixer:V2-T3-5 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-T3-5 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-T3-5 still running (30s elapsed, no output for 30s)
+## 修复摘要
+
+**根因**：`StoryPackageConf` 已在 `packages/rpg-engine/src/schema/callCard.ts` 定义，且 `StoryPackageConfSchema` 已从门面导出，但 **`type StoryPackageConf` 未从 `@airpc/rpg-engine` 导出**，导致 Studio V2 两处引用失败，并引发 `packagesFs.server.ts` 中连锁的隐式 `any` 错误。
+
+**改动**（1 处）：
+
+- `packages/rpg-engine/src/index.ts`：在 `callCard.js` 的 type 导出中补充 `StoryPackageConf`
+
+```typescript
+type CallCardDefinition,
+type StoryPackageConf,  // 新增
+type ScheduleMeta,
+type CardKind,
+```
+
+`packagesFs.server.ts` 与 `diskStoryPackage.ts` 无需修改；类型恢复后，`conf.cards.map(c => c.cardId)` 等处的 `c`/`ref`/`cardId` 会自动推断为正确类型。
+
+**验证**：**未自验**（Shell 不可用，未能运行 `npm run quality:studio`）。请在本地执行：
+
+```bash
+npm run quality:studio
+```
+
+预期 typecheck 应通过；若仍有错误，请把完整输出贴回。
+[gbx] ■ fixer:V2-T3-5 done exit=0 elapsed=39s

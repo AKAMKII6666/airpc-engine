@@ -3,16 +3,38 @@
 
 /**
  * Module: agent/teeChild
- * Purpose: Child helper — spawn a command, tee stdout/stderr to console + log file,
- *          and emit heartbeats only when the child has been silent (so live agent
- *          text is not drowned out by "still running … log=…" spam).
- *
- * Invoked as: node teeChild.js <payload.json>
- * Parent should use stdio: 'inherit' so tee/heartbeats appear live.
+ * Purpose: Child helper — spawn a command, tee stdout/stderr to log file,
+ *          parse stream-json activity, emit themed heartbeats.
+ * uiPipe: structured GBX\\t{json}\\n lines on stdout for parent TUI (no stderr UI).
  */
 
 const { spawn } = require('child_process');
 const fs = require('fs');
+const path = require('path');
+const { createTheme, formatAgentStart, formatAgentActivity, formatAgentHeartbeat, formatAgentDone, formatAgentError } = require('../consoleTheme');
+const { processLine } = require('./cursorStream');
+
+function extractRole(label) {
+  const s = String(label || 'agent');
+  const idx = s.indexOf(':');
+  return idx >= 0 ? s.slice(0, idx) : s;
+}
+
+function emitUi(uiPipe, event) {
+  if (uiPipe) {
+    process.stdout.write(`GBX\t${JSON.stringify(event)}\n`);
+    return;
+  }
+}
+
+function writeUiOrStderr(uiPipe, theme, role, label, line, log, kind, extra = {}) {
+  if (uiPipe) {
+    emitUi(uiPipe, { kind, role, label, ...extra, text: extra.text || line });
+    return;
+  }
+  process.stderr.write(line);
+  log.write(line);
+}
 
 function main() {
   const payloadPath = process.argv[2];
@@ -37,6 +59,13 @@ function main() {
     heartbeatMs = 15_000,
     label = 'agent',
     env: extraEnv = {},
+    role = null,
+    colorEnabled = true,
+    themeEnabled = true,
+    outputFormat = 'text',
+    streamPartialOutput = false,
+    showAgentEvents = true,
+    uiPipe = false,
   } = payload;
 
   if (!command || !logFile) {
@@ -44,17 +73,36 @@ function main() {
     process.exit(2);
   }
 
-  fs.mkdirSync(require('path').dirname(logFile), { recursive: true });
+  const agentRole = role || extractRole(label);
+  const theme = createTheme({ enabled: themeEnabled, color: colorEnabled });
+  const useStreamJson = outputFormat === 'stream-json';
+
+  fs.mkdirSync(path.dirname(logFile), { recursive: true });
   const log = fs.createWriteStream(logFile, { flags: 'a' });
 
   const started = Date.now();
   let lastOutputAt = started;
+  let lastActivity = '';
+  let lastActivityPrinted = '';
   const beatEvery = Number(heartbeatMs);
   const heartbeatsEnabled = Number.isFinite(beatEvery) && beatEvery > 0;
+  let ndjsonBuf = '';
 
-  const header = `[gbx] ▶ ${label} start cmd=${command} cwd=${workdir || process.cwd()}\n`;
-  process.stderr.write(header);
-  log.write(header);
+  const header = formatAgentStart(theme, agentRole, label, { command, workdir: workdir || process.cwd() });
+  if (uiPipe) {
+    emitUi(uiPipe, {
+      kind: 'start',
+      role: agentRole,
+      label,
+      logFile,
+      command,
+      workdir: workdir || process.cwd(),
+    });
+    log.write(header);
+  } else {
+    process.stderr.write(header);
+    log.write(header);
+  }
 
   const child = spawn(command, args, {
     cwd: workdir || process.cwd(),
@@ -62,29 +110,92 @@ function main() {
     stdio: ['ignore', 'pipe', 'pipe'],
   });
 
-  function attach(stream, out) {
-    stream.on('data', (buf) => {
-      lastOutputAt = Date.now();
-      out.write(buf);
-      log.write(buf);
-    });
+  function writeActivity(text) {
+    if (!showAgentEvents || !text) return;
+    if (text === lastActivityPrinted) return;
+    lastActivityPrinted = text;
+    lastActivity = text;
+    lastOutputAt = Date.now();
+    const line = formatAgentActivity(theme, agentRole, text);
+    if (uiPipe) {
+      emitUi(uiPipe, { kind: 'activity', role: agentRole, label, text });
+      log.write(line);
+      return;
+    }
+    process.stderr.write(line);
+    log.write(line);
   }
 
-  attach(child.stdout, process.stdout);
-  attach(child.stderr, process.stderr);
+  function handleStdoutChunk(buf) {
+    lastOutputAt = Date.now();
+    log.write(buf);
+    if (!useStreamJson) {
+      if (!uiPipe) process.stdout.write(buf);
+      return;
+    }
+    ndjsonBuf += buf.toString();
+    let idx;
+    while ((idx = ndjsonBuf.indexOf('\n')) >= 0) {
+      const line = ndjsonBuf.slice(0, idx);
+      ndjsonBuf = ndjsonBuf.slice(idx + 1);
+      if (!line.trim()) continue;
+      const events = processLine(line, {
+        workdir: workdir || process.cwd(),
+        streamPartial: streamPartialOutput,
+        showAssistant: showAgentEvents,
+      });
+      for (const ev of events) {
+        if (ev.type === 'activity') {
+          writeActivity(ev.text);
+        } else if (ev.type === 'assistant') {
+          writeActivity(ev.text);
+        } else if (ev.type === 'result') {
+          const text = `${ev.text}\n`;
+          if (uiPipe) {
+            emitUi(uiPipe, { kind: 'result', role: agentRole, label, text: ev.text });
+          } else {
+            process.stdout.write(text);
+          }
+          log.write(text);
+          lastOutputAt = Date.now();
+        }
+      }
+    }
+  }
+
+  child.stdout.on('data', handleStdoutChunk);
+  child.stderr.on('data', (buf) => {
+    lastOutputAt = Date.now();
+    const text = buf.toString();
+    if (uiPipe) {
+      emitUi(uiPipe, { kind: 'stderr', role: agentRole, label, text });
+    } else {
+      process.stderr.write(buf);
+    }
+    log.write(buf);
+  });
 
   let hb = null;
   if (heartbeatsEnabled) {
     const interval = Math.max(5_000, beatEvery);
     hb = setInterval(() => {
       const silentMs = Date.now() - lastOutputAt;
-      // Only heartbeat when the child has been quiet for a full beat window.
       if (silentMs < interval) {
         return;
       }
       const elapsed = Math.round((Date.now() - started) / 1000);
-      const silentSec = Math.round(silentMs / 1000);
-      const line = `[gbx] … ${label} still running (${elapsed}s elapsed, no output for ${silentSec}s)\n`;
+      const line = formatAgentHeartbeat(theme, agentRole, label, elapsed, lastActivity);
+      if (uiPipe) {
+        emitUi(uiPipe, {
+          kind: 'heartbeat',
+          role: agentRole,
+          label,
+          elapsed,
+          text: lastActivity,
+        });
+        log.write(line);
+        return;
+      }
       process.stderr.write(line);
       log.write(line);
     }, interval);
@@ -92,19 +203,52 @@ function main() {
 
   child.on('error', (error) => {
     if (hb) clearInterval(hb);
-    const line = `[gbx] ✖ ${label} spawn error: ${error.message}\n`;
-    process.stderr.write(line);
+    const line = formatAgentError(theme, agentRole, label, error.message);
+    if (uiPipe) {
+      emitUi(uiPipe, { kind: 'error', role: agentRole, label, text: error.message });
+    } else {
+      process.stderr.write(line);
+    }
     log.write(line);
     log.end(() => process.exit(1));
   });
 
   child.on('close', (code, signal) => {
     if (hb) clearInterval(hb);
+    if (ndjsonBuf.trim() && useStreamJson) {
+      const events = processLine(ndjsonBuf, {
+        workdir: workdir || process.cwd(),
+        streamPartial: streamPartialOutput,
+        showAgentEvents,
+      });
+      for (const ev of events) {
+        if (ev.type === 'activity' || ev.type === 'assistant') writeActivity(ev.text);
+        else if (ev.type === 'result') {
+          const text = `${ev.text}\n`;
+          if (uiPipe) {
+            emitUi(uiPipe, { kind: 'result', role: agentRole, label, text: ev.text });
+          } else {
+            process.stdout.write(text);
+          }
+          log.write(text);
+        }
+      }
+    }
     const elapsed = Math.round((Date.now() - started) / 1000);
     const exit = code == null ? 1 : code;
-    const line = `[gbx] ■ ${label} done exit=${exit}${signal ? ` signal=${signal}` : ''} elapsed=${elapsed}s\n`;
-    process.stderr.write(line);
-    // 同步落盘 footer：避免 WriteStream 未刷盘就 exit，导致 verify 日志缺 done、被误判为中断失败
+    const line = formatAgentDone(theme, agentRole, label, exit, elapsed, signal);
+    if (uiPipe) {
+      emitUi(uiPipe, {
+        kind: 'done',
+        role: agentRole,
+        label,
+        exitCode: exit,
+        elapsed,
+        signal: signal || null,
+      });
+    } else {
+      process.stderr.write(line);
+    }
     try {
       fs.appendFileSync(logFile, line);
     } catch {

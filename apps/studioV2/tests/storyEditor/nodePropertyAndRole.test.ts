@@ -37,7 +37,10 @@ import {
 	entryModeLabel,
 	exitHandleTooltipTitle,
 } from "@studio-v2/typeFiles/story/callCardLabels";
-import { CHARACTER_BASIC_ITEMS } from "@studio-v2/src/bis/pageBis/characters/detail/form/characterDetailFormItems";
+import {
+	CHARACTER_BASIC_ITEMS,
+	CHARACTER_PROMPT_ITEMS,
+} from "@studio-v2/src/bis/pageBis/characters/detail/form/characterDetailFormItems";
 import { USER_BASIC_ITEMS } from "@studio-v2/src/bis/pageBis/users/form/userFormItems";
 import { CREATE_CHARACTER_FORM_ITEMS } from "@studio-v2/src/bis/pageBis/characters/create/createCharacterForm";
 
@@ -264,15 +267,19 @@ describe("toolPolicy allowlist multi-select", () => {
 });
 
 describe("enum audit Select contracts", () => {
-	it("keeps character gender/voice and user gender as Select", () => {
+	it("keeps character gender/voice/personality and user gender as Select", () => {
 		const gender = CHARACTER_BASIC_ITEMS.find(
 			(i) => i.name === "identity.gender",
 		);
 		const voice = CHARACTER_BASIC_ITEMS.find((i) => i.name === "persona.voiceId");
+		const personality = CHARACTER_PROMPT_ITEMS.find(
+			(i) => i.name === "persona.personalityCode",
+		);
 		const userGender = USER_BASIC_ITEMS.find((i) => i.name === "gender");
 		const kind = CREATE_CHARACTER_FORM_ITEMS.find((i) => i.name === "kind");
 		expect(gender?.comType).toBe("Select");
 		expect(voice?.comType).toBe("Select");
+		expect(personality?.comType).toBe("Select");
 		expect(userGender?.comType).toBe("Select");
 		expect(kind?.comType).toBe("Select");
 		expect(gender?.comType).not.toBe("TextField");
@@ -301,12 +308,27 @@ describe("effect enum coerce", () => {
 
 describe("chapterPropertyForm", () => {
 	it("rejects empty title and syncs entry after package change", () => {
+		const diskCtx = {
+			cardIndex: {
+				pkg_night_shift_2: [
+					{ cardId: "night_shift_open", title: "夜班开场" },
+					{ cardId: "night_handoff_check", title: "交接核对" },
+				],
+				pkg_quiet_prologue: [
+					{ cardId: "quiet_free_open", title: "静音序章 Free" },
+				],
+			},
+			entryCardIdByPackage: {
+				pkg_night_shift_2: "night_shift_open",
+				pkg_quiet_prologue: "quiet_free_open",
+			},
+		};
 		const data = {
 			kind: "chapter_end" as const,
 			title: "结束",
 			summary: "安排下一章",
 			nextPackageId: "pkg_memory_bar_1",
-			nextEntryCardId: "doubao_intro_outbound",
+			nextEntryCardId: "lanxing_wrong_number",
 		};
 		const values = toChapterPropertyFormValues(data);
 		values.title = "  ";
@@ -314,17 +336,22 @@ describe("chapterPropertyForm", () => {
 
 		const synced = syncEntryAfterPackageChange(
 			"pkg_night_shift_2",
-			"doubao_intro_outbound",
+			"lanxing_wrong_number",
+			diskCtx,
 		);
 		expect(synced.nextPackageId).toBe("pkg_night_shift_2");
 		expect(synced.nextEntryCardId).toBe("night_shift_open");
 
-		const applied = applyChapterPropertyForm(data, {
-			title: "章节结束",
-			summary: "清理 pending",
-			nextPackageId: "pkg_quiet_prologue",
-			nextEntryCardId: "quiet_free_open",
-		});
+		const applied = applyChapterPropertyForm(
+			data,
+			{
+				title: "章节结束",
+				summary: "清理 pending",
+				nextPackageId: "pkg_quiet_prologue",
+				nextEntryCardId: "quiet_free_open",
+			},
+			diskCtx,
+		);
 		expect(applied.nextPackageId).toBe("pkg_quiet_prologue");
 		expect(applied.nextEntryCardId).toBe("quiet_free_open");
 	});
@@ -339,7 +366,7 @@ describe("chapterPropertyForm", () => {
 			title: "章节开始",
 			summary: "入口点",
 			nextPackageId: "pkg_memory_bar_1",
-			nextEntryCardId: "doubao_intro_outbound",
+			nextEntryCardId: "lanxing_wrong_number",
 		});
 		expect(next.kind).toBe("chapter_start");
 		expect(next.nextPackageId).toBeUndefined();

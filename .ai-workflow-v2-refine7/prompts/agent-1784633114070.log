@@ -1,0 +1,34 @@
+[gbx] ▶ final-reviewer start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … final-reviewer still running (15s elapsed, no output for 15s)
+[gbx] … final-reviewer still running (30s elapsed, no output for 30s)
+[gbx] … final-reviewer still running (45s elapsed, no output for 45s)
+[gbx] … final-reviewer still running (60s elapsed, no output for 60s)
+[gbx] … final-reviewer still running (75s elapsed, no output for 75s)
+[gbx] … final-reviewer still running (90s elapsed, no output for 90s)
+[gbx] … final-reviewer still running (105s elapsed, no output for 105s)
+[gbx] … final-reviewer still running (120s elapsed, no output for 120s)
+[gbx] … final-reviewer still running (135s elapsed, no output for 135s)
+[gbx] … final-reviewer still running (150s elapsed, no output for 150s)
+[gbx] … final-reviewer still running (165s elapsed, no output for 165s)
+最终审查完成，已写入 `.ai-workflow-v2-refine7/reviews/latest.json`。
+
+## 审查结论：pass · blocker=0 · critical=0 · major=0 · minor=4 · READY_FOR_MANUAL_QA
+
+对照 `细化修改7_需求.md` §2–§6 逐项核验（只读，未改任何业务代码）：
+
+**核心口径全部达成**
+- **契约（§2.6）**：`EditorExitEffectProjection` 加 `params` 判别式联合（`editorEffectParams.ts`），14 变体每个只列合法字段、无 catchall 透传；`effect` 收紧为 `KnownEffectName`。字段名对齐引擎 `effectExecutor.ts` 只读镜像，未 import 引擎值。
+- **tooltip（§2.5）**：`EFFECT_NAME_OPTIONS` 每项挂 `description`，`ExitEffectRow` 下拉 MenuItem 包 `Tooltip`。
+- **专属面板 + 拆分（§2.2/§2.8）**：`ExitEffectsMockList` 只做列表+分发；14 种面板全拆到 `com/effects/`（查表分发器 `ExitEffectPanel`，`keep_card_pending` 无参说明）。
+- **A 类下拉（§2.4）**：agentId/cardId/packageId/clipId 统一走 `EffectNodeSelect` 取画布/包/资源，空源给 helperText，无自由文本手填 id（factId 无数据源按 §2.2 表用 TextField，非违规）。
+- **attach/unmount 连线同步（§2.3）**：`MountTargetModal` 列表配置 + `effectEdgeSync` 效果边（attach 绿虚线／unmount 橙虚线 + 标签，明显区别于蓝实线流转边）；正向 `reconcileEffectEdgesForCard`（幂等）、反向删边移行与修饰键拖建边均已接线，含 10 条回归测试。
+- **summary 自动派生（§2.7）**：`summarizeEffect` 手改 dirty 后不覆盖，6 条测试。
+
+**硬停项全部未命中**：未改引擎、未写盘、未把参数塞进 CallCard 顶层、效果边可区分、面板已拆子组件。
+
+**门禁**：`quality:studio` 记录 exit=0（lint/typecheck/comments/structure + 107 测试全过）。
+
+4 条 minor 均为本轮新增文件的 STUDIO-STRUCT 软告警（行数/圈复杂度逼近但未超硬上限），建议后续拆分，不阻断。
+
+（说明：验证结果取自本仓已记录的 `reports/latest-verify.json`／`logs/verify-1784633105929.log`，因本次会话内 Shell 执行被环境拦截，未重跑命令，但引擎/写盘边界已由 git 快照交叉确认。）
+[gbx] ■ final-reviewer done exit=0 elapsed=172s

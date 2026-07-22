@@ -1,10 +1,12 @@
 /**
 	* 故事编辑器画布叠层：舞台 + 角色入口 + 属性/资源/包浮窗。
-	* 从 StoryEditorShell 拆出以控函数有效行数；布局仅会话 mock。
+	* 打开真源为磁盘整包；保存由顶栏触发写回。
 	*/
 "use client";
 
 import type { FC } from "react";
+import type { EditorGraphSeed } from "@studio-v2/src/bis/pageBis/storyEditor/package/graph/diskBundleGraph";
+import type { ChapterPackageDiskContext } from "@studio-v2/src/bis/pageBis/storyEditor/form/chapter/chapterPropertyForm";
 import { FloatingPanelShell } from "@studio-v2/src/pageComponents/storyEditor/FloatingPanelShell";
 import { AssetPickerFloat } from "@studio-v2/src/pageComponents/storyEditor/library/AssetPickerFloat";
 import { PackageConfigFloat } from "@studio-v2/src/pageComponents/storyEditor/library/PackageConfigFloat";
@@ -14,6 +16,8 @@ import { StoryCanvasStage } from "@studio-v2/src/pageComponents/storyEditor/canv
 import type { StoryCanvasStageApi } from "@studio-v2/src/pageComponents/storyEditor/canvas/storyCanvasTypes";
 import type { StoryCanvasGraphMeta } from "@studio-v2/src/pageComponents/storyEditor/canvas/useStoryCanvasGraph";
 import type { AssetSummary } from "@studio-v2/typeFiles/library/assets/assetSummary";
+import type { CallCardLabelOption } from "@studio-v2/typeFiles/story/callCardLabels";
+import type { EffectPanelSources } from "@studio-v2/typeFiles/story/editor/callCard/editorEffectParams";
 import type { DockToolModeState } from "@studio-v2/typeFiles/story/editor/dock/dockToolMode";
 import type {
 	CharacterAnchorNodeData,
@@ -21,15 +25,21 @@ import type {
 	EditorChapterNodeData,
 	StoryEditorSelection,
 } from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
+import type { DiskStoryPackageBundle } from "@studio-v2/typeFiles/story/package/diskStoryPackage";
 import styles from "@studio-v2/src/pageComponents/storyEditor/StoryEditorShell.module.scss";
 
 export type StoryEditorCanvasLayerProps = {
 	packageId: string;
+	graphSeed: EditorGraphSeed;
+	bundle: DiskStoryPackageBundle;
 	selection: StoryEditorSelection | null;
 	assetFloat: boolean;
 	packageFloat: boolean;
 	assets: AssetSummary[];
 	characterAnchors: readonly CharacterAnchorNodeData[];
+	effectPanelSources: EffectPanelSources;
+	chapterDiskCtx: ChapterPackageDiskContext;
+	chapterPackageOptions: readonly CallCardLabelOption[];
 	onSelectionChange: (next: StoryEditorSelection | null) => void;
 	onCharacterAnchorSelect: (anchor: CharacterAnchorNodeData | null) => void;
 	onCanvasReady: (api: StoryCanvasStageApi) => void;
@@ -56,8 +66,12 @@ export type StoryEditorCanvasLayerProps = {
 };
 
 export const StoryEditorCanvasLayer: FC<StoryEditorCanvasLayerProps> = function ({
-	// packageId 是路由包键，用于包配置浮窗投影
-	packageId,
+	// packageId 是路由包键；包配置浮窗从 bundle 投影，此处保留契约供壳层传入
+	packageId: _packageId,
+	// graphSeed 是磁盘打开的初始画布
+	graphSeed,
+	// bundle 是当前整包，用于包配置只读投影
+	bundle,
 	// selection 是当前画布选中，用于属性浮窗
 	selection,
 	// assetFloat 控制资源浮窗，用于底栏入口
@@ -68,11 +82,17 @@ export const StoryEditorCanvasLayer: FC<StoryEditorCanvasLayerProps> = function 
 	assets,
 	// characterAnchors 是归属 Select 选项
 	characterAnchors,
+	// effectPanelSources 是 Effect id 下拉候选源，用于属性浮窗出口列表
+	effectPanelSources,
+	// chapterDiskCtx 是 chapter_end 下一包/卡下拉的磁盘索引
+	chapterDiskCtx,
+	// chapterPackageOptions 是下一故事包 Select 选项
+	chapterPackageOptions,
 	// onSelectionChange 同步选中态，用于属性浮窗
 	onSelectionChange,
 	// onCharacterAnchorSelect 选中角色锚点，用于打开编辑
 	onCharacterAnchorSelect,
-	// onCanvasReady 登记画布命令口，用于壳层写锚点
+	// onCanvasReady 登记画布命令口，用于壳层写锚点与保存快照
 	onCanvasReady,
 	// onGraphMetaChange 同步 chapter_end 禁用与归属列表
 	onGraphMetaChange,
@@ -105,6 +125,7 @@ export const StoryEditorCanvasLayer: FC<StoryEditorCanvasLayerProps> = function 
 		<div className={styles.canvasWrap}>
 			{/* 引用了StoryCanvasStage组件，用于 React Flow 画布 */}
 			<StoryCanvasStage
+				graphSeed={graphSeed}
 				onSelectionChange={onSelectionChange}
 				onCharacterAnchorSelect={onCharacterAnchorSelect}
 				onReady={onCanvasReady}
@@ -121,6 +142,9 @@ export const StoryEditorCanvasLayer: FC<StoryEditorCanvasLayerProps> = function 
 				onApplyNodeData={onApplyNodeData}
 				onApplyChapterNodeData={onApplyChapterNodeData}
 				characterAnchors={characterAnchors}
+				effectPanelSources={effectPanelSources}
+				chapterDiskCtx={chapterDiskCtx}
+				chapterPackageOptions={chapterPackageOptions}
 				onAssignOwner={onAssignOwner}
 			/>
 			{/* 引用了AssetPickerFloat组件，用于资源引用浮窗 */}
@@ -134,7 +158,7 @@ export const StoryEditorCanvasLayer: FC<StoryEditorCanvasLayerProps> = function 
 			/>
 			{/* 引用了PackageConfigFloat组件，用于包配置只读浮窗 */}
 			<PackageConfigFloat
-				packageId={packageId}
+				bundle={bundle}
 				open={packageFloat}
 				onClose={onClosePackageFloat}
 			/>

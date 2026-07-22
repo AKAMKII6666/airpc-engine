@@ -1,0 +1,21 @@
+[gbx] ▶ fixer:V2-T3-2 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-T3-2 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-T3-2 still running (30s elapsed, no output for 30s)
+## 修复结果
+
+审查 **major T3-2-R1** 唯一动作是补跑 `npm run quality:studio`（exit 0）后再勾选 `V2-T3-2`。磁盘包内容审查已通过，无需改业务代码。
+
+**未自验**：本环境 Shell 全程被拒（含 `npm run quality:studio` 与简单 `echo`），无法执行门禁，也**未**将执行索引中 `V2-T3-2` ⬜→✅。
+
+| 项 | 处理 |
+|---|---|
+| T3-2-R1（major，verify 未跑） | 待可跑 Shell 后执行 `npm run quality:studio`；通过后再勾选 |
+| T3-2-R2（minor，docs/AI 口径） | 属 T3-8，本批不改 |
+
+**建议人工补跑：**
+
+```bash
+cd /Users/bolbiao/workspace/airpc-engine && npm run quality:studio
+# exit 0 后将执行索引 V2-T3-2 ⬜→✅
+```
+[gbx] ■ fixer:V2-T3-2 done exit=0 elapsed=41s

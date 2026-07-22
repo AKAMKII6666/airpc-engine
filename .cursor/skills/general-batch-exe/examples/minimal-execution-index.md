@@ -18,6 +18,19 @@ read_first:
 hard_stop_patterns:
   - "待确认|协议未定|需要人工"
 
+# 普通 Fixer 耗尽后的自动阻断恢复；正式项目建议逐任务声明路径。
+block_recovery:
+  enabled: true
+  max_attempts: 2
+  min_confidence: high
+  dependency_policy: declared-only
+  task_scopes:
+    M1-1:
+      allowed_paths:
+        - src/features/example/**
+      related_paths:
+        - tests/example/**
+
 executor_extra: |
   只实现当前 ACTIVE / 本轮选出的任务；不要改需求口径与本索引 frontmatter 语义。
   完成后把对应行 ⬜ 改为 ✅，并跑 verify。

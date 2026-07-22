@@ -12,12 +12,15 @@ import {
 	emptyExitRow,
 	type ExitListFormRow,
 } from "@studio-v2/src/bis/pageBis/storyEditor/form/exitList/exitListForm";
+import type { EffectPanelSources } from "@studio-v2/typeFiles/story/editor/callCard/editorEffectParams";
 // 引用了ExitListRow组件，用于单出口字段编辑
 import { ExitListRow } from "@studio-v2/src/pageComponents/storyEditor/com/panel/ExitListEditor/com/ExitListRow";
 import styles from "./index.module.scss";
 
 export type ExitListEditorProps = {
 	formik: FormikProps<NodePropertyFormValues>;
+	/** Effect id 下拉候选源；下传每行 effects 列表 */
+	sources: EffectPanelSources;
 };
 
 function asExitList(raw: unknown): ExitListFormRow[] {
@@ -28,6 +31,8 @@ function asExitList(raw: unknown): ExitListFormRow[] {
 export const ExitListEditor: FC<ExitListEditorProps> = function ExitListEditor({
 	// formik 是属性浮窗 Formik，用于读写 exits[]
 	formik,
+	// sources 是 Effect id 下拉候选源，用于每行 effects 列表
+	sources,
 }) {
 	const list = asExitList(formik.values.exits);
 
@@ -58,6 +63,7 @@ export const ExitListEditor: FC<ExitListEditorProps> = function ExitListEditor({
 						key={row.exitId}
 						row={row}
 						index={index}
+						sources={sources}
 						onPatch={patchRow}
 						onRemove={(removeIndex) => {
 							writeList(list.filter((_, i) => i !== removeIndex));

@@ -66,9 +66,20 @@ EXECUTE_BATCH   FULL_REVIEW
                    ├── 有问题 → FULL_FIX → FULL_VERIFY
                    │
                    └── 通过 → READY_FOR_MANUAL_QA
+
+普通 Fixer 预算耗尽 / 同指纹反复失败
+                   │
+                   ▼
+            BLOCK_ANALYZE（只读）
+                   │ 策略门允许
+                   ▼
+            BLOCK_REPAIR（受限写）
+                   │
+                   ▼
+            BLOCK_VERIFY → 返回批次/全量 VERIFY
 ```
 
-也可进入 `BLOCKED`（需人介入）或因 `MAX_*` 退出。
+只有策略门判定越界、涉及项目外/gbx 自身/授权，或恢复预算也耗尽时，才进入 `BLOCKED`（需人介入）。
 
 **关键原则：Agent 不能仅靠自报「完成」结束阶段。**  
 阶段切换由编排脚本根据 **机器可验证条件** 决定。
@@ -85,6 +96,8 @@ EXECUTE_BATCH   FULL_REVIEW
 | Fixer | 只根据审查报告修确认成立的问题 | 可写；禁止顺手大重构 |
 | Verifier | 重跑验收命令；核对勾选与报告关闭项 | 以命令输出为准 |
 | Final Reviewer | 全量闭环、跨模块一致、临时兼容、漏测 | 只读 + 写 final-review |
+| Block Analyzer | 重建阻断前事实、分类并声明完整修改路径 | 业务源码只读；只写 analysis 报告 |
+| Block Resolver | 仅在策略批准路径内解决阻断 | 可写批准范围；独立有限预算 |
 
 角色 Prompt 从执行索引的 `read_first`、正文约束、`--config` 拼出；**项目特化规则不写死在编排核里**。
 
@@ -144,12 +157,14 @@ logs/loop.log           # 编排日志
 - 全量审查无 blocker / critical（或按索引阈值）  
 - FULL_VERIFY 通过  
 
-### 强制停止（示例；具体列表来自 --exFile / --config）
+### 自动恢复后仍强制停止（示例）
 
 - 超过最大循环次数 / 单批最大修复次数  
 - 同一错误签名连续 N 次  
-- verify 命令不可运行  
-- 索引声明的 hard-stop 命中（协议未定、密钥、破坏性迁移等）  
+- 自动分析确认 verify 需要修改无关模块
+- 索引声明的 hard-stop 是真实需求冲突而非措辞误判
+- 需要密钥、授权、项目外环境或修改 gbx 自身
+- 阻断恢复预算耗尽
 - 工作区出现无法判断的外部改动（可选策略）  
 
 ### 回滚

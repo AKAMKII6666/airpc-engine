@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "reviewRunId": "final-reviewer-final-e350eb92-577a-4c9f-93ab-e3444b95a6e3",
+  "role": "final-reviewer",
+  "batchId": "final",
+  "result": "pass",
+  "blocker": 0,
+  "critical": 0,
+  "major": 0,
+  "minor": 4,
+  "summary": "细化修改7（出口 Effect 专属参数面板）全量收口审查通过。契约层 EditorExitEffectProjection 已加 params 判别式联合（editorEffectParams.ts，14 变体每变体只列合法字段、无 catchall），effect 收紧为 KnownEffectName；字段名与必填意图对齐引擎 effectExecutor.ts 只读镜像，未 import 引擎值。EFFECT_NAME_OPTIONS 每项挂 description，ExitEffectRow 的 Effect 下拉 MenuItem 已包 Tooltip。ExitEffectsMockList 只做列表+分发，14 种面板全部拆到 com/effects/ 子组件（ExitEffectPanel 查表分发，keep_card_pending 无参说明，未落地回落占位）。A 类目标字段（agentId/cardId/packageId/clipId）统一走 EffectNodeSelect 下拉，取画布锚点/CallCard 节点/包源/资源，空源给 helperText，无自由文本手填 id（factId 为世界事实键无数据源，按 §2.2 表用 TextField，非违规）。attach/unmount 走 MountEffectPanel + MountTargetModal 列表配置，effectEdgeSync.ts 实现效果边（data.edgeKind='effect'，attach 绿虚线/unmount 橙虚线 + 挂载/卸载标签，视觉区别于蓝实线流转边与灰角色线）；正向 applyNodeData→reconcileEffectEdgesForCard（幂等）、反向 onEdgesChange 删边移行与修饰键拖建行建边均已接线并有 10 条纯函数回归测试。summarizeEffect 由 params 自动派生、用户手改 dirty 后不覆盖（6 条测试）。quality:studio 记录 exit=0（lint/typecheck/comments/structure/107 测试全过 + 门禁自测 31 过）。git 快照确认仅改 apps/studioV2/**、docs/**、workflow，未触 packages/rpg-engine、未写 storis-packages/story.conf/Host save。仅存 4 条 STUDIO-STRUCT 软告警（本轮新增文件行数/圈复杂度逼近但未超硬上限），建议后续拆分，不构成阻断。建议进入人工 QA。",
+  "issues": [
+    {
+      "id": "refine7-minor-1",
+      "severity": "minor",
+      "category": "structure",
+      "file": "apps/studioV2/src/pageComponents/storyEditor/com/panel/ExitListEditor/com/effects/ScheduleRecurringCallEffectPanel.tsx",
+      "line": 41,
+      "code": "STUDIO-STRUCT-002/003",
+      "message": "ScheduleRecurringCallEffectPanel 有效行数 96（告警线 60）且圈复杂度 11（告警线 10），均为软告警未超硬上限；建议把周几多选/卡引用二选一拆为子组件以保持可测性。"
+    },
+    {
+      "id": "refine7-minor-2",
+      "severity": "minor",
+      "category": "structure",
+      "file": "apps/studioV2/src/pageComponents/storyEditor/com/panel/ExitListEditor/com/effects/EndStoryNextActivationPanel.tsx",
+      "line": 25,
+      "code": "STUDIO-STRUCT-002",
+      "message": "EndStoryNextActivationPanel 有效行数 85 超过告警线 60（软告警）；end_story 下一章激活/延迟字段可再拆分。"
+    },
+    {
+      "id": "refine7-minor-3",
+      "severity": "minor",
+      "category": "structure",
+      "file": "apps/studioV2/src/pageComponents/storyEditor/canvas/canvasConnectHandlers.ts",
+      "line": 95,
+      "code": "STUDIO-STRUCT-003",
+      "message": "applyEffectDragConnection 圈复杂度 11 超过告警线 10（软告警）；修饰键拖建效果边的守卫分支可提取。"
+    },
+    {
+      "id": "refine7-minor-4",
+      "severity": "minor",
+      "category": "structure",
+      "file": "apps/studioV2/src/pageComponents/storyEditor/canvas/createStoryCanvasNodeCommands.ts",
+      "line": 43,
+      "code": "STUDIO-STRUCT-002",
+      "message": "createStoryCanvasNodeCommands 有效行数 98 超过告警线 60（软告警）；正向效果边 reconcile 接线后函数偏长，建议后续按命令域再拆。"
+    }
+  ],
+  "recommendedNextState": "READY_FOR_MANUAL_QA"
+}

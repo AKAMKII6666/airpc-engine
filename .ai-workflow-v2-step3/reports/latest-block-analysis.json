@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "analysisRunId": "block-analysis-1784707302421-528ff3d8",
+  "role": "block-analyzer",
+  "kind": "IN_SCOPE_VERIFY",
+  "recoverable": true,
+  "confidence": "high",
+  "rootCause": "V2-T3-6 执行者在清理编辑器 mock 打开真源时，已将业务路径从 CanvasMockGraph/MOCK_STORY_PACKAGES 切到磁盘 BFF（listStoryPackagesFromDisk、loadStoryPackageForEditor、saveStoryPackageToDisk、useStoryEditorPackageSession），但把已无 import 的 CanvasMockGraph.ts 与 CanvasMockGraph.edges.ts 改成带「@deprecated 已迁至…」注释的 export {} 空壳而非物理删除，触发执行索引 hard_stop_patterns「留下 @deprecated 已迁至|兼容转发壳|无引用 mock 文件不删」与第三步需求 §2.0 零残余铁律。batch-6 review（critical=2）已确认 MOCK_SHELL_NOT_DELETED；latest-verify.json 仍为 batch-5（T3-5），属 review 指出的 VERIFY_NOT_RUN，但 65 条 STUDIO-STRUCT WARN 不是 hard_stop 根因。此前 BLOCK_REPAIR 已修复 packages server 目录聚类（STUDIO-STRUCT-008），与本次阻塞无关。",
+  "requiredPaths": [
+    "apps/studioV2/src/pageComponents/storyEditor/canvas/CanvasMockGraph.ts",
+    "apps/studioV2/src/pageComponents/storyEditor/canvas/CanvasMockGraph.edges.ts",
+    "docs/AI和人类/里程碑/v2.0/项目第三步计划执行索引.md"
+  ],
+  "scopeEvidence": "V2-T3-6 任务明确要求「列表与编辑器读写 + 删 mock」，禁止 CanvasMockGraph 作打开真源，无引用种子须删除或降为测试夹具（不得被 page 业务 import）。全仓 grep 显示两文件仅自引用 @deprecated 注释，无 ts/tsx import；effectEdgeSync.ts 与 storyEditorMock.ts 中 CanvasMockGraph 仅为历史注释，非 import。mockWorkbenchData.ts 保留工程状态/最近调试 mock，属需求 §2.0 允许暂留范围，不是本次 hard_stop 对象。删除两空壳文件并在 verify 通过后勾选索引行，完全落在 V2-T3-6 及其 verify 闭环内；docs/AI 更新留 V2-T3-8，不在本批 requiredPaths。",
+  "touchesGbx": false,
+  "touchesExternalSystem": false,
+  "dependencyAction": "none",
+  "recommendedAction": "BLOCK_REPAIR：物理删除 apps/studioV2/src/pageComponents/storyEditor/canvas/CanvasMockGraph.ts 与 CanvasMockGraph.edges.ts，禁止以 @deprecated 空壳替代删除。随后 gbx 重跑 npm run quality:studio（VERIFY_BATCH）；通过后由执行者将执行索引 V2-T3-6 行 ⬜ 改为 ✅。",
+  "humanReason": ""
+}

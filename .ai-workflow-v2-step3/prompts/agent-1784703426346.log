@@ -1,0 +1,29 @@
+[gbx] ▶ fixer:V2-T3-5 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-T3-5 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-T3-5 still running (30s elapsed, no output for 30s)
+[gbx] … fixer:V2-T3-5 still running (45s elapsed, no output for 45s)
+## 修复摘要
+
+**任务**：batch-5 / V2-T3-5，`verify_fail` — `npm run quality:studio` 因 `check:comments` 失败（23 处 `STUDIO-COMMENT-002`）。
+
+**修改文件**：`apps/studioV2/typeFiles/story/package/diskStoryPackage.ts`
+
+为以下契约类型中缺少字段级说明的 23 个字段补充了注释（含可空语义、持久化位置、所有权/用途说明）：
+
+| 类型 | 补注释字段数 |
+|---|---|
+| `StudioCanvasLayoutNode` | 4（title、summary、nextPackageId、nextEntryCardId） |
+| `StudioCanvasLayoutEdge` | 10（edgeId ~ effectId） |
+| `StudioCanvasLayout` | 6（schemaVersion ~ note） |
+| `DiskStoryPackageBundle` | 3（conf、cards、layout） |
+
+注释风格与文件内已有合格字段（如 `nodeId`、`x`、`packageId`）保持一致，说明了单位/可空/持久化/引擎忽略等语义。
+
+**未自验**：Shell 不可用，未能重跑 `npm run quality:studio`。请在本地执行：
+
+```bash
+npm run quality:studio
+```
+
+预期 `check:comments` 对 `diskStoryPackage.ts` 的 23 处报错应全部消除。
+[gbx] ■ fixer:V2-T3-5 done exit=0 elapsed=52s

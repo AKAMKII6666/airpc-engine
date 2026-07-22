@@ -2,8 +2,9 @@
 	* 故事编辑器通话卡会话投影：字段名贴近 CallCardDefinition。
 	* 仅 UI / 会话 mock；不写 storis-packages / Host；校验角标不进 Formik。
 	*/
-import type { CardKind } from "@airpc/rpg-engine";
+import type { CardKind, KnownEffectName } from "@airpc/rpg-engine";
 import type { PromptSceneLayerForm } from "@studio-v2/typeFiles/library/characters/form/characterFormShapes";
+import type { EditorEffectParams } from "@studio-v2/typeFiles/story/editor/callCard/editorEffectParams";
 
 /** 对齐 EntryModeSchema；编辑器 Select 存此字符串 */
 export type EditorEntryMode =
@@ -38,19 +39,24 @@ export type EditorNodeValidationBadge = "ok" | "warning" | "error";
 
 /**
 	* 出口 Effect 列表 mock；对齐 EffectSchema 的 id + effect 意图。
-	* effect 必须来自已知枚举（UI Select）；禁止自由文本。
-	* 完整参数 / 编排器本轮不做；summary 仅供属性列表人话。
+	* effect 收紧为 KnownEffectName 枚举（UI Select）；禁止自由文本。
+	* params 为按 effect 判别的参数投影（会话内存，禁写盘）；summary 供列表/节点人话。
 	*/
 export type EditorExitEffectProjection = {
 	/** Effect 稳定键；对齐 EffectSchema.id */
 	id: string;
 	/**
-		* Effect 名称；对齐 KNOWN_EFFECT_NAMES / EffectSchema.effect。
-		* 仅允许枚举下拉写入的字符串，禁止手填任意文案。
+		* Effect 名称；收紧为 KNOWN_EFFECT_NAMES 枚举联合。
+		* 仅允许枚举下拉写入；与 params.effect 判别键保持一致。
 		*/
-	effect: string;
-	/** 人话摘要；缺省时列表用 effect 展示 */
+	effect: KnownEffectName;
+	/** 人话摘要；缺省由 params 派生（S7-6），用户手改后不覆盖 */
 	summary?: string;
+	/**
+		* 按 effect 判别的参数；缺省等同未配置。
+		* 不变量：存在时 params.effect 必须等于本行 effect。
+		*/
+	params?: EditorEffectParams;
 };
 
 /**

@@ -47,7 +47,7 @@ export const StoryEditorCharacterModals: FC<StoryEditorCharacterModalsProps> =
 		onCloseCreate,
 		// onCreateSubmit 提交新建，用于落盘并加锚点
 		onCreateSubmit,
-		// editOpen 控制编辑弹层，用于改角色 JSON
+		// editOpen 控制编辑弹层，用于改磁盘角色投影
 		editOpen,
 		// editCharacter 是当前编辑 Summary，用于提交上下文
 		editCharacter,
@@ -57,9 +57,9 @@ export const StoryEditorCharacterModals: FC<StoryEditorCharacterModalsProps> =
 		onCloseEdit,
 		// onEditSubmit 提交编辑，用于落盘并同步锚点
 		onEditSubmit,
-		// hasEditLoadError 表示拉盘失败，用于错误弹层
+		// hasEditLoadError 表示磁盘角色缺失，用于错误弹层
 		hasEditLoadError,
-		// editLoadError 是拉盘错误文案，用于 Alert
+		// editLoadError 是加载错误文案，用于 Alert
 		editLoadError,
 	}) {
 		return (
@@ -89,18 +89,18 @@ export const StoryEditorCharacterModals: FC<StoryEditorCharacterModalsProps> =
 						items={EDIT_CHARACTER_FORM_ITEMS}
 						validate={validateCharacterDetailForm}
 						onSubmit={onEditSubmit}
-						submitLabel="保存到角色 JSON"
+						submitLabel="保存"
 						mode="edit"
 						maxWidth="md"
 					/>
 				) : null}
 
-				{/* 引用了AppModal组件，用于角色拉盘失败提示 */}
+				{/* 引用了AppModal组件，用于磁盘角色缺失提示 */}
 				<AppModal
 					open={hasEditLoadError}
 					title="无法编辑角色"
 					onClose={onCloseEdit}
-					description="画布锚点需对应 data/characters 中已落盘角色。可点「添加角色」新建后再编辑。"
+					description="画布锚点需对应 data/characters 中的角色。可点「添加角色」新建后再编辑。"
 					actions={
 						// 引用了Button组件，用于关闭错误提示
 						<Button type="button" onClick={onCloseEdit} variant="contained">
@@ -108,7 +108,7 @@ export const StoryEditorCharacterModals: FC<StoryEditorCharacterModalsProps> =
 						</Button>
 					}
 				>
-					{/* 引用了Alert组件，用于展示拉盘错误详情 */}
+					{/* 引用了Alert组件，用于展示加载错误详情 */}
 					<Alert severity="warning" role="alert">
 						{editLoadError}
 					</Alert>

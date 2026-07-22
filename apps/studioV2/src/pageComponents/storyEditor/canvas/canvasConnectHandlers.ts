@@ -17,6 +17,10 @@ import {
 	readCharacterAnchorData,
 	withoutRoleEdgesForCard,
 } from "@studio-v2/src/bis/pageBis/storyEditor/role/roleConnection";
+import {
+	appendMountEffectRow,
+	buildEffectEdge,
+} from "@studio-v2/src/bis/pageBis/storyEditor/canvas/effectEdgeSync";
 import type {
 	EditorCallCardProjection,
 	StoryEditorSelection,
@@ -26,7 +30,8 @@ type SetNodes = Dispatch<SetStateAction<Node[]>>;
 type SetEdges = Dispatch<SetStateAction<Edge[]>>;
 
 /**
-* 创建 onConnect：role 边更新 ownerDisplayName；其它边按剧情线样式追加。
+* 创建 onConnect：role 边更新 ownerDisplayName；按修饰键拖出为 attach 效果边（反向写 effects 行）；否则按剧情线样式追加。
+* effectConnectArmedRef 由 onConnectStart 依修饰键置位；本次连接消费后复位。
 */
 export function createCanvasOnConnect(args: {
 	nodesRef: { current: Node[] };
@@ -34,6 +39,7 @@ export function createCanvasOnConnect(args: {
 	setNodes: SetNodes;
 	setEdges: SetEdges;
 	onSelectionChange: (selection: StoryEditorSelection | null) => void;
+	effectConnectArmedRef: { current: boolean };
 }): (connection: Connection) => void {
 	const {
 		nodesRef,
@@ -41,10 +47,23 @@ export function createCanvasOnConnect(args: {
 		setNodes,
 		setEdges,
 		onSelectionChange,
+		effectConnectArmedRef,
 	} = args;
 
 	return (connection: Connection) => {
 		const snapshot = nodesRef.current;
+		if (effectConnectArmedRef.current) {
+			effectConnectArmedRef.current = false;
+			const handled = applyEffectDragConnection({
+				connection,
+				snapshot,
+				selectedIdRef,
+				setNodes,
+				setEdges,
+				onSelectionChange,
+			});
+			if (handled) return;
+		}
 		if (isRoleAssignmentConnection(connection, snapshot)) {
 			applyRoleConnection({
 				connection,
@@ -67,6 +86,66 @@ export function createCanvasOnConnect(args: {
 			),
 		);
 	};
+}
+
+/**
+	* 反向同步：修饰键拖 exit→目标卡时向源卡该出口追加 attach 行并建绿色效果边。
+	* agentId 默认取目标卡归属；非卡/无 exitHandle/自由通话线返回 false 交回普通流程。
+	*/
+function applyEffectDragConnection(args: {
+	connection: Connection;
+	snapshot: Node[];
+	selectedIdRef: { current: string | null };
+	setNodes: SetNodes;
+	setEdges: SetEdges;
+	onSelectionChange: (selection: StoryEditorSelection | null) => void;
+}): boolean {
+	const {
+		connection,
+		snapshot,
+		selectedIdRef,
+		setNodes,
+		setEdges,
+		onSelectionChange,
+	} = args;
+	const { source, target, sourceHandle } = connection;
+	if (!source || !target || !sourceHandle || sourceHandle === "role") {
+		return false;
+	}
+	const sourceCard = readCallCardData(snapshot.find((n) => n.id === source));
+	const targetCard = readCallCardData(snapshot.find((n) => n.id === target));
+	if (!sourceCard || !targetCard) return false;
+	const { card: nextCard, effectId } = appendMountEffectRow({
+		card: sourceCard,
+		exitId: sourceHandle,
+		targetCardId: targetCard.cardId,
+		effectKind: "attach",
+		ownerAgentId: targetCard.ownerAgentId || undefined,
+	});
+	if (!effectId) return false;
+	setNodes((prev) =>
+		prev.map((node) => (node.id === source ? { ...node, data: nextCard } : node)),
+	);
+	setEdges((prev) =>
+		addEdge(
+			buildEffectEdge({
+				sourceNodeId: source,
+				exitId: sourceHandle,
+				effectId,
+				targetNodeId: target,
+				effectKind: "attach",
+			}),
+			prev,
+		),
+	);
+	if (selectedIdRef.current === source) {
+		onSelectionChange({
+			selectionKind: "callCard",
+			nodeId: source,
+			data: nextCard,
+		});
+	}
+	return true;
 }
 
 function applyRoleConnection(args: {

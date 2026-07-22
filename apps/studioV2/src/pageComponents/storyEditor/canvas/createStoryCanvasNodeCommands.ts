@@ -18,10 +18,12 @@ import {
 	createListCharacterAnchorsQuery,
 	createRemoveNodeCommand,
 } from "@studio-v2/src/pageComponents/storyEditor/canvas/canvasNodeQueries";
+import {
+	createApplyCallCardNodeData,
+	createApplyChapterNodeData,
+} from "@studio-v2/src/pageComponents/storyEditor/canvas/canvasApplyNodeData";
 import type {
 	CharacterAnchorNodeData,
-	EditorCallCardProjection,
-	EditorChapterNodeData,
 	StoryEditorSelection,
 } from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
 import type { StoryCanvasStageApi } from "@studio-v2/src/pageComponents/storyEditor/canvas/storyCanvasTypes";
@@ -54,37 +56,9 @@ export function createStoryCanvasNodeCommands(
 		fitView,
 	} = args;
 
-	const applyNodeData = (
-		nodeId: string,
-		next: EditorCallCardProjection,
-	): void => {
-		setNodes((prev) =>
-			prev.map((node) =>
-				node.id === nodeId ? { ...node, data: next } : node,
-			),
-		);
-		onSelectionChange({
-			selectionKind: "callCard",
-			nodeId,
-			data: next,
-		});
-	};
-
-	const applyChapterNodeData = (
-		nodeId: string,
-		next: EditorChapterNodeData,
-	): void => {
-		setNodes((prev) =>
-			prev.map((node) =>
-				node.id === nodeId ? { ...node, data: next } : node,
-			),
-		);
-		onSelectionChange({
-			selectionKind: "chapter",
-			nodeId,
-			data: next,
-		});
-	};
+	const applyDeps = { nodesRef, setNodes, setEdges, onSelectionChange };
+	const applyNodeData = createApplyCallCardNodeData(applyDeps);
+	const applyChapterNodeData = createApplyChapterNodeData(applyDeps);
 
 	const addCharacterAnchor = (anchor: CharacterAnchorNodeData): void => {
 		setNodes((prev) => appendCharacterAnchorNode(prev, anchor));
@@ -132,6 +106,10 @@ export function createStoryCanvasNodeCommands(
 			setNodes,
 			onSelectionChange,
 			setToolMode,
+		}),
+		getGraphSnapshot: () => ({
+			nodes: [...nodesRef.current],
+			edges: [...edgesRef.current],
 		}),
 	};
 }

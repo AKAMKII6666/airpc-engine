@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "packageId": "wrong_number_act1",
+  "title": "第一幕：打错电话",
+  "participants": [
+    "lanxing",
+    "xiaopi"
+  ],
+  "entryCardId": "lanxing_wrong_number",
+  "cards": [
+    {
+      "cardId": "lanxing_wrong_number"
+    },
+    {
+      "cardId": "lanxing_callback_intro"
+    },
+    {
+      "cardId": "lanxing_voicemail"
+    }
+  ]
+}

@@ -104,6 +104,7 @@ export const FormLocalHourRangeField: FC<
 				{/* 引用了TextField组件，用于编辑 from */}
 				<TextField
 					label="从"
+					className={styles.hourInput}
 					value={String(range.from)}
 					onChange={handleFrom}
 					size="small"
@@ -117,6 +118,7 @@ export const FormLocalHourRangeField: FC<
 				{/* 引用了TextField组件，用于编辑 to */}
 				<TextField
 					label="到"
+					className={styles.hourInput}
 					value={String(range.to)}
 					onChange={handleTo}
 					size="small"

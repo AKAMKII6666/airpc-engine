@@ -28,6 +28,15 @@ const INITIAL = {
   lastVerifyFingerprint: null,
   lastVerifyReportPath: null,
   ineffectiveFixStreak: 0,
+  /** Separate budget and audit trail for post-Fixer automatic block recovery. */
+  recoveryAttempts: 0,
+  recoveryOriginStatus: null,
+  recoveryResumeState: null,
+  recoveryOriginReason: null,
+  recoveryKind: null,
+  recoveryAnalysisRunId: null,
+  recoveryAnalysisReportPath: null,
+  recoveryApprovedPaths: [],
 };
 
 function workflowPaths(workdir, workflowDir) {
@@ -39,6 +48,8 @@ function workflowPaths(workdir, workflowDir) {
     latestReview: path.join(root, 'reviews', 'latest.json'),
     reports: path.join(root, 'reports'),
     latestVerify: path.join(root, 'reports', 'latest-verify.json'),
+    latestBlockAnalysis: path.join(root, 'reports', 'latest-block-analysis.json'),
+    latestBlockRepair: path.join(root, 'reports', 'latest-block-repair.json'),
     logs: path.join(root, 'logs'),
     logFile: path.join(root, 'logs', 'loop.log'),
   };

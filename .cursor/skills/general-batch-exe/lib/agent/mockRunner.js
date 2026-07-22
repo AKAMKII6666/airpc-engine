@@ -6,7 +6,9 @@
  */
 
 const fs = require('fs');
+const path = require('path');
 const { writeLatestReview } = require('../reviewDecision');
+const { writeJson } = require('../blockRecovery');
 
 function markTasksDoneInFile(exAbs, taskIds) {
   let raw = fs.readFileSync(exAbs, 'utf8');
@@ -34,6 +36,85 @@ function escapeReg(s) {
  */
 function runMockAgent({ role, ctx, paths, state }) {
   const scenario = process.env.GBX_MOCK_SCENARIO || 'happy';
+
+  if (role === 'block-analyzer') {
+    const preflight = ctx.preflightIndexRecovery === true;
+    const outOfScope = scenario === 'block-recovery-out-of-scope';
+    const gbxPath = scenario === 'block-recovery-gbx-path';
+    writeJson(paths.latestBlockAnalysis, {
+      schemaVersion: 1,
+      analysisRunId: ctx.analysisRunId,
+      role: 'block-analyzer',
+      kind: preflight
+        ? 'INDEX_SCHEMA_CORRUPTION'
+        : outOfScope
+        ? 'OUT_OF_SCOPE_MODULE'
+        : gbxPath
+          ? 'IN_SCOPE_VERIFY'
+          : 'IN_SCOPE_VERIFY',
+      recoverable: !outOfScope,
+      confidence: 'high',
+      rootCause: preflight
+        ? 'mock execution index contains an invalid machine field'
+        : outOfScope
+        ? 'mock repair requires unrelated module'
+        : 'mock verify remains red after ordinary fixes',
+      requiredPaths: preflight
+        ? [path.relative(ctx.workdir, ctx.exAbs).split(path.sep).join('/')]
+        : outOfScope
+        ? ['unrelated/module.ts']
+        : gbxPath
+          ? ['.cursor/skills/general-batch-exe/lib/fsm.js']
+          : ['recovered.ok'],
+      scopeEvidence: outOfScope ? 'not part of active task' : 'mock active-task output',
+      touchesGbx: false,
+      touchesExternalSystem: false,
+      dependencyAction: 'none',
+      recommendedAction: 'create the expected recovery marker',
+      humanReason: outOfScope ? 'requires unrelated module' : '',
+    });
+    return {
+      ok: true,
+      exitCode: 0,
+      stdout: '[mock] block analysis written',
+      stderr: '',
+      error: null,
+    };
+  }
+
+  if (role === 'block-resolver') {
+    if (ctx.preflightIndexRecovery === true) {
+      const raw = fs.readFileSync(ctx.exAbs, 'utf8');
+      fs.writeFileSync(
+        ctx.exAbs,
+        raw.replace('batch_size: invalid', 'batch_size: 1'),
+        'utf8',
+      );
+    } else if (scenario !== 'block-recovery-needs-human') {
+      fs.writeFileSync(path.join(ctx.workdir, 'recovered.ok'), 'recovered\n', 'utf8');
+    }
+    writeJson(paths.latestBlockRepair, {
+      schemaVersion: 1,
+      repairRunId: ctx.repairRunId,
+      role: 'block-resolver',
+      result:
+        scenario === 'block-recovery-needs-human' ? 'needs_human' : 'repaired',
+      summary: 'mock block resolver result',
+      changedPaths: ctx.preflightIndexRecovery === true
+        ? [path.relative(ctx.workdir, ctx.exAbs).split(path.sep).join('/')]
+        : scenario === 'block-recovery-needs-human'
+          ? []
+          : ['recovered.ok'],
+      dependencyAction: 'none',
+    });
+    return {
+      ok: true,
+      exitCode: 0,
+      stdout: '[mock] block repair completed',
+      stderr: '',
+      error: null,
+    };
+  }
 
   if (role === 'executor' || role === 'fixer' || role === 'final-fixer') {
     if (ctx.batchIds && ctx.batchIds.length) {

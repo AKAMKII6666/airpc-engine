@@ -1,0 +1,3 @@
+[2026-07-22T10:23:21.301Z] checkpoint preflight skipped=true checkpoints disabled (default; pass --checkpoint to enable)
+[2026-07-22T10:23:21.301Z] start status=EXECUTE_BATCH mock=false
+[2026-07-22T10:23:21.301Z] iter=1 status=EXECUTE_BATCH

@@ -3,7 +3,7 @@
 	*/
 import { describe, expect, it } from "vitest";
 import {
-	buildMockUserFromForm,
+	buildUserFromForm,
 	CREATE_USER_FORM_ITEMS,
 	CREATE_USER_INITIAL_VALUES,
 	validateCreateUserForm,
@@ -56,7 +56,7 @@ describe("createUserForm", () => {
 
 	it("builds draft summary with system userId and timestamps", () => {
 		resetStudioIdSeq(50);
-		const summary = buildMockUserFromForm(FILLED_USER_VALUES);
+		const summary = buildUserFromForm(FILLED_USER_VALUES);
 		expect(summary.nickname).toBe("试写玩家");
 		expect(summary.fullName).toBe("试写全名");
 		expect(summary.gender).toBe("female");
@@ -84,7 +84,7 @@ describe("createUserForm", () => {
 describe("userDetailForm", () => {
 	it("rejects empty nickname without age-birthday cross check", () => {
 		resetStudioIdSeq(60);
-		const base = buildMockUserFromForm(FILLED_USER_VALUES);
+		const base = buildUserFromForm(FILLED_USER_VALUES);
 		const values = toUserDetailFormValues(base);
 		values.nickname = "  ";
 		values.age = 99;
@@ -97,7 +97,7 @@ describe("userDetailForm", () => {
 
 	it("applies identity fields without changing userId or createdAt", () => {
 		resetStudioIdSeq(70);
-		const base = buildMockUserFromForm({
+		const base = buildUserFromForm({
 			...FILLED_USER_VALUES,
 			nickname: "基线",
 			gender: "male",
@@ -121,7 +121,7 @@ describe("userDetailForm", () => {
 describe("mapUserProfile", () => {
 	it("round-trips summary ↔ User without age-birthday cross rewrite", () => {
 		resetStudioIdSeq(80);
-		const summary = buildMockUserFromForm({
+		const summary = buildUserFromForm({
 			...FILLED_USER_VALUES,
 			age: 40,
 			birthday: "2005-01-01",

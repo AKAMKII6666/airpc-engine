@@ -1,7 +1,7 @@
 /**
 	* 角色详情 Formik 契约：按需求 §4 对齐 CharacterDef 嵌套字段。
 	* 编辑态展示字段全必填；无 timeBuckets；记忆不进本表单。
-	* 落盘经 saveCharacter_bis → /api/characters；本文件保留 mock 合并供单测。
+	* 落盘经 saveCharacter_bis → /api/characters；本文件只做投影合并供表单与单测。
 	*/
 import type {
 	CharacterEditGender,
@@ -11,8 +11,8 @@ import type {
 	CharacterGender,
 	CharacterSummary,
 } from "@studio-v2/typeFiles/library/characters/form/characterSummary";
+import { PERSONALITY_CODE_OPTIONS } from "@studio-v2/typeFiles/library/characters/persona/personalityCodeOptions";
 import { REALTIME_VOICE_OPTIONS } from "@studio-v2/typeFiles/library/characters/realtime/realtimeVoiceOptions";
-import { updateMockCharacter } from "@studio-v2/src/utils/ajaxProxy/library/mock/mockLibraryData";
 import type { CharacterDetailFormValues } from "./characterDetailFormValues";
 
 export type { CharacterDetailFormValues } from "./characterDetailFormValues";
@@ -62,6 +62,7 @@ export function toCharacterDetailFormValues(
 			voiceId: character.persona.voiceId,
 			voiceNotes: character.persona.voiceNotes,
 			systemPrompt: character.persona.systemPrompt,
+			personalityCode: character.persona.personalityCode,
 			speakingStyle: character.persona.speakingStyle,
 			exampleLines: character.persona.exampleLines.slice(),
 			profession: character.persona.profession,
@@ -88,7 +89,7 @@ export function toCharacterDetailFormValues(
 
 /**
 	* 将详情表单合并回既有角色投影（保留 kind/bio/freeCall/社交摘要等列表字段）。
-	* lastEditedAt 刷新；不写盘。
+	* lastEditedAt 刷新；纯投影，不写盘（写盘见 commitSaveCharacterDetail）。
 	*/
 export function applyCharacterDetailForm(
 	previous: CharacterSummary,
@@ -119,6 +120,7 @@ export function applyCharacterDetailForm(
 		},
 		persona: {
 			systemPrompt: values.persona.systemPrompt.trim(),
+			personalityCode: values.persona.personalityCode.trim(),
 			speakingStyle: values.persona.speakingStyle.trim(),
 			profession: values.persona.profession.trim(),
 			exampleLines: values.persona.exampleLines.map((l) => l.trim()),
@@ -162,21 +164,6 @@ export function applyCharacterDetailForm(
 	};
 }
 
-/**
-	* 会话内更新角色详情；找不到 agentId 时抛错供 Formik 错误区展示。
-	*/
-export function commitUpdateCharacterMock(
-	previous: CharacterSummary,
-	values: CharacterDetailFormValues,
-): CharacterSummary {
-	const next = applyCharacterDetailForm(previous, values);
-	const ok = updateMockCharacter(previous.agentId, next);
-	if (!ok) {
-		throw new Error("未找到该角色，无法更新会话内 mock");
-	}
-	return next;
-}
-
 /** 新建角色时详情可编辑字段的默认空档 */
 export function createEmptyCharacterDetailSlots(): Pick<
 	CharacterSummary,
@@ -199,6 +186,7 @@ export function createEmptyCharacterDetailSlots(): Pick<
 		},
 		persona: {
 			systemPrompt: "",
+			personalityCode: PERSONALITY_CODE_OPTIONS[0]?.value ?? "",
 			profession: "",
 			speakingStyle: "",
 			exampleLines: [],

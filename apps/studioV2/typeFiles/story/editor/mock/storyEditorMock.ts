@@ -1,6 +1,6 @@
 /**
-	* 故事编辑器静态画布图数据与角色锚点投影。
-	* 仅 UI 投影；不接保存事务 / Host；不做泳道布局。
+	* 故事编辑器会话投影类型聚合；画布图真源为磁盘整包（diskBundleGraph）。
+	* 属性浮窗改动画布节点 data，经顶栏整包保存写回 cards/layout。
 	*/
 import type {
 	EditorCallCardProjection,
@@ -32,28 +32,14 @@ export {
 	interactionModeLabel,
 } from "@studio-v2/typeFiles/story/callCardLabels";
 
-/** 画布角色锚点种子投影；用于 CanvasMockGraph 初始节点 */
-export type EditorCharacterAnchor = {
-	/** 角色系统键；主界面用 displayName，不手填 */
-	agentId: string;
-	/** 人类可读角色名 */
-	displayName: string;
-	/** 锚点状态人话（自由 / 待呼入 / 延迟外呼等） */
-	statusLabel: string;
-	/** 当前挂在该角色上的卡数量；0 表示无挂卡 */
-	pendingCardCount: number;
-	/** 是否与当前选中卡同角色，用于高亮归属线示意 */
-	relatedToSelection: boolean;
-};
-
 /**
 	* 画布内角色锚点节点 data。
-	* 供 role handle 连线；选中后打开角色库同款编辑 FormModal。
+	* 打开时由 bundle.participants/lanes + 角色库 displayName 生成；选中后打开角色库同款 FormModal。
 	*/
 export type CharacterAnchorNodeData = {
-	/** 角色系统键；与角色库 agentId 对齐 */
+	/** 角色系统键；与 data/characters agentId 对齐 */
 	agentId: string;
-	/** 人类可读角色名；同步到 CallCard ownerDisplayName */
+	/** 人类可读角色名；来自 /api/characters，同步到 CallCard ownerDisplayName */
 	displayName: string;
 	/** 锚点状态人话；仅 UI 展示 */
 	statusLabel: string;
@@ -63,7 +49,7 @@ export type CharacterAnchorNodeData = {
 
 /**
 	* 属性浮窗：选中通话卡。
-	* patch 只改会话内节点 data，不写盘。
+	* 提交写回会话图节点 data；整包保存时落盘 cards。
 	*/
 export type StoryEditorCallCardSelection = {
 	/** 判别：通话卡属性浮窗 */
@@ -76,7 +62,7 @@ export type StoryEditorCallCardSelection = {
 
 /**
 	* 属性浮窗：选中章节起止节点。
-	* chapter_end 可配下一包 / 起点卡；仅会话 mock。
+	* chapter_end 可配下一包 / 起点卡；保存时写回 layout 节点字段。
 	*/
 export type StoryEditorChapterSelection = {
 	/** 判别：章节属性浮窗 */
@@ -89,29 +75,8 @@ export type StoryEditorChapterSelection = {
 
 /**
 	* 属性浮窗当前选中投影。
-	* null 表示浮窗收起；CallCard 或章节；patch 只改会话内节点 data，不写盘。
+	* null 表示浮窗收起；CallCard 或章节；patch 写会话图，保存时落盘。
 	*/
 export type StoryEditorSelection =
 	| StoryEditorCallCardSelection
 	| StoryEditorChapterSelection;
-
-/**
-	* 画布初始锚点 mock；agentId 对齐 data/characters，便于点选编辑落盘。
-	* 顺序即画布从上到下。
-	*/
-export const MOCK_EDITOR_CHARACTERS: readonly EditorCharacterAnchor[] = [
-	{
-		agentId: "doubao-sister",
-		displayName: "澜星",
-		statusLabel: "有待呼入卡",
-		pendingCardCount: 2,
-		relatedToSelection: true,
-	},
-	{
-		agentId: "xiaoyu",
-		displayName: "小雨",
-		statusLabel: "延迟外呼中",
-		pendingCardCount: 1,
-		relatedToSelection: false,
-	},
-];

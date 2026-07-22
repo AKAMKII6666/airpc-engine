@@ -1,0 +1,24 @@
+[gbx] ▶ fixer:V2-T3-5 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … fixer:V2-T3-5 still running (15s elapsed, no output for 15s)
+[gbx] … fixer:V2-T3-5 still running (30s elapsed, no output for 30s)
+[gbx] … fixer:V2-T3-5 still running (45s elapsed, no output for 45s)
+[gbx] … fixer:V2-T3-5 still running (60s elapsed, no output for 60s)
+## 修复摘要
+
+**根因**：`StoryPackageConf` 已在 `packages/rpg-engine/src/schema/callCard.ts` 定义，且 `src/index.ts` 已导出 `type StoryPackageConf`，但 **`dist/index.d.ts` 未同步重建**，Studio V2 通过 `@airpc/rpg-engine` 的 `exports.types` 指向 `dist/index.d.ts`，因此 typecheck 报 TS2305；`packagesFs.server.ts` 中 5 处 TS7006/TS2345 均为该缺失类型的连锁错误。
+
+**改动**（1 处）：
+
+- `packages/rpg-engine/dist/index.d.ts`：在 `callCard.js` 的 type 重导出中补上 `type StoryPackageConf`
+
+`src/index.ts` 第 219 行已有正确导出，无需再改。`packagesFs.server.ts` 与 `diskStoryPackage.ts` 无需修改；类型恢复后 `conf.cards.map(c => …)` 等处会自动推断。
+
+**建议后续**：在仓库根目录执行一次引擎构建，避免 dist 与 src 再次脱节：
+
+```bash
+npm run build -w @airpc/rpg-engine
+npm run quality:studio
+```
+
+**验证**：**未自验**（Shell 不可用，未能运行 `npm run quality:studio`）。请在本地执行上述命令确认 typecheck 全绿。
+[gbx] ■ fixer:V2-T3-5 done exit=0 elapsed=64s

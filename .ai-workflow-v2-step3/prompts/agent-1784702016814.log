@@ -1,0 +1,27 @@
+[gbx] ▶ executor:V2-T3-4 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … executor:V2-T3-4 still running (15s elapsed, no output for 15s)
+[gbx] … executor:V2-T3-4 still running (30s elapsed, no output for 30s)
+[gbx] … executor:V2-T3-4 still running (45s elapsed, no output for 45s)
+[gbx] … executor:V2-T3-4 still running (60s elapsed, no output for 60s)
+[gbx] … executor:V2-T3-4 still running (75s elapsed, no output for 75s)
+[gbx] … executor:V2-T3-4 still running (90s elapsed, no output for 90s)
+[gbx] … executor:V2-T3-4 still running (105s elapsed, no output for 105s)
+[gbx] … executor:V2-T3-4 still running (120s elapsed, no output for 120s)
+[gbx] … executor:V2-T3-4 still running (135s elapsed, no output for 135s)
+[gbx] … executor:V2-T3-4 still running (150s elapsed, no output for 150s)
+**V2-T3-4 代码已做完；verify NOT run；索引仍为 ⬜。**
+
+本轮环境拒绝执行 Shell，无法跑 `npm run quality:studio`，按 gbx 规则**不能**把执行索引勾成 ✅。
+
+### 已完成改动
+- **删玩家列表 mock 残余**：从 `mockLibraryData.ts` 移除 `MOCK_USER_PROFILES`、`listMockUserProfiles`、`append|update|removeMockUserProfile`；文件仅保留资源库 mock（本步允许暂留）。
+- **命名清零**：`buildMockUserFromForm` → `buildUserFromForm`（及测试引用）。
+- **业务路径确认**：列表/新建/保存/删除已走 `/api/users` → `data/users`（`useUserLibraryPage` + `*User_bis`），无双轨。
+- **docs/AI 轻量同步**：索引 / 落点 / 边界 / 岔子记录标明玩家真源已接通、mock 已删。
+
+### 需人工补跑
+```bash
+npm run quality:studio
+```
+exit 0 后把执行索引中 `V2-T3-4` 行 ⬜ → ✅（或用 `--clear-blocked --after-manual` 走 gbx 流程）。
+[gbx] ■ executor:V2-T3-4 done exit=0 elapsed=161s

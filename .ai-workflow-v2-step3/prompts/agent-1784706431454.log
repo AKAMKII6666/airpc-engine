@@ -1,0 +1,34 @@
+[1m[36m[gbx] ▶ batch-reviewer:V2-T3-6[0m[2m[37m start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine[0m
+[2m[36m[gbx] … batch-reviewer:V2-T3-6[0m[2m[37m (15s)[0m
+[2m[36m[gbx] … batch-reviewer:V2-T3-6[0m[2m[37m (30s)[0m
+[2m[36m[gbx] … batch-reviewer:V2-T3-6[0m[2m[37m (45s)[0m
+[2m[36m[gbx] … batch-reviewer:V2-T3-6[0m[2m[37m (60s)[0m
+[2m[36m[gbx] … batch-reviewer:V2-T3-6[0m[2m[37m (75s)[0m
+[2m[36m[gbx] … batch-reviewer:V2-T3-6[0m[2m[37m (90s)[0m
+**批次 6（V2-T3-6）只读审查已完成**
+
+已写入 `.ai-workflow-v2-step3/reviews/latest.json`（`reviewRunId`: `batch-reviewer-6-be336016-6784-4af0-89b2-36c5e17af99c`）。
+
+## 结论：`fail` → 建议 `FIX_BATCH`
+
+| 级别 | 数量 | 要点 |
+|------|------|------|
+| critical | 2 | 本批 **verify 未跑**；`CanvasMockGraph` 空壳未删 |
+| major | 1 | 执行索引 **V2-T3-6 仍为 ⬜** |
+| minor | 2 | 新建包页未捕获 throw；空壳文件空格缩进 |
+
+## 已通过项（静态）
+
+- 列表/工作台/导出 → `listStoryPackagesFromDisk`（`/api/stories`）
+- 编辑器 → `loadStoryPackageForEditor` / `saveStoryPackageToDisk`
+- 业务路径无 `MOCK_STORY_PACKAGES`、`CanvasMockGraph` import
+- `data/storis-packages/wrong_number_act1/` 三张卡 + layout 存在
+- 新增 `diskBundleGraph.test.ts` 等测试基于磁盘夹具
+
+## Fixer 待办
+
+1. 跑通 `npm run quality:studio` 并更新 verify 报告  
+2. **物理删除** `CanvasMockGraph.ts` / `.edges.ts`（或迁到 `tests/` 夹具）  
+3. 将执行索引 V2-T3-6 改为 ✅  
+4. （可选）`CreatePackageView` 捕获 `commitCreatePackageMock` 抛错并展示表单错误
+[1m[32m[gbx] ■ batch-reviewer:V2-T3-6 done exit=0 elapsed=100s[0m
