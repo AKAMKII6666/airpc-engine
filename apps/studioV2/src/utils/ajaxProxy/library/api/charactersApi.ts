@@ -2,7 +2,7 @@
 	* 角色库 BFF 请求：读写 data/characters（经 /api/characters）。
 	* 仅返回 CharacterDef 形状；投影到 CharacterSummary 在 bis。
 	*/
-import type { CharacterDef } from "@airpc/rpg-engine";
+import type { CharacterDef } from "@studio-v2/typeFiles/library/characters/engineCharacterDef";
 import { parseStudioApiJson } from "@studio-v2/src/utils/ajaxHelper/studioApiClient";
 
 export type CharactersListData = {

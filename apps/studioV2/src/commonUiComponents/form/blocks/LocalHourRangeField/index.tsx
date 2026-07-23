@@ -1,11 +1,11 @@
 /**
-	* 本地小时半开区间编辑：from / to（0–23 / 0–24），禁止时段桶 UI。
+	* 本地小时半开区间编辑：from / to 双 Select（0–23 / 0–24），禁止时段桶与手填。
 	* 值形状 { from, to }；与引擎 localHourRange 对齐。
 	*/
 "use client";
 
 import type { ChangeEvent, FC } from "react";
-import { TextField } from "@mui/material";
+import { MenuItem, TextField } from "@mui/material";
 import type { LocalHourRangeForm } from "@studio-v2/typeFiles/library/characters/form/characterFormShapes";
 import { FormFieldShell } from "../../FormFieldShell";
 import type { FormBoundFieldProps } from "../../fields/types/formBoundTypes";
@@ -17,6 +17,9 @@ import styles from "./index.module.scss";
 
 const DEFAULT_RANGE: LocalHourRangeForm = { from: 0, to: 24 };
 
+const FROM_HOURS = Array.from({ length: 24 }, (_, h) => h);
+const TO_HOURS = Array.from({ length: 25 }, (_, h) => h);
+
 function asRange(raw: unknown): LocalHourRangeForm {
 	if (typeof raw !== "object" || raw === null) return { ...DEFAULT_RANGE };
 	const row = raw as { from?: unknown; to?: unknown };
@@ -25,12 +28,8 @@ function asRange(raw: unknown): LocalHourRangeForm {
 	return { from, to };
 }
 
-function parseHourInput(raw: string, max: number): number | null {
-	if (raw === "") return null;
-	if (!/^\d+$/.test(raw)) return null;
-	const n = Number(raw);
-	if (n < 0 || n > max) return null;
-	return n;
+function hourLabel(h: number): string {
+	return `${String(h).padStart(2, "0")}:00`;
 }
 
 export const FormLocalHourRangeField: FC<
@@ -61,7 +60,7 @@ export const FormLocalHourRangeField: FC<
 			? valueOverride
 			: readFormikFieldRaw(formik, name),
 	);
-	const watchText = `${range.from}:00 ≤ h < ${range.to}:00`;
+	const watchText = `${hourLabel(range.from)} ≤ h < ${hourLabel(range.to)}`;
 
 	function writeRange(next: LocalHourRangeForm): void {
 		if (onChangeOverride) {
@@ -73,21 +72,11 @@ export const FormLocalHourRangeField: FC<
 	}
 
 	function handleFrom(e: ChangeEvent<HTMLInputElement>): void {
-		const parsed = parseHourInput(e.target.value, 23);
-		if (parsed === null && e.target.value !== "") return;
-		writeRange({
-			from: parsed === null ? 0 : parsed,
-			to: range.to,
-		});
+		writeRange({ from: Number(e.target.value), to: range.to });
 	}
 
 	function handleTo(e: ChangeEvent<HTMLInputElement>): void {
-		const parsed = parseHourInput(e.target.value, 24);
-		if (parsed === null && e.target.value !== "") return;
-		writeRange({
-			from: range.from,
-			to: parsed === null ? 24 : parsed,
-		});
+		writeRange({ from: range.from, to: Number(e.target.value) });
 	}
 
 	return (
@@ -101,33 +90,47 @@ export const FormLocalHourRangeField: FC<
 			watchText={watchText}
 		>
 			<div className={styles.row}>
-				{/* 引用了TextField组件，用于编辑 from */}
+				{/* 引用了TextField组件，用于 Select 起始小时 */}
 				<TextField
 					label="从"
+					select
 					className={styles.hourInput}
 					value={String(range.from)}
 					onChange={handleFrom}
 					size="small"
 					disabled={disabled}
-					inputProps={{
-						"aria-label": `${label} 起始小时`,
-						inputMode: "numeric",
+					SelectProps={{
+						inputProps: { "aria-label": `${label} 起始小时` },
 					}}
-				/>
+				>
+					{FROM_HOURS.map((h) => (
+						// 引用了MenuItem组件，用于 from 选项
+						<MenuItem key={`from-${h}`} value={String(h)}>
+							{hourLabel(h)}
+						</MenuItem>
+					))}
+				</TextField>
 				<span className={styles.sep}>≤ h &lt;</span>
-				{/* 引用了TextField组件，用于编辑 to */}
+				{/* 引用了TextField组件，用于 Select 结束小时 */}
 				<TextField
 					label="到"
+					select
 					className={styles.hourInput}
 					value={String(range.to)}
 					onChange={handleTo}
 					size="small"
 					disabled={disabled}
-					inputProps={{
-						"aria-label": `${label} 结束小时`,
-						inputMode: "numeric",
+					SelectProps={{
+						inputProps: { "aria-label": `${label} 结束小时` },
 					}}
-				/>
+				>
+					{TO_HOURS.map((h) => (
+						// 引用了MenuItem组件，用于 to 选项
+						<MenuItem key={`to-${h}`} value={String(h)}>
+							{hourLabel(h)}
+						</MenuItem>
+					))}
+				</TextField>
 			</div>
 		</FormFieldShell>
 	);

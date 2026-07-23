@@ -35,6 +35,8 @@ max_rounds: 40
 max_fix_attempts: 2
 stop_on_fail: true
 group: order          # order | milestone（与实现同步演进）
+economy: 1            # 1 strict | 2 lean | 3 defer（也可用 CLI --economy）
+# defer_verify_every: 3  # 仅 economy=3：每 N 批偷跑 VERIFY_BATCH
 
 # --- 默认机器验收（任务未写 verify 时使用）---
 verify_default:

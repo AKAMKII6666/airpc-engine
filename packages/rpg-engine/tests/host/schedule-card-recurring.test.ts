@@ -8,7 +8,6 @@ import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   CallCardDefinitionSchema,
-  createEngineHost,
   hasBlockingErrors,
   hasRecurringCardRef,
   isEngineError,
@@ -17,6 +16,7 @@ import {
   resolveRecurringCardTarget,
 } from "../../src/index.js";
 import { expandRegisterExitEffects } from "../../src/tools/expandExitEffects.js";
+import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -39,7 +39,7 @@ describe("ScheduleCard + recurring (V1-E1–E3)", () => {
       await readFile(
         path.join(
           dataSrc,
-          "characters/schedule-cards/doubao_morning_checkin.s-card.json",
+          "characters/schedule-cards/lanxing_morning_checkin.s-card.json",
         ),
         "utf8",
       ),
@@ -52,11 +52,11 @@ describe("ScheduleCard + recurring (V1-E1–E3)", () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-sched-load-"));
     const dataRoot = path.join(tmpRoot, "data");
     await cp(dataSrc, dataRoot, { recursive: true });
-    const host = createEngineHost({ persist: false, autoMemory: false });
+    const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);
     const pre = await host.preloadCard(
       SCHEDULE_PACKAGE_ID,
-      "doubao_morning_checkin",
+      "lanxing_morning_checkin",
     );
     expect(isEngineError(pre)).toBe(false);
   });
@@ -65,30 +65,30 @@ describe("ScheduleCard + recurring (V1-E1–E3)", () => {
     const bare = expandRegisterExitEffects(
       "schedule_recurring_call",
       { topic_hint: "only hint", hour: 8, minute: 0 },
-      "doubao-sister",
+      "lanxing",
     );
     expect(isEngineError(bare)).toBe(true);
 
     const ok = expandRegisterExitEffects(
       "schedule_recurring_call",
       {
-        schedule_card_id: "doubao_morning_checkin",
+        schedule_card_id: "lanxing_morning_checkin",
         hour: 8,
         minute: 0,
       },
-      "doubao-sister",
+      "lanxing",
     );
     expect(isEngineError(ok)).toBe(false);
     if (isEngineError(ok)) return;
-    expect(ok[0]?.scheduleCardId).toBe("doubao_morning_checkin");
+    expect(ok[0]?.scheduleCardId).toBe("lanxing_morning_checkin");
 
     expect(hasRecurringCardRef({ topicHint: "x" } as never)).toBe(false);
     expect(
       resolveRecurringCardTarget({
-        scheduleCardId: "doubao_morning_checkin",
+        scheduleCardId: "lanxing_morning_checkin",
       }),
     ).toEqual({
-      cardId: "doubao_morning_checkin",
+      cardId: "lanxing_morning_checkin",
       packageId: SCHEDULE_PACKAGE_ID,
     });
 
@@ -113,7 +113,7 @@ describe("ScheduleCard + recurring (V1-E1–E3)", () => {
     });
     await writeFile(cardPath, JSON.stringify(cardRaw, null, 2) + "\n", "utf8");
 
-    const host = createEngineHost({ persist: false, autoMemory: false });
+    const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);
     const report = await host.validatePackage("golden_handoff");
     expect(hasBlockingErrors(report)).toBe(true);
@@ -144,7 +144,7 @@ describe("ScheduleCard + recurring (V1-E1–E3)", () => {
       cardId: "host_free_recurring",
       cardKind: "free",
       title: "test free host",
-      ownerAgentId: "doubao-sister",
+      ownerAgentId: "lanxing",
       entryMode: "either",
       interactionMode: "realtime_dialogue",
       context: {
@@ -179,7 +179,7 @@ describe("ScheduleCard + recurring (V1-E1–E3)", () => {
               hour: 9,
               minute: 0,
               scheduleMode: "daily",
-              scheduleCardId: "doubao_morning_checkin",
+              scheduleCardId: "lanxing_morning_checkin",
             },
             {
               id: "ok_free_ref",
@@ -187,7 +187,7 @@ describe("ScheduleCard + recurring (V1-E1–E3)", () => {
               hour: 10,
               minute: 0,
               scheduleMode: "daily",
-              cardId: "doubao_free",
+              cardId: "lanxing_free",
               packageId: "__free__",
             },
             {
@@ -196,7 +196,7 @@ describe("ScheduleCard + recurring (V1-E1–E3)", () => {
               hour: 11,
               minute: 0,
               scheduleMode: "daily",
-              cardId: "doubao_morning_checkin",
+              cardId: "lanxing_morning_checkin",
               packageId: SCHEDULE_PACKAGE_ID,
             },
           ],
@@ -212,7 +212,7 @@ describe("ScheduleCard + recurring (V1-E1–E3)", () => {
       "utf8",
     );
 
-    const host = createEngineHost({ persist: false, autoMemory: false });
+    const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);
     const report = await host.validatePackage("golden_handoff");
     const kindErrors = report.errors.filter(
@@ -241,7 +241,7 @@ describe("ScheduleCard + recurring (V1-E1–E3)", () => {
     const dataRoot = path.join(tmpRoot, "data");
     await cp(dataSrc, dataRoot, { recursive: true });
 
-    const host = createEngineHost({ persist: false, autoMemory: false });
+    const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);
     const profile = await host.ensureProfile("demo-user");
     profile.schedule = {
@@ -250,12 +250,12 @@ describe("ScheduleCard + recurring (V1-E1–E3)", () => {
         {
           kind: "recurring",
           intentId: "rec-e3",
-          agentId: "doubao-sister",
+          agentId: "lanxing",
           hour: 9,
           minute: 0,
           scheduleMode: "daily",
           status: "active",
-          scheduleCardId: "doubao_morning_checkin",
+          scheduleCardId: "lanxing_morning_checkin",
         },
       ],
     };
@@ -267,16 +267,16 @@ describe("ScheduleCard + recurring (V1-E1–E3)", () => {
     const fired = host.setClockMs("demo-user", fireAt);
     expect(isEngineError(fired)).toBe(false);
     if (isEngineError(fired)) return;
-    expect(fired[0]?.cardId).toBe("doubao_morning_checkin");
+    expect(fired[0]?.cardId).toBe("lanxing_morning_checkin");
     expect(fired[0]?.packageId).toBe(SCHEDULE_PACKAGE_ID);
 
     const resolved = await host.resolveAsync("demo-user", {
       kind: "agent_outbound",
-      agentId: "doubao-sister",
+      agentId: "lanxing",
     });
     expect(isEngineError(resolved)).toBe(false);
     if (isEngineError(resolved)) return;
-    expect(resolved.cardId).toBe("doubao_morning_checkin");
+    expect(resolved.cardId).toBe("lanxing_morning_checkin");
     expect(resolved.packageId).toBe(SCHEDULE_PACKAGE_ID);
     expect(resolved.card.cardKind).toBe("schedule");
 
@@ -286,7 +286,7 @@ describe("ScheduleCard + recurring (V1-E1–E3)", () => {
     expect(isEngineError(session)).toBe(false);
     if (isEngineError(session)) return;
     expect(session.frozenCard.cardKind).toBe("schedule");
-    expect(session.frozenCard.cardId).toBe("doubao_morning_checkin");
+    expect(session.frozenCard.cardId).toBe("lanxing_morning_checkin");
     expect(session.packageId).toBe(SCHEDULE_PACKAGE_ID);
   });
 });

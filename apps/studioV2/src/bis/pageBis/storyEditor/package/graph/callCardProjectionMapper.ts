@@ -1,11 +1,10 @@
 /**
 	* CallCardDefinition ↔ EditorCallCardProjection；供磁盘包打开/保存。
-	* condition 等人话字段在投影侧编辑；写回时尽量保留原 def 结构化 condition。
+	* exitKind / priority / condition / critical 须 roundtrip；
+	* 写回优先投影 condition，禁止一律 DEFAULT 覆盖已有。
 	*/
-import type {
-	CallCardDefinition,
-	Effect,
-} from "@airpc/rpg-engine";
+import type { CallCardDefinition } from "@studio-v2/typeFiles/story/callCard/engineCallCard";
+import type { Effect, ExitCondition } from "@studio-v2/typeFiles/story/callCard/engineOutcome";
 import { asPromptSceneList } from "@studio-v2/src/commonUiComponents/form/blocks/PromptSceneListEditor/promptSceneListHelpers";
 import type {
 	EditorCallCardExitProjection,
@@ -16,14 +15,12 @@ import type { EditorEffectParams } from "@studio-v2/typeFiles/story/editor/callC
 import type { PromptSceneLayerForm } from "@studio-v2/typeFiles/library/characters/form/characterFormShapes";
 import { summarizeEffect } from "@studio-v2/src/bis/pageBis/storyEditor/form/exitList/effects/summarizeEffect";
 import { coerceKnownEffectName } from "@studio-v2/src/bis/pageBis/storyEditor/form/exitList/exitListForm";
+import {
+	defaultExitCondition,
+	summarizeExitCondition,
+} from "@studio-v2/src/bis/pageBis/storyEditor/form/exitList/exitConditionForm";
 
 type CallCardExit = CallCardDefinition["exits"][number];
-
-const DEFAULT_CONDITION: CallCardExit["condition"] = {
-	op: "outcome_flag",
-	flag: "answered_completed",
-	equals: true,
-};
 
 function normalizePromptScenesForEditor(
 	raw: unknown,
@@ -44,39 +41,61 @@ function normalizeObjectivesForEditor(
 
 function effectDefToProjection(effect: Effect): EditorExitEffectProjection {
 	const name = coerceKnownEffectName(String(effect.effect));
-	const { id, effect: _ignored, critical: _c, ...rest } = effect;
+	// critical 独立字段；不得并入 params，也不得 strip（V2-S8-6 roundtrip）
+	const { id, effect: _ignored, critical, ...rest } = effect;
 	const params = { effect: name, ...rest } as EditorEffectParams;
-	return {
+	const row: EditorExitEffectProjection = {
 		id: String(id),
 		effect: name,
 		summary: summarizeEffect(name, params),
 		params,
 	};
+	if (typeof critical === "boolean") {
+		row.critical = critical;
+	}
+	return row;
 }
 
 function effectProjectionToDef(row: EditorExitEffectProjection): Effect {
 	const params = row.params ?? { effect: row.effect };
 	const { effect: _disc, ...rest } = params as Record<string, unknown>;
-	return {
+	const def: Effect = {
 		id: row.id,
 		effect: row.effect,
 		...rest,
-	} as Effect;
+	};
+	// 仅 true 写盘；false/缺省省略，与引擎 optional 语义一致
+	if (row.critical === true) {
+		def.critical = true;
+	}
+	return def;
 }
 
 function exitDefToProjection(exit: CallCardExit): EditorCallCardExitProjection {
-	const summary =
-		typeof exit.title === "string" && exit.title.trim() !== ""
-			? exit.title
-			: exit.exitId;
+	const condition: ExitCondition = exit.condition ?? defaultExitCondition();
 	return {
 		exitId: exit.exitId,
 		exitKind: exit.exitKind,
 		title: exit.title,
 		priority: exit.priority ?? 0,
-		conditionSummary: summary,
+		condition,
+		conditionSummary: summarizeExitCondition(condition),
 		effects: (exit.effects ?? []).map(effectDefToProjection),
 	};
+}
+
+/**
+	* 写回 condition：投影优先；缺省保留 base；再无则新建默认。
+	* 禁止「一律 DEFAULT」抹掉磁盘已有 condition（含嵌套）。
+	* 导出供单测锁定回落顺序（V2-S8-8）。
+	*/
+export function resolveExitCondition(
+	proj: EditorCallCardExitProjection,
+	base?: CallCardExit,
+): ExitCondition {
+	if (proj.condition !== undefined) return proj.condition;
+	if (base?.condition !== undefined) return base.condition;
+	return defaultExitCondition();
 }
 
 function exitProjectionToDef(
@@ -88,7 +107,7 @@ function exitProjectionToDef(
 		exitKind: proj.exitKind,
 		title: proj.title,
 		priority: proj.priority,
-		condition: base?.condition ?? DEFAULT_CONDITION,
+		condition: resolveExitCondition(proj, base),
 		effects: proj.effects.map(effectProjectionToDef),
 	};
 }

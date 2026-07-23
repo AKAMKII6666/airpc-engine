@@ -5,11 +5,12 @@
 "use client";
 
 import type { FC } from "react";
+import type { FactMeta, StoryPackageMeta } from "@studio-v2/typeFiles/story/callCard/engineCallCard";
 import type { EditorGraphSeed } from "@studio-v2/src/bis/pageBis/storyEditor/package/graph/diskBundleGraph";
 import type { ChapterPackageDiskContext } from "@studio-v2/src/bis/pageBis/storyEditor/form/chapter/chapterPropertyForm";
 import { FloatingPanelShell } from "@studio-v2/src/pageComponents/storyEditor/FloatingPanelShell";
 import { AssetPickerFloat } from "@studio-v2/src/pageComponents/storyEditor/library/AssetPickerFloat";
-import { PackageConfigFloat } from "@studio-v2/src/pageComponents/storyEditor/library/PackageConfigFloat";
+import { PackageConfigFloat } from "@studio-v2/src/pageComponents/storyEditor/library/package/PackageConfigFloat";
 // 引用了CanvasCharacterAddButton组件，用于画布添加角色入口
 import { CanvasCharacterAddButton } from "@studio-v2/src/pageComponents/storyEditor/com/character/CanvasCharacterAddButton";
 import { StoryCanvasStage } from "@studio-v2/src/pageComponents/storyEditor/canvas/StoryCanvasStage";
@@ -33,6 +34,8 @@ export type StoryEditorCanvasLayerProps = {
 	graphSeed: EditorGraphSeed;
 	bundle: DiskStoryPackageBundle;
 	selection: StoryEditorSelection | null;
+	/** 属性浮窗是否打开（单击选中不自动开） */
+	propertyPanelOpen: boolean;
 	assetFloat: boolean;
 	packageFloat: boolean;
 	assets: AssetSummary[];
@@ -41,6 +44,7 @@ export type StoryEditorCanvasLayerProps = {
 	chapterDiskCtx: ChapterPackageDiskContext;
 	chapterPackageOptions: readonly CallCardLabelOption[];
 	onSelectionChange: (next: StoryEditorSelection | null) => void;
+	onOpenPropertyPanel: (next: StoryEditorSelection | null) => void;
 	onCharacterAnchorSelect: (anchor: CharacterAnchorNodeData | null) => void;
 	onCanvasReady: (api: StoryCanvasStageApi) => void;
 	onGraphMetaChange: (meta: StoryCanvasGraphMeta) => void;
@@ -63,6 +67,20 @@ export type StoryEditorCanvasLayerProps = {
 	onCreateAsset: () => void;
 	onEditAsset: (asset: AssetSummary) => void;
 	onRequestDeleteAsset: (assetId: string) => void;
+	/** 入口卡 Select 候选；画布 CallCard 优先 */
+	entryCardOptions: readonly CallCardLabelOption[];
+	/** 包配置入口卡写回 */
+	onEntryCardIdChange: (cardId: string) => void;
+	/** 包级 assetRefs 多选写回；选项与 effectPanelSources.clips 同源 */
+	onAssetRefsChange: (assetRefs: readonly string[]) => void;
+	/** worldFacts JSON 块写回 */
+	onWorldFactsChange: (worldFacts: readonly FactMeta[] | undefined) => void;
+	/** meta JSON 块写回 */
+	onPackageMetaChange: (meta: StoryPackageMeta | undefined) => void;
+	/** 资源浮窗是否可回填当前卡 playbackClipId */
+	canUseAsPlaybackClip: boolean;
+	/** 资源浮窗回填当前卡 playbackClipId */
+	onUseAsPlaybackClip: (assetId: string) => void;
 };
 
 export const StoryEditorCanvasLayer: FC<StoryEditorCanvasLayerProps> = function ({
@@ -70,15 +88,17 @@ export const StoryEditorCanvasLayer: FC<StoryEditorCanvasLayerProps> = function 
 	packageId: _packageId,
 	// graphSeed 是磁盘打开的初始画布
 	graphSeed,
-	// bundle 是当前整包，用于包配置只读投影
+	// bundle 是当前整包，用于包配置投影
 	bundle,
-	// selection 是当前画布选中，用于属性浮窗
+	// selection 是当前画布选中，用于属性浮窗数据源
 	selection,
+	// propertyPanelOpen 表示属性浮窗是否打开，用于条件渲染 FloatingPanel
+	propertyPanelOpen,
 	// assetFloat 控制资源浮窗，用于底栏入口
 	assetFloat,
 	// packageFloat 控制包配置浮窗，用于底栏入口
 	packageFloat,
-	// assets 是会话内资源列表，用于资源浮窗
+	// assets 是磁盘资源列表，用于资源浮窗
 	assets,
 	// characterAnchors 是归属 Select 选项
 	characterAnchors,
@@ -88,8 +108,10 @@ export const StoryEditorCanvasLayer: FC<StoryEditorCanvasLayerProps> = function 
 	chapterDiskCtx,
 	// chapterPackageOptions 是下一故事包 Select 选项
 	chapterPackageOptions,
-	// onSelectionChange 同步选中态，用于属性浮窗
+	// onSelectionChange 同步单击选中态
 	onSelectionChange,
+	// onOpenPropertyPanel 是双击回调，用于打开属性浮窗
+	onOpenPropertyPanel,
 	// onCharacterAnchorSelect 选中角色锚点，用于打开编辑
 	onCharacterAnchorSelect,
 	// onCanvasReady 登记画布命令口，用于壳层写锚点与保存快照
@@ -120,6 +142,20 @@ export const StoryEditorCanvasLayer: FC<StoryEditorCanvasLayerProps> = function 
 	onEditAsset,
 	// onRequestDeleteAsset 请求删除资源
 	onRequestDeleteAsset,
+	// entryCardOptions 是入口卡 Select 候选
+	entryCardOptions,
+	// onEntryCardIdChange 是入口卡写回会话
+	onEntryCardIdChange,
+	// onAssetRefsChange 是包级 assetRefs 写回会话
+	onAssetRefsChange,
+	// onWorldFactsChange 是 worldFacts 写回会话
+	onWorldFactsChange,
+	// onPackageMetaChange 是 meta 写回会话
+	onPackageMetaChange,
+	// canUseAsPlaybackClip 控制资源浮窗回填按钮
+	canUseAsPlaybackClip,
+	// onUseAsPlaybackClip 回填当前卡 playbackClipId
+	onUseAsPlaybackClip,
 }) {
 	return (
 		<div className={styles.canvasWrap}>
@@ -127,6 +163,7 @@ export const StoryEditorCanvasLayer: FC<StoryEditorCanvasLayerProps> = function 
 			<StoryCanvasStage
 				graphSeed={graphSeed}
 				onSelectionChange={onSelectionChange}
+				onOpenPropertyPanel={onOpenPropertyPanel}
 				onCharacterAnchorSelect={onCharacterAnchorSelect}
 				onReady={onCanvasReady}
 				onToolModeChange={onToolModeChange}
@@ -137,7 +174,7 @@ export const StoryEditorCanvasLayer: FC<StoryEditorCanvasLayerProps> = function 
 			<CanvasCharacterAddButton onAdd={onAddCharacter} />
 			{/* 引用了FloatingPanelShell组件，用于 CallCard / 章节属性浮窗 */}
 			<FloatingPanelShell
-				selection={selection}
+				selection={propertyPanelOpen ? selection : null}
 				onClose={onCloseSelection}
 				onApplyNodeData={onApplyNodeData}
 				onApplyChapterNodeData={onApplyChapterNodeData}
@@ -147,7 +184,7 @@ export const StoryEditorCanvasLayer: FC<StoryEditorCanvasLayerProps> = function 
 				chapterPackageOptions={chapterPackageOptions}
 				onAssignOwner={onAssignOwner}
 			/>
-			{/* 引用了AssetPickerFloat组件，用于资源引用浮窗 */}
+			{/* 引用了AssetPickerFloat组件，用于资源引用浮窗与 playbackClipId 回填 */}
 			<AssetPickerFloat
 				open={assetFloat}
 				onClose={onCloseAssetFloat}
@@ -155,12 +192,20 @@ export const StoryEditorCanvasLayer: FC<StoryEditorCanvasLayerProps> = function 
 				onCreate={onCreateAsset}
 				onEdit={onEditAsset}
 				onRequestDelete={onRequestDeleteAsset}
+				canUseAsPlaybackClip={canUseAsPlaybackClip}
+				onUseAsPlaybackClip={onUseAsPlaybackClip}
 			/>
-			{/* 引用了PackageConfigFloat组件，用于包配置只读浮窗 */}
+			{/* 引用了PackageConfigFloat组件，用于包配置（入口卡 + assetRefs + meta） */}
 			<PackageConfigFloat
 				bundle={bundle}
+				entryCardOptions={entryCardOptions}
+				assetOptions={effectPanelSources.clips}
 				open={packageFloat}
 				onClose={onClosePackageFloat}
+				onEntryCardIdChange={onEntryCardIdChange}
+				onAssetRefsChange={onAssetRefsChange}
+				onWorldFactsChange={onWorldFactsChange}
+				onPackageMetaChange={onPackageMetaChange}
 			/>
 		</div>
 	);

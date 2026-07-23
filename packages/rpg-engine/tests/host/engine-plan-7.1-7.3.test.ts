@@ -10,12 +10,12 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import {
-  createEngineHost,
   hasBlockingErrors,
   isEngineError,
   SCHEDULE_PACKAGE_ID,
 } from "../../src/index.js";
 import { expandRegisterExitEffects } from "../../src/tools/expandExitEffects.js";
+import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -38,7 +38,7 @@ describe("引擎 §7.1–7.3 回归 (V1-E9)", () => {
       const bare = expandRegisterExitEffects(
         "schedule_recurring_call",
         { topic_hint: "bare", hour: 9, minute: 0 },
-        "doubao-sister",
+        "lanxing",
       );
       expect(isEngineError(bare)).toBe(true);
     });
@@ -64,7 +64,7 @@ describe("引擎 §7.1–7.3 回归 (V1-E9)", () => {
       });
       await writeFile(cardPath, JSON.stringify(cardRaw, null, 2) + "\n", "utf8");
 
-      const host = createEngineHost({ persist: false, autoMemory: false });
+      const host = createTestHost({ persist: false, dataRoot });
       await host.loadWorkspace(dataRoot);
       const report = await host.validatePackage("golden_handoff");
       expect(hasBlockingErrors(report)).toBe(true);
@@ -75,7 +75,7 @@ describe("引擎 §7.1–7.3 回归 (V1-E9)", () => {
       const dataRoot = path.join(tmpRoot, "data");
       await cp(dataSrc, dataRoot, { recursive: true });
 
-      const host = createEngineHost({ persist: false, autoMemory: false });
+      const host = createTestHost({ persist: false, dataRoot });
       await host.loadWorkspace(dataRoot);
       const profile = await host.ensureProfile("demo-user");
       profile.schedule = {
@@ -84,8 +84,8 @@ describe("引擎 §7.1–7.3 回归 (V1-E9)", () => {
           {
             kind: "recurring",
             intentId: "rec-7.1",
-            agentId: "doubao-sister",
-            scheduleCardId: "doubao_morning_checkin",
+            agentId: "lanxing",
+            scheduleCardId: "lanxing_morning_checkin",
             hour: 9,
             minute: 0,
             scheduleMode: "daily",
@@ -103,17 +103,17 @@ describe("引擎 §7.1–7.3 回归 (V1-E9)", () => {
       const fired = host.setClockMs("demo-user", fireAt);
       expect(isEngineError(fired)).toBe(false);
       if (isEngineError(fired)) return;
-      expect(fired.some((f) => f.cardId === "doubao_morning_checkin")).toBe(
+      expect(fired.some((f) => f.cardId === "lanxing_morning_checkin")).toBe(
         true,
       );
 
       const outbound = await host.resolveAsync("demo-user", {
         kind: "agent_outbound",
-        agentId: "doubao-sister",
+        agentId: "lanxing",
       });
       expect(isEngineError(outbound)).toBe(false);
       if (isEngineError(outbound)) return;
-      expect(outbound.cardId).toBe("doubao_morning_checkin");
+      expect(outbound.cardId).toBe("lanxing_morning_checkin");
       expect(outbound.packageId).toBe(SCHEDULE_PACKAGE_ID);
 
       const call = await host.beginCall("demo-user", outbound, {
@@ -121,7 +121,7 @@ describe("引擎 §7.1–7.3 回归 (V1-E9)", () => {
       });
       expect(isEngineError(call)).toBe(false);
       if (isEngineError(call)) return;
-      expect(call.frozenCard.cardId).toBe("doubao_morning_checkin");
+      expect(call.frozenCard.cardId).toBe("lanxing_morning_checkin");
       expect(call.frozenCard.cardKind).toBe("schedule");
     });
   });
@@ -132,16 +132,16 @@ describe("引擎 §7.1–7.3 回归 (V1-E9)", () => {
       const dataRoot = path.join(tmpRoot, "data");
       await cp(dataSrc, dataRoot, { recursive: true });
 
-      const host = createEngineHost({ persist: false, autoMemory: false });
+      const host = createTestHost({ persist: false, dataRoot });
       await host.loadWorkspace(dataRoot);
       const profile = await host.ensureProfile("demo-user");
-      delete profile.characters.xiaoyu;
-      profile.callCards.board.byAgent.xiaoyu = { pending: [] };
+      delete profile.characters.xiaopi;
+      profile.callCards.board.byAgent.xiaopi = { pending: [] };
       profile.schedule = { clockMs: 0, intents: [] };
 
       const resolved = await host.resolveAsync("demo-user", {
         kind: "free_call",
-        agentId: "doubao-sister",
+        agentId: "lanxing",
       });
       if (isEngineError(resolved)) throw resolved;
       const session = await host.beginCall("demo-user", resolved, {
@@ -150,8 +150,8 @@ describe("引擎 §7.1–7.3 回归 (V1-E9)", () => {
       if (isEngineError(session)) throw session;
 
       const inv = await host.invokeTool(session.sessionId, "refer_to_expert", {
-        target_agent_id: "xiaoyu",
-        card_id: "xiaoyu_waiting_user",
+        target_agent_id: "xiaopi",
+        card_id: "xiaopi_waiting_user",
         package_id: "golden_handoff",
         topic_hint: "followup",
         delay_minutes: 5,
@@ -170,22 +170,22 @@ describe("引擎 §7.1–7.3 回归 (V1-E9)", () => {
       const fired = host.advanceClock("demo-user", 5 * 60_000);
       expect(isEngineError(fired)).toBe(false);
       if (isEngineError(fired)) return;
-      expect(fired.some((f) => f.cardId === "xiaoyu_waiting_user")).toBe(true);
+      expect(fired.some((f) => f.cardId === "xiaopi_waiting_user")).toBe(true);
 
       const outbound = await host.resolveAsync("demo-user", {
         kind: "agent_outbound",
-        agentId: "xiaoyu",
+        agentId: "xiaopi",
       });
       expect(isEngineError(outbound)).toBe(false);
       if (isEngineError(outbound)) return;
-      expect(outbound.cardId).toBe("xiaoyu_waiting_user");
+      expect(outbound.cardId).toBe("xiaopi_waiting_user");
 
       const call = await host.beginCall("demo-user", outbound, {
         channel: "manual",
       });
       expect(isEngineError(call)).toBe(false);
       if (isEngineError(call)) return;
-      expect(call.frozenCard.cardId).toBe("xiaoyu_waiting_user");
+      expect(call.frozenCard.cardId).toBe("xiaopi_waiting_user");
       expect(call.actualEntry).toBe("outbound_auto");
     });
   });
@@ -196,16 +196,16 @@ describe("引擎 §7.1–7.3 回归 (V1-E9)", () => {
       const dataRoot = path.join(tmpRoot, "data");
       await cp(dataSrc, dataRoot, { recursive: true });
 
-      const host = createEngineHost({ persist: false, autoMemory: false });
+      const host = createTestHost({ persist: false, dataRoot });
       await host.loadWorkspace(dataRoot);
       const profile = await host.ensureProfile("demo-user");
-      delete profile.characters.xiaoyu;
-      profile.callCards.board.byAgent.xiaoyu = { pending: [] };
+      delete profile.characters.xiaopi;
+      profile.callCards.board.byAgent.xiaopi = { pending: [] };
       profile.schedule = { clockMs: 0, intents: [] };
 
       const resolved = await host.resolveAsync("demo-user", {
         kind: "free_call",
-        agentId: "doubao-sister",
+        agentId: "lanxing",
       });
       if (isEngineError(resolved)) throw resolved;
       const session = await host.beginCall("demo-user", resolved, {
@@ -214,8 +214,8 @@ describe("引擎 §7.1–7.3 回归 (V1-E9)", () => {
       if (isEngineError(session)) throw session;
 
       const inv = await host.invokeTool(session.sessionId, "refer_to_expert", {
-        target_agent_id: "xiaoyu",
-        card_id: "xiaoyu_waiting_user",
+        target_agent_id: "xiaopi",
+        card_id: "xiaopi_waiting_user",
         package_id: "golden_handoff",
         topic_hint: "followup",
         delay_minutes: 5,
@@ -234,8 +234,8 @@ describe("引擎 §7.1–7.3 回归 (V1-E9)", () => {
     it("挂机后 board 含 either pending；提前 dial 命中故事卡非 Free", async () => {
       const host = await scheduleXiaoyu();
       const mid = await host.ensureProfile("demo-user");
-      const pending = mid.callCards.board.byAgent.xiaoyu?.pending.find(
-        (p) => p.cardId === "xiaoyu_waiting_user" && p.status === "pending",
+      const pending = mid.callCards.board.byAgent.xiaopi?.pending.find(
+        (p) => p.cardId === "xiaopi_waiting_user" && p.status === "pending",
       );
       expect(pending).toBeTruthy();
       expect(pending?.entryMode).toBe("either");
@@ -243,12 +243,12 @@ describe("引擎 §7.1–7.3 回归 (V1-E9)", () => {
 
       const dial = await host.resolveAsync("demo-user", {
         kind: "user_dial",
-        agentId: "xiaoyu",
+        agentId: "xiaopi",
       });
       expect(isEngineError(dial)).toBe(false);
       if (isEngineError(dial)) return;
       expect(dial.source).toBe("story_pending");
-      expect(dial.cardId).toBe("xiaoyu_waiting_user");
+      expect(dial.cardId).toBe("xiaopi_waiting_user");
 
       const call = await host.beginCall("demo-user", dial, {
         channel: "manual",
@@ -263,7 +263,7 @@ describe("引擎 §7.1–7.3 回归 (V1-E9)", () => {
           row !== null &&
           typeof row === "object" &&
           (row as { kind?: string }).kind === "once" &&
-          (row as { cardId?: string }).cardId === "xiaoyu_waiting_user",
+          (row as { cardId?: string }).cardId === "xiaopi_waiting_user",
       ) as { status?: string };
       expect(once?.status).toBe("consumed");
 
@@ -277,15 +277,15 @@ describe("引擎 §7.1–7.3 回归 (V1-E9)", () => {
       expect(isEngineError(fired)).toBe(false);
       if (isEngineError(fired)) return;
       expect(
-        fired.filter((f) => f.cardId === "xiaoyu_waiting_user"),
+        fired.filter((f) => f.cardId === "xiaopi_waiting_user"),
       ).toHaveLength(0);
     });
 
     it("正常外呼路径：actualEntry=outbound_auto，命中同一 linked pending", async () => {
       const host = await scheduleXiaoyu();
       const before = await host.ensureProfile("demo-user");
-      const linkedId = before.callCards.board.byAgent.xiaoyu?.pending.find(
-        (p) => p.cardId === "xiaoyu_waiting_user",
+      const linkedId = before.callCards.board.byAgent.xiaopi?.pending.find(
+        (p) => p.cardId === "xiaopi_waiting_user",
       )?.instanceId;
 
       const fired = host.advanceClock("demo-user", 5 * 60_000);
@@ -295,7 +295,7 @@ describe("引擎 §7.1–7.3 回归 (V1-E9)", () => {
 
       const outbound = await host.resolveAsync("demo-user", {
         kind: "agent_outbound",
-        agentId: "xiaoyu",
+        agentId: "xiaopi",
       });
       expect(isEngineError(outbound)).toBe(false);
       if (isEngineError(outbound)) return;

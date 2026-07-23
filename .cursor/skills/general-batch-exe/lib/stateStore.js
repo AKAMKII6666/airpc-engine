@@ -23,6 +23,11 @@ const INITIAL = {
   exFile: null,
   /** review_fail | verify_fail | checkbox_missing | full_review_fail | full_verify_fail | null */
   fixTrigger: null,
+  /** Locked economy mode for this run (1|2|3); set on first start. */
+  economy: null,
+  deferVerifyEvery: null,
+  /** When true, FULL_VERIFY green → FULL_REVIEW (defer closing) instead of READY. */
+  deferClosingVerify: false,
   lastVerifyOk: null,
   lastVerifySummary: null,
   lastVerifyFingerprint: null,

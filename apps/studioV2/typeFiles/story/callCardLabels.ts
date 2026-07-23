@@ -2,7 +2,7 @@
 	* CallCard 枚举 → 中文标签（故事编辑器 UI）。
 	* 与引擎 CallCardDefinition / KNOWN_EFFECT_NAMES 对齐；禁止在组件内散落 schema 原文。
 	*/
-import type { CardKind } from "@airpc/rpg-engine";
+import type { CardKind } from "@studio-v2/typeFiles/story/callCard/engineCallCard";
 import type {
 	EditorEntryMode,
 	EditorExitKind,
@@ -30,6 +30,7 @@ export function entryModeLabel(mode: EditorEntryMode | undefined): string {
 	}
 	if (mode === "either") return "双向可拨";
 	if (mode === "playback") return "过场播放";
+	if (mode === "mailbox_open") return "信箱打开";
 	return "未设入口";
 }
 
@@ -60,6 +61,7 @@ export function cardKindLabel(kind: CardKind): string {
 	if (kind === "free") return "自由通话";
 	if (kind === "system") return "系统卡";
 	if (kind === "schedule") return "调度卡";
+	if (kind === "voicemail") return "语音留言";
 	return "通话卡";
 }
 
@@ -69,6 +71,7 @@ export const ENTRY_MODE_OPTIONS: readonly CallCardLabelOption[] = [
 	{ label: "角色外呼", value: "outbound_auto" },
 	{ label: "双向可拨", value: "either" },
 	{ label: "过场播放", value: "playback" },
+	{ label: "信箱打开", value: "mailbox_open" },
 	{ label: "呼入（别名）", value: "inbound" },
 	{ label: "外呼（别名）", value: "outbound" },
 	{ label: "角色外呼（别名）", value: "agent_outbound" },
@@ -87,6 +90,7 @@ export const CARD_KIND_OPTIONS: readonly CallCardLabelOption[] = [
 	{ label: "自由通话", value: "free" },
 	{ label: "系统卡（过场）", value: "system" },
 	{ label: "调度卡（延迟外呼）", value: "schedule" },
+	{ label: "语音留言", value: "voicemail" },
 ];
 
 /** 出口 exitKind Select 选项 */
@@ -151,7 +155,6 @@ const EFFECT_NAME_LABELS: Readonly<Record<string, string>> = {
 	set_world_fact: "写入世界事实",
 	update_npc_knowledge: "更新 NPC 知识",
 	end_story: "结束故事",
-	create_voicemail: "创建语音信箱",
 	play_system_prompt: "播放系统提示",
 };
 
@@ -174,7 +177,8 @@ export const EFFECT_NAME_OPTIONS: readonly CallCardLabelOption[] = [
 	{
 		label: "挂载通话卡",
 		value: "attach_call_card",
-		description: "向指定角色的待办板挂一张待处理卡，使其后续可被拨打或外呼",
+		description:
+			"挂普通卡→待接通板；目标为语音留言卡时进信箱（不写 Board.pending）",
 	},
 	{
 		label: "设置重拨槽",
@@ -194,7 +198,8 @@ export const EFFECT_NAME_OPTIONS: readonly CallCardLabelOption[] = [
 	{
 		label: "调度通话卡",
 		value: "schedule_call_card",
-		description: "登记一次性定时外呼意图（角色+包+卡+延迟），到点触发",
+		description:
+			"登记一次性延迟意图；普通卡到点外呼，语音留言卡到点进信箱（非响铃）",
 	},
 	{
 		label: "登记重复外呼",
@@ -230,11 +235,6 @@ export const EFFECT_NAME_OPTIONS: readonly CallCardLabelOption[] = [
 		label: "结束故事",
 		value: "end_story",
 		description: "结束当前故事包，可清场并安排下一章入口卡",
-	},
-	{
-		label: "创建语音信箱",
-		value: "create_voicemail",
-		description: "生成一条语音信箱桩，真正播放由电话壳执行",
 	},
 	{
 		label: "播放系统提示",

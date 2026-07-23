@@ -14,6 +14,15 @@ const DEFAULTS = {
   max_checkbox_fix_attempts: 2,
   stop_on_fail: true,
   group: 'order',
+  /**
+   * Economy mode: 1 strict (default) | 2 lean | 3 defer (cheapest).
+   * Aliases strict|lean|defer also accepted; normalized to 1|2|3.
+   */
+  economy: 1,
+  /**
+   * Only for economy=3: run VERIFY_BATCH every N completed batches (0 = never until closing).
+   */
+  defer_verify_every: 0,
   verify_default: [],
   read_first: [],
   hard_stop_patterns: [],
@@ -121,6 +130,13 @@ function deepMerge(base, over) {
 function mergeConfig({ projectConfig = {}, frontmatter = {}, cli = {} } = {}) {
   let cfg = deepMerge(DEFAULTS, projectConfig);
   cfg = deepMerge(cfg, frontmatter);
+
+  if (cli.economy != null) {
+    cfg.economy = cli.economy;
+  }
+  if (cli.deferVerifyEvery != null && !Number.isNaN(cli.deferVerifyEvery)) {
+    cfg.defer_verify_every = cli.deferVerifyEvery;
+  }
 
   if (cli.agentCmd) {
     cfg.agent = { ...cfg.agent, command: cli.agentCmd };

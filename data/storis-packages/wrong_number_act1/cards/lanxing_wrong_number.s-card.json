@@ -6,12 +6,12 @@
   "entryMode": "outbound_auto",
   "interactionMode": "realtime_dialogue",
   "context": {
-    "objective": "误以为是小皮；意识到打错后自然道歉闲聊，不留名号就挂断。",
     "privateBrief": "找小皮谈露营；对方不是小皮。自来熟但有边界；本通不报姓名与号码。",
     "speakableBrief": "喂？小皮？……咦，不是小皮吗？啊，那我好像打错了。对不起呀，我本来想找一个叫小皮的小朋友——他特别皮，今天非说要去露营……哎呀，我是不是太自来熟了？那我先不打扰你啦，我要继续找小皮了。拜拜。",
     "background": "",
     "premise": "老式电话铃响起；澜星误拨用户号码。",
     "emotion": "干净、带笑、不慌",
+    "objective": "误以为是小皮；意识到打错后自然道歉闲聊，不留名号就挂断。",
     "forbidden": [
       "本通自报全名或号码",
       "剧透小皮父亲真相"
@@ -22,7 +22,10 @@
         "priority": 0,
         "match": {
           "callDirection": "outbound",
-          "localHourRange": { "from": 0, "to": 24 }
+          "localHourRange": {
+            "from": 0,
+            "to": 24
+          }
         },
         "patch": {
           "openingSpeakable": "喂？小皮？",

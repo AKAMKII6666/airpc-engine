@@ -1,13 +1,22 @@
 /**
 	* 磁盘整包 ↔ React Flow 画布图：打开读 layout+cards，保存写回 layout+cards。
-	* 角色锚点由 participants 生成；role 边 target 可为 agentId 或 anchor_* nodeId。
+	* 角色锚点由角色库全量（names）生成；挂卡数来自本包 cards；role 边 target 可为 agentId 或 anchor_* nodeId。
 	*/
 import type { Edge, Node } from "@xyflow/react";
-import type { CallCardDefinition } from "@airpc/rpg-engine";
+import type { CallCardDefinition } from "@studio-v2/typeFiles/story/callCard/engineCallCard";
 import {
 	callCardDefToProjection,
 	callCardProjectionToDef,
 } from "@studio-v2/src/bis/pageBis/storyEditor/package/graph/callCardProjectionMapper";
+import {
+	buildCharacterAnchorNodes,
+	ownerDisplayNameForCard,
+	resolveAnchorTarget,
+	type CharacterDisplayLookup,
+} from "@studio-v2/src/bis/pageBis/storyEditor/package/graph/characterAnchorGraph";
+import {
+	deriveLayoutLanes,
+} from "@studio-v2/src/bis/pageBis/storyEditor/package/conf/referencedAgentsDerive";
 import {
 	ATTACH_EFFECT_EDGE_STYLE,
 	UNMOUNT_EFFECT_EDGE_STYLE,
@@ -20,16 +29,16 @@ import {
 	type EditorEdgeKind,
 } from "@studio-v2/src/bis/pageBis/storyEditor/role/roleConnection";
 import { withoutLightweightDockNodes } from "@studio-v2/src/bis/pageBis/storyEditor/dock/dockNodeFactory";
-import type {
-	CharacterAnchorNodeData,
-	EditorChapterNodeData,
-} from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
+import type { EditorChapterNodeData } from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
 import type {
 	DiskStoryPackageBundle,
 	StudioCanvasLayout,
 	StudioCanvasLayoutEdge,
 	StudioCanvasLayoutNode,
 } from "@studio-v2/typeFiles/story/package/diskStoryPackage";
+
+export type { CharacterDisplayLookup } from "@studio-v2/src/bis/pageBis/storyEditor/package/graph/characterAnchorGraph";
+export { characterAnchorStatusLabel } from "@studio-v2/src/bis/pageBis/storyEditor/package/graph/characterAnchorGraph";
 
 /** 磁盘 bundle 打开后的画布初始图种子；仅会话内存，保存前可继续编辑 */
 export type EditorGraphSeed = {
@@ -40,20 +49,6 @@ export type EditorGraphSeed = {
 	/** 打开后默认选中的画布节点 id；通常为入口卡节点 */
 	initialSelectionNodeId: string | null;
 };
-
-/** agentId → 展示名；打开包时由角色库 BFF 注入，不写回故事包 */
-export type CharacterDisplayLookup = Readonly<
-	Record<string, { displayName: string }>
->;
-
-function anchorNodeId(agentId: string): string {
-	return `anchor_${agentId}`;
-}
-
-function resolveAnchorTarget(target: string): string {
-	if (target.startsWith("anchor_")) return target;
-	return anchorNodeId(target);
-}
 
 function cardNodeId(layoutNode: StudioCanvasLayoutNode): string {
 	if (typeof layoutNode.nodeId === "string" && layoutNode.nodeId !== "") {
@@ -72,57 +67,6 @@ function chapterNodeId(layoutNode: StudioCanvasLayoutNode): string {
 	if (layoutNode.kind === "chapter_start") return "chapter_start";
 	if (layoutNode.kind === "chapter_end") return "chapter_end";
 	return `chapter_${layoutNode.kind ?? "unknown"}`;
-}
-
-function pendingCountForAgent(
-	agentId: string,
-	cards: readonly CallCardDefinition[],
-): number {
-	return cards.filter(function (c) {
-		return c.ownerAgentId === agentId;
-	}).length;
-}
-
-function buildCharacterAnchors(
-	bundle: DiskStoryPackageBundle,
-	names: CharacterDisplayLookup,
-): Node[] {
-	const participants =
-		bundle.layout.lanes?.map(function (l) {
-			return l.agentId;
-		}) ?? bundle.conf.participants;
-	const unique = [...new Set(participants)];
-	return unique.map(function (agentId, index) {
-		const rawName = names[agentId]?.displayName?.trim();
-		const displayName = rawName !== undefined && rawName !== "" ? rawName : agentId;
-		const data: CharacterAnchorNodeData = {
-			agentId,
-			displayName,
-			statusLabel: pendingCountForAgent(agentId, bundle.cards) > 0
-				? `本包 · ${pendingCountForAgent(agentId, bundle.cards)} 卡`
-				: "本章未挂卡",
-			pendingCardCount: pendingCountForAgent(agentId, bundle.cards),
-		};
-		return {
-			id: anchorNodeId(agentId),
-			type: "characterAnchor" as const,
-			position: { x: -40, y: 40 + index * 110 },
-			data,
-			draggable: false,
-			selectable: true,
-		};
-	});
-}
-
-function ownerDisplayNameForCard(
-	card: CallCardDefinition,
-	names: CharacterDisplayLookup,
-): string {
-	const agentId = card.ownerAgentId ?? "";
-	if (agentId && names[agentId]?.displayName) {
-		return names[agentId]!.displayName;
-	}
-	return agentId;
 }
 
 function layoutNodeToRfNode(
@@ -156,13 +100,12 @@ function layoutNodeToRfNode(
 		def,
 		ownerDisplayNameForCard(def, names),
 	);
-	if (def.cardId === bundle.conf.entryCardId) {
-		projection.selected = true;
-	}
 	return {
 		id: cardNodeId(layoutNode),
 		type: "callCard",
 		position: { x: layoutNode.x, y: layoutNode.y },
+		// 入口卡仅 RF selected 高亮；禁止 data.selected（会 sticky）
+		selected: def.cardId === bundle.conf.entryCardId,
 		data: projection,
 	};
 }
@@ -238,7 +181,7 @@ export function bundleToEditorGraph(
 	bundle: DiskStoryPackageBundle,
 	names: CharacterDisplayLookup = {},
 ): EditorGraphSeed {
-	const anchorNodes = buildCharacterAnchors(bundle, names);
+	const anchorNodes = buildCharacterAnchorNodes(bundle, names);
 	const contentNodes = bundle.layout.nodes
 		.map(function (ln) {
 			return layoutNodeToRfNode(ln, bundle, names);
@@ -319,7 +262,66 @@ function rfEdgeToLayoutEdge(edge: Edge): StudioCanvasLayoutEdge | null {
 }
 
 /**
-	* 当前会话图 + 原包 conf → 整包写盘载荷；cards 按 conf.cards 顺序。
+	* 画布 CallCard 顺序（出现序）；保存时以该集合为准写 conf.cards。
+	*/
+function collectCanvasCallCardIds(nodes: readonly Node[]): string[] {
+	const ids: string[] = [];
+	for (const node of nodes) {
+		const proj = readCallCardData(node);
+		if (!proj) continue;
+		ids.push(proj.cardId);
+	}
+	return ids;
+}
+
+/**
+	* 以画布卡集为准同步 conf.cards：
+	* - 原 conf 序中仍在画布上的保留相对序
+	* - 画布新建卡追加末尾
+	* - 画布已删的 conf 项丢弃（S8-5；BFF 随之 unlink orphan s-card）
+	*/
+function syncConfCardIdsWithCanvas(
+	baseCardRefs: readonly { cardId: string }[],
+	canvasCardIds: readonly string[],
+): string[] {
+	const onCanvas = new Set(canvasCardIds);
+	const ordered: string[] = [];
+	const seen = new Set<string>();
+	for (const ref of baseCardRefs) {
+		if (!onCanvas.has(ref.cardId)) continue;
+		if (seen.has(ref.cardId)) continue;
+		ordered.push(ref.cardId);
+		seen.add(ref.cardId);
+	}
+	for (const cardId of canvasCardIds) {
+		if (seen.has(cardId)) continue;
+		ordered.push(cardId);
+		seen.add(cardId);
+	}
+	return ordered;
+}
+
+/**
+	* 删入口卡后强制改入口：仍在包内则保留；否则改指向同步后首张；无卡则清空。
+	*/
+function resolveEntryCardIdAfterCardSync(
+	previousEntryCardId: string | undefined,
+	confCardIds: readonly string[],
+): string | undefined {
+	if (
+		previousEntryCardId &&
+		confCardIds.includes(previousEntryCardId)
+	) {
+		return previousEntryCardId;
+	}
+	if (confCardIds.length === 0) return undefined;
+	return confCardIds[0];
+}
+
+/**
+	* 当前会话图 + 原包 conf → 整包写盘载荷。
+	* conf.cards / cards[] 以画布 CallCard 集为准（新建追加、删除移除）；
+	* 磁盘 orphan s-card 由 writeDiskStoryPackage 按 conf 清理。
 	*/
 export function editorGraphToBundle(
 	base: DiskStoryPackageBundle,
@@ -335,16 +337,14 @@ export function editorGraphToBundle(
 		});
 		cardById.set(proj.cardId, callCardProjectionToDef(proj, original));
 	}
-	const cards = base.conf.cards.map(function (ref) {
-		const built = cardById.get(ref.cardId);
+	const confCardIds = syncConfCardIdsWithCanvas(
+		base.conf.cards,
+		collectCanvasCallCardIds(nodes),
+	);
+	const cards = confCardIds.map(function (cardId) {
+		const built = cardById.get(cardId);
 		if (!built) {
-			const original = base.cards.find(function (c) {
-				return c.cardId === ref.cardId;
-			});
-			if (!original) {
-				throw new Error(`missing card in graph: ${ref.cardId}`);
-			}
-			return original;
+			throw new Error(`missing card in graph: ${cardId}`);
 		}
 		return built;
 	});
@@ -362,13 +362,25 @@ export function editorGraphToBundle(
 	const layout: StudioCanvasLayout = {
 		schemaVersion: base.layout.schemaVersion ?? 1,
 		packageId: base.conf.packageId,
-		lanes: base.layout.lanes,
+		lanes: deriveLayoutLanes({ conf: base.conf, cards }),
 		nodes: layoutNodes,
 		edges: layoutEdges,
 		note: base.layout.note,
 	};
+	const entryCardId = resolveEntryCardIdAfterCardSync(
+		base.conf.entryCardId,
+		confCardIds,
+	);
 	return {
-		conf: base.conf,
+		conf: {
+			...base.conf,
+			cards: confCardIds.map(function (cardId) {
+				return { cardId };
+			}),
+			entryCardId,
+			/** 路径 B：会话内清空遗留白名单；落盘由 writeDiskStoryPackage omit 键 */
+			participants: [],
+		},
 		cards,
 		layout,
 	};

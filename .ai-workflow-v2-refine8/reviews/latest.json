@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "reviewRunId": "final-reviewer-final-d722da85-24cd-493a-b2c6-ab8ff372fbfd",
+  "role": "final-reviewer",
+  "batchId": "final",
+  "exFile": "docs/AI和人类/里程碑/v2.0/细化修改8_执行索引.md",
+  "result": "pass",
+  "blocker": 0,
+  "critical": 0,
+  "major": 1,
+  "minor": 2,
+  "recommendedNextState": "READY_FOR_MANUAL_QA",
+  "summary": "细化修改 8（S8-1–19）总出口成立：路径 B 全库锚点与引用派生校验、包内卡 CRUD 与 conf/s-card 同步、ExitCondition/critical roundtrip、资源 /api/assets 真源、保存 validate 回滚闸门与 card 级定位、UX 债与遗留角色清理均有代码与可信单测；quality:engine / quality:studio 最近 verify 全绿。未命中 Participants 双轨 / condition 假写盘 / MOCK 真源 / validate 不拦等硬停。docs/AI 02·03·07 已同步；01/04 仍有旧口径残留（记 major/minor，不阻人工 QA）。",
+  "issues": [
+    {
+      "id": "FR-1",
+      "severity": "major",
+      "file": "docs/AI/studio-v2/01-分层与目录落点.md",
+      "location": "§3 画布角色锚点 / 资源库列表 ~L40–42",
+      "description": "代码事实表仍写「锚点由 bundle.participants 生成」且资源库指向已删除的 mockLibraryData.ts（「本步允许暂留」）。与路径 B、/api/assets 真源及 S8-12 删 MOCK 矛盾。",
+      "expectedBehavior": "与 02/07 一致：全库锚点 + collectReferencedAgentIds 派生；资源列表真源 data/assets ↔ /api/assets，删除 mock 条目。",
+      "suggestedVerification": "全文检索 docs/AI 中 participants 锚点 / mockLibraryData / MOCK_ASSETS 旧述并改口径"
+    },
+    {
+      "id": "FR-2",
+      "severity": "minor",
+      "file": "docs/AI/studio-v2/04-第一幕打错电话-mock拓扑.md",
+      "location": "§1 participants 行；§2 锚点句 ~L16/L36",
+      "description": "仍写 conf participants=lanxing·xiaopi 且「左侧角色锚点来自 participants」。磁盘 wrong_number_act1 已无 participants；锚点为全库。",
+      "expectedBehavior": "participants 标为可选遗留/已省略；锚点口径改为全库 + 本包挂卡灰显。",
+      "suggestedVerification": "对照 data/storis-packages/wrong_number_act1/story.conf.json 与 characterAnchorGraph"
+    },
+    {
+      "id": "FR-3",
+      "severity": "minor",
+      "file": "docs/AI和人类/需求/13-工具与能力注册.md",
+      "location": "§5 Studio（需求 §4 同步清单）",
+      "description": "细化修改8 §4 要求同步「Studio 资产下拉」，本文仍无 playbackClipId / play_system_prompt.clipId / AssetPicker 读 /api/assets 的口径句（14 已有落盘目录）。",
+      "expectedBehavior": "§5 或交叉链接补充：编辑器资产下拉真源为全局 /api/assets，禁止手填未知 id 作主路径。",
+      "suggestedVerification": "对照需求 14 与 AssetPickerFloat / playback 面板"
+    }
+  ],
+  "checks": {
+    "typecheck": "pass",
+    "lint": "pass",
+    "tests": "pass",
+    "behaviorChecks": "pass",
+    "negativeChecks": "pass",
+    "structureChecks": "pass",
+    "baselineDelta": "0",
+    "qualityEngine": "pass",
+    "qualityStudio": "pass",
+    "docsAiRequired": "pass",
+    "hardStops": "pass"
+  },
+  "notes": "只读终审；未改应用源码与 STATE.json。对照 §2–§6：A 引擎 collectReferencedAgentIds + REFERENCED_AGENT_UNKNOWN / PARTICIPANT_UNKNOWN warning；B editorGraphToBundle 以画布为准 + orphan unlink；C resolveExitCondition 禁 DEFAULT 覆盖 + nested 保留测；D fetchCharacterDefs 全库；E MOCK_ASSETS 零业务残余；F PackageConfigFloat meta/assetRefs + Schedule 分工文档；G validate 闸门 storiesFs 回滚测 + parseValidationLocate card 级。S8-19 调试器只读 validate 已做且非硬依赖。残留 MOCK_* 仅调试器会话叙事/工作台展示（需求允许）。golden_handoff 磁盘仍可有遗留 participants 键（路径 B 允许；保存 omit）。证据：.ai-workflow-v2-refine8/reports/latest-verify.json ok；verify-1784772400468 quality:engine ok；S8-18 双门禁绿。"
+}

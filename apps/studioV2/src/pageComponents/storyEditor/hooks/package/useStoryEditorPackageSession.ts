@@ -4,19 +4,21 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-	buildPackageCardIndex,
-	listChapterNextPackageOptions,
-} from "@studio-v2/src/bis/pageBis/storyEditor/package/conf/packageConfProjection";
-import { loadStoryPackageForEditor } from "@studio-v2/src/bis/pageBis/storyEditor/package/io/loadStoryPackage_bis";
-import { saveStoryPackageToDisk } from "@studio-v2/src/bis/pageBis/storyEditor/package/io/saveStoryPackage_bis";
-import { listStoryPackagesFromDisk } from "@studio-v2/src/bis/pageBis/packages/list/listStoryPackages_bis";
+import type { FactMeta, StoryPackageMeta } from "@studio-v2/typeFiles/story/callCard/engineCallCard";
+import type { ValidationReport } from "@studio-v2/typeFiles/story/validate/engineValidation";
+import { listChapterNextPackageOptions } from "@studio-v2/src/bis/pageBis/storyEditor/package/conf/packageConfProjection";
+import { parseValidationLocate } from "@studio-v2/src/bis/pageBis/storyEditor/package/validate/parseValidationLocate";
+import { loadPackageEditorSession } from "@studio-v2/src/bis/pageBis/storyEditor/package/session/packageSessionLoad";
 import type { EditorGraphSeed } from "@studio-v2/src/bis/pageBis/storyEditor/package/graph/diskBundleGraph";
 import type { DiskStoryPackageBundle } from "@studio-v2/typeFiles/story/package/diskStoryPackage";
 import type { StoryPackageSummary } from "@studio-v2/typeFiles/story/summary/storyPackageSummary";
 import type { StoryCanvasStageApi } from "@studio-v2/src/pageComponents/storyEditor/canvas/storyCanvasTypes";
+import {
+	usePackageSessionMutations,
+	type EditorPackageSaveState,
+} from "@studio-v2/src/pageComponents/storyEditor/hooks/package/usePackageSessionMutations";
 
-export type EditorPackageSaveState = "idle" | "saving" | "saved" | "error";
+export type { EditorPackageSaveState } from "@studio-v2/src/pageComponents/storyEditor/hooks/package/usePackageSessionMutations";
 
 function errorMessage(error: unknown, fallback: string): string {
 	if (error instanceof Error && error.message.trim() !== "") {
@@ -42,7 +44,20 @@ export type UseStoryEditorPackageSessionResult = {
 	chapterPackageOptions: ReturnType<typeof listChapterNextPackageOptions>;
 	saveState: EditorPackageSaveState;
 	saveError: string | undefined;
+	/** 最近一次保存的 validate 报告；error 阻断时亦有；null 表示尚未保存或非校验失败 */
+	saveValidation: ValidationReport | null;
 	onSave: () => Promise<void>;
+	/** 包配置入口卡变更；写会话 conf，保存时经 editorGraphToBundle 落盘 */
+	onEntryCardIdChange: (cardId: string) => void;
+	/** 包级 assetRefs 变更；写会话 conf，保存时落盘 */
+	onAssetRefsChange: (assetRefs: readonly string[]) => void;
+	/** worldFacts 变更；写会话 conf，保存时落盘 */
+	onWorldFactsChange: (worldFacts: readonly FactMeta[] | undefined) => void;
+	/** meta 变更；写会话 conf，保存时落盘 */
+	onPackageMetaChange: (meta: StoryPackageMeta | undefined) => void;
+	/** 点击校验项：按 path 选中对应 CallCard（card 级定位） */
+	onLocateValidationIssue: (issuePath: string) => void;
+	dismissSaveValidation: () => void;
 };
 
 /**
@@ -65,73 +80,59 @@ export function useStoryEditorPackageSession(
 	>({});
 	const [saveState, setSaveState] = useState<EditorPackageSaveState>("idle");
 	const [saveError, setSaveError] = useState<string | undefined>();
+	const [saveValidation, setSaveValidation] =
+		useState<ValidationReport | null>(null);
 
 	const reload = useCallback(async function () {
 		setLoading(true);
 		setLoadError(undefined);
-		try {
-			const [packages, session] = await Promise.all([
-				listStoryPackagesFromDisk(),
-				loadStoryPackageForEditor(packageId),
-			]);
-			setDiskPackages(packages);
-			setBundle(session.bundle);
-			setGraphSeed(session.graphSeed);
-			const indexParts = buildPackageCardIndex([session.bundle]);
-			setCardIndex(indexParts.cardIndex);
-			setEntryCardIdByPackage(indexParts.entryCardIdByPackage);
-			for (const pkg of packages) {
-				if (indexParts.cardIndex[pkg.packageId]) continue;
-				try {
-					const other = await loadStoryPackageForEditor(pkg.packageId);
-					const extra = buildPackageCardIndex([other.bundle]);
-					setCardIndex(function (prev) {
-						return { ...prev, ...extra.cardIndex };
-					});
-					setEntryCardIdByPackage(function (prev) {
-						return { ...prev, ...extra.entryCardIdByPackage };
-					});
-				} catch {
-					// 其它包读失败不阻断当前包打开
-				}
-			}
-		} catch (error) {
+		const result = await loadPackageEditorSession(packageId, errorMessage);
+		if (!result.ok) {
 			setBundle(null);
 			setGraphSeed(null);
-			setLoadError(errorMessage(error, "无法从磁盘加载故事包"));
-		} finally {
+			setLoadError(result.message);
 			setLoading(false);
+			return;
 		}
+		setDiskPackages(result.packages);
+		setBundle(result.bundle);
+		setGraphSeed(result.graphSeed);
+		setCardIndex(result.cardIndex);
+		setEntryCardIdByPackage(result.entryCardIdByPackage);
+		setSaveValidation(null);
+		setLoading(false);
 	}, [packageId]);
 
 	useEffect(function () {
 		void reload();
 	}, [reload]);
 
-	const onSave = useCallback(async function () {
-		const api = getCanvasApi();
-		if (!api || !bundle) return;
-		setSaveState("saving");
-		setSaveError(undefined);
-		try {
-			const { nodes, edges } = api.getGraphSnapshot();
-			const saved = await saveStoryPackageToDisk({
-				packageId,
-				baseBundle: bundle,
-				nodes,
-				edges,
-			});
-			setBundle(saved);
-			setSaveState("saved");
-		} catch (error) {
-			setSaveState("error");
-			setSaveError(errorMessage(error, "保存失败，请稍后重试"));
-		}
-	}, [bundle, getCanvasApi, packageId]);
+	const mutations = usePackageSessionMutations({
+		packageId,
+		bundle,
+		getCanvasApi,
+		setBundle,
+		setEntryCardIdByPackage,
+		setSaveState,
+		setSaveError,
+		setSaveValidation,
+	});
+
+	const onLocateValidationIssue = useCallback(
+		function (issuePath: string) {
+			const loc = parseValidationLocate(issuePath);
+			if (!loc.cardId) return;
+			getCanvasApi()?.selectCallCardByCardId(loc.cardId);
+		},
+		[getCanvasApi],
+	);
+
+	const dismissSaveValidation = useCallback(function () {
+		setSaveValidation(null);
+	}, []);
 
 	const trimmedTitle = bundle?.conf.title?.trim();
 	const packageTitle = trimmedTitle ? trimmedTitle : packageId;
-
 	const chapterPackageOptions = useMemo(
 		function () {
 			return listChapterNextPackageOptions(diskPackages);
@@ -151,6 +152,13 @@ export function useStoryEditorPackageSession(
 		chapterPackageOptions,
 		saveState,
 		saveError,
-		onSave,
+		saveValidation,
+		onSave: mutations.onSave,
+		onEntryCardIdChange: mutations.onEntryCardIdChange,
+		onAssetRefsChange: mutations.onAssetRefsChange,
+		onWorldFactsChange: mutations.onWorldFactsChange,
+		onPackageMetaChange: mutations.onPackageMetaChange,
+		onLocateValidationIssue,
+		dismissSaveValidation,
 	};
 }

@@ -1,0 +1,35 @@
+---
+description: Studio V2 Client / Server / 引擎端口隔离（禁止交叉 import；仅 XHR 互通）
+globs: apps/studioV2/**
+alwaysApply: false
+---
+
+# Studio V2 · Client / Server 端口隔离
+
+需求真源：[08 §3.3](../../docs/AI和人类/sudioV2.0版本/需求/ui/08-Studio-V2前端工程规则与质量门禁需求.md)。  
+硬门禁：`check:studio-structure`（`STUDIO-STRUCT-005` / `STUDIO-STRUCT-020`）。
+
+## 分区
+
+| 区 | 路径（相对 `apps/studioV2/`） | 可 import 引擎 |
+|----|------------------------------|----------------|
+| **Server** | `app/api/**`、`src/utils/server/**`、`**/*.server.ts(x)`、`engineIOModule/**` | ✅ |
+| **Client** | `src/pageComponents/**`、`src/bis/**`、`src/stores/**`、`src/commonUiComponents/**`、`src/utils/ajaxProxy/**`、`typeFiles/**`，以及带 `"use client"` 的模块 | ❌ |
+| **Engine** | `packages/rpg-engine` | 仅被 Server / 壳 / Vitest 引用 |
+
+无 `"use client"` 的 `bis` 只要落在 Client 路径，一律按 Client 计（禁止因「无指令」而值导入或 type 导入引擎）。
+
+## 必须执行
+
+1. **交互唯一通道**：Client 与 Server/引擎之间禁止任何模块级 `import`（含 `import type`）。唯一合法互通是 **XHR/fetch（经 ajaxHelper）↔ Next API ↔ 引擎**。
+2. **类型不共享**：同一概念前后端都要用时，**写两套类型**（FE `typeFiles/` 与引擎/Server schema）；禁止 `import type { … } from "@airpc/rpg-engine"`。允许字段同名对齐，禁止共用同一 TS 符号。存量违规必须立刻清零，无 baseline。
+3. **功能不交叉**：引擎/Server 的函数、Zod Schema、校验器、常量表，Client **不得 import**。需要同构逻辑时在 Client **复制**轻量镜像，并注释标明「与引擎同构镜像，不以 import 同步」。独立性优先于 DRY。
+4. **反向同样**：Server 不得 import Client 区路径（含 `src/bis/**`、`pageComponents`、`stores`、`ajaxProxy`、FE `typeFiles` 等）。映射/校验若两端都要，Server 树内再写一份或只放 Server。
+5. **裁决语义仍禁复刻**：允许复制 DTO 形状与本地预检；禁止在 Client 复刻 ExitSelector / WET / EffectExecutor 等引擎裁决。
+
+## 禁止事项
+
+- Client（含被 Client 依赖的 bis）值导入或 type 导入 `@airpc/rpg-engine`。
+- 用共享 `.ts`、re-export barrel、或「只 import type」绕过隔离。
+- Server/API 从 Client `bis` / UI 倒引「公共函数」代替本区实现。
+- 以永久 allowlist 掩盖交叉引用（临时豁免须 reason + owner + exitCondition，且禁止大范围）。

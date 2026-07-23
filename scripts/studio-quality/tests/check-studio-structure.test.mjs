@@ -82,6 +82,43 @@ describe("check:studio-structure", () => {
     assert.ok(errors.some((v) => v.ruleId === "STUDIO-STRUCT-005"));
   });
 
+  it("Client bis import type 引擎失败", async () => {
+    const { errors } = await gateFor("fail-client-engine-type");
+    assert.ok(
+      errors.some(
+        (v) =>
+          v.ruleId === "STUDIO-STRUCT-005" &&
+          v.message.includes("import type"),
+      ),
+    );
+  });
+
+  it("Server 倒引 Client bis 失败", async () => {
+    const { errors } = await gateFor("fail-server-client-import");
+    assert.ok(errors.some((v) => v.ruleId === "STUDIO-STRUCT-020"));
+  });
+
+  it("Client 引用 engineIOModule 失败", async () => {
+    const { errors } = await gateFor("fail-client-engineiomodule");
+    assert.ok(
+      errors.some(
+        (v) =>
+          v.ruleId === "STUDIO-STRUCT-020" &&
+          v.message.includes("Server-only"),
+      ),
+    );
+  });
+
+  it("Server 路径允许 import 引擎门面", async () => {
+    const { errors } = await gateFor("pass-server-engine");
+    assert.equal(errors.length, 0);
+  });
+
+  it("Server 路径允许 import engineIOModule", async () => {
+    const { errors } = await gateFor("pass-server-engineiomodule");
+    assert.equal(errors.length, 0);
+  });
+
   it("业务旁平放测试失败", async () => {
     const { errors } = await gateFor("fail-colocated-test");
     assert.ok(errors.some((v) => v.ruleId === "STUDIO-STRUCT-007"));

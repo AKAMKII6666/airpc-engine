@@ -2,7 +2,7 @@
 	* 玩家配置 BFF：读写 data/users/<userId>/profile.save.json 的 user 段。
 	* 记忆区仍用摘要字段；列表与详情用完整 User。
 	*/
-import type { User } from "@airpc/rpg-engine";
+import type { User } from "@studio-v2/typeFiles/library/users/engineUser";
 import { parseStudioApiJson } from "@studio-v2/src/utils/ajaxHelper/studioApiClient";
 import type { DiskUserSummaryDto } from "@studio-v2/typeFiles/library/users/diskUserSummary";
 

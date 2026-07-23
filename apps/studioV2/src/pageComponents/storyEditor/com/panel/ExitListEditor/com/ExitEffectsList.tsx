@@ -88,6 +88,19 @@ export const ExitEffectsList: FC<ExitEffectsListProps> =
 							onEffectChange={(raw) => {
 								changeEffect(index, raw);
 							}}
+							onCriticalChange={(critical) => {
+								const row = list[index];
+								if (!row) return;
+								const next: EditorExitEffectProjection = { ...row };
+								if (critical) {
+									next.critical = true;
+								} else {
+									delete next.critical;
+								}
+								onChange(
+									list.map((r, i) => (i === index ? next : r)),
+								);
+							}}
 							onParamsChange={(next: EditorEffectParams) => {
 								changeParams(index, next);
 							}}

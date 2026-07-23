@@ -1,0 +1,3 @@
+[1m[35m[gbx] ▶ block-analyzer[0m[2m[37m start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine[0m
+{"type":"system","subtype":"init","apiKeySource":"login","cwd":"/Users/bolbiao/workspace/airpc-engine","session_id":"6650cf64-f04c-4ab0-bada-a45e18d924a4","model":"Auto","permissionMode":"default"}
+{"type":"user","message":{"role":"user","content":[{"type":"text","text":"Follow the instructions in the prompt file exactly. Do not skip sections.\nPrompt file (absolute path): /Users/bolbiao/workspace/airpc-engine/.ai-workflow-preflight/prompts/prompt-1784789649581.md\nRead that file now and execute it."}]},"session_id":"6650cf64-f04c-4ab0-bada-a45e18d924a4"}

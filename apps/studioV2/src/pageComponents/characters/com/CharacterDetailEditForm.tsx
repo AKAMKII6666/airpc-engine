@@ -14,10 +14,12 @@ import {
 	CHARACTER_PROMPT_ITEMS,
 	type CharacterDetailFormValues,
 } from "@studio-v2/src/bis/pageBis/characters/detail/form/characterDetailForm";
+import { withAvatarUploadItems } from "@studio-v2/src/bis/pageBis/assets/withAvatarUploadItems";
 // 引用了CharacterSchedulePanel组件，用于场景提示词下方的定时外呼
 import { CharacterSchedulePanel } from "@studio-v2/src/pageComponents/characters/com/schedule/CharacterSchedulePanel";
 import styles from "@studio-v2/src/pageComponents/library/LibrarySplit.module.scss";
 
+const BASIC_ITEMS_WITH_AVATAR_UPLOAD = withAvatarUploadItems(CHARACTER_BASIC_ITEMS);
 export type CharacterDetailEditFormProps = {
 	character: CharacterSummary;
 	formik: FormikProps<CharacterDetailFormValues>;
@@ -62,7 +64,7 @@ export const CharacterDetailEditForm: FC<CharacterDetailEditFormProps> =
 						formik={formik}
 						mode="edit"
 						enabled
-						items={CHARACTER_BASIC_ITEMS}
+						items={BASIC_ITEMS_WITH_AVATAR_UPLOAD}
 					/>
 				</div>
 

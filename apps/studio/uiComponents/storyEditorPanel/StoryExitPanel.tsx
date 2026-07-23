@@ -36,7 +36,6 @@ const EFFECT_NAMES = [
   "set_world_fact",
   "update_npc_knowledge",
   "end_story",
-  "create_voicemail",
   "play_system_prompt",
 ] as const;
 

@@ -67,12 +67,11 @@ export function deriveMediaBadges(card: unknown): MediaBadge[] {
         add("attach");
       } else if (name === "set_redial_slot") {
         add("redial");
-      } else if (name === "create_voicemail") {
-        add("voicemail");
       } else if (name === "play_system_prompt") {
         add("prompt");
         add("playback");
       }
+      // create_voicemail 已废弃：留言改 cardKind=voicemail + attach/schedule，无独立 badge 源
     }
   }
 

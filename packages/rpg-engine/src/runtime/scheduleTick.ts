@@ -9,29 +9,18 @@
  */
 import { FREE_PACKAGE_ID, SCHEDULE_PACKAGE_ID } from "../constants.js";
 import { hasRecurringCardRef } from "../schema/schedule.js";
-import type { CallCardInstance, PlayerProfile } from "../schema/profile.js";
+import type { PlayerProfile } from "../schema/profile.js";
+import type { ScheduledCardLookup } from "../schedule/scheduleCardReferenceResolver.js";
+import { fireDueOnceIntent } from "./scheduleOnceFire.js";
 import {
-	ensureOutboundPending,
-	shouldDeferOutboundForPlayerWindow,
-} from "./scheduleOutboundPending.js";
+	asOnceIntent,
+	serializeOnce,
+} from "./scheduleOnceIntent.js";
+
+export type { ScheduledOnceIntent } from "./scheduleOnceIntent.js";
 
 /** 逻辑日长：clockMs 按此取模映射 hour/minute */
 export const SCHEDULE_DAY_MS = 24 * 60 * 60 * 1000;
-
-export interface ScheduledOnceIntent {
-	kind: "once";
-	intentId: string;
-	agentId: string;
-	cardId: string;
-	packageId: string;
-	topicHint?: string;
-	fireAtMs: number;
-	status: "pending" | "fired" | "cancelled" | "consumed";
-	createdAt?: string;
-	sourcedFromRecurringId?: string;
-	/** 挂机时立即创建的 pending；用于提前呼入消费与防重复外呼 */
-	linkedInstanceId?: string;
-}
 
 export interface ScheduledRecurringIntent {
 	kind: "recurring";
@@ -91,109 +80,6 @@ export function resolveRecurringCardTarget(
 		rec.packageId
 	) {
 		return { cardId: rec.cardId, packageId: rec.packageId };
-	}
-	return null;
-}
-
-function serializeOnce(once: ScheduledOnceIntent): Record<string, unknown> {
-	const row: Record<string, unknown> = {
-		kind: "once",
-		intentId: once.intentId,
-		agentId: once.agentId,
-		cardId: once.cardId,
-		packageId: once.packageId,
-		fireAtMs: once.fireAtMs,
-		status: once.status,
-	};
-	if (once.topicHint) row.topicHint = once.topicHint;
-	if (once.createdAt) row.createdAt = once.createdAt;
-	if (once.sourcedFromRecurringId) {
-		row.sourcedFromRecurringId = once.sourcedFromRecurringId;
-	}
-	if (once.linkedInstanceId) row.linkedInstanceId = once.linkedInstanceId;
-	return row;
-}
-
-function asOnceIntent(raw: unknown): ScheduledOnceIntent | null {
-	if (!raw || typeof raw !== "object") {
-		return null;
-	}
-	const row = raw as Record<string, unknown>;
-	// 定稿 shape
-	if (row.kind === "once") {
-		const cardId = typeof row.cardId === "string" ? row.cardId : "";
-		const packageId = typeof row.packageId === "string" ? row.packageId : "";
-		const agentId = typeof row.agentId === "string" ? row.agentId : "";
-		const intentId =
-			typeof row.intentId === "string"
-				? row.intentId
-				: typeof row.id === "string"
-					? row.id
-					: "";
-		const fireAtMs =
-			typeof row.fireAtMs === "number"
-				? row.fireAtMs
-				: typeof row.triggerAtMs === "number"
-					? row.triggerAtMs
-					: NaN;
-		if (!cardId || !packageId || !agentId || !intentId || !Number.isFinite(fireAtMs)) {
-			return null;
-		}
-		const status =
-			row.status === "fired" ||
-			row.status === "cancelled" ||
-			row.status === "consumed"
-				? row.status
-				: "pending";
-		return {
-			kind: "once",
-			intentId,
-			agentId,
-			cardId,
-			packageId,
-			topicHint: typeof row.topicHint === "string" ? row.topicHint : undefined,
-			fireAtMs,
-			status,
-			createdAt: typeof row.createdAt === "string" ? row.createdAt : undefined,
-			sourcedFromRecurringId:
-				typeof row.sourcedFromRecurringId === "string"
-					? row.sourcedFromRecurringId
-					: undefined,
-			linkedInstanceId:
-				typeof row.linkedInstanceId === "string" && row.linkedInstanceId
-					? row.linkedInstanceId
-					: undefined,
-		};
-	}
-	// 旧 shape：kind=schedule_call_card + triggerAtMs（无 cardId 则不可点火，避免 topicHint 假推进）
-	if (row.kind === "schedule_call_card") {
-		const cardId = typeof row.cardId === "string" ? row.cardId : "";
-		const packageId = typeof row.packageId === "string" ? row.packageId : "";
-		if (!cardId || !packageId) {
-			return null;
-		}
-		const agentId = typeof row.agentId === "string" ? row.agentId : "";
-		const intentId = typeof row.id === "string" ? row.id : "";
-		const fireAtMs =
-			typeof row.triggerAtMs === "number" ? row.triggerAtMs : NaN;
-		if (!agentId || !intentId || !Number.isFinite(fireAtMs)) {
-			return null;
-		}
-		return {
-			kind: "once",
-			intentId,
-			agentId,
-			cardId,
-			packageId,
-			topicHint: typeof row.topicHint === "string" ? row.topicHint : undefined,
-			fireAtMs,
-			status: "pending",
-			createdAt: typeof row.createdAt === "string" ? row.createdAt : undefined,
-			linkedInstanceId:
-				typeof row.linkedInstanceId === "string" && row.linkedInstanceId
-					? row.linkedInstanceId
-					: undefined,
-		};
 	}
 	return null;
 }
@@ -436,12 +322,14 @@ export function materializeRecurringOccurrences(
 
 /**
  * 扫描 due once intents：挂／复用 outbound pending，标 fired。
+ * voicemail（delivery 或 lookup）：入 GenStack，不进 fired（无 agent_outbound）。
  * linked pending 已非 pending → 标 consumed／cancelled，不重复外呼。
  * recurring 由 materializeRecurringOccurrences 先行物化；本函数不直接改 recurring。
  */
 export function tickScheduleOnce(
 	profile: PlayerProfile,
 	nowIso = new Date().toISOString(),
+	lookupCard?: ScheduledCardLookup | null,
 ): FiredScheduleItem[] {
 	if (!profile.schedule) {
 		profile.schedule = { clockMs: 0, intents: [] };
@@ -461,38 +349,21 @@ export function tickScheduleOnce(
 			continue;
 		}
 
-		// 玩家可外呼窗外：defer，保持 pending（细化修改 3）
-		if (shouldDeferOutboundForPlayerWindow(profile, nowIso)) {
-			nextIntents.push(serializeOnce(once));
-			continue;
-		}
-
-		const instance = ensureOutboundPending(profile, once, nowIso);
-		if (!instance) {
-			// linked 已消费或不存在：标记 consumed，后续 tick 不再外呼
-			nextIntents.push(
-				serializeOnce({
-					...once,
-					status: "consumed",
-				}),
-			);
-			continue;
-		}
-
-		fired.push({
-			intentId: once.intentId,
-			agentId: once.agentId,
-			cardId: once.cardId,
-			packageId: once.packageId,
-			instanceId: instance.instanceId,
-		});
-		nextIntents.push(
-			serializeOnce({
-				...once,
-				linkedInstanceId: once.linkedInstanceId ?? instance.instanceId,
-				status: "fired",
-			}),
+		const result = fireDueOnceIntent(
+			profile,
+			once,
+			raw,
+			nowIso,
+			lookupCard,
 		);
+		if (result.kind === "defer") {
+			nextIntents.push(serializeOnce(result.once));
+			continue;
+		}
+		if (result.kind === "outbound") {
+			fired.push(result.fired);
+		}
+		nextIntents.push(serializeOnce(result.once));
 	}
 
 	profile.schedule.intents = nextIntents;
@@ -662,6 +533,7 @@ export function advanceProfileClock(
 	profile: PlayerProfile,
 	deltaMs: number,
 	nowIso = new Date().toISOString(),
+	lookupCard?: ScheduledCardLookup | null,
 ): FiredScheduleItem[] {
 	const schedule = ensureSchedule(profile);
 	if (!Number.isFinite(deltaMs) || deltaMs < 0) {
@@ -670,7 +542,7 @@ export function advanceProfileClock(
 	const from = schedule.clockMs ?? 0;
 	schedule.clockMs = from + deltaMs;
 	materializeRecurringOccurrences(profile, from, schedule.clockMs, nowIso);
-	return tickScheduleOnce(profile, nowIso);
+	return tickScheduleOnce(profile, nowIso, lookupCard);
 }
 
 /** 跳到绝对逻辑时刻（仅允许前进）；并物化 recurring + tick once */
@@ -678,6 +550,7 @@ export function setProfileClockMs(
 	profile: PlayerProfile,
 	toClockMs: number,
 	nowIso = new Date().toISOString(),
+	lookupCard?: ScheduledCardLookup | null,
 ): FiredScheduleItem[] {
 	const schedule = ensureSchedule(profile);
 	if (!Number.isFinite(toClockMs) || toClockMs < 0) {
@@ -691,13 +564,14 @@ export function setProfileClockMs(
 	}
 	schedule.clockMs = toClockMs;
 	materializeRecurringOccurrences(profile, from, toClockMs, nowIso);
-	return tickScheduleOnce(profile, nowIso);
+	return tickScheduleOnce(profile, nowIso, lookupCard);
 }
 
 /** 推到下一意图触发点（once 或 recurring occurrence） */
 export function advanceProfileClockToNextIntent(
 	profile: PlayerProfile,
 	nowIso = new Date().toISOString(),
+	lookupCard?: ScheduledCardLookup | null,
 ): AdvanceToNextResult {
 	const schedule = ensureSchedule(profile);
 	const fromClockMs = schedule.clockMs ?? 0;
@@ -711,7 +585,7 @@ export function advanceProfileClockToNextIntent(
 			reason: "none",
 		};
 	}
-	const fired = setProfileClockMs(profile, next.fireAtMs, nowIso);
+	const fired = setProfileClockMs(profile, next.fireAtMs, nowIso, lookupCard);
 	return {
 		fromClockMs,
 		toClockMs: next.fireAtMs,

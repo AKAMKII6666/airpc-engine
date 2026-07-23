@@ -1,0 +1,3 @@
+[gbx] ▶ verify:人工核对链接 start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+/bin/sh: 人工核对链接: command not found
+[gbx] ■ verify:人工核对链接 done exit=127 elapsed=0s

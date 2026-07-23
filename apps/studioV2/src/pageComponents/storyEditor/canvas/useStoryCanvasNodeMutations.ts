@@ -18,6 +18,7 @@ export type UseStoryCanvasNodeMutationsArgs = {
 	setNodes: Dispatch<SetStateAction<Node[]>>;
 	setEdges: Dispatch<SetStateAction<Edge[]>>;
 	onSelectionChange: (selection: StoryEditorSelection | null) => void;
+	onOpenPropertyPanel: (selection: StoryEditorSelection | null) => void;
 	toolModeApi: Pick<
 		StoryCanvasToolModeApi,
 		"setToolMode" | "getToolMode"
@@ -37,6 +38,7 @@ export function useStoryCanvasNodeMutations(
 		setNodes,
 		setEdges,
 		onSelectionChange,
+		onOpenPropertyPanel,
 		toolModeApi,
 	} = args;
 
@@ -49,6 +51,7 @@ export function useStoryCanvasNodeMutations(
 				setNodes,
 				setEdges,
 				onSelectionChange,
+				onOpenPropertyPanel,
 				setToolMode: toolModeApi.setToolMode,
 				getToolMode: toolModeApi.getToolMode,
 				fitView: toolModeApi.fitView,
@@ -56,6 +59,7 @@ export function useStoryCanvasNodeMutations(
 		[
 			edgesRef,
 			nodesRef,
+			onOpenPropertyPanel,
 			onSelectionChange,
 			selectedIdRef,
 			setEdges,

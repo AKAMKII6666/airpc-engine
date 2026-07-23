@@ -1,18 +1,22 @@
 /**
-	* 头像资源选择块：点击选择（本步会话内写入 assetId 字符串，不真上传）。
-	* 供 AutoForm ComsMap AvatarUpload；落盘 meta.avatarAssetId。
+	* 头像直传块：选图 → uploadFile 落盘全局 assets → 写回 avatarAssetId。
+	* 禁止 assetId 手填主路径；id 只读展示。
 	*/
 "use client";
 
-import type { ChangeEvent, FC } from "react";
-import { Button, TextField } from "@mui/material";
+import type { FC } from "react";
 import { FormFieldShell } from "../../FormFieldShell";
 import type { FormBoundFieldProps } from "../../fields/types/formBoundTypes";
 import {
 	readFormikFieldError,
 	resolveBoundDisplayString,
 } from "../../fields/formBoundFieldProps";
-import styles from "./index.module.scss";
+// 引用了AvatarUploadBody组件，用于预览与选图控件
+import {
+	AvatarUploadBody,
+	avatarPreviewUrl,
+} from "./com/AvatarUploadBody";
+import { useAvatarUploadSession } from "./hooks/useAvatarUploadSession";
 
 export const FormAvatarUpload: FC<
 	FormBoundFieldProps<Record<string, unknown>>
@@ -35,27 +39,28 @@ export const FormAvatarUpload: FC<
 	value: valueOverride,
 	// onChange 是 comProps 逃生写回，用于覆盖 setFieldValue
 	onChange: onChangeOverride,
+	// uploadFile 是直传回调，用于选图后落盘并返回 assetId
+	uploadFile,
 }) {
 	const errorMsg = readFormikFieldError(formik, name);
 	const valueStr = resolveBoundDisplayString(formik, name, valueOverride);
 
-	function writeValue(next: string): void {
-		if (onChangeOverride) {
-			onChangeOverride(next);
-			return;
-		}
-		void formik.setFieldValue(name, next);
-		void formik.setFieldTouched(name, true);
-	}
+	const session = useAvatarUploadSession({
+		uploadFile,
+		onUploaded: function onUploaded(assetId) {
+			if (onChangeOverride) {
+				onChangeOverride(assetId);
+				return;
+			}
+			void formik.setFieldValue(name, assetId);
+			void formik.setFieldTouched(name, true);
+		},
+	});
 
-	function handleFilePick(e: ChangeEvent<HTMLInputElement>): void {
-		const file = e.target.files?.[0];
-		if (!file) return;
-		// 本步不真上传：用文件名派生会话内 assetId，待资源库批接真实上传
-		const stem = file.name.replace(/\.[^.]+$/, "").replace(/\s+/g, "_");
-		writeValue(`asset_avatar_${stem || "upload"}`);
-		e.target.value = "";
-	}
+	const remotePreview =
+		valueStr.trim().length > 0 ? avatarPreviewUrl(valueStr.trim()) : null;
+	const previewSrc = session.localPreviewUrl ?? remotePreview;
+	const pickDisabled = Boolean(disabled || session.uploading || !uploadFile);
 
 	return (
 		// 引用了FormFieldShell组件，用于统一 label/必填星/错误/watch 外壳
@@ -67,46 +72,15 @@ export const FormAvatarUpload: FC<
 			helperText={helperText}
 			watchText={valueStr || "默认头像"}
 		>
-			<div className={styles.row}>
-				<span className={styles.preview} aria-hidden>
-					{valueStr ? valueStr.slice(0, 1).toUpperCase() : "?"}
-				</span>
-				<div className={styles.controls}>
-					{/* 引用了TextField组件，用于手填或回读 avatarAssetId */}
-					<TextField
-						name={name}
-						value={valueStr}
-						onChange={(e) => writeValue(e.target.value)}
-						onBlur={() => {
-							void formik.setFieldTouched(name, true);
-						}}
-						size="small"
-						fullWidth
-						disabled={disabled}
-						placeholder="资源 id，如 asset_avatar_lanxing"
-						inputProps={{ "aria-label": label }}
-					/>
-					<label className={styles.fileLabel}>
-						<input
-							type="file"
-							accept="image/*"
-							disabled={disabled}
-							className={styles.fileInput}
-							onChange={handleFilePick}
-							aria-label="选择头像文件"
-						/>
-						{/* 引用了Button组件，用于触发本地文件选择 */}
-						<Button
-							component="span"
-							variant="outlined"
-							size="small"
-							disabled={disabled}
-						>
-							选择图片
-						</Button>
-					</label>
-				</div>
-			</div>
+			{/* 引用了AvatarUploadBody组件，用于预览与上传控件 */}
+			<AvatarUploadBody
+				assetId={valueStr}
+				previewSrc={previewSrc}
+				disabled={pickDisabled}
+				uploading={session.uploading}
+				uploadError={session.uploadError}
+				onFilePick={session.handleFilePick}
+			/>
 		</FormFieldShell>
 	);
 };

@@ -2,7 +2,7 @@
 	"schemaVersion": 1,
 	"agentId": "xiaopi",
 	"displayName": "小皮",
-	"dialable": true,
+	"dialable": false,
 	"identity": {
 		"fullName": "小皮",
 		"nickname": "小皮",

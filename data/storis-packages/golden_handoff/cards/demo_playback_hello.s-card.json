@@ -2,7 +2,7 @@
   "cardId": "demo_playback_hello",
   "cardKind": "story",
   "title": "样例播放：开场音",
-  "ownerAgentId": "doubao-sister",
+  "ownerAgentId": "lanxing",
   "entryMode": "outbound_auto",
   "interactionMode": "playback_only",
   "context": {

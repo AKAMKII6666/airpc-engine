@@ -3,11 +3,11 @@
   "packageId": "golden_handoff",
   "lanes": [
     {
-      "agentId": "doubao-sister",
+      "agentId": "lanxing",
       "order": 0
     },
     {
-      "agentId": "xiaoyu",
+      "agentId": "xiaopi",
       "order": 1
     }
   ],
@@ -18,7 +18,7 @@
       "y": 88
     },
     {
-      "cardId": "xiaoyu_waiting_user",
+      "cardId": "xiaopi_waiting_user",
       "x": 200,
       "y": 288
     },

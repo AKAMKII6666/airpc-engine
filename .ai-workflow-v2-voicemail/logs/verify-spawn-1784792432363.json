@@ -1,0 +1,13 @@
+{
+  "command": "/bin/sh",
+  "args": [
+    "-c",
+    "test -f \"docs/AI和人类/需求/04-调试器界面需求.md\" && test -f \"docs/AI和人类/需求/08-内容校验规则.md\" && test -f \"docs/AI和人类/技术设计文档/07-壳嵌入与导出契约.md\" && test -f \"docs/AI和人类/技术设计文档/19-引擎宿主与会话模型.md\""
+  ],
+  "workdir": "/Users/bolbiao/workspace/airpc-engine",
+  "logFile": "/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-voicemail/logs/verify-1784792432363.log",
+  "heartbeatMs": 30000,
+  "label": "verify:test -f \"docs/AI和人类/需求/04-调试器界面需求.md\" && test -f \"docs/AI和人类",
+  "role": "verify",
+  "uiPipe": true
+}

@@ -1,5 +1,6 @@
 /**
 	* GET/PUT /api/stories/[packageId] — 整包读 / 整包写 data/storis-packages。
+	* PUT：写盘后 validatePackage；error 回滚并阻断（PACKAGE_VALIDATION_FAILED）。
 	*/
 import { isEngineError } from "@airpc/rpg-engine";
 import {
@@ -7,10 +8,9 @@ import {
 	apiOk,
 	httpStatusForCode,
 } from "@studio-v2/src/utils/server/http/apiResponse.server";
-import {
-	readDiskStoryPackage,
-	writeDiskStoryPackage,
-} from "@studio-v2/src/utils/server/packages/fs/packagesFs.server";
+import { reloadStudioV2WorkspaceIfBooted } from "@studio-v2/src/utils/server/host/engineHost.server";
+import { readDiskStoryPackage } from "@studio-v2/src/utils/server/packages/fs/packagesFs.server";
+import { writeValidatedDiskStoryPackage } from "@studio-v2/src/utils/server/packages/fs/writeValidatedPackage.server";
 
 function failFromUnknown(err: unknown): Response {
 	if (isEngineError(err)) {
@@ -41,7 +41,7 @@ export async function GET(
 }
 
 /**
-	* 整包保存：body = { conf, cards, layout? }；layout 缺省时写安全默认坐标。
+	* 整包保存：body = { conf, cards, layout? }；写后 validate；error 回滚不保留坏盘。
 	*/
 export async function PUT(
 	req: Request,
@@ -64,12 +64,24 @@ export async function PUT(
 		if (confObj.packageId && confObj.packageId !== packageId) {
 			return apiFail("VALIDATION_FAILED", "conf.packageId mismatch");
 		}
-		const bundle = await writeDiskStoryPackage(packageId, {
+		const result = await writeValidatedDiskStoryPackage(packageId, {
 			conf: body.conf,
 			cards: body.cards,
 			layout: body.layout,
 		});
-		return apiOk(bundle);
+		if (!result.ok) {
+			return apiFail(
+				"PACKAGE_VALIDATION_FAILED",
+				`故事包校验未通过（${result.report.errors.length} 个错误）`,
+				422,
+				{ report: result.report },
+			);
+		}
+		await reloadStudioV2WorkspaceIfBooted();
+		return apiOk({
+			bundle: result.bundle,
+			validation: result.report,
+		});
 	} catch (err) {
 		return failFromUnknown(err);
 	}

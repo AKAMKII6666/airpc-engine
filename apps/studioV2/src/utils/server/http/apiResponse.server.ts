@@ -27,12 +27,15 @@ export function httpStatusForCode(code: string): number {
 		case "VALIDATION_FAILED":
 		case "INVALID_PACKAGE_ID":
 			return 400;
+		case "PACKAGE_VALIDATION_FAILED":
+			return 422;
 		case "UNAUTHORIZED":
 			return 401;
 		case "USER_REQUIRED":
 			return 403;
 		case "NOT_FOUND":
 			return 404;
+		case "CONFLICT":
 		case "CONFLICT_ACTIVE_CALL":
 		case "CHARACTER_NOT_DIALABLE":
 		case "STORY_LOCKED":

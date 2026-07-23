@@ -1,12 +1,13 @@
 /**
 	* 出口 Effect 专属面板分发器：按 effect 名路由到具体参数面板。
-	* 已覆盖全部 14 种 effect（含 attach/unmount 连线子型走 MountEffectPanel）；未知名回落占位面板。
+	* 已覆盖全部 13 种 effect（含 attach/unmount 连线子型走 MountEffectPanel）；未知名回落占位面板。
+	* create_voicemail 已从白名单与面板彻底移除（改 attach/schedule 指向 voicemail 卡）。
 	* 用查表替代 switch，避免圈复杂度堆叠。
 	*/
 "use client";
 
 import type { FC } from "react";
-import type { KnownEffectName } from "@airpc/rpg-engine";
+import type { KnownEffectName } from "@studio-v2/typeFiles/story/callCard/engineOutcome";
 import type { EffectPanelSlotProps } from "@studio-v2/src/pageComponents/storyEditor/com/panel/ExitListEditor/com/effects/effectPanelSlot";
 // 引用了KeepCardPendingEffectPanel组件，用于 keep_card_pending 无参说明
 import { KeepCardPendingEffectPanel } from "@studio-v2/src/pageComponents/storyEditor/com/panel/ExitListEditor/com/effects/KeepCardPendingEffectPanel";
@@ -20,8 +21,6 @@ import { CreateResearchCommitmentEffectPanel } from "@studio-v2/src/pageComponen
 import { UpdateUserProfileEffectPanel } from "@studio-v2/src/pageComponents/storyEditor/com/panel/ExitListEditor/com/effects/UpdateUserProfileEffectPanel";
 // 引用了SetWorldFactEffectPanel组件，用于 set_world_fact 面板
 import { SetWorldFactEffectPanel } from "@studio-v2/src/pageComponents/storyEditor/com/panel/ExitListEditor/com/effects/SetWorldFactEffectPanel";
-// 引用了CreateVoicemailEffectPanel组件，用于 create_voicemail 面板
-import { CreateVoicemailEffectPanel } from "@studio-v2/src/pageComponents/storyEditor/com/panel/ExitListEditor/com/effects/CreateVoicemailEffectPanel";
 // 引用了PlaySystemPromptEffectPanel组件，用于 play_system_prompt 面板
 import { PlaySystemPromptEffectPanel } from "@studio-v2/src/pageComponents/storyEditor/com/panel/ExitListEditor/com/effects/PlaySystemPromptEffectPanel";
 // 引用了ScheduleRecurringCallEffectPanel组件，用于 schedule_recurring_call 面板
@@ -52,7 +51,6 @@ const EFFECT_PANEL_BY_NAME: Partial<
 	create_research_commitment: CreateResearchCommitmentEffectPanel,
 	update_user_profile: UpdateUserProfileEffectPanel,
 	set_world_fact: SetWorldFactEffectPanel,
-	create_voicemail: CreateVoicemailEffectPanel,
 	play_system_prompt: PlaySystemPromptEffectPanel,
 	end_story: EndStoryEffectPanel,
 	set_character_unlocked: SetCharacterUnlockedEffectPanel,

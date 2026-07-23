@@ -1,11 +1,18 @@
 /**
-	* 出口 Effect 单行：effect 枚举下拉（每项挂 Tooltip）+ 专属参数面板 + 摘要 + 删除。
+	* 出口 Effect 单行：effect 枚举下拉（每项挂 Tooltip）+ critical 开关 + 专属参数面板 + 摘要 + 删除。
 	* 从 ExitEffectsList 拆出以压低父组件行数；不承载列表增删逻辑。
 	*/
 "use client";
 
 import type { FC } from "react";
-import { IconButton, MenuItem, TextField, Tooltip } from "@mui/material";
+import {
+	FormControlLabel,
+	IconButton,
+	MenuItem,
+	Switch,
+	TextField,
+	Tooltip,
+} from "@mui/material";
 import type { EditorExitEffectProjection } from "@studio-v2/typeFiles/story/editor/callCard/editorCallCardProjection";
 import type {
 	EditorEffectParams,
@@ -21,6 +28,7 @@ export type ExitEffectRowProps = {
 	fx: EditorExitEffectProjection;
 	sources: EffectPanelSources;
 	onEffectChange: (rawEffect: string) => void;
+	onCriticalChange: (critical: boolean) => void;
 	onParamsChange: (params: EditorEffectParams) => void;
 	onSummaryChange: (summary: string) => void;
 	onRemove: () => void;
@@ -33,6 +41,8 @@ export const ExitEffectRow: FC<ExitEffectRowProps> = function ExitEffectRow({
 	sources,
 	// onEffectChange 是 effect 枚举写回，用于切换效果种类
 	onEffectChange,
+	// onCriticalChange 是 critical 写回，用于「失败则中止后续」
+	onCriticalChange,
 	// onParamsChange 是参数写回，用于同步该行 params
 	onParamsChange,
 	// onSummaryChange 是摘要写回，用于同步人话摘要
@@ -76,6 +86,20 @@ export const ExitEffectRow: FC<ExitEffectRowProps> = function ExitEffectRow({
 					×
 				</IconButton>
 			</div>
+			{/* 引用了FormControlLabel组件，用于 critical 失败中止开关 */}
+			<FormControlLabel
+				control={
+					// 引用了Switch组件，用于 effect.critical 写回
+					<Switch
+						checked={fx.critical === true}
+						onChange={(e) => {
+							onCriticalChange(e.target.checked);
+						}}
+						size="small"
+					/>
+				}
+				label="失败则中止后续 Effect"
+			/>
 			{/* 引用了ExitEffectPanel组件，用于该 effect 的专属参数面板 */}
 			<ExitEffectPanel
 				effect={fx.effect}

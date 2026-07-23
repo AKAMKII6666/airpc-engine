@@ -1,0 +1,15 @@
+{
+  "assetId": "asset_avatar_1e4ab8bc149bd30b6ac19301c_2",
+  "kind": "image",
+  "uri": "files/asset_avatar_1e4ab8bc149bd30b6ac19301c_2.jpg",
+  "displayName": "1e4ab8bc149bd30b6ac19301c49b8883",
+  "meta": {
+    "studioKind": "image",
+    "format": "jpg",
+    "measureValue": 16533,
+    "measureUnit": "size_bytes",
+    "mimeType": "image/jpeg",
+    "pendingFile": false,
+    "usage": "avatar"
+  }
+}

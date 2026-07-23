@@ -1,0 +1,26 @@
+{
+  "cardId": "lanxing_morning_checkin",
+  "cardKind": "schedule",
+  "title": "澜星·晨间问候",
+  "ownerAgentId": "lanxing",
+  "entryMode": "outbound_auto",
+  "interactionMode": "realtime_dialogue",
+  "context": {
+    "privateBrief": "角色日常晨间主动外呼；非剧情主线卡。",
+    "speakableBrief": "早啊，过来打个招呼。",
+    "background": "",
+    "premise": "",
+    "emotion": "轻松",
+    "objective": "自然打个招呼",
+    "forbidden": ["剧透未解锁剧情"]
+  },
+  "objectives": { "requiredBeats": [] },
+  "toolPolicy": { "mode": "inherit_free" },
+  "exits": [],
+  "schedule": {
+    "mode": "daily",
+    "hour": 9,
+    "minute": 30,
+    "blockedByActiveStoryLock": true
+  }
+}

@@ -2,8 +2,7 @@
 	* 角色页定时外呼 BFF：按 userId + agentId 读写 schedule.intents。
 	*/
 import { parseStudioApiJson } from "@studio-v2/src/utils/ajaxHelper/studioApiClient";
-import type { ScheduledIntent } from "@airpc/rpg-engine";
-
+import type { ScheduledIntent } from "@studio-v2/typeFiles/library/schedule/engineScheduledIntent";
 export type ScheduleListDto = {
 	clockMs: number;
 	intents: ScheduledIntent[];

@@ -1,14 +1,19 @@
 /**
-	* 出口列表单行：名称 / 类别 / 优先级 / 条件概要 / effects 列表。
+	* 出口列表单行：名称 / 优先级 / ExitCondition v1 / effects。
+	* exitKind 为可选磁盘字段，Studio 不展示（避免误当成运行时配置）。
 	* 从 ExitListEditor 拆出，压低父组件有效行数。
 	*/
 "use client";
 
 import type { FC } from "react";
-import { IconButton, MenuItem, TextField, Typography } from "@mui/material";
+import { IconButton, TextField, Typography } from "@mui/material";
 import type { ExitListFormRow } from "@studio-v2/src/bis/pageBis/storyEditor/form/exitList/exitListForm";
 import type { EffectPanelSources } from "@studio-v2/typeFiles/story/editor/callCard/editorEffectParams";
-import { EXIT_KIND_OPTIONS } from "@studio-v2/typeFiles/story/callCardLabels";
+import {
+	defaultExitCondition,
+} from "@studio-v2/src/bis/pageBis/storyEditor/form/exitList/exitConditionForm";
+// 引用了ExitConditionEditor组件，用于出口条件 v1 编辑
+import { ExitConditionEditor } from "@studio-v2/src/pageComponents/storyEditor/com/panel/ExitListEditor/com/ExitConditionEditor";
 // 引用了ExitEffectsList组件，用于出口 effects 列表编辑
 import { ExitEffectsList } from "@studio-v2/src/pageComponents/storyEditor/com/panel/ExitListEditor/com/ExitEffectsList";
 import styles from "../index.module.scss";
@@ -16,6 +21,8 @@ import styles from "../index.module.scss";
 export type ExitListRowProps = {
 	row: ExitListFormRow;
 	index: number;
+	/** 本卡 requiredBeats；下传条件 beatId Select */
+	requiredBeats: readonly string[];
 	/** Effect id 下拉候选源；下传 effects 列表 */
 	sources: EffectPanelSources;
 	onPatch: (index: number, patch: Partial<ExitListFormRow>) => void;
@@ -27,6 +34,8 @@ export const ExitListRow: FC<ExitListRowProps> = function ExitListRow({
 	row,
 	// index 是在 exits[] 中的下标，用于写回定位
 	index,
+	// requiredBeats 是本卡必做节拍，用于条件 beatId 下拉
+	requiredBeats,
 	// sources 是 Effect id 下拉候选源，用于 effects 列表
 	sources,
 	// onPatch 是局部字段写回，用于改名称/类别等
@@ -62,32 +71,6 @@ export const ExitListRow: FC<ExitListRowProps> = function ExitListRow({
 					onPatch(index, { title: e.target.value });
 				}}
 			/>
-			{/* 引用了TextField组件，用于出口类别 */}
-			<TextField
-				size="small"
-				fullWidth
-				select
-				label="出口类别"
-				value={row.exitKind ?? ""}
-				onChange={(e) => {
-					const value = e.target.value;
-					onPatch(index, {
-						exitKind:
-							value === ""
-								? undefined
-								: (value as ExitListFormRow["exitKind"]),
-					});
-				}}
-			>
-				{/* 引用了MenuItem组件，用于清空 exitKind */}
-				<MenuItem value="">（未设）</MenuItem>
-				{EXIT_KIND_OPTIONS.map((opt) => (
-					// 引用了MenuItem组件，用于 exitKind 选项
-					<MenuItem key={opt.value} value={opt.value}>
-						{opt.label}
-					</MenuItem>
-				))}
-			</TextField>
 			{/* 引用了TextField组件，用于优先级 */}
 			<TextField
 				size="small"
@@ -104,18 +87,13 @@ export const ExitListRow: FC<ExitListRowProps> = function ExitListRow({
 					onPatch(index, { priority: Number(raw) });
 				}}
 			/>
-			{/* 引用了TextField组件，用于条件概要 */}
-			<TextField
-				size="small"
-				fullWidth
-				multiline
-				minRows={2}
-				label="条件概要"
-				value={row.conditionSummary}
-				onChange={(e) => {
-					onPatch(index, { conditionSummary: e.target.value });
+			{/* 引用了ExitConditionEditor组件，用于出口条件 v1 编辑 */}
+			<ExitConditionEditor
+				condition={row.condition ?? defaultExitCondition()}
+				requiredBeats={requiredBeats}
+				onChange={(next) => {
+					onPatch(index, next);
 				}}
-				helperText="供节点 Tooltip 与列表预览；非完整 ExitCondition 树。"
 			/>
 			{/* 引用了ExitEffectsList组件，用于出口 effects 列表编辑 */}
 			<ExitEffectsList

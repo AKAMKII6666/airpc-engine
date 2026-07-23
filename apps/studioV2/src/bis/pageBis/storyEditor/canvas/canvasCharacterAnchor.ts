@@ -9,7 +9,7 @@ import type {
 import type { CharacterSummary } from "@studio-v2/typeFiles/library/characters/form/characterSummary";
 
 /**
-	* 由角色库 Summary 生成画布锚点 data；新建落盘后挂到画布。
+	* 由角色库 Summary 生成画布锚点 data；新建落盘后挂到画布（尚无挂卡 → 「本章未挂卡」）。
 	*/
 export function characterSummaryToAnchorData(
 	summary: CharacterSummary,
@@ -17,7 +17,7 @@ export function characterSummaryToAnchorData(
 	return {
 		agentId: summary.agentId,
 		displayName: summary.displayName,
-		statusLabel: "待挂卡",
+		statusLabel: "本章未挂卡",
 		pendingCardCount: 0,
 	};
 }

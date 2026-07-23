@@ -34,16 +34,16 @@ export {
 
 /**
 	* 画布内角色锚点节点 data。
-	* 打开时由 bundle.participants/lanes + 角色库 displayName 生成；选中后打开角色库同款 FormModal。
+	* 打开时由角色库全量（/api/characters）+ 本包挂卡统计生成；pendingCardCount=0 可灰显；选中后打开角色库同款 FormModal。
 	*/
 export type CharacterAnchorNodeData = {
 	/** 角色系统键；与 data/characters agentId 对齐 */
 	agentId: string;
 	/** 人类可读角色名；来自 /api/characters，同步到 CallCard ownerDisplayName */
 	displayName: string;
-	/** 锚点状态人话；仅 UI 展示 */
+	/** 锚点状态人话：有卡「本包 · N 卡」，无「本章未挂卡」 */
 	statusLabel: string;
-	/** 当前挂在该角色上的卡数量；0 表示无挂卡 */
+	/** 当前挂在该角色上的本包卡数量；0 表示未挂卡（UI 灰显） */
 	pendingCardCount: number;
 };
 

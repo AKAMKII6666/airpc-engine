@@ -1,35 +1,51 @@
 /**
 	* 故事编辑器资源浮窗：新建 / 编辑 / 删除复用 /assets FormModal + bis。
-	* mock 仅会话内；禁止在 storyEditor 内复制 asset 字段定义。
+	* 真源 = /api/assets ↔ data/assets；禁止 MOCK_ASSETS。
 	*/
 "use client";
 
-import { useCallback, useState } from "react";
-import { commitCreateAssetMock } from "@studio-v2/src/bis/pageBis/assets/createAsset_bis";
+import { useCallback, useEffect, useState } from "react";
+import { commitCreateAsset } from "@studio-v2/src/bis/pageBis/assets/createAsset_bis";
 import type { CreateAssetFormValues } from "@studio-v2/src/bis/pageBis/assets/createAssetForm";
 import {
-	commitUpdateAssetMock,
 	toAssetDetailFormValues,
 	type AssetDetailFormValues,
 } from "@studio-v2/src/bis/pageBis/assets/assetDetailForm";
-import { commitDeleteAssetMock } from "@studio-v2/src/bis/pageBis/assets/delete/deleteAsset_bis";
-import { listMockAssets } from "@studio-v2/src/utils/ajaxProxy/library/mock/mockLibraryData";
+import { commitSaveAssetDetail } from "@studio-v2/src/bis/pageBis/assets/save/saveAsset_bis";
+import { commitDeleteAsset } from "@studio-v2/src/bis/pageBis/assets/delete/deleteAsset_bis";
+import { fetchAssetSummaries } from "@studio-v2/src/utils/ajaxProxy/library/api/assetsApi";
 import type { AssetSummary } from "@studio-v2/typeFiles/library/assets/assetSummary";
+
+/** 从错误对象取可展示文案 */
+function errorMessage(error: unknown, fallback: string): string {
+	if (error instanceof Error && error.message.trim() !== "") {
+		return error.message;
+	}
+	return fallback;
+}
 
 /**
 	* 编辑器资源浮窗会话态：列表快照 + 新建/编辑/删除弹层。
-	* 提交走 assets 同款 bis；不写盘。
+	* 提交走 assets 同款 bis；写盘。
 	*/
 export function useStoryEditorAssetForms() {
-	const [assets, setAssets] = useState<AssetSummary[]>(() => listMockAssets());
+	const [assets, setAssets] = useState<AssetSummary[]>([]);
 	const [createOpen, setCreateOpen] = useState(false);
 	const [editAsset, setEditAsset] = useState<AssetSummary | null>(null);
 	const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 	const [deleteError, setDeleteError] = useState<string | undefined>();
 
-	const refreshAssets = useCallback(() => {
-		setAssets(listMockAssets());
+	const refreshAssets = useCallback(async function () {
+		try {
+			setAssets(await fetchAssetSummaries());
+		} catch {
+			setAssets([]);
+		}
 	}, []);
+
+	useEffect(() => {
+		void refreshAssets();
+	}, [refreshAssets]);
 
 	const openCreate = useCallback(() => {
 		setCreateOpen(true);
@@ -59,8 +75,8 @@ export function useStoryEditorAssetForms() {
 
 	const onCreateSubmit = useCallback(
 		async (values: CreateAssetFormValues): Promise<void> => {
-			commitCreateAssetMock(values);
-			refreshAssets();
+			await commitCreateAsset(values);
+			await refreshAssets();
 			setCreateOpen(false);
 		},
 		[refreshAssets],
@@ -71,26 +87,22 @@ export function useStoryEditorAssetForms() {
 			if (!editAsset) {
 				throw new Error("编辑态未就绪，请重新选择资源");
 			}
-			commitUpdateAssetMock(editAsset, values);
-			refreshAssets();
+			await commitSaveAssetDetail(editAsset, values);
+			await refreshAssets();
 			setEditAsset(null);
 		},
 		[editAsset, refreshAssets],
 	);
 
-	const onConfirmDelete = useCallback(() => {
+	const onConfirmDelete = useCallback(async () => {
 		if (deleteTargetId == null) return;
 		try {
-			commitDeleteAssetMock(deleteTargetId);
-			refreshAssets();
+			await commitDeleteAsset(deleteTargetId);
+			await refreshAssets();
 			setDeleteTargetId(null);
 			setDeleteError(undefined);
 		} catch (error) {
-			const message =
-				error instanceof Error && error.message.trim() !== ""
-					? error.message
-					: "删除失败，请稍后重试";
-			setDeleteError(message);
+			setDeleteError(errorMessage(error, "删除失败，请稍后重试"));
 		}
 	}, [deleteTargetId, refreshAssets]);
 

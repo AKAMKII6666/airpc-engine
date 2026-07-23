@@ -9,28 +9,29 @@ alwaysApply: true
 
 **导航**：[AGENTS.md](../../AGENTS.md)。  
 **需求总纲**：[docs/AI和人类/需求/00-文档索引.md](../../docs/AI和人类/需求/00-文档索引.md)。  
-**技术设计**：[docs/AI和人类/技术设计文档/00-技术设计索引.md](../../docs/AI和人类/技术设计文档/00-技术设计索引.md) · [19](../../docs/AI和人类/技术设计文档/19-引擎宿主与会话模型.md)。
+**技术设计**：[docs/AI和人类/技术设计文档/00-技术设计索引.md](../../docs/AI和人类/技术设计文档/00-技术设计索引.md) · [19](../../docs/AI和人类/技术设计文档/19-引擎宿主与会话模型.md) · [23](../../docs/AI和人类/技术设计文档/23-引擎存取Port与IO适配.md)。
 
 本仓库是 **AI-RPG NPC 引擎 + B/S Studio**；电话壳不在本仓。
 
-拓扑：**浏览器 (MUI + scss module + Zustand/bis/shell) → Next 门面 → EngineHost 单例 → data/**。
+拓扑：**浏览器 (MUI + scss module + Zustand/bis/shell) → Next 门面（装配 engineIOModule） → EngineHost 单例（Port） → engineIOModule → data/**。
 
 ## 必须执行
 
-- **`packages/rpg-engine` 纯 TypeScript**：禁 `react` / `react-dom` / `next` / `@xyflow/*` / 浏览器 DOM。
-- **引擎只跑在 server / 壳**；禁 client import 引擎写口；**Host 进程单例**（本机 v1）。
-- **Next 为 API 门面**：注入 `userId`（无密码，经 UserGate）、DTO、错误码、save；不实现剧情规则。
-- **浏览器只请求与展示**：不持 LLM Key；不以 client store 为 Profile/Memory 真源。
+- **`packages/rpg-engine` 纯 TypeScript**：禁 `react` / `react-dom` / `next` / `@xyflow/*` / 浏览器 DOM；禁本包内 `node:fs` / `better-sqlite3` **实现**（契约可留）。
+- **引擎只跑在 server / 壳**；**Host 进程单例**（本机 v1）。
+- **Next 为 API 门面**：注入 `userId`（无密码，经 UserGate）、DTO、错误码、save；装配 `engineIOModule` → Host；不实现剧情规则。
+- **浏览器只请求与展示**：不持 LLM Key；不以 client store 为 Profile/Memory 真源；禁 import `engineIOModule`。
+- **Studio V2 端口隔离（硬）**：Client 与 Server/引擎禁止任何模块级 import（含 `import type`）；唯一互通 = XHR↔API；类型与轻量函数两端可复制、禁止交叉引用。详见 [studio-v2-client-server-isolation.mdc](./studio-v2-client-server-isolation.mdc)。
 - **Studio UI = 仅 MUI**；样式 **CSS Modules + SCSS**；画布 `@xyflow/react`。
 - **Studio 客户端 = Zustand + bis + shell**（见技术设计 [21](../../docs/AI和人类/技术设计文档/21-Studio客户端分层.md)）。
 - **经历态**：薄 Profile JSON + Memory SQLite；**CallSession** 在 Host 内存（默认不进 SaveGame）。
-- **持久化 v1** = Content/薄 Profile JSON + Memory SQLite + `logs/*.jsonl`（见技术设计 18/19/20）。
+- **持久化 v1** = Content/薄 Profile JSON + Memory SQLite + `logs/*.jsonl`（布局见 18/19/20；**读写经 Port**，本机实现 = `apps/studioV2/engineIOModule/`，协议见 [23](../../docs/AI和人类/技术设计文档/23-引擎存取Port与IO适配.md)）。
 - **Story**：Outcome → ExitSelector → Effect (+ Sink)。**Free**：`FreeCallPostPipeline`（MemoryCommit；有 candidate 再 Exit）；`packageId=__free__`。
 - **可拨**：`effectiveDialable = dialable || unlocked`；解锁经 `set_character_unlocked`。
 - **通话中**工具只登记 `RuntimeExitCandidate`；禁直接 Effect；禁 onConnect 写记忆；禁 Free 隐式扫 transcript 写 Profile。
 - **调试与编辑分离**：调试不改卡；本通 `frozenCard`。
 - **不设 Relay**；条件为结构化谓词；**不对标实现、不迁移**旧话机（能力参考见需求 13；新壳另建）。
-- **Barrel：** `@airpc/rpg-engine` **允许且鼓励** `src/index.ts` 统一门面倒出；Studio/壳只 `import from "@airpc/rpg-engine"`，禁深挖引擎内部。**`apps/studio` 内禁止** `index.ts` barrel（bis/store/ajaxHelper/uiComponents/types 等直引具体文件）。
+- **Barrel：** `@airpc/rpg-engine` **允许且鼓励** `src/index.ts` 统一门面倒出；**仅** Next `app/api` / `*.server.ts` / `utils/server` / 壳 Node / Vitest 可 `import from "@airpc/rpg-engine"`；**Studio V2 Client 区禁止**对引擎的任何 import（含 type）；禁深挖引擎内部。**`apps/studio` / `studioV2` 内禁止** `index.ts` barrel（bis/store/ajaxHelper/uiComponents/types 等直引具体文件）。
 - **目录职责聚类（反平铺）：** 同目录 ≥2 组异责且可分类文件 **≥4** → 必须分子目录；禁止长前缀代目录；不为空壳未来域建单文件空目录；本任务新增若恶化平铺须当场收目录。
 - **测试隔离：** 用例进独立 `tests/`；禁止与 `src`/`app`/`bis` 业务文件平放 `*.test.ts`。
 - 修改聚焦任务；**不要自动 commit**，除非用户明确要求。
@@ -45,19 +46,22 @@ alwaysApply: true
 
 | 文件 | 触发 | 详情 |
 |------|------|------|
-| [engine-boundaries.mdc](./engine-boundaries.mdc) | `packages/rpg-engine/**` | [05](../../docs/AI和人类/技术设计文档/05-技术选型与工程边界.md)、[19](../../docs/AI和人类/技术设计文档/19-引擎宿主与会话模型.md) |
+| [engine-boundaries.mdc](./engine-boundaries.mdc) | `packages/rpg-engine/**` | [05](../../docs/AI和人类/技术设计文档/05-技术选型与工程边界.md)、[19](../../docs/AI和人类/技术设计文档/19-引擎宿主与会话模型.md)、[23](../../docs/AI和人类/技术设计文档/23-引擎存取Port与IO适配.md) |
 | [engine-code-quality.mdc](./engine-code-quality.mdc) | `packages/rpg-engine/**`、`scripts/engine-quality/**` | 结构门禁、基线止血、`quality:engine`（本库真源，非 gbx） |
 | [studio-boundaries.mdc](./studio-boundaries.mdc) | `apps/studio/**` | [03](../../docs/AI和人类/需求/03-编辑器界面需求.md)、[21](../../docs/AI和人类/技术设计文档/21-Studio客户端分层.md)、[19](../../docs/AI和人类/技术设计文档/19-引擎宿主与会话模型.md) |
+| [studio-v2-client-server-isolation.mdc](./studio-v2-client-server-isolation.mdc) | `apps/studioV2/**` | Client↔Server 禁止交叉 import；[08 §3.3](../../docs/AI和人类/sudioV2.0版本/需求/ui/08-Studio-V2前端工程规则与质量门禁需求.md) |
+| [studio-v2-quality.mdc](./studio-v2-quality.mdc) | Studio V2 | [V2 质量门禁需求](../../docs/AI和人类/sudioV2.0版本/需求/ui/08-Studio-V2前端工程规则与质量门禁需求.md) |
 | [docs-governance.mdc](./docs-governance.mdc) | `docs/**` | 三层 + 需求/技术分册 |
 | [docs-execution.mdc](./docs-execution.mdc) | docs/源码 | 编码前后读写 |
 | [testing-and-quality.mdc](./testing-and-quality.mdc) | 始终 | [06](../../docs/AI和人类/需求/06-验收标准.md) |
-| [studio-v2-quality.mdc](./studio-v2-quality.mdc) | Studio V2 | [V2 质量门禁需求](../../docs/AI和人类/sudioV2.0版本/需求/ui/08-Studio-V2前端工程规则与质量门禁需求.md) |
 
 ## 目标包结构
 
 ```text
-packages/rpg-engine/     # 准 npm；对外 index 门面；tests/ 独立
+packages/rpg-engine/     # 准 npm；对外 index 门面；Port 契约；tests/ 独立
 apps/studio/             # 禁 barrel；bis/store/ajaxHelper…
+apps/studioV2/
+  engineIOModule/        # 本机存取 IO（经 Port 注入 Host；禁 Client）
 data/                    # storis-packages/（正式故事包根）+ characters/ + users/ + …
 docs/人类/
 docs/AI和人类/需求/

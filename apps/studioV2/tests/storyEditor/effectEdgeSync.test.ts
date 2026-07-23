@@ -40,6 +40,7 @@ const sourceCard = callCard("card_src", "源卡", "lanxing", [
 	{
 		exitId: "exit_a",
 		priority: 0,
+		condition: { op: "always" },
 		conditionSummary: "",
 		effects: [
 			{
@@ -131,7 +132,15 @@ describe("reconcileEffectEdgesForCard", () => {
 			edges: seeded,
 			nodes,
 			sourceNodeId: "n_src",
-			exits: [{ exitId: "exit_a", priority: 0, conditionSummary: "", effects: [] }],
+			exits: [
+				{
+					exitId: "exit_a",
+					priority: 0,
+					condition: { op: "always" },
+					conditionSummary: "",
+					effects: [],
+				},
+			],
 		});
 		expect(next.filter(isEffectEdge)).toHaveLength(0);
 	});
@@ -162,7 +171,13 @@ describe("reverse sync helpers", () => {
 	it("appends attach row with default owner and returns effectId", () => {
 		const { card, effectId } = appendMountEffectRow({
 			card: callCard("card_src2", "S2", "a", [
-				{ exitId: "exit_a", priority: 0, conditionSummary: "", effects: [] },
+				{
+					exitId: "exit_a",
+					priority: 0,
+					condition: { op: "always" },
+					conditionSummary: "",
+					effects: [],
+				},
 			]),
 			exitId: "exit_a",
 			targetCardId: "card_x",

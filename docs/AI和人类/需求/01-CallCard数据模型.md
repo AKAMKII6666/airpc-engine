@@ -4,7 +4,7 @@
 
 **存档口径**：`CallCardInstance` / `CallCardBoard` 挂在当前用户的 [PlayerProfile](./10-用户与存档.md) 下，不是全局单例。
 
-相关：[02-运行时协议](./02-运行时协议.md) · [11-角色与社交](./11-角色与社交.md) · [07-壳嵌入与导出契约](../技术设计文档/07-壳嵌入与导出契约.md)
+相关：[02-运行时协议](./02-运行时协议.md) · [11-角色与社交](./11-角色与社交.md) · [07-壳嵌入与导出契约](../技术设计文档/07-壳嵌入与导出契约.md) · [语音留言改造需求](../里程碑/v2.0/语音留言改造需求.md)
 
 ## 1. 两层对象
 
@@ -18,9 +18,9 @@
 ## 2. CallCardDefinition
 
 ```ts
-type CardKind = "free" | "story" | "system"
+type CardKind = "free" | "story" | "system" | "schedule" | "voicemail"
 type InteractionMode = "realtime_dialogue" | "playback_only" | "hybrid"
-type EntryMode = "inbound_user_dial" | "outbound_auto" | "either"
+type EntryMode = "inbound_user_dial" | "outbound_auto" | "either" | "mailbox_open"
 
 interface CallCardDefinition {
   cardId: string
@@ -46,6 +46,18 @@ interface CallCardDefinition {
 | `free` | 自由通话默认卡；每角色应有且仅有一份默认 FreeCallCard（可在角色库配置） |
 | `story` | 强约束剧情卡 |
 | `system` | 系统/媒介卡（过场播放、系统提示等） |
+| `schedule` | 调度卡；**磁盘落点按用途分两路**，见 §8.1（禁止混用） |
+| `voicemail` | **语音留言卡**：进信箱、听完走本卡 exits；**永不**进入 `Board.pending`；不可经普通 `user_dial` / `agent_outbound` 解析为待接通剧情卡 |
+
+**`voicemail` 强制组合（校验 error，Studio 锁定 disable）：**
+
+| 字段 | 必须 |
+|------|------|
+| `interactionMode` | **仅** `playback_only` |
+| `entryMode` | **仅** `mailbox_open`（界面文案「信箱打开」） |
+| `toolPolicy` | 必须等价 `deny_all`（与 `playback_only` 一致） |
+
+`context` 对 voicemail 仍是剧情/生成合同：物化端口消费 `speakableBrief` / `privateBrief` / `objective` 等；若 `assets.playbackClipId` 已有成品片，物化可跳过 LLM 直接引用。详见 [语音留言改造需求 §3](../里程碑/v2.0/语音留言改造需求.md)。
 
 ### 2.2 entryMode
 
@@ -54,6 +66,7 @@ interface CallCardDefinition {
 | `inbound_user_dial` | 用户主动拨该角色才激活 |
 | `outbound_auto` | 系统安排角色外呼用户时激活 |
 | `either` | 两者皆可 |
+| `mailbox_open` | **信箱打开**：用户/调试从信箱条目进入听留言；**仅**与 `cardKind=voicemail` 配对 |
 
 ### 2.3 interactionMode
 
@@ -181,7 +194,7 @@ interface CallCardExit {
 
 - **不设**卡级 `fallback` 字段。失败、未接、重播、留言全部用 exit 表达。
 - **不设**底层必填的 `nextCardId`。挂下一张卡必须通过 effect（如 `attach_call_card`）。编辑器可提供「挂卡并连线」语法糖，保存时展开为 effects。
-- 一张卡应至少有一条可命中的 exit；story 卡建议同时覆盖成功与至少一条 failure/recovery。
+- 一张 story 卡应至少有一条可命中的 exit（校验 `EXIT_EMPTY_STORY`）；是否再分 failure/recovery 等 `exitKind` 为可选标签，不参与运行时选出口。voicemail 允许无 exits。
 
 ### 3.2 ExitCondition（结构化谓词，v1）
 
@@ -217,11 +230,11 @@ interface EffectBase {
 
 | effect | 参数要点 | 语义 |
 |--------|----------|------|
-| `attach_call_card` | `agentId`, `cardId`, `activation?` | 给角色挂 pending Instance（**引荐/带话用此 + 卡上下文**） |
+| `attach_call_card` | `agentId`, `cardId`, `activation?` | 见下方 **挂卡分流表**（普通卡 → Board.pending；voicemail → 进信箱生成栈） |
 | `unmount_call_card` | `agentId`, `cardId?`（缺省卸该角色匹配卡） | 卸卡 |
-| `schedule_call_card` | `agentId`, `cardId`, `delay: { minMs, maxMs }` | 延迟后外呼并激活 |
+| `schedule_call_card` | `agentId`, `cardId`, `delay: { minMs, maxMs }` | 见下方 **挂卡分流表**（普通卡 → 延迟外呼；voicemail → 延迟进信箱） |
 | `set_redial_slot` | `agentId`, `cardId?` | 设置重播槽指向该角色（及可选卡） |
-| `create_voicemail` | `agentId`, `cardId?`, `topicHint?` | 创建语音信箱 |
+| ~~`create_voicemail`~~ | — | **已废弃**：校验 error / Schema 拒识；Studio 下拉删除。留言一律用 `cardKind=voicemail` + `attach_call_card` / `schedule_call_card` |
 | `keep_card_pending` | `cardId?`（默认当前卡） | 通话结束后保持 pending |
 | `set_world_fact` | `factId`, `value` | 写 **Profile.world.facts** |
 | `update_npc_knowledge` | `agentId`, `factId`, `known: boolean` | 更新 **Profile.world.knowledge**（`agentId` 可≠当前通话角色） |
@@ -236,7 +249,16 @@ interface EffectBase {
 
 **不设**独立 `create_relay` / Relay 子系统。旧「带话」语义一律用 `attach_call_card`（或 `schedule_call_card`）+ 目标卡的 `privateBrief` / `speakableBrief` 表达；设计期是否允许引荐见角色 `social.canIntroduce`（[11](./11-角色与社交.md)）。
 
-未知 `effect` 名：校验失败，运行时拒绝执行。
+#### 挂卡 / 延迟分流（目标 `cardKind`）
+
+| Effect | 目标为普通卡（非 voicemail） | 目标为 `cardKind=voicemail` |
+|--------|------------------------------|------------------------------|
+| `attach_call_card` | 写 `Board.pending`（引荐/带话 + 卡上下文） | **不写 Board**；push **VoicemailGenStack**（立即）；plan 终态后物化进信箱 |
+| `schedule_call_card` | 写 once intent → 到点 `agent_outbound`（外呼响铃） | **不写 Board**；写 once intent，到点 **入栈/物化进信箱**（**不是**外呼响铃） |
+
+延迟语义钉死：「N 分钟后信箱多一条留言」，不是「N 分钟后电话响铃播留言卡」。到点若用户正在通话：**仍写入信箱槽**，不打断当前 CallSession。运行时细节见 [02 §8.4–§8.5](./02-运行时协议.md)。
+
+未知 `effect` 名：校验失败，运行时拒绝执行。包内若仍出现 `create_voicemail`：校验 **error**，并指引改为 `attach_call_card` / `schedule_call_card` 指向 `cardKind=voicemail` 卡。
 
 事实与 knowledge 的 schema 见 [40-世界柱](./40-世界柱.md)；记忆层见 [12-记忆模型](./12-记忆模型.md)。
 
@@ -377,8 +399,11 @@ interface StoryPackage {
   schemaVersion: 1
   packageId: string
   title: string
-  /** 参与角色；真源在 data/characters/，此处只引 agentId */
-  participants: string[]
+  /**
+   * 遗留可选字段；路径 B 下**不是**角色白名单。
+   * 新包可不写；保存推荐不写。校验按 cards/effects 派生引用集合，见 [08](./08-内容校验规则.md)。
+   */
+  participants?: string[]
   entryCardId: string
   /** 逻辑组装视图；磁盘上 conf 仅索引，见 19 */
   cards: CallCardDefinition[]
@@ -394,10 +419,28 @@ interface StoryPackage {
 }
 ```
 
+**角色真源**仅 `data/characters/<agentId>.json`。「本包用到谁」由 `cards[].ownerAgentId`、effects 内 `agentId`、attach 目标归属等**派生**，**禁止**把 `participants` 当白名单或作者手维护清单。
+
 **禁止**在包内维护 `agents[]` 第二份角色定义（避免与 `data/characters/` 双真源）。显示名 / Free 卡一律读角色库。
 
 完整 JSON 字段见卡文件；包目录与分文件约定见 [07](../技术设计文档/07-壳嵌入与导出契约.md)、[19 §3](../技术设计文档/19-引擎宿主与会话模型.md)。  
 **磁盘真源**：`story.conf.json` 的 `cards[]` 仅为索引；上表 `cards: CallCardDefinition[]` 表示 Host **组装后的逻辑视图**，非单文件内联编辑真源。
+
+### 8.1 Schedule 落盘分工（钉死）
+
+| 用途 | 落盘 | 运行 `packageId` | 谁维护 |
+|------|------|------------------|--------|
+| 角色日常 / 周期性外呼目标 | `data/characters/schedule-cards/<cardId>.s-card.json` | `__schedule__` | 角色库 / 专用路径（Studio `POST /api/schedule-cards`） |
+| 故事包内剧情调度节点 | `data/storis-packages/<pkg>/cards/<cardId>.s-card.json`（`cardKind=schedule`） | 真实故事包 id | 故事编辑器画布 |
+
+铁律：
+
+1. `schedule_recurring_call` 的目标**只**认 `scheduleCardId` → `characters/schedule-cards/`，或 `cardId` + `packageId=__schedule__`（同目录）；可选 `__free__` 下 free/schedule fallback。
+2. **禁止**把故事包内 `cardKind=schedule` 节点当作 recurring 目标（校验 `SCHEDULE_CARD_KIND`）。
+3. StoryCard 上挂 `schedule_recurring_call` → `SCHEDULE_RECURRING_IN_STORY` error。
+4. 画布把卡改成 `cardKind=schedule` 仍写回**本包** `cards/`（剧情节点）；日常调度卡必须走 schedule-cards 专用创建口，不得只靠改 cardKind「伪装」。
+
+详见 [19 §3.4](../技术设计文档/19-引擎宿主与会话模型.md)、[08](./08-内容校验规则.md) SCHEDULE_*。
 
 ## 9. Outcome（通话结果，供条件使用）
 

@@ -1,0 +1,2 @@
+[gbx] ▶ verify:test -f "docs/AI和人类/需求/01-CallCard数据模型.md" && test -f "docs/ start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] ■ verify:test -f "docs/AI和人类/需求/01-CallCard数据模型.md" && test -f "docs/ done exit=0 elapsed=0s

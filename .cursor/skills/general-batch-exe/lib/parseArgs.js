@@ -42,6 +42,10 @@ function parseArgs(argv) {
     workdir: process.cwd(),
     agentCmd: null,
     maxIterations: null,
+    /** 1|2|3 economy mode (null = use config/frontmatter/default). */
+    economy: null,
+    /** Mid-verify interval for economy=3 (null = use config). */
+    deferVerifyEvery: null,
   };
 
   const valueOptions = new Map([
@@ -51,6 +55,8 @@ function parseArgs(argv) {
     ['--workdir', 'workdir'],
     ['--agent-cmd', 'agentCmd'],
     ['--max-iterations', 'maxIterations'],
+    ['--economy', 'economy'],
+    ['--defer-verify-every', 'deferVerifyEvery'],
   ]);
 
   function fail(message) {
@@ -72,6 +78,23 @@ function parseArgs(argv) {
       const parsed = Number(value);
       if (!Number.isInteger(parsed) || parsed <= 0) {
         fail(`${option} must be a positive integer`);
+      }
+      out[key] = parsed;
+      return;
+    }
+    if (key === 'economy') {
+      const { normalizeEconomy } = require('./economy');
+      const parsed = normalizeEconomy(value);
+      if (parsed == null) {
+        fail(`${option} must be 1|2|3 (strict|lean|defer also accepted)`);
+      }
+      out[key] = parsed;
+      return;
+    }
+    if (key === 'deferVerifyEvery') {
+      const parsed = Number(value);
+      if (!Number.isInteger(parsed) || parsed < 0) {
+        fail(`${option} must be an integer >= 0`);
       }
       out[key] = parsed;
       return;

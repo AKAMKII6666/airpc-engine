@@ -10,6 +10,11 @@ import {
 	type CallCardDefinition,
 	type StoryPackageConf,
 } from "@airpc/rpg-engine";
+import {
+	deriveLayoutLanes,
+	listDerivedReferencedAgentIds,
+	omitParticipantsForDiskWrite,
+} from "@studio-v2/src/utils/server/packages/conf/referencedAgentsDerive.server";
 import { buildDefaultCanvasLayout } from "../layout/defaultCanvasLayout.server";
 import {
 	isValidPackageId,
@@ -20,7 +25,7 @@ import {
 import type {
 	DiskStoryPackageBundle,
 	StudioCanvasLayout,
-} from "@studio-v2/typeFiles/story/package/diskStoryPackage";
+} from "@studio-v2/src/utils/server/types/diskStoryPackage.server";
 
 async function readConfRaw(packageId: string): Promise<unknown> {
 	if (!isValidPackageId(packageId)) {
@@ -133,7 +138,7 @@ export async function readDiskStoryPackage(
 			conf.cards.map(function (c) {
 				return c.cardId;
 			}),
-			conf.participants,
+			listDerivedReferencedAgentIds({ conf, cards }),
 		);
 	return { conf, cards, layout };
 }
@@ -177,6 +182,7 @@ function parseCardsPayload(
 function resolveWriteLayout(
 	packageId: string,
 	conf: StoryPackageConf,
+	cards: CallCardDefinition[],
 	layoutRaw: unknown | null | undefined,
 ): StudioCanvasLayout {
 	if (layoutRaw && typeof layoutRaw === "object") {
@@ -184,8 +190,13 @@ function resolveWriteLayout(
 		if (!Array.isArray(layoutObj.nodes)) {
 			packageFail("VALIDATION_FAILED", "layout.nodes array required");
 		}
+		const lanes =
+			layoutObj.lanes && layoutObj.lanes.length > 0
+				? layoutObj.lanes
+				: deriveLayoutLanes({ conf, cards });
 		return {
 			...layoutObj,
+			lanes,
 			schemaVersion:
 				typeof layoutObj.schemaVersion === "number"
 					? layoutObj.schemaVersion
@@ -198,7 +209,7 @@ function resolveWriteLayout(
 		conf.cards.map(function (c) {
 			return c.cardId;
 		}),
-		conf.participants,
+		listDerivedReferencedAgentIds({ conf, cards }),
 	);
 }
 
@@ -237,10 +248,17 @@ export async function writeDiskStoryPackage(
 		}
 	}
 
-	const layout = resolveWriteLayout(packageId, conf, bundle.layout);
+	const ordered = conf.cards.map(function (ref) {
+		return byId.get(ref.cardId)!;
+	});
+	const layout = resolveWriteLayout(packageId, conf, ordered, bundle.layout);
 	const dir = packageDir(packageId);
 	await mkdir(path.join(dir, "cards"), { recursive: true });
-	await writeJson(path.join(dir, "story.conf.json"), conf);
+	/** 路径 B：磁盘不写 participants 白名单键 */
+	await writeJson(
+		path.join(dir, "story.conf.json"),
+		omitParticipantsForDiskWrite(conf),
+	);
 
 	const keep = new Set(
 		conf.cards.map(function (c) {
@@ -260,9 +278,6 @@ export async function writeDiskStoryPackage(
 	}
 
 	await writeJson(path.join(dir, "canvas.layout.json"), layout);
-	const ordered = conf.cards.map(function (ref) {
-		return byId.get(ref.cardId)!;
-	});
 	return { conf, cards: ordered, layout };
 }
 
@@ -270,4 +285,69 @@ export async function writeDiskStoryPackage(
 export async function packageExists(packageId: string): Promise<boolean> {
 	if (!isValidPackageId(packageId)) return false;
 	return pathExists(path.join(packageDir(packageId), "story.conf.json"));
+}
+
+/**
+	* 新建最小故事包：conf（可无 participants）+ 可选默认入口卡 + layout。
+	* 目录已存在则 CONFLICT；不接会话 mock。
+	*/
+export async function createDiskStoryPackage(input: {
+	packageId: string;
+	title: string;
+	description?: string;
+	/** true 时写一张空 owner 起点卡并设 entryCardId */
+	withStartCard: boolean;
+}): Promise<DiskStoryPackageBundle> {
+	const packageId = input.packageId.trim();
+	if (!isValidPackageId(packageId)) {
+		packageFail("VALIDATION_FAILED", "invalid packageId");
+	}
+	if (await packageExists(packageId)) {
+		packageFail("CONFLICT", `package already exists: ${packageId}`);
+	}
+
+	const title = input.title.trim() || packageId;
+	const cards: CallCardDefinition[] = [];
+	let entryCardId: string | undefined;
+	if (input.withStartCard) {
+		entryCardId = `card_${packageId}_start`;
+		cards.push({
+			cardId: entryCardId,
+			cardKind: "story",
+			title: "起点卡",
+			ownerAgentId: "",
+			entryMode: "inbound_user_dial",
+			interactionMode: "realtime_dialogue",
+			context: {
+				privateBrief: input.description?.trim() ?? "",
+				speakableBrief: "",
+			},
+			objectives: { requiredBeats: [] },
+			toolPolicy: { mode: "inherit_free" },
+			exits: [],
+		});
+	}
+
+	const conf: StoryPackageConf = {
+		schemaVersion: 1,
+		packageId,
+		title,
+		participants: [],
+		cards: cards.map(function (c) {
+			return { cardId: c.cardId };
+		}),
+		...(entryCardId ? { entryCardId } : {}),
+	};
+
+	return writeDiskStoryPackage(packageId, {
+		conf,
+		cards,
+		layout: buildDefaultCanvasLayout(
+			packageId,
+			conf.cards.map(function (c) {
+				return c.cardId;
+			}),
+			[],
+		),
+	});
 }

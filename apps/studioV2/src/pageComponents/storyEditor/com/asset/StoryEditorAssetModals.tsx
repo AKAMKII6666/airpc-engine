@@ -43,7 +43,7 @@ export const StoryEditorAssetModals: FC<StoryEditorAssetModalsProps> =
 		createOpen,
 		// onCloseCreate 关闭新建弹层，用于取消
 		onCloseCreate,
-		// onCreateSubmit 提交新建，用于会话内 append
+		// onCreateSubmit 提交新建，用于落盘 meta
 		onCreateSubmit,
 		// editOpen 控制编辑弹层，用于改资源投影
 		editOpen,
@@ -53,7 +53,7 @@ export const StoryEditorAssetModals: FC<StoryEditorAssetModalsProps> =
 		editInitialValues,
 		// onCloseEdit 关闭编辑弹层，用于取消
 		onCloseEdit,
-		// onEditSubmit 提交编辑，用于会话内 update
+		// onEditSubmit 提交编辑，用于落盘更新
 		onEditSubmit,
 		// deleteTarget 是待删资源，用于确认弹层展示名
 		deleteTarget,
@@ -61,7 +61,7 @@ export const StoryEditorAssetModals: FC<StoryEditorAssetModalsProps> =
 		deleteError,
 		// onCloseDelete 关闭删除确认，用于取消
 		onCloseDelete,
-		// onConfirmDelete 确认删除，用于会话内 remove
+		// onConfirmDelete 确认删除，用于落盘移除
 		onConfirmDelete,
 	}) {
 		return (
@@ -70,7 +70,7 @@ export const StoryEditorAssetModals: FC<StoryEditorAssetModalsProps> =
 				<FormModal<CreateAssetFormValues>
 					open={createOpen}
 					title="新建资源"
-					description="登记资源元数据即可。assetId 由系统生成；本步不真上传文件，仅写入会话内列表（不写盘）。"
+					description="登记资源元数据即可。assetId 由系统生成；写入 data/assets/meta（本步不真上传二进制文件）。"
 					onClose={onCloseCreate}
 					initialValues={CREATE_ASSET_INITIAL_VALUES}
 					items={CREATE_ASSET_FORM_ITEMS}
@@ -85,13 +85,13 @@ export const StoryEditorAssetModals: FC<StoryEditorAssetModalsProps> =
 					<FormModal<AssetDetailFormValues>
 						open={editOpen}
 						title="编辑资源"
-						description={`与资源库详情同字段。assetId · ${editAsset.assetId}；保存仅会话内，不写盘。`}
+						description={`与资源库详情同字段。assetId · ${editAsset.assetId}；保存写入 data/assets。`}
 						onClose={onCloseEdit}
 						initialValues={editInitialValues}
 						items={EDIT_ASSET_FORM_ITEMS}
 						validate={validateAssetDetailForm}
 						onSubmit={onEditSubmit}
-						submitLabel="应用更改（会话内）"
+						submitLabel="保存到磁盘"
 						mode="edit"
 						maxWidth="md"
 					/>
@@ -101,7 +101,7 @@ export const StoryEditorAssetModals: FC<StoryEditorAssetModalsProps> =
 				<DeleteConfirmModal
 					open={deleteTarget != null}
 					title="确认删除资源"
-					description="仅从当前会话列表移除，不会写盘。若仍有引用，删除后相关校验可能报错。"
+					description="将从 data/assets 删除元数据（及可解析的文件）。若仍有引用，保存校验可能报 ASSET_UNKNOWN。"
 					displayName={deleteTarget?.displayName ?? ""}
 					referenceLines={deleteTarget?.referenceLines ?? []}
 					error={deleteError}

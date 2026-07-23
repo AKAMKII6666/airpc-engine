@@ -11,6 +11,7 @@ import {
   FREE_PACKAGE_ID,
   hasBlockingErrors,
 } from "../../src/index.js";
+import { createFsContentPort } from "../helpers/fsContentPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -33,7 +34,7 @@ describe("validatePackage", () => {
     const dataRoot = path.join(tmpRoot, "data");
     await cp(dataSrc, dataRoot, { recursive: true });
 
-    const host = createEngineHost({ persist: false, autoMemory: false });
+    const host = createEngineHost({ persist: false, content: createFsContentPort() });
     await host.loadWorkspace(dataRoot);
     const report = await host.validatePackage("golden_handoff");
     expect(hasBlockingErrors(report)).toBe(false);
@@ -44,7 +45,7 @@ describe("validatePackage", () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-val-free-"));
     const dataRoot = path.join(tmpRoot, "data");
     await cp(dataSrc, dataRoot, { recursive: true });
-    const host = createEngineHost({ persist: false, autoMemory: false });
+    const host = createEngineHost({ persist: false, content: createFsContentPort() });
     await host.loadWorkspace(dataRoot);
     const report = await host.validatePackage(FREE_PACKAGE_ID);
     expect(report.errors.some((e) => e.ruleId === "FREE_PACKAGE_SENTINEL")).toBe(
@@ -59,10 +60,10 @@ describe("validatePackage", () => {
     await rm(
       path.join(
         dataRoot,
-        "storis-packages/golden_handoff/cards/xiaoyu_waiting_user.s-card.json",
+        "storis-packages/golden_handoff/cards/xiaopi_waiting_user.s-card.json",
       ),
     );
-    const host = createEngineHost({ persist: false, autoMemory: false });
+    const host = createEngineHost({ persist: false, content: createFsContentPort() });
     await host.loadWorkspace(dataRoot);
     const report = await host.validatePackage("golden_handoff");
     expect(
@@ -92,7 +93,7 @@ describe("validatePackage", () => {
     ];
     await writeFile(cardPath, JSON.stringify(card, null, 2));
 
-    const host = createEngineHost({ persist: false, autoMemory: false });
+    const host = createEngineHost({ persist: false, content: createFsContentPort() });
     await host.loadWorkspace(dataRoot);
     const report = await host.validatePackage("golden_handoff");
     expect(
@@ -105,9 +106,9 @@ describe("validatePackage", () => {
     const dataRoot = path.join(tmpRoot, "data");
     await cp(dataSrc, dataRoot, { recursive: true });
     await rm(
-      path.join(dataRoot, "characters/free-cards/xiaoyu_free.s-card.json"),
+      path.join(dataRoot, "characters/free-cards/xiaopi_free.s-card.json"),
     );
-    const host = createEngineHost({ persist: false, autoMemory: false });
+    const host = createEngineHost({ persist: false, content: createFsContentPort() });
     await host.loadWorkspace(dataRoot);
     const report = await host.validatePackage("golden_handoff");
     expect(report.errors.some((e) => e.ruleId === "FREE_CARD_MISSING")).toBe(
@@ -119,13 +120,13 @@ describe("validatePackage", () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-val-social-"));
     const dataRoot = path.join(tmpRoot, "data");
     await cp(dataSrc, dataRoot, { recursive: true });
-    const charPath = path.join(dataRoot, "characters/doubao-sister.json");
+    const charPath = path.join(dataRoot, "characters/lanxing.json");
     const char = JSON.parse(await readFile(charPath, "utf8")) as {
       social: Array<{ targetAgentId: string }>;
     };
     char.social.push({ targetAgentId: "no_such_agent" });
     await writeFile(charPath, JSON.stringify(char, null, 2));
-    const host = createEngineHost({ persist: false, autoMemory: false });
+    const host = createEngineHost({ persist: false, content: createFsContentPort() });
     await host.loadWorkspace(dataRoot);
     const report = await host.validatePackage("golden_handoff");
     expect(
@@ -149,7 +150,7 @@ describe("validatePackage", () => {
       applyEffectsDuringCall: true,
     };
     await writeFile(cardPath, JSON.stringify(card, null, 2));
-    const host = createEngineHost({ persist: false, autoMemory: false });
+    const host = createEngineHost({ persist: false, content: createFsContentPort() });
     await host.loadWorkspace(dataRoot);
     const report = await host.validatePackage("golden_handoff");
     expect(report.errors.some((e) => e.ruleId === "TOOL_DIRECT_EFFECT")).toBe(
@@ -174,7 +175,7 @@ describe("validatePackage", () => {
     card.context = { ...(card.context ?? {}), playbackClipId: "missing_clip" };
     card.toolPolicy = { mode: "deny_all" };
     await writeFile(cardPath, JSON.stringify(card, null, 2));
-    const host = createEngineHost({ persist: false, autoMemory: false });
+    const host = createEngineHost({ persist: false, content: createFsContentPort() });
     await host.loadWorkspace(dataRoot);
     const report = await host.validatePackage("golden_handoff");
     expect(report.errors.some((e) => e.ruleId === "ASSET_UNKNOWN")).toBe(true);
@@ -185,7 +186,7 @@ describe("validatePackage", () => {
     const dataRoot = path.join(tmpRoot, "data");
     await cp(dataSrc, dataRoot, { recursive: true });
     await rm(path.join(dataRoot, "assets/files/clip_hello.wav"));
-    const host = createEngineHost({ persist: false, autoMemory: false });
+    const host = createEngineHost({ persist: false, content: createFsContentPort() });
     await host.loadWorkspace(dataRoot);
     const report = await host.validatePackage("golden_handoff");
     expect(
@@ -206,7 +207,7 @@ describe("validatePackage", () => {
         displayName: "wrong kind",
       }),
     );
-    const host = createEngineHost({ persist: false, autoMemory: false });
+    const host = createEngineHost({ persist: false, content: createFsContentPort() });
     await host.loadWorkspace(dataRoot);
     const report = await host.validatePackage("golden_handoff");
     expect(

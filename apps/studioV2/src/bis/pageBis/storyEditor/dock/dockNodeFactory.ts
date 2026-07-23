@@ -1,6 +1,7 @@
 /**
 	* 底栏 placement 节点工厂：CallCard(story) / chapter_end。
-	* 系统生成 cardId / nodeId；禁止手填；会话 mock only。
+	* 系统生成 cardId / nodeId；禁止手填。
+	* 新建/删除 CallCard 经顶栏保存 → editorGraphToBundle 以画布为准同步 conf.cards + s-card。
 	* 细化修改 7：不再从底栏放置 action / comment / 多 cardKind。
 	*/
 import type { Edge, Node } from "@xyflow/react";

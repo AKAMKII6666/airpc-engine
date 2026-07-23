@@ -7,10 +7,15 @@ import type { EffectPanelSources } from "@studio-v2/typeFiles/story/editor/callC
 
 const sources: EffectPanelSources = {
 	characters: [{ value: "yu", label: "小雨" }],
-	cards: [{ value: "card_x", label: "跟进卡" }],
+	cards: [
+		{ value: "card_x", label: "跟进卡" },
+		{ value: "card_vm", label: "语音留言" },
+	],
 	packages: [{ value: "pkg_2", label: "夜班篇" }],
 	clips: [{ value: "clip_1", label: "开场白" }],
-	cardOwnerAgentId: { card_x: "yu" },
+	scheduleCards: [{ value: "morning", label: "晨间问候" }],
+	cardOwnerAgentId: { card_x: "yu", card_vm: "yu" },
+	cardKindById: { card_x: "story", card_vm: "voicemail" },
 };
 
 describe("summarizeEffect", () => {
@@ -75,5 +80,27 @@ describe("summarizeEffect", () => {
 		expect(
 			summarizeEffect("attach_call_card", { effect: "attach_call_card" }),
 		).toBe("挂载「（未选卡）」");
+	});
+
+	it("marks attach/schedule to voicemail as 进信箱", () => {
+		expect(
+			summarizeEffect(
+				"attach_call_card",
+				{ effect: "attach_call_card", cardId: "card_vm", agentId: "yu" },
+				sources,
+			),
+		).toBe("进信箱「语音留言」 给小雨");
+		expect(
+			summarizeEffect(
+				"schedule_call_card",
+				{
+					effect: "schedule_call_card",
+					cardId: "card_vm",
+					agentId: "yu",
+					delayMinutes: 3,
+				},
+				sources,
+			),
+		).toBe("3 分钟后进信箱「语音留言」 给小雨");
 	});
 });

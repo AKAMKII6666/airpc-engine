@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "label": "batch-1",
+  "at": "2026-07-23T06:22:05.381Z",
+  "ok": false,
+  "phase": "batch",
+  "activeTaskIds": [
+    "V2-VM-1"
+  ],
+  "reason": "command failed",
+  "failedCommand": "人工核对链接",
+  "exitCode": 127,
+  "results": [
+    {
+      "command": "人工核对链接",
+      "exitCode": 127,
+      "signal": null,
+      "error": null,
+      "stdout": "[gbx] ▶ verify:人工核对链接 start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n/bin/sh: 人工核对链接: command not found\n[gbx] ■ verify:人工核对链接 done exit=127 elapsed=0s\n",
+      "stderr": "",
+      "stdoutTail": "[gbx] ▶ verify:人工核对链接 start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine\n/bin/sh: 人工核对链接: command not found\n[gbx] ■ verify:人工核对链接 done exit=127 elapsed=0s\n",
+      "stderrTail": "",
+      "errorLocations": []
+    }
+  ],
+  "errorLocations": [],
+  "historyFile": "batch-1-1784787725381.json"
+}

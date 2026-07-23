@@ -8,10 +8,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import {
-  createEngineHost,
   isEngineError,
   PlayerProfileSchema,
 } from "../../src/index.js";
+import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -35,7 +35,7 @@ async function seedSecondUser(
       updatedAt: now,
     },
     characters: {
-      "doubao-sister": { agentId: "doubao-sister", unlocked: true },
+      "lanxing": { agentId: "lanxing", unlocked: true },
     },
     schedule: { clockMs: 0, intents: [] },
   });
@@ -100,7 +100,7 @@ describe("E4c isolation + recurring", () => {
     await cp(dataSrc, dataRoot, { recursive: true });
     await seedSecondUser(dataRoot, "user-b", "小乙");
 
-    const host = createEngineHost({ persist: true, autoMemory: false });
+    const host = createTestHost({ persist: true, dataRoot });
     await host.loadWorkspace(dataRoot);
 
     const profileA = await host.ensureProfile("demo-user");
@@ -114,7 +114,7 @@ describe("E4c isolation + recurring", () => {
 
     const resolved = await host.resolveAsync("demo-user", {
       kind: "free_call",
-      agentId: "doubao-sister",
+      agentId: "lanxing",
     });
     if (isEngineError(resolved)) throw resolved;
     const session = await host.beginCall("demo-user", resolved, {
@@ -147,7 +147,7 @@ describe("E4c isolation + recurring", () => {
     const afterA = await host.ensureProfile("demo-user");
     expect(afterA.schedule?.clockMs).toBe(5 * 60_000);
     expect(
-      afterA.callCards.board.byAgent["doubao-sister"]?.pending?.some(
+      afterA.callCards.board.byAgent["lanxing"]?.pending?.some(
         (p) => p.cardId === "doubao_intro_outbound",
       ),
     ).toBe(true);
@@ -155,7 +155,7 @@ describe("E4c isolation + recurring", () => {
     const afterB = await host.ensureProfile("user-b");
     expect(afterB.schedule?.clockMs).toBe(0);
     expect(afterB.schedule?.intents ?? []).toEqual([]);
-    expect(afterB.callCards.board.byAgent["doubao-sister"]?.pending ?? []).toEqual(
+    expect(afterB.callCards.board.byAgent["lanxing"]?.pending ?? []).toEqual(
       [],
     );
 
@@ -168,7 +168,7 @@ describe("E4c isolation + recurring", () => {
     );
     expect(
       (await host.ensureProfile("user-b")).callCards.board.byAgent[
-        "doubao-sister"
+        "lanxing"
       ]?.pending ?? [],
     ).toEqual([]);
   });
@@ -178,13 +178,13 @@ describe("E4c isolation + recurring", () => {
     const dataRoot = path.join(tmpRoot, "data");
     await cp(dataSrc, dataRoot, { recursive: true });
 
-    const host = createEngineHost({ persist: true, autoMemory: false });
+    const host = createTestHost({ persist: true, dataRoot });
     await host.loadWorkspace(dataRoot);
     await host.ensureProfile("demo-user");
 
     const resolved = await host.resolveAsync("demo-user", {
       kind: "free_call",
-      agentId: "doubao-sister",
+      agentId: "lanxing",
     });
     if (isEngineError(resolved)) throw resolved;
     const session = await host.beginCall("demo-user", resolved, {
@@ -210,7 +210,7 @@ describe("E4c isolation + recurring", () => {
     const dataRoot = path.join(tmpRoot, "data");
     await cp(dataSrc, dataRoot, { recursive: true });
 
-    const host = createEngineHost({ persist: true, autoMemory: false });
+    const host = createTestHost({ persist: true, dataRoot });
     await host.loadWorkspace(dataRoot);
     const profile = await host.ensureProfile("demo-user");
     profile.schedule = { clockMs: 0, intents: [] };
@@ -220,7 +220,7 @@ describe("E4c isolation + recurring", () => {
 
     const resolved = await host.resolveAsync("demo-user", {
       kind: "free_call",
-      agentId: "doubao-sister",
+      agentId: "lanxing",
     });
     if (isEngineError(resolved)) throw resolved;
     const session = await host.beginCall("demo-user", resolved, {
@@ -229,7 +229,7 @@ describe("E4c isolation + recurring", () => {
     if (isEngineError(session)) throw session;
 
     const inv = await host.invokeTool(session.sessionId, "schedule_recurring_call", {
-      schedule_card_id: "doubao_morning_checkin",
+      schedule_card_id: "lanxing_morning_checkin",
       topic_hint: "morning checkin",
       hour: 9,
       minute: 30,
@@ -259,7 +259,7 @@ describe("E4c isolation + recurring", () => {
       .find(Boolean);
     expect(recurring).toBeTruthy();
     expect(recurring?.kind).toBe("recurring");
-    expect(recurring?.agentId).toBe("doubao-sister");
+    expect(recurring?.agentId).toBe("lanxing");
     expect(recurring?.hour).toBe(9);
     expect(recurring?.minute).toBe(30);
     expect(recurring?.scheduleMode).toBe("daily");
@@ -272,7 +272,7 @@ describe("E4c isolation + recurring", () => {
     const fired = host.setClockMs("demo-user", fireAt);
     expect(isEngineError(fired)).toBe(false);
     if (isEngineError(fired)) return;
-    expect(fired.some((f) => f.cardId === "doubao_morning_checkin")).toBe(true);
+    expect(fired.some((f) => f.cardId === "lanxing_morning_checkin")).toBe(true);
 
     const afterTick = await host.ensureProfile("demo-user");
     expect(afterTick.schedule?.clockMs).toBe(fireAt);
@@ -282,9 +282,9 @@ describe("E4c isolation + recurring", () => {
     expect(still?.status).toBe("active");
     expect(still?.intentId).toBe(recurring?.intentId);
     expect(
-      afterTick.callCards.board.byAgent["doubao-sister"]?.pending?.some(
+      afterTick.callCards.board.byAgent["lanxing"]?.pending?.some(
         (p) =>
-          p.cardId === "doubao_morning_checkin" &&
+          p.cardId === "lanxing_morning_checkin" &&
           p.packageId === "__schedule__",
       ),
     ).toBe(true);

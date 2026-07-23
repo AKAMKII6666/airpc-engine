@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "reviewRunId": "final-reviewer-final-79397af1-46b0-4d31-856a-b3aa0f19a2aa",
+  "role": "final-reviewer",
+  "batchId": "final",
+  "result": "fail",
+  "blocker": 0,
+  "critical": 1,
+  "major": 1,
+  "minor": 1,
+  "recommendedNextState": "FIX_BATCH",
+  "summary": "V2-VM-1–14 表项与 quality:engine/studio 全绿；blocker 六项（进 Board / schedule 外呼 / create_voicemail 新写 / Executor 调 LLM / mode 未锁 / engine 红）均未命中。但听完路径未把 Profile.telephony.voicemails[].status 改为 listened，也未再通知未读（§3.6 + schema 契约缺口）；CallIntent.mailbox_open 仅见于需求 02、未进 Host 解析（听完 exits 靠 simulate_start 单测等价）。须补听完写槽后再进 Manual QA。",
+  "issues": [
+    {
+      "id": "FR-1",
+      "severity": "critical",
+      "file": "packages/rpg-engine/src/host/createEngineHost.ts",
+      "location": "endCall / mailbox listen path；对照 schema/profile.ts VoicemailSlotStatus listened",
+      "description": "物化后槽位可为 unread 并触发 onVoicemailUnreadChanged；听完（Outcome 含 voicemail_listened / playback_completed）后 Host 无任何路径将对应 voicemails[] 条目改为 status=listened（或写 listenedAt），也不再回调未读。§3.6 禁止壳改未读真源，故角标/LED 无法在听完后合法熄灭。voicemail-mailbox-listen 单测只断言 exits/set_redial_slot，未覆盖槽位生命周期。",
+      "expectedBehavior": "mailbox_open（或等价听完 Session）结束且 Outcome 表示已听/播完时，Host 更新对应槽 status=listened、按 deriveVoicemailHasUnread 再调 onVoicemailUnreadChanged；单测断言未读由 true→false。",
+      "suggestedVerification": "扩展 tests/host/voicemail-mailbox-listen.test.ts：先 materialize 写入 unread 槽 → beginCall/endCall → expect status listened 且 unread 回调；npm run quality:engine"
+    },
+    {
+      "id": "FR-2",
+      "severity": "major",
+      "file": "packages/rpg-engine/src/host/types.ts",
+      "location": "CallIntent 联合；createEngineHost resolve()",
+      "description": "需求 02 §2–§3 已钉死 CallIntent.kind=mailbox_open（agentId/voicemailId/cardId）及 Resolver 规则；实现侧 CallIntent 仅有 simulate_start|user_dial|agent_outbound|free_call，无 mailbox_open 分支。VM-11 用 simulate_start 证明卡种 exits，不等于壳/调试可按信箱槽打开留言。",
+      "expectedBehavior": "resolve(mailbox_open) 按 voicemailId+cardId 绑定 cardKind=voicemail，不从 Board.pending 挑选；beginCall 强制 playback_only + entryMode=mailbox_open。",
+      "suggestedVerification": "Host 单测 intent.kind=mailbox_open；负向：user_dial 不得把 voicemail 当 pending 接通"
+    },
+    {
+      "id": "FR-3",
+      "severity": "minor",
+      "file": "docs/AI/studio-v2/03-故事编辑器画布与属性浮窗.md",
+      "location": "effect 列举；04-第一幕打错电话-mock拓扑.md 留言边",
+      "description": "可选代码事实层 docs/AI 仍写 create_voicemail / 旧拓扑；需求 §6 标明 docs/AI 须用户明示才升格，不阻塞本里程碑产品验收，但易误导后续 Agent。",
+      "expectedBehavior": "用户明示后回写 docs/AI 与 attach+cardKind=voicemail 对齐；或标注过期。",
+      "suggestedVerification": "grep docs/AI -n create_voicemail"
+    }
+  ],
+  "checks": {
+    "typecheck": "pass",
+    "lint": "pass",
+    "tests": "pass",
+    "behaviorChecks": "fail",
+    "negativeChecks": "pass",
+    "structureChecks": "pass",
+    "baselineDelta": "0",
+    "qualityEngine": "pass",
+    "qualityStudio": "pass"
+  },
+  "notes": "只读审查；未改应用源码、未写 STATE.json。对照 §3–§5：Schema/校验/attach·schedule 分流/Materialize 在 plan 终态后/外置端口/Studio 锁字段与删 create_voicemail/wrong_number_act1 样例/文档 01·02·04·08·07·19 回写均成立。full verify（quality:engine + quality:studio）exit 0（reports/latest-verify.json ok=true）。Debugger 无信箱 UI 可接受（VM-11 允许 Host 单测等价）。"
+}

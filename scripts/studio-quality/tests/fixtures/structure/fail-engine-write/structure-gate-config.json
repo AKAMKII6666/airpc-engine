@@ -9,7 +9,19 @@
     "function": { "warnLines": 60, "hardLines": 100 },
     "complexity": { "warn": 10, "hard": 15 }
   },
-  "bannedClientEngineWriteSymbols": ["createEngineHost", "getEngineHost"],
   "bannedImportPatterns": ["@airpc/rpg-engine/"],
+  "serverEngineImportAllowPathPrefixes": ["app/api/", "src/utils/server/"],
+  "serverEngineImportAllowFileSuffixes": [".server.ts", ".server.tsx"],
+  "clientZonePathPrefixes": [
+    "src/pageComponents/",
+    "src/bis/",
+    "src/stores/",
+    "src/commonUiComponents/",
+    "src/utils/ajaxProxy/",
+    "typeFiles/",
+    "features/",
+    "store/"
+  ],
+  "studioPathAliases": { "@studio-v2/": "" },
   "allowlist": []
 }

@@ -2,7 +2,7 @@
 	* Effect 参数默认值与按 effect 读取器（会话 mock）。
 	* 默认值只镜像引擎 effectExecutor.ts 的缺省语义，不 import 引擎值；供面板首帧与判别键复位。
 	*/
-import type { KnownEffectName } from "@airpc/rpg-engine";
+import type { KnownEffectName } from "@studio-v2/typeFiles/story/callCard/engineOutcome";
 import type {
 	EditorEffectParams,
 	EffectParamsFor,
@@ -53,7 +53,6 @@ const EFFECT_PARAMS_DEFAULTS: {
 		known: true,
 	}),
 	end_story: () => ({ effect: "end_story" }),
-	create_voicemail: () => ({ effect: "create_voicemail" }),
 	play_system_prompt: () => ({ effect: "play_system_prompt" }),
 };
 

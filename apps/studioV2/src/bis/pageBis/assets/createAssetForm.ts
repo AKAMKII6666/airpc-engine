@@ -1,14 +1,10 @@
 /**
-	* 新建资源元数据表单契约（导向稿 05 §8）。
-	* 名称 / 类型 / 备注；assetId 系统生成，不写盘、不真上传。
+	* 新建资源元数据表单契约。
+	* 名称 / 类型 / 备注；assetId 系统生成；落盘走 createAsset_bis → /api/assets。
 	*/
 import type { FormikErrors } from "formik";
 import type { AutoFormItem } from "@studio-v2/src/commonUiComponents/form/autoFormTypes";
-import type {
-	AssetKind,
-	AssetSummary,
-} from "@studio-v2/typeFiles/library/assets/assetSummary";
-import { createStudioId } from "@studio-v2/typeFiles/ids/createStudioId";
+import type { AssetKind } from "@studio-v2/typeFiles/library/assets/assetSummary";
 
 /**
 	* Formik values；交叉 Record 以满足 FormModal TValues 约束。
@@ -22,7 +18,6 @@ export type CreateAssetFormValues = {
 
 /**
 	* 新建资源 FormModal 初始值；kind 默认 wav。
-	* 仅会话态 Formik，不写盘。
 	*/
 export const CREATE_ASSET_INITIAL_VALUES: CreateAssetFormValues = {
 	displayName: "",
@@ -74,50 +69,4 @@ export function validateCreateAssetForm(
 		errors.displayName = "请填写资源名";
 	}
 	return errors;
-}
-
-/** 按类型给出新建时的默认格式与度量单位（静态投影，非真实探测）。 */
-function defaultMeasureForKind(kind: AssetKind): {
-	format: string;
-	measureValue: number | null;
-	measureUnit: AssetSummary["measureUnit"];
-} {
-	if (kind === "wav" || kind === "bgm") {
-		return {
-			format: kind === "wav" ? "wav" : "mp3",
-			measureValue: null,
-			measureUnit: "duration_ms",
-		};
-	}
-	if (kind === "image") {
-		return { format: "webp", measureValue: null, measureUnit: "size_bytes" };
-	}
-	if (kind === "text") {
-		return { format: "md", measureValue: null, measureUnit: "size_bytes" };
-	}
-	return { format: "", measureValue: null, measureUnit: "none" };
-}
-
-/**
-	* 由表单值生成会话内资源投影；assetId 系统生成。
-	* 可用性默认 unchecked（未真上传文件）。
-	*/
-export function buildMockAssetFromForm(
-	values: CreateAssetFormValues,
-): AssetSummary {
-	const displayName = values.displayName.trim();
-	const measure = defaultMeasureForKind(values.kind);
-	return {
-		assetId: createStudioId("asset", displayName),
-		displayName,
-		kind: values.kind,
-		format: measure.format,
-		measureValue: measure.measureValue,
-		measureUnit: measure.measureUnit,
-		refCount: 0,
-		lastEditedAt: new Date().toISOString(),
-		availability: "unchecked",
-		note: values.note.trim(),
-		referenceLines: [],
-	};
 }

@@ -1,6 +1,6 @@
 /**
 	* 资源详情 Formik 契约：类型 / 备注 / 可用性 / 格式度量。
-	* 引用 / assetId 只读；不写盘。AutoForm items[] 主编排。
+	* 引用 / assetId 只读；写盘走 save/saveAsset_bis。AutoForm items[] 主编排。
 	*/
 import type { FormikErrors } from "formik";
 import type { AutoFormItem } from "@studio-v2/src/commonUiComponents/form/autoFormTypes";
@@ -9,7 +9,6 @@ import type {
 	AssetKind,
 	AssetSummary,
 } from "@studio-v2/typeFiles/library/assets/assetSummary";
-import { updateMockAsset } from "@studio-v2/src/utils/ajaxProxy/library/mock/mockLibraryData";
 
 /**
 	* 详情编辑 values；扁平字段名与 AutoForm name 对齐。
@@ -28,7 +27,7 @@ export type AssetDetailFormValues = {
 
 /**
 	* 基本信息：资源名 / 类型 / 备注。
-	* 供详情页 AutoForm 分段渲染；不写盘。
+	* 供详情页 AutoForm 分段渲染。
 	*/
 export const ASSET_BASIC_ITEMS: AutoFormItem[] = [
 	{
@@ -58,7 +57,7 @@ export const ASSET_BASIC_ITEMS: AutoFormItem[] = [
 ];
 
 /**
-	* 文件信息投影：格式 / 度量 / 可用性（静态阶段可改投影，非真探测）。
+	* 文件信息投影：格式 / 度量 / 可用性（可用性读时由文件探测；表单可看不可当真源覆盖）。
 	*/
 export const ASSET_FILE_ITEMS: AutoFormItem[] = [
 	{
@@ -141,7 +140,7 @@ function parseMeasureValue(text: string): number | null {
 
 /**
 	* 将详情表单合并回既有资源投影（保留引用与 assetId）。
-	* lastEditedAt 刷新为当前时间；不写盘。
+	* 纯投影合并，供单测；写盘请用 commitSaveAssetDetail。
 	*/
 export function applyAssetDetailForm(
 	previous: AssetSummary,
@@ -158,19 +157,4 @@ export function applyAssetDetailForm(
 		availability: values.availability,
 		lastEditedAt: new Date().toISOString(),
 	};
-}
-
-/**
-	* 会话内更新资源详情；找不到 assetId 时抛错供 Formik 错误区展示。
-	*/
-export function commitUpdateAssetMock(
-	previous: AssetSummary,
-	values: AssetDetailFormValues,
-): AssetSummary {
-	const next = applyAssetDetailForm(previous, values);
-	const ok = updateMockAsset(previous.assetId, next);
-	if (!ok) {
-		throw new Error("未找到该资源，无法更新会话内 mock");
-	}
-	return next;
 }

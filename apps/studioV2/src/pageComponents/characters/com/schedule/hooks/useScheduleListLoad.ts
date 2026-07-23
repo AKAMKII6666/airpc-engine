@@ -2,7 +2,7 @@
 	* 定时外呼列表加载：按 userId×agentId 拉 intents。
 	*/
 import { useCallback, useEffect, useState } from "react";
-import type { ScheduledIntent } from "@airpc/rpg-engine";
+import type { ScheduledIntent } from "@studio-v2/typeFiles/library/schedule/engineScheduledIntent";
 import { fetchAgentSchedule } from "@studio-v2/src/utils/ajaxProxy/library/api/scheduleApi";
 
 export type ScheduleListLoadState = {

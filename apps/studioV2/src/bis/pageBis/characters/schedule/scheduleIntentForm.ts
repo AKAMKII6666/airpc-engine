@@ -2,7 +2,7 @@
 	* 角色页定时外呼 FormModal 契约：一次性 / 每日单选 + 条件字段。
 	*/
 import type { FormikErrors } from "formik";
-import type { ScheduledIntent } from "@airpc/rpg-engine";
+import type { ScheduledIntent } from "@studio-v2/typeFiles/library/schedule/engineScheduledIntent";
 import type { AutoFormItem } from "@studio-v2/src/commonUiComponents/form/autoFormTypes";
 import { createStudioId } from "@studio-v2/typeFiles/ids/createStudioId";
 

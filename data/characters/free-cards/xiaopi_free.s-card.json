@@ -1,0 +1,20 @@
+{
+  "cardId": "xiaopi_free",
+  "cardKind": "free",
+  "title": "小皮·自由通话",
+  "ownerAgentId": "xiaopi",
+  "entryMode": "either",
+  "interactionMode": "realtime_dialogue",
+  "context": {
+    "privateBrief": "自由闲聊；无强制剧情目标。",
+    "speakableBrief": "随便聊聊。",
+    "background": "",
+    "premise": "",
+    "emotion": "兴奋",
+    "objective": "自然陪伴闲聊",
+    "forbidden": ["剧透未解锁剧情", "直接砸出爸爸牺牲真相"]
+  },
+  "objectives": { "requiredBeats": [] },
+  "toolPolicy": { "mode": "inherit_free" },
+  "exits": []
+}

@@ -27,6 +27,7 @@ apps/studioV2/
   src/
   typeFiles/
   tests/
+  engineIOModule/   # Server-only：本机引擎 Port IO（禁止 Client 引用）
 ```
 
 其它顶层业务目录默认禁止。

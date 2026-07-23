@@ -7,11 +7,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import {
-  createEngineHost,
   findActiveStoryLock,
   isEngineError,
   type CallCardDefinition,
 } from "../../src/index.js";
+import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -34,10 +34,10 @@ describe("end_story no-next → Free (V1-E6 host)", () => {
     const dataRoot = path.join(tmpRoot, "data");
     await cp(dataSrc, dataRoot, { recursive: true });
 
-    const host = createEngineHost({ persist: false, autoMemory: false });
+    const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);
     const profile = await host.ensureProfile("demo-user");
-    profile.characters.xiaoyu = { agentId: "xiaoyu", unlocked: true };
+    profile.characters.xiaopi = { agentId: "xiaopi", unlocked: true };
     profile.stories.golden_handoff = {
       packageId: "golden_handoff",
       status: "active",
@@ -46,19 +46,19 @@ describe("end_story no-next → Free (V1-E6 host)", () => {
         activeStoryInstanceId: "inst-e6",
         packageId: "golden_handoff",
         lockLevel: "soft",
-        allowedAgentIds: ["doubao-sister", "xiaoyu"],
+        allowedAgentIds: ["lanxing", "xiaopi"],
         blockedPolicy: "allow_with_warning",
         reason: "e6-host-test",
         startedAt: "2026-07-14T00:00:00.000Z",
       },
     };
-    profile.callCards.board.byAgent.xiaoyu = {
+    profile.callCards.board.byAgent.xiaopi = {
       pending: [
         {
           instanceId: "old-story-pending",
-          cardId: "xiaoyu_waiting_user",
+          cardId: "xiaopi_waiting_user",
           packageId: "golden_handoff",
-          agentId: "xiaoyu",
+          agentId: "xiaopi",
           status: "pending",
           entryMode: "inbound_user_dial",
           createdAt: "2026-07-14T00:00:00.000Z",
@@ -71,8 +71,8 @@ describe("end_story no-next → Free (V1-E6 host)", () => {
         {
           kind: "once",
           intentId: "once-e6-old",
-          agentId: "xiaoyu",
-          cardId: "xiaoyu_waiting_user",
+          agentId: "xiaopi",
+          cardId: "xiaopi_waiting_user",
           packageId: "golden_handoff",
           fireAtMs: 60_000,
           status: "pending",
@@ -83,7 +83,7 @@ describe("end_story no-next → Free (V1-E6 host)", () => {
 
     const beforeDial = await host.resolveAsync("demo-user", {
       kind: "user_dial",
-      agentId: "xiaoyu",
+      agentId: "xiaopi",
     });
     expect(isEngineError(beforeDial)).toBe(false);
     if (isEngineError(beforeDial)) return;
@@ -137,7 +137,7 @@ describe("end_story no-next → Free (V1-E6 host)", () => {
     expect(story.status).toBe("completed");
     expect(story.lock).toBeNull();
     expect(findActiveStoryLock(after)).toBeNull();
-    expect(after.callCards.board.byAgent.xiaoyu?.pending ?? []).toEqual([]);
+    expect(after.callCards.board.byAgent.xiaopi?.pending ?? []).toEqual([]);
     const once = after.schedule?.intents?.find(
       (row) =>
         row !== null &&
@@ -146,7 +146,7 @@ describe("end_story no-next → Free (V1-E6 host)", () => {
     ) as { status?: string };
     expect(once?.status).toBe("cancelled");
 
-    for (const agentId of ["xiaoyu", "doubao-sister"] as const) {
+    for (const agentId of ["xiaopi", "lanxing"] as const) {
       const dial = await host.resolveAsync("demo-user", {
         kind: "user_dial",
         agentId,
@@ -154,7 +154,7 @@ describe("end_story no-next → Free (V1-E6 host)", () => {
       expect(isEngineError(dial)).toBe(false);
       if (isEngineError(dial)) return;
       expect(dial.source).toBe("free");
-      expect(dial.cardId).not.toBe("xiaoyu_waiting_user");
+      expect(dial.cardId).not.toBe("xiaopi_waiting_user");
     }
   });
 });

@@ -1,6 +1,7 @@
 /**
  * 模块名称：工具与 RuntimeExitCandidate 类型
  */
+import type { CardKind } from "../schema/callCard.js";
 import type { Effect } from "../schema/outcome.js";
 
 export type ToolBehavior = "register_exit" | "session_local";
@@ -8,7 +9,8 @@ export type ToolBehavior = "register_exit" | "session_local";
 export interface ToolDefinition {
   toolId: string;
   displayName: string;
-  allowedCardKinds: Array<"free" | "story" | "system" | "schedule">;
+  /** voicemail 强制 deny_all，一般不列入；类型与 CardKind 对齐避免漏枚举 */
+  allowedCardKinds: CardKind[];
   allowedInPlayback: boolean;
   behavior: ToolBehavior;
 }

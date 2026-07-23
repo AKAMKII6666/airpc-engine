@@ -5,7 +5,7 @@
 
 import type { FC } from "react";
 import { Button } from "@mui/material";
-import type { ScheduledIntent } from "@airpc/rpg-engine";
+import type { ScheduledIntent } from "@studio-v2/typeFiles/library/schedule/engineScheduledIntent";
 import {
 	describeScheduleIntent,
 	scheduleIntentStatusLabel,

@@ -3,7 +3,7 @@
 	* exitId 自动生成，禁止用户手填为真源；与画布 Handle id 对齐。
 	* effect 必须落入已知枚举；禁止自由文本写入。
 	*/
-import type { KnownEffectName } from "@airpc/rpg-engine";
+import type { KnownEffectName } from "@studio-v2/typeFiles/story/callCard/engineOutcome";
 import type {
 	EditorCallCardExitProjection,
 	EditorExitEffectProjection,
@@ -11,6 +11,10 @@ import type {
 } from "@studio-v2/typeFiles/story/editor/callCard/editorCallCardProjection";
 import type { EditorEffectParams } from "@studio-v2/typeFiles/story/editor/callCard/editorEffectParams";
 import { EFFECT_NAME_OPTIONS } from "@studio-v2/typeFiles/story/callCardLabels";
+import {
+	defaultExitCondition,
+	summarizeExitCondition,
+} from "@studio-v2/src/bis/pageBis/storyEditor/form/exitList/exitConditionForm";
 
 /** 表单内出口行；与投影同构，供 Formik exits[] */
 export type ExitListFormRow = EditorCallCardExitProjection;
@@ -24,6 +28,8 @@ export type RawEffectRow = {
 	id?: unknown;
 	/** 原始 effect 名；未知串会被收敛为 keep_card_pending */
 	effect?: unknown;
+	/** 原始 critical；非布尔丢弃 */
+	critical?: unknown;
 	/** 原始摘要；空串规范化为 undefined */
 	summary?: unknown;
 	/** 参数投影；原样保留，判别键由调用方保证一致 */
@@ -94,32 +100,40 @@ export function normalizeEffectList(
 				typeof row.summary === "string" && row.summary.trim() !== ""
 					? row.summary.trim()
 					: undefined;
-			// params 原样保留（会话 mock）；缺省时不写该键，保持精简可比对
+			// params / critical 原样保留；缺省不写键，保证可比对且 critical roundtrip
 			const normalized: EditorExitEffectProjection = { id, effect, summary };
 			if (row.params !== undefined) {
 				normalized.params = row.params;
+			}
+			if (row.critical === true) {
+				normalized.critical = true;
 			}
 			return normalized;
 		})
 		.filter((row) => row.id.length > 0);
 }
 
-/** 新建出口行；title/概要可随后在列表块里改 */
+/** 新建出口行；默认叶子 condition，summary 派生 */
 export function emptyExitRow(
 	existing: readonly ExitListFormRow[],
 ): ExitListFormRow {
 	const exitId = nextExitId(existing);
+	const condition = defaultExitCondition();
 	return {
 		exitId,
 		title: `出口 ${existing.length + 1}`,
-		exitKind: "handoff",
 		priority: 0,
-		conditionSummary: "",
+		condition,
+		conditionSummary: summarizeExitCondition(condition),
 		effects: [],
 	};
 }
 
-/** 规范化提交前出口列表：trim、过滤空 exitId、默认 priority / effects */
+/**
+	* 规范化提交前出口列表：trim、过滤空 exitId、默认 priority / effects。
+	* condition 原样保留（缺省不发明 DEFAULT，留给 mapper 回落 base）；
+	* summary 空时由 condition 派生预览。
+	*/
 export function normalizeExitList(
 	rows: readonly ExitListFormRow[],
 ): EditorCallCardExitProjection[] {
@@ -132,15 +146,20 @@ export function normalizeExitList(
 					: undefined;
 			const exitKind =
 				row.exitKind === undefined ? undefined : (row.exitKind as EditorExitKind);
+			// 故意不 `?? defaultExitCondition()`：缺省时写盘须保留磁盘 base（含嵌套）
+			const condition = row.condition;
+			const derived =
+				condition !== undefined ? summarizeExitCondition(condition) : "";
 			const conditionSummary =
-				typeof row.conditionSummary === "string"
+				typeof row.conditionSummary === "string" &&
+				row.conditionSummary.trim() !== ""
 					? row.conditionSummary.trim()
-					: "";
+					: derived;
 			const priority =
 				typeof row.priority === "number" && Number.isFinite(row.priority)
 					? row.priority
 					: 0;
-			return {
+			const normalized: EditorCallCardExitProjection = {
 				exitId,
 				title,
 				exitKind,
@@ -148,6 +167,10 @@ export function normalizeExitList(
 				conditionSummary,
 				effects: normalizeEffectList(row.effects),
 			};
+			if (condition !== undefined) {
+				normalized.condition = condition;
+			}
+			return normalized;
 		})
 		.filter((row) => row.exitId.length > 0);
 }

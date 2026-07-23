@@ -28,6 +28,7 @@ alwaysApply: true
 - 注释必须解释“为什么、约束、时序或副作用”，禁止用复述代码的注释凑门禁。
 - 代码行为、字段语义或约束变化时必须同步更新相关注释；错误注释视为缺陷。
 - V2 合并前必须通过统一质量命令；不得以人工承诺替代机器门禁。
+- **Client / Server 端口隔离**：Client 与引擎/Server 禁止模块级 import（含 `import type`）；唯一互通 XHR↔API；类型与轻量函数可复制镜像。详见 [studio-v2-client-server-isolation.mdc](./studio-v2-client-server-isolation.mdc)；`check:studio-structure` 硬失败。
 
 ## 注释不要求覆盖的内容
 
@@ -46,3 +47,4 @@ alwaysApply: true
 - 把旧 Studio 的超长 page、超大 Hook、JSON 表单和混合职责复制进 V2。
 - 保留 `@deprecated 已迁至...`、`兼容转发`、re-export barrel 等迁移壳；V2 是新项目，移动文件必须同步改 import 并删除旧路径。
 - 在父目录和子目录保留同名组件或同名类型文件，例如 `debugger/CallRunPanel.tsx` 与 `debugger/com/CallRunPanel.tsx` 并存。
+- Client 区 import `@airpc/rpg-engine`（含 type）；Server/API 倒引 Client `bis` / UI / FE `typeFiles`。

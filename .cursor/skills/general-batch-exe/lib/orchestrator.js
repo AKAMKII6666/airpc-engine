@@ -64,6 +64,12 @@ const { createTheme, printBlockRecovery } = require('./consoleTheme');
 const { createConsoleWriter } = require('./ui/createConsoleWriter');
 const { gbxLog, gbxErr, gbxMultiline } = require('./ui/emit');
 const { buildTerminalDismissMessage } = require('./ui/terminalDismiss');
+const {
+  normalizeEconomy,
+  economyLabel,
+  nextAfterExecuteSuccess,
+  nextAfterBatchVerifyComplete,
+} = require('./economy');
 
 /** Cross-platform no-op success command for mock verify. */
 const MOCK_OK_CMD = 'node -e "process.exit(0)"';
@@ -107,6 +113,12 @@ function printDryRun(loaded, workdir) {
   console.log(`  adapter: ${loaded.adapter}`);
   console.log(`  tasks: ${loaded.tasks.length} (todo=${todoTasks(loaded.tasks).length})`);
   console.log(`  batch_size: ${loaded.config.batch_size}`);
+  console.log(
+    `  economy: ${loaded.config.economy} (${economyLabel(loaded.config.economy)})` +
+      (loaded.config.economy === 3
+        ? `; defer_verify_every=${loaded.config.defer_verify_every}`
+        : ''),
+  );
   console.log(`  next batch IDs: ${batch.map((t) => t.id).join(', ') || '(none)'}`);
   console.log(`  verify: ${verify.join(' | ') || '(none)'}`);
   console.log(`  workflow_dir: ${loaded.config.workflow_dir}`);
@@ -123,7 +135,12 @@ function printDryRun(loaded, workdir) {
     return 1;
   }
   if (todoTasks(loaded.tasks).length === 0) {
-    console.log('[gbx] dry-run note: no todo tasks (would go to FULL_REVIEW if run)');
+    const e = loaded.config.economy;
+    console.log(
+      e === 3
+        ? '[gbx] dry-run note: no todo tasks (would go to FULL_VERIFY → FULL_REVIEW if run)'
+        : '[gbx] dry-run note: no todo tasks (would go to FULL_REVIEW if run)',
+    );
   }
   return 0;
 }
@@ -666,6 +683,22 @@ function runOrchestrator(cli) {
     return 1;
   }
 
+  // Lock economy for this workflow run on first start (resume keeps STATE value).
+  if (state.economy == null) {
+    state = patchState(paths, {
+      economy: loaded.config.economy,
+      deferVerifyEvery: loaded.config.defer_verify_every,
+    });
+  } else {
+    // Keep orchestrator decisions on STATE lock; surface mismatch as a note.
+    const cfgE = loaded.config.economy;
+    if (normalizeEconomy(state.economy) !== cfgE && !quietMode) {
+      console.error(
+        `[gbx] note: STATE economy=${state.economy} differs from config economy=${cfgE}; using STATE (pass --reset-state to re-lock)`,
+      );
+    }
+  }
+
   if (cli.clearBlocked) {
     if (state.status !== STATUSES.BLOCKED) {
       console.error(
@@ -755,6 +788,20 @@ function runOrchestrator(cli) {
     });
   }
   appendLog(paths, `start status=${state.status} mock=${Boolean(cli.mockAgent)}`);
+  appendLog(
+    paths,
+    `economy=${state.economy || loaded.config.economy} (${economyLabel(state.economy || loaded.config.economy)}) defer_verify_every=${state.deferVerifyEvery != null ? state.deferVerifyEvery : loaded.config.defer_verify_every}`,
+  );
+  if (!quietMode) {
+    const e = state.economy || loaded.config.economy;
+    gbxErr(
+      paths,
+      `[gbx] economy=${e} (${economyLabel(e)})` +
+        (e === 3
+          ? ` defer_verify_every=${state.deferVerifyEvery != null ? state.deferVerifyEvery : loaded.config.defer_verify_every}`
+          : ''),
+    );
+  }
 
   const maxIterations = loaded.config.max_rounds || 40;
   if (!quietMode) {
@@ -928,9 +975,11 @@ function runOrchestrator(cli) {
     switch (state.status) {
       case STATUSES.EXECUTE_BATCH: {
         if (todoTasks(loaded.tasks).length === 0) {
+          const economy = normalizeEconomy(state.economy) || cfg.economy || 1;
           state = patchState(paths, {
-            status: STATUSES.FULL_REVIEW,
+            status: economy === 3 ? STATUSES.FULL_VERIFY : STATUSES.FULL_REVIEW,
             activeTaskIds: [],
+            deferClosingVerify: economy === 3,
           });
           break;
         }
@@ -966,11 +1015,33 @@ function runOrchestrator(cli) {
           break;
         }
 
-        state = patchState(paths, {
+        // Re-read index: executor may have marked active tasks ✅.
+        loaded = reload(cli.exFile, workdir, cli.config, cli);
+        const economy = normalizeEconomy(state.economy) || cfg.economy || 1;
+        const deferEvery =
+          state.deferVerifyEvery != null ? state.deferVerifyEvery : cfg.defer_verify_every;
+        const afterExec = nextAfterExecuteSuccess({
+          economy,
+          hasRemainingTodos: todoTasks(loaded.tasks).length > 0,
+          currentBatch: state.currentBatch,
+          deferVerifyEvery: deferEvery,
+        });
+        appendLog(paths, `execute → ${afterExec.status} (${afterExec.reason})`);
+
+        const execPatch = {
           lastAgentStdout: truncate(execResult.stdout),
           lastAgentStderr: truncate(execResult.stderr),
-          status: STATUSES.BATCH_REVIEW,
-        });
+          status: afterExec.status,
+          deferClosingVerify: Boolean(afterExec.deferClosingVerify),
+          blockedReason: null,
+        };
+        if (afterExec.advanceBatch) {
+          execPatch.currentBatch = state.currentBatch + 1;
+          execPatch.batchFixAttempts = 0;
+          execPatch.checkboxFixAttempts = 0;
+          execPatch.activeTaskIds = [];
+        }
+        state = patchState(paths, execPatch);
         if (!execResult.ok) {
           appendLog(paths, `executor exit ${execResult.exitCode} — continue_on_executor_fail`);
         }
@@ -1214,13 +1285,35 @@ function runOrchestrator(cli) {
           ...clearFixBookkeepingPartial(),
           ...clearRecoveryBookkeepingPartial(),
         };
-        if (decision.next === STATUSES.EXECUTE_BATCH) {
+        if (verifyOk && checksOk) {
+          const economy = normalizeEconomy(state.economy) || cfg.economy || 1;
+          const afterBatch = nextAfterBatchVerifyComplete({
+            economy,
+            hasRemainingTodos: todoTasks(loaded.tasks).length > 0,
+          });
+          // Override decideAfterVerify pass next for economy-aware closing.
+          if (
+            decision.next === STATUSES.EXECUTE_BATCH ||
+            decision.next === STATUSES.FULL_REVIEW
+          ) {
+            patch.status = afterBatch.status;
+            patch.deferClosingVerify = Boolean(afterBatch.deferClosingVerify);
+            appendLog(
+              paths,
+              `verify pass economy route → ${afterBatch.status} (${afterBatch.reason})`,
+            );
+          }
+        }
+        if (patch.status === STATUSES.EXECUTE_BATCH) {
           patch.currentBatch = state.currentBatch + 1;
           patch.batchFixAttempts = 0;
           patch.checkboxFixAttempts = 0;
           patch.activeTaskIds = [];
         }
-        if (decision.next === STATUSES.FULL_REVIEW) {
+        if (
+          patch.status === STATUSES.FULL_REVIEW ||
+          patch.status === STATUSES.FULL_VERIFY
+        ) {
           patch.activeTaskIds = [];
           patch.batchFixAttempts = 0;
           patch.checkboxFixAttempts = 0;
@@ -1412,6 +1505,24 @@ function runOrchestrator(cli) {
           }
           if (cp.sha) {
             state = patchState(paths, { lastSuccessfulCommit: cp.sha });
+          }
+          // Defer closing: FULL_VERIFY green → Final Review (not READY yet).
+          if (state.deferClosingVerify) {
+            appendLog(paths, 'full verify pass (defer closing) → FULL_REVIEW');
+            state = patchState(paths, {
+              status: STATUSES.FULL_REVIEW,
+              deferClosingVerify: false,
+              lastVerifyOk: true,
+              lastVerifySummary: summarizeVerify(v.report),
+              lastVerifyFingerprint: null,
+              lastVerifyReportPath: paths.latestVerify,
+              checkboxFixAttempts: 0,
+              recoveryAttempts: 0,
+              fullFixAttempts: 0,
+              ...clearFixBookkeepingPartial(),
+              ...clearRecoveryBookkeepingPartial(),
+            });
+            break;
           }
           state = patchState(paths, {
             status: STATUSES.READY_FOR_MANUAL_QA,

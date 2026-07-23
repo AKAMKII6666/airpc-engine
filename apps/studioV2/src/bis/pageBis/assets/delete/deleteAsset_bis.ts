@@ -1,22 +1,20 @@
 /**
-	* 资源删除编排（静态阶段）：确认后从会话 mock 移除。
-	* 禁止 Host 写口与「已从磁盘删除」文案。
+	* 资源删除：经 API 删除 data/assets/meta（及可解析的 files 条目）。
 	*/
-import { removeMockAsset } from "@studio-v2/src/utils/ajaxProxy/library/mock/mockLibraryData";
+import { deleteAsset } from "@studio-v2/src/utils/ajaxProxy/library/api/assetsApi";
 
-/** 删除资源 mock 提交结果 */
+/** 删除资源写盘结果 */
 export type DeleteAssetResult = {
 	/** 被移除的 assetId */
 	assetId: string;
 };
 
 /**
-	* 从会话内列表移除资源；找不到时抛错供确认弹层展示。
+	* 提交删除资产；失败抛错供确认弹层展示。
 	*/
-export function commitDeleteAssetMock(assetId: string): DeleteAssetResult {
-	const ok = removeMockAsset(assetId);
-	if (!ok) {
-		throw new Error("未找到该资源，无法从会话内列表移除");
-	}
+export async function commitDeleteAsset(
+	assetId: string,
+): Promise<DeleteAssetResult> {
+	await deleteAsset(assetId);
 	return { assetId };
 }

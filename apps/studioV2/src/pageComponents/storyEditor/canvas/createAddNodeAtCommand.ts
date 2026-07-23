@@ -19,13 +19,14 @@ export type CreateAddNodeAtArgs = {
 	nodesRef: MutableRefObject<Node[]>;
 	selectedIdRef: MutableRefObject<string | null>;
 	setNodes: Dispatch<SetStateAction<Node[]>>;
-	onSelectionChange: (selection: StoryEditorSelection | null) => void;
+	/** 落点后打开属性浮窗 */
+	onOpenPropertyPanel: (selection: StoryEditorSelection | null) => void;
 	setToolMode: StoryCanvasStageApi["setToolMode"];
 };
 
 /**
 	* 构造 addNodeAt；未知 kind / 已有 chapter_end 再放时 no-op。
-	* 放置成功后强制 idle，避免连放（第一版）。
+	* 放置成功后强制 idle，并打开属性浮窗。
 	*/
 export function createAddNodeAtCommand(
 	args: CreateAddNodeAtArgs,
@@ -34,7 +35,7 @@ export function createAddNodeAtCommand(
 		nodesRef,
 		selectedIdRef,
 		setNodes,
-		onSelectionChange,
+		onOpenPropertyPanel,
 		setToolMode,
 	} = args;
 	return (kind: DockPlacementKind, position: { x: number; y: number }) => {
@@ -49,7 +50,7 @@ export function createAddNodeAtCommand(
 		if (!placed) return;
 		selectedIdRef.current = placed.id;
 		setNodes((prev) => appendPlacedNodeSelected(prev, placed));
-		onSelectionChange(selectionFromPlacedNode(placed));
+		onOpenPropertyPanel(selectionFromPlacedNode(placed));
 		setToolMode(
 			IDLE_DOCK_TOOL_MODE.mode,
 			IDLE_DOCK_TOOL_MODE.placementKind,

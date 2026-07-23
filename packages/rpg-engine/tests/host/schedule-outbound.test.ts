@@ -7,10 +7,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import {
-  createEngineHost,
   isEngineError,
 } from "../../src/index.js";
 import { expandRegisterExitEffects } from "../../src/tools/expandExitEffects.js";
+import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -31,22 +31,22 @@ describe("schedule → outbound (S3)", () => {
   it("expand 拒绝仅 topicHint 的 schedule / refer", () => {
     const badRefer = expandRegisterExitEffects(
       "refer_to_expert",
-      { target_agent_id: "xiaoyu", topic_hint: "hello" },
-      "doubao-sister",
+      { target_agent_id: "xiaopi", topic_hint: "hello" },
+      "lanxing",
     );
     expect(isEngineError(badRefer)).toBe(true);
 
     const badRemind = expandRegisterExitEffects(
       "schedule_reminder_call",
       { topic_hint: "only hint", delay_minutes: 1 },
-      "doubao-sister",
+      "lanxing",
     );
     expect(isEngineError(badRemind)).toBe(true);
 
     const bareRecurring = expandRegisterExitEffects(
       "schedule_recurring_call",
       { topic_hint: "bare", hour: 9, minute: 0 },
-      "doubao-sister",
+      "lanxing",
     );
     expect(isEngineError(bareRecurring)).toBe(true);
 
@@ -58,7 +58,7 @@ describe("schedule → outbound (S3)", () => {
         delay_minutes: 1,
         topic_hint: "ok",
       },
-      "doubao-sister",
+      "lanxing",
     );
     expect(isEngineError(ok)).toBe(false);
     if (isEngineError(ok)) return;
@@ -71,13 +71,13 @@ describe("schedule → outbound (S3)", () => {
     const dataRoot = path.join(tmpRoot, "data");
     await cp(dataSrc, dataRoot, { recursive: true });
 
-    const host = createEngineHost({ persist: false, autoMemory: false });
+    const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);
     await host.ensureProfile("demo-user");
 
     const resolved = await host.resolveAsync("demo-user", {
       kind: "free_call",
-      agentId: "doubao-sister",
+      agentId: "lanxing",
     });
     if (isEngineError(resolved)) throw resolved;
     const session = await host.beginCall("demo-user", resolved, {
@@ -119,7 +119,7 @@ describe("schedule → outbound (S3)", () => {
 
     const outbound = await host.resolveAsync("demo-user", {
       kind: "agent_outbound",
-      agentId: "doubao-sister",
+      agentId: "lanxing",
     });
     expect(isEngineError(outbound)).toBe(false);
     if (isEngineError(outbound)) return;

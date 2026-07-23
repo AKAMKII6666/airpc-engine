@@ -18,6 +18,8 @@ export type StoryEditorTopBarProps = {
 	saveState: EditorPackageSaveState;
 	/** 保存失败文案 */
 	saveError?: string;
+	/** 最近一次校验摘要（顶栏一行）；空串表示尚未校验 */
+	validationSummary?: string;
 	/** 触发整包写盘 */
 	onSave: () => void;
 	/** 加载中禁用保存 */
@@ -40,11 +42,17 @@ export const StoryEditorTopBar: FC<StoryEditorTopBarProps> = function ({
 	saveState,
 	// saveError 是保存失败说明
 	saveError,
+	// validationSummary 是校验状态一句摘要
+	validationSummary,
 	// onSave 触发整包写盘
 	onSave,
 	// saveDisabled 加载失败时禁用保存
 	saveDisabled,
 }) {
+	const validateLabel =
+		validationSummary && validationSummary.trim() !== ""
+			? validationSummary
+			: "尚未校验";
 	return (
 		<header className={styles.bar}>
 			<div className={styles.titles}>
@@ -60,7 +68,7 @@ export const StoryEditorTopBar: FC<StoryEditorTopBarProps> = function ({
 					{/* 引用了Typography组件，用于章节与状态副标题 */}
 					<Typography variant="caption" className={styles.chapter}>
 						{chapterTitle} · {saveStateLabel(saveState)}
-						{saveError ? ` · ${saveError}` : ""} · 校验正常
+						{saveError ? ` · ${saveError}` : ""} · {validateLabel}
 					</Typography>
 				</div>
 			</div>

@@ -7,11 +7,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import {
-  createEngineHost,
   FREE_PACKAGE_ID,
   isEngineError,
   listBuiltinTools,
 } from "../../src/index.js";
+import { createTestHostWithMemory } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -51,28 +51,24 @@ describe("free call + tools + memory", () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-p5-"));
     const dataRoot = path.join(tmpRoot, "data");
     await cp(dataSrc, dataRoot, { recursive: true });
-
-    const host = createEngineHost({ persist: true });
+    const host = createTestHostWithMemory({ persist: true, dataRoot });
     await host.loadWorkspace(dataRoot);
     await host.ensureProfile("demo-user");
-
     const resolved = await host.resolveAsync("demo-user", {
       kind: "free_call",
-      agentId: "doubao-sister",
+      agentId: "lanxing",
     });
     expect(isEngineError(resolved)).toBe(false);
     if (isEngineError(resolved)) return;
     expect(resolved.packageId).toBe(FREE_PACKAGE_ID);
     expect(resolved.source).toBe("free");
     expect(resolved.card.cardKind).toBe("free");
-
     const session = await host.beginCall("demo-user", resolved, {
       channel: "manual",
     });
     expect(isEngineError(session)).toBe(false);
     if (isEngineError(session)) return;
     expect(session.packageId).toBe(FREE_PACKAGE_ID);
-
     const end = await host.endCall(session.sessionId, {
       flags: { answered_completed: true },
       completedBeats: [],
@@ -82,17 +78,15 @@ describe("free call + tools + memory", () => {
     if (isEngineError(end)) return;
     expect(end.selectedExitId).toBeUndefined();
     expect(end.session.status).toBe("completed");
-
     const mem = host.getMemoryPort();
     expect(mem).toBeTruthy();
     const hits = await mem!.search({
       userId: "demo-user",
-      agentId: "doubao-sister",
+      agentId: "lanxing",
       textQuery: "Free call",
       maxResults: 5,
     });
     expect(hits.length).toBeGreaterThan(0);
-
     const profile = JSON.parse(
       await readFile(
         path.join(dataRoot, "users/demo-user/profile.save.json"),
@@ -106,32 +100,27 @@ describe("free call + tools + memory", () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-p5-cand-"));
     const dataRoot = path.join(tmpRoot, "data");
     await cp(dataSrc, dataRoot, { recursive: true });
-
-    const host = createEngineHost({ persist: true });
+    const host = createTestHostWithMemory({ persist: true, dataRoot });
     await host.loadWorkspace(dataRoot);
     await host.ensureProfile("demo-user");
-
     const resolved = await host.resolveAsync("demo-user", {
       kind: "free_call",
-      agentId: "doubao-sister",
+      agentId: "lanxing",
     });
     if (isEngineError(resolved)) throw resolved;
     const session = await host.beginCall("demo-user", resolved, {
       channel: "manual",
     });
     if (isEngineError(session)) throw session;
-
     const inv = await host.invokeTool(session.sessionId, "share_expert_number", {
-      target_agent_id: "xiaoyu",
+      target_agent_id: "xiaopi",
     });
     expect(isEngineError(inv)).toBe(false);
     if (isEngineError(inv)) return;
     expect(inv.behavior).toBe("register_exit");
     expect(session.exitCandidates.length).toBe(1);
-
     const unknown = await host.invokeTool(session.sessionId, "not_a_tool", {});
     expect(isEngineError(unknown)).toBe(true);
-
     const end = await host.endCall(session.sessionId, {
       flags: { answered_completed: true },
       completedBeats: [],
@@ -143,23 +132,22 @@ describe("free call + tools + memory", () => {
     expect(
       end.effectPlanResult.results.some((r) => r.status === "executed"),
     ).toBe(true);
-
     const saved = JSON.parse(
       await readFile(
         path.join(dataRoot, "users/demo-user/profile.save.json"),
         "utf8",
       ),
     ) as { characters: Record<string, { unlocked?: boolean }> };
-    expect(saved.characters.xiaoyu?.unlocked).toBe(true);
+    expect(saved.characters.xiaopi?.unlocked).toBe(true);
   });
 
   it("loadCard 可经 __free__ 解析角色 FreeCard", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-p5-free-load-"));
     const dataRoot = path.join(tmpRoot, "data");
     await cp(dataSrc, dataRoot, { recursive: true });
-    const host = createEngineHost({ persist: false });
+    const host = createTestHostWithMemory({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);
-    const ok = await host.preloadCard(FREE_PACKAGE_ID, "doubao_free");
+    const ok = await host.preloadCard(FREE_PACKAGE_ID, "lanxing_free");
     expect(isEngineError(ok)).toBe(false);
   });
 });

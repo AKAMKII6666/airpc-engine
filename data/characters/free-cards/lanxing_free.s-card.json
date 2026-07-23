@@ -1,0 +1,20 @@
+{
+  "cardId": "lanxing_free",
+  "cardKind": "free",
+  "title": "澜星·自由通话",
+  "ownerAgentId": "lanxing",
+  "entryMode": "either",
+  "interactionMode": "realtime_dialogue",
+  "context": {
+    "privateBrief": "自由闲聊；无强制剧情目标。入口角色情绪兜底。",
+    "speakableBrief": "随便聊聊。",
+    "background": "",
+    "premise": "",
+    "emotion": "温和",
+    "objective": "自然陪伴闲聊",
+    "forbidden": ["剧透未解锁剧情", "直接砸出小皮爸爸牺牲真相"]
+  },
+  "objectives": { "requiredBeats": [] },
+  "toolPolicy": { "mode": "inherit_free" },
+  "exits": []
+}

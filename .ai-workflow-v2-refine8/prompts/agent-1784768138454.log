@@ -1,0 +1,3 @@
+[1m[34m[gbx] ▶ executor:V2-S8-13[0m[2m[37m start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine[0m
+{"type":"system","subtype":"init","apiKeySource":"login","cwd":"/Users/bolbiao/workspace/airpc-engine","session_id":"b5b158e7-3b10-4483-a031-26a81f4c9d1c","model":"Auto","permissionMode":"default"}
+{"type":"user","message":{"role":"user","content":[{"type":"text","text":"Follow the instructions in the prompt file exactly. Do not skip sections.\nPrompt file (absolute path): /Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-refine8/prompts/prompt-1784768138454.md\nRead that file now and execute it."}]},"session_id":"b5b158e7-3b10-4483-a031-26a81f4c9d1c"}

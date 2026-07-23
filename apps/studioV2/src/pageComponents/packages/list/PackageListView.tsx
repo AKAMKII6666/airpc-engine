@@ -1,5 +1,5 @@
 /**
-	* 故事包管理完整列表：前端分页；列表真源为 data/storis-packages。
+	* 故事包管理完整列表：前端搜索 + 分页；列表真源为 data/storis-packages。
 	*/
 "use client";
 
@@ -7,8 +7,16 @@ import type { FC } from "react";
 import { Alert, Button, CircularProgress, TextField, Typography } from "@mui/material";
 // 引用了FrontendPagination组件，用于列表前端分页
 import { FrontendPagination } from "@studio-v2/src/commonUiComponents/pagination/FrontendPagination";
+// 引用了FormModal组件，用于新建故事包落盘
+import { FormModal } from "@studio-v2/src/commonUiComponents/modal/form/FormModal";
 // 引用了ImportPackageModal组件，用于导入故事包弹层
 import { ImportPackageModal } from "@studio-v2/src/pageComponents/packages/import/ImportPackageModal";
+import {
+	CREATE_PACKAGE_FORM_ITEMS,
+	CREATE_PACKAGE_INITIAL_VALUES,
+	validateCreatePackageForm,
+	type CreatePackageFormValues,
+} from "@studio-v2/src/bis/pageBis/packages/createPackageForm";
 // 引用了PackageListItem组件，用于渲染单条故事包
 import { PackageListItem } from "./com/PackageListItem";
 import {
@@ -39,8 +47,8 @@ export const PackageListView: FC = function PackageListView() {
 					<Button variant="outlined" onClick={() => list.setImportOpen(true)}>
 						导入
 					</Button>
-					{/* 引用了Button组件，用于新建（本步未接落盘） */}
-					<Button variant="contained" disabled title="新建落盘后续批次接通">
+					{/* 引用了Button组件，用于打开新建 FormModal */}
+					<Button variant="contained" onClick={() => list.setCreateOpen(true)}>
 						新建故事包
 					</Button>
 				</div>
@@ -58,11 +66,12 @@ export const PackageListView: FC = function PackageListView() {
 				</div>
 			) : (
 				<>
-					{/* 引用了TextField组件，用于标题筛选静态占位 */}
+					{/* 引用了TextField组件，用于按 title / packageId 筛选 */}
 					<TextField
 						size="small"
-						placeholder="按标题筛选（静态占位）"
-						disabled
+						placeholder="按标题或 packageId 筛选"
+						value={list.search}
+						onChange={(e) => list.onSearchChange(e.target.value)}
 						className={styles.search}
 						inputProps={{ "aria-label": "筛选故事包" }}
 					/>
@@ -78,7 +87,7 @@ export const PackageListView: FC = function PackageListView() {
 					<FrontendPagination
 						page={list.page}
 						pageSize={PACKAGE_LIST_PAGE_SIZE}
-						total={list.packages.length}
+						total={list.filteredCount}
 						onChange={list.setPage}
 					/>
 				</>
@@ -89,6 +98,19 @@ export const PackageListView: FC = function PackageListView() {
 				open={list.importOpen}
 				onClose={() => list.setImportOpen(false)}
 				onImported={list.onImported}
+			/>
+
+			{/* 引用了FormModal组件，用于 POST /api/stories 新建 */}
+			<FormModal<CreatePackageFormValues>
+				open={list.createOpen}
+				title="新建故事包"
+				mode="add"
+				initialValues={CREATE_PACKAGE_INITIAL_VALUES}
+				items={CREATE_PACKAGE_FORM_ITEMS}
+				validate={validateCreatePackageForm}
+				onClose={() => list.setCreateOpen(false)}
+				onSubmit={list.onCreateSubmit}
+				submitLabel="创建并进入编辑器"
 			/>
 		</main>
 	);

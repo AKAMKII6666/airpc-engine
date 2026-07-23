@@ -26,7 +26,7 @@ function baseProfile(
     callCards: {
       board: {
         byAgent: {
-          xiaoyu: { pending },
+          xiaopi: { pending },
         },
       },
     },
@@ -42,7 +42,7 @@ describe("entryMode pending pick (S2)", () => {
         instanceId: "i-out",
         cardId: "out_card",
         packageId: "pkg",
-        agentId: "xiaoyu",
+        agentId: "xiaopi",
         status: "pending",
         entryMode: "outbound_auto",
         createdAt: "2026-01-01T00:00:00.000Z",
@@ -51,13 +51,13 @@ describe("entryMode pending pick (S2)", () => {
         instanceId: "i-in",
         cardId: "in_card",
         packageId: "pkg",
-        agentId: "xiaoyu",
+        agentId: "xiaopi",
         status: "pending",
         entryMode: "inbound_user_dial",
         createdAt: "2026-01-01T00:00:01.000Z",
       },
     ]);
-    const hit = pickPendingForIntent(profile, "xiaoyu", "user_dial");
+    const hit = pickPendingForIntent(profile, "xiaopi", "user_dial");
     expect(hit?.cardId).toBe("in_card");
   });
 
@@ -67,7 +67,7 @@ describe("entryMode pending pick (S2)", () => {
         instanceId: "i-in",
         cardId: "in_card",
         packageId: "pkg",
-        agentId: "xiaoyu",
+        agentId: "xiaopi",
         status: "pending",
         entryMode: "inbound_user_dial",
         createdAt: "2026-01-01T00:00:00.000Z",
@@ -76,13 +76,13 @@ describe("entryMode pending pick (S2)", () => {
         instanceId: "i-out",
         cardId: "out_card",
         packageId: "pkg",
-        agentId: "xiaoyu",
+        agentId: "xiaopi",
         status: "pending",
         entryMode: "outbound_auto",
         createdAt: "2026-01-01T00:00:01.000Z",
       },
     ]);
-    const hit = pickPendingForIntent(profile, "xiaoyu", "agent_outbound");
+    const hit = pickPendingForIntent(profile, "xiaopi", "agent_outbound");
     expect(hit?.cardId).toBe("out_card");
   });
 
@@ -93,7 +93,7 @@ describe("entryMode pending pick (S2)", () => {
           instanceId: "i-out",
           cardId: "out_card",
           packageId: "pkg",
-          agentId: "xiaoyu",
+          agentId: "xiaopi",
           status: "pending",
           entryMode: "outbound_auto",
           createdAt: "2026-01-01T00:00:00.000Z",
@@ -102,15 +102,15 @@ describe("entryMode pending pick (S2)", () => {
           instanceId: "i-in",
           cardId: "in_card",
           packageId: "pkg",
-          agentId: "xiaoyu",
+          agentId: "xiaopi",
           status: "pending",
           entryMode: "inbound_user_dial",
           createdAt: "2026-01-01T00:00:01.000Z",
         },
       ],
-      { redialSlot: { agentId: "xiaoyu", cardId: "out_card" } },
+      { redialSlot: { agentId: "xiaopi", cardId: "out_card" } },
     );
-    const dial = pickPendingForIntent(profile, "xiaoyu", "user_dial");
+    const dial = pickPendingForIntent(profile, "xiaopi", "user_dial");
     expect(dial?.cardId).toBe("in_card");
     expect(dial?.cardId).not.toBe("out_card");
   });

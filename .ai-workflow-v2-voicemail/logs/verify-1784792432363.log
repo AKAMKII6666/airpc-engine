@@ -1,0 +1,2 @@
+[gbx] ▶ verify:test -f "docs/AI和人类/需求/04-调试器界面需求.md" && test -f "docs/AI和人类 start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] ■ verify:test -f "docs/AI和人类/需求/04-调试器界面需求.md" && test -f "docs/AI和人类 done exit=0 elapsed=0s

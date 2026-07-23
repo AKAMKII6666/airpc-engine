@@ -1,26 +1,28 @@
 /**
-	* 新建资源编排（静态阶段）：Formik 校验后写入会话 mock。
-	* 禁止 Host 写口、真上传与「已保存到磁盘」文案。
+	* 新建资源：经 API 落盘 data/assets/meta；assetId 系统生成。
+	* 仅写元数据（pendingFile）；头像/图片真文件走 commitUploadAvatarImage。
 	*/
-import { appendMockAsset } from "@studio-v2/src/utils/ajaxProxy/library/mock/mockLibraryData";
-import {
-	buildMockAssetFromForm,
-	type CreateAssetFormValues,
-} from "./createAssetForm";
+import { postAssetFromForm } from "@studio-v2/src/utils/ajaxProxy/library/api/assetsApi";
+import { createStudioId } from "@studio-v2/typeFiles/ids/createStudioId";
+import type { AssetSummary } from "@studio-v2/typeFiles/library/assets/assetSummary";
+import type { CreateAssetFormValues } from "./createAssetForm";
 
-/** 新建资源 mock 提交结果 */
+/** 新建资源写盘结果 */
 export type CreateAssetResult = {
 	/** 新建后的 assetId，供选中详情 */
 	assetId: string;
+	/** 列表/浮窗用投影；由落盘回读，非会话假数据 */
+	summary: AssetSummary;
 };
 
 /**
-	* 将会话内 mock 列表前置一条新资源。
+	* 创建资源元数据并写盘；返回投影供列表选中。
 	*/
-export function commitCreateAssetMock(
+export async function commitCreateAsset(
 	values: CreateAssetFormValues,
-): CreateAssetResult {
-	const summary = buildMockAssetFromForm(values);
-	appendMockAsset(summary);
-	return { assetId: summary.assetId };
+): Promise<CreateAssetResult> {
+	const displayName = values.displayName.trim();
+	const assetId = createStudioId("asset", displayName);
+	const summary = await postAssetFromForm(assetId, values);
+	return { assetId: summary.assetId, summary };
 }

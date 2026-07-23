@@ -7,10 +7,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import {
-  createEngineHost,
   isEngineError,
   type PlayerProfile,
 } from "../../src/index.js";
+import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -33,7 +33,7 @@ describe("manual story loop", () => {
     const dataRoot = path.join(tmpRoot, "data");
     await cp(dataSrc, dataRoot, { recursive: true });
 
-    const host = createEngineHost({ persist: true });
+    const host = createTestHost({ persist: true, dataRoot });
     await host.loadWorkspace(dataRoot);
     await host.ensureProfile("demo-user");
 
@@ -67,7 +67,7 @@ describe("manual story loop", () => {
 
     const end = await host.endCall(session.sessionId, {
       flags: { answered_completed: true },
-      completedBeats: ["user_knows_to_call_xiaoyu"],
+      completedBeats: ["user_knows_to_call_xiaopi"],
       missedRequiredBeats: [],
     });
     expect(isEngineError(end)).toBe(false);
@@ -83,11 +83,11 @@ describe("manual story loop", () => {
       ),
     ) as PlayerProfile;
 
-    expect(saved.characters.xiaoyu?.unlocked).toBe(true);
-    expect(saved.telephony?.redialSlot?.agentId).toBe("xiaoyu");
-    expect(saved.telephony?.redialSlot?.cardId).toBe("xiaoyu_waiting_user");
-    const pending = saved.callCards.board.byAgent.xiaoyu?.pending ?? [];
-    expect(pending.some((p) => p.cardId === "xiaoyu_waiting_user")).toBe(true);
+    expect(saved.characters.xiaopi?.unlocked).toBe(true);
+    expect(saved.telephony?.redialSlot?.agentId).toBe("xiaopi");
+    expect(saved.telephony?.redialSlot?.cardId).toBe("xiaopi_waiting_user");
+    const pending = saved.callCards.board.byAgent.xiaopi?.pending ?? [];
+    expect(pending.some((p) => p.cardId === "xiaopi_waiting_user")).toBe(true);
     expect(JSON.stringify(saved)).not.toContain(session.sessionId);
   });
 
@@ -96,7 +96,7 @@ describe("manual story loop", () => {
     const dataRoot = path.join(tmpRoot, "data");
     await cp(dataSrc, dataRoot, { recursive: true });
 
-    const host = createEngineHost({ persist: false });
+    const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);
     await host.ensureProfile("demo-user");
 

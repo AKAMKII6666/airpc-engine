@@ -7,6 +7,8 @@
 
 const path = require('path');
 
+const { normalizeEconomy } = require('../economy');
+
 const ADAPTERS = new Set([null, 'table', 'checkbox', 'batch-block', 'batchBlock']);
 const GROUPS = new Set(['order', 'milestone']);
 const RECOVERY_CONFIDENCE = new Set(['medium', 'high']);
@@ -79,6 +81,13 @@ function validateConfig(config, workdir) {
   assertInteger(config, 'heartbeat_ms', { min: 0 });
   assertInteger(config, 'max_ineffective_fixes', { min: 1 });
   assertInteger(config, 'verify_capture_max_bytes', { min: 4096 });
+  assertInteger(config, 'defer_verify_every', { min: 0 });
+
+  const economy = normalizeEconomy(config.economy);
+  if (economy == null) {
+    fail('economy must be 1|2|3 (or strict|lean|defer)');
+  }
+  config.economy = economy;
   assertStringArray(config, 'verify_default');
   assertStringArray(config, 'read_first');
   assertStringArray(config, 'hard_stop_patterns');

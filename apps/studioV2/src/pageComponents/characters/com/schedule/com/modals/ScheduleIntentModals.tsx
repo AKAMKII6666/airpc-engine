@@ -4,7 +4,7 @@
 "use client";
 
 import type { FC } from "react";
-import type { ScheduledIntent } from "@airpc/rpg-engine";
+import type { ScheduledIntent } from "@studio-v2/typeFiles/library/schedule/engineScheduledIntent";
 import { FormModal } from "@studio-v2/src/commonUiComponents/modal/form/FormModal";
 import { DeleteConfirmModal } from "@studio-v2/src/commonUiComponents/modal/confirm/DeleteConfirmModal";
 import {

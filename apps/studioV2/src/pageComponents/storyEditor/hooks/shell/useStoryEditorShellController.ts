@@ -4,15 +4,16 @@
 	*/
 "use client";
 
-import { useCallback, useMemo, useRef } from "react";
-import { buildEffectPanelSources } from "@studio-v2/src/bis/pageBis/storyEditor/form/exitList/effects/effectPanelSources";
-import type { ChapterPackageDiskContext } from "@studio-v2/src/bis/pageBis/storyEditor/form/chapter/chapterPropertyForm";
+import { useCallback, useRef } from "react";
 import type { StoryCanvasStageApi } from "@studio-v2/src/pageComponents/storyEditor/canvas/storyCanvasTypes";
 import { useStoryEditorCharacterForms } from "@studio-v2/src/pageComponents/storyEditor/hooks/forms/useStoryEditorCharacterForms";
 import { useStoryEditorAssetForms } from "@studio-v2/src/pageComponents/storyEditor/hooks/forms/useStoryEditorAssetForms";
 import { useStoryEditorDockTools } from "@studio-v2/src/pageComponents/storyEditor/hooks/dock/useStoryEditorDockTools";
 import { useStoryEditorNodeDelete } from "@studio-v2/src/pageComponents/storyEditor/hooks/shell/useStoryEditorNodeDelete";
 import { useStoryEditorCanvasBindings } from "@studio-v2/src/pageComponents/storyEditor/hooks/shell/useStoryEditorCanvasBindings";
+import { useScheduleCardSummaries } from "@studio-v2/src/pageComponents/storyEditor/hooks/shell/panels/useScheduleCardSummaries";
+import { useStoryEditorDerivedPanels } from "@studio-v2/src/pageComponents/storyEditor/hooks/shell/panels/useStoryEditorDerivedPanels";
+import { usePlaybackClipApply } from "@studio-v2/src/pageComponents/storyEditor/hooks/forms/usePlaybackClipApply";
 import { useStoryEditorFloatState } from "@studio-v2/src/pageComponents/storyEditor/hooks/float/useStoryEditorFloatState";
 import { useStoryEditorPackageSession } from "@studio-v2/src/pageComponents/storyEditor/hooks/package/useStoryEditorPackageSession";
 import type { CharacterAnchorNodeData } from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
@@ -33,6 +34,7 @@ export function useStoryEditorShellController(packageId: string) {
 	});
 	const characterForms = useStoryEditorCharacterForms({ getCanvasApi });
 	const assetForms = useStoryEditorAssetForms();
+	const scheduleCards = useScheduleCardSummaries();
 	const dockTools = useStoryEditorDockTools({
 		canvasApiRef,
 		setAssetFloat: floatState.setAssetFloat,
@@ -40,33 +42,20 @@ export function useStoryEditorShellController(packageId: string) {
 	});
 	const nodeDelete = useStoryEditorNodeDelete(canvasApiRef);
 	const canvasBind = useStoryEditorCanvasBindings(canvasApiRef);
-
-	const chapterDiskCtx = useMemo<ChapterPackageDiskContext>(
-		function () {
-			return {
-				cardIndex: packageSession.cardIndex,
-				entryCardIdByPackage: packageSession.entryCardIdByPackage,
-			};
-		},
-		[packageSession.cardIndex, packageSession.entryCardIdByPackage],
-	);
-
-	const effectPanelSources = useMemo(
-		function () {
-			return buildEffectPanelSources({
-				characterAnchors: canvasBind.characterAnchors,
-				callCards: canvasBind.callCards,
-				packages: packageSession.diskPackages,
-				assets: assetForms.assets,
-			});
-		},
-		[
-			canvasBind.characterAnchors,
-			canvasBind.callCards,
-			packageSession.diskPackages,
-			assetForms.assets,
-		],
-	);
+	const playbackClip = usePlaybackClipApply({
+		selection: floatState.selection,
+		onApplyNodeData: canvasBind.onApplyNodeData,
+	});
+	const derived = useStoryEditorDerivedPanels({
+		packageId,
+		characterAnchors: canvasBind.characterAnchors,
+		callCards: canvasBind.callCards,
+		diskPackages: packageSession.diskPackages,
+		assets: assetForms.assets,
+		scheduleCards,
+		cardIndex: packageSession.cardIndex,
+		entryCardIdByPackage: packageSession.entryCardIdByPackage,
+	});
 
 	const onCharacterAnchorSelect = useCallback(
 		function (anchor: CharacterAnchorNodeData | null) {
@@ -80,18 +69,23 @@ export function useStoryEditorShellController(packageId: string) {
 		packageSession,
 		packageTitle: packageSession.packageTitle,
 		selection: floatState.selection,
+		propertyPanelOpen: floatState.propertyPanelOpen,
 		assetFloat: floatState.assetFloat,
 		packageFloat: floatState.packageFloat,
 		chapterEndDisabled: canvasBind.chapterEndDisabled,
 		characterAnchors: canvasBind.characterAnchors,
-		effectPanelSources,
-		chapterDiskCtx,
+		effectPanelSources: derived.effectPanelSources,
+		entryCardOptions: derived.entryCardOptions,
+		chapterDiskCtx: derived.chapterDiskCtx,
 		chapterPackageOptions: packageSession.chapterPackageOptions,
 		pendingDelete: nodeDelete.pendingDelete,
 		activeToolId: dockTools.activeToolId,
 		characterForms,
 		assetForms,
+		canUseAsPlaybackClip: playbackClip.canUseAsPlaybackClip,
+		onUseAsPlaybackClip: playbackClip.onUseAsPlaybackClip,
 		onSelectionChange: floatState.onSelectionChange,
+		openPropertyPanel: floatState.openPropertyPanel,
 		onCanvasReady: canvasBind.onCanvasReady,
 		onGraphMetaChange: canvasBind.onGraphMetaChange,
 		onToolModeChange: dockTools.onToolModeChange,

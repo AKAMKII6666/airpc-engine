@@ -68,7 +68,7 @@ describe("canvasCharacterAnchor", () => {
 		const anchor = characterSummaryToAnchorData(sampleSummary());
 		expect(anchor.agentId).toBe("agent_demo_1");
 		expect(anchor.displayName).toBe("演示角色");
-		expect(anchor.statusLabel).toBe("待挂卡");
+		expect(anchor.statusLabel).toBe("本章未挂卡");
 		expect(anchor.pendingCardCount).toBe(0);
 	});
 
@@ -104,6 +104,7 @@ describe("canvasCharacterAnchor", () => {
 					title: "出口",
 					exitKind: "terminal",
 					priority: 0,
+					condition: { op: "always" },
 					conditionSummary: "终结",
 					effects: [],
 				},

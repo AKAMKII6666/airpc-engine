@@ -20,6 +20,10 @@ import {
 } from "./scheduleTick.js";
 import { writeRecurringIntentFromEffect } from "../schedule/writeRecurringIntentFromEffect.js";
 import type { ScheduledCardLookup } from "../schedule/scheduleCardReferenceResolver.js";
+import { applyAttachCallCardToBoard } from "./attachCallCardEffect.js";
+import { applyScheduleCallCardToBoard } from "./scheduleCallCardEffect.js";
+import { tryAttachVoicemailCallCard } from "./voicemail/voicemailDivert.js";
+import { tryScheduleVoicemailCallCard } from "./voicemail/voicemailDivert.js";
 
 export interface EffectExecutorContext {
   profile: PlayerProfile;
@@ -167,34 +171,11 @@ function applyOneEffect(effect: Effect, ctx: EffectExecutorContext): void {
       return;
     }
     case "attach_call_card": {
-      const agentId = String(effect.agentId ?? "");
-      const cardId = String(effect.cardId ?? "");
-      if (!agentId || !cardId) {
-        throw new Error("attach_call_card missing agentId/cardId");
-      }
-      const board = ensureAgentBoard(profile, agentId);
-      const already = board.pending.some(function (item) {
-        return item.cardId === cardId && item.status === "pending";
-      });
-      if (already) {
+      // voicemail：入 GenStack，永不写 Board.pending（V2-VM-4）
+      if (tryAttachVoicemailCallCard(effect, ctx)) {
         return;
       }
-      board.pending.push({
-        instanceId: randomUUID(),
-        cardId,
-        packageId:
-          typeof effect.packageId === "string"
-            ? effect.packageId
-            : session.packageId === FREE_PACKAGE_ID
-              ? FREE_PACKAGE_ID
-              : session.packageId,
-        agentId,
-        status: "pending",
-        entryMode:
-          typeof effect.activation === "string" ? effect.activation : undefined,
-        createdAt: nowIso,
-        updatedAt: nowIso,
-      });
+      applyAttachCallCardToBoard(effect, profile, session, nowIso);
       return;
     }
     case "set_redial_slot": {
@@ -246,67 +227,11 @@ function applyOneEffect(effect: Effect, ctx: EffectExecutorContext): void {
       return;
     }
     case "schedule_call_card": {
-      // 必须 agentId+packageId+cardId；挂机立即挂 either pending，once 关联 instance
-      const agentId = String(effect.agentId ?? "");
-      const cardId = String(effect.cardId ?? "");
-      const packageId = String(effect.packageId ?? "");
-      if (!agentId || !cardId || !packageId) {
-        throw new Error(
-          "schedule_call_card requires agentId + packageId + cardId（禁止仅 topicHint 推进）",
-        );
+      // voicemail：只写 once（到点入栈），不挂 Board / 不外呼（V2-VM-5）
+      if (tryScheduleVoicemailCallCard(effect, ctx)) {
+        return;
       }
-      const delayMinutes =
-        typeof effect.delayMinutes === "number" ? effect.delayMinutes : 5;
-      const minMs =
-        typeof effect.minMs === "number"
-          ? effect.minMs
-          : delayMinutes * 60_000;
-      if (!profile.schedule) {
-        profile.schedule = { clockMs: 0, intents: [] };
-      }
-      const clockMs = profile.schedule.clockMs ?? 0;
-      const board = ensureAgentBoard(profile, agentId);
-      const existing = board.pending.find(function (item) {
-        return (
-          item.cardId === cardId &&
-          item.packageId === packageId &&
-          item.status === "pending"
-        );
-      });
-      const instanceId = existing?.instanceId ?? randomUUID();
-      if (!existing) {
-        board.pending.push({
-          instanceId,
-          cardId,
-          packageId,
-          agentId,
-          status: "pending",
-          // 双入口：定时外呼或用户提前呼入均可消费同一张卡
-          entryMode: "either",
-          activationHint: "outbound_auto",
-          scheduledIntentId: effect.id,
-          createdAt: nowIso,
-          updatedAt: nowIso,
-        });
-      } else {
-        existing.entryMode = existing.entryMode ?? "either";
-        existing.activationHint = existing.activationHint ?? "outbound_auto";
-        existing.scheduledIntentId = effect.id;
-        existing.updatedAt = nowIso;
-      }
-      profile.schedule.intents.push({
-        kind: "once",
-        intentId: effect.id,
-        agentId,
-        cardId,
-        packageId,
-        topicHint:
-          typeof effect.topicHint === "string" ? effect.topicHint : undefined,
-        fireAtMs: clockMs + minMs,
-        status: "pending",
-        linkedInstanceId: instanceId,
-        createdAt: nowIso,
-      });
+      applyScheduleCallCardToBoard(effect, profile, nowIso);
       return;
     }
     case "schedule_recurring_call": {
@@ -474,30 +399,6 @@ function applyOneEffect(effect: Effect, ctx: EffectExecutorContext): void {
       if (effect.next && typeof effect.next === "object") {
         arrangeChapterNext(effect, ctx);
       }
-      return;
-    }
-    case "create_voicemail": {
-      // 壳侧媒体桩：写入 telephony.voicemails，真播／听信箱由电话壳执行
-      if (!profile.telephony) {
-        profile.telephony = {};
-      }
-      const box = profile.telephony as {
-        redialSlot?: unknown;
-        voicemails?: Array<Record<string, unknown>>;
-      };
-      if (!Array.isArray(box.voicemails)) {
-        box.voicemails = [];
-      }
-      box.voicemails.push({
-        id: effect.id,
-        agentId: String(effect.agentId ?? session.resolve.agentId),
-        cardId:
-          typeof effect.cardId === "string" ? effect.cardId : undefined,
-        topicHint:
-          typeof effect.topicHint === "string" ? effect.topicHint : undefined,
-        status: "stub_pending",
-        createdAt: nowIso,
-      });
       return;
     }
     case "play_system_prompt": {

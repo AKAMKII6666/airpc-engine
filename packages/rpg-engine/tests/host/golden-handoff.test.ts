@@ -8,12 +8,12 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import {
-  createEngineHost,
   isEffectiveDialable,
   isEngineError,
   CharacterDefSchema,
   PlayerProfileSchema,
 } from "../../src/index.js";
+import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -50,7 +50,7 @@ describe("golden_handoff", () => {
       { force: true },
     );
 
-    const host = createEngineHost({ persist: false });
+    const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);
     expect(host.getLoadedCardCount("golden_handoff")).toBe(0);
 
@@ -67,18 +67,18 @@ describe("golden_handoff", () => {
     const dataRoot = path.join(tmpRoot, "data");
     await cp(dataSrc, dataRoot, { recursive: true });
 
-    const host = createEngineHost({ persist: true });
+    const host = createTestHost({ persist: true, dataRoot });
     await host.loadWorkspace(dataRoot);
     const profile = await host.ensureProfile("demo-user");
     // 存档可能已被其它调试解锁；golden 起手必须不可拨
-    delete profile.characters.xiaoyu;
+    delete profile.characters.xiaopi;
 
-    const xiaoyuDef = CharacterDefSchema.parse(
+    const xiaopiDef = CharacterDefSchema.parse(
       JSON.parse(
-        await readFile(path.join(dataRoot, "characters/xiaoyu.json"), "utf8"),
+        await readFile(path.join(dataRoot, "characters/xiaopi.json"), "utf8"),
       ),
     );
-    expect(isEffectiveDialable(xiaoyuDef, profile)).toBe(false);
+    expect(isEffectiveDialable(xiaopiDef, profile)).toBe(false);
 
     // —— 通 1：澜星 simulate_start ——
     expect(host.getLoadedCardCount("golden_handoff")).toBe(0);
@@ -95,38 +95,38 @@ describe("golden_handoff", () => {
 
     const e1 = await host.endCall(s1.sessionId, {
       flags: { answered_completed: true },
-      completedBeats: ["user_knows_to_call_xiaoyu"],
+      completedBeats: ["user_knows_to_call_xiaopi"],
       missedRequiredBeats: [],
     });
     if (isEngineError(e1)) throw e1;
     expect(e1.selectedExitId).toBe("success_handoff");
 
     const after1 = await host.ensureProfile("demo-user");
-    expect(after1.characters.xiaoyu?.unlocked).toBe(true);
-    expect(isEffectiveDialable(xiaoyuDef, after1)).toBe(true);
-    expect(after1.telephony?.redialSlot?.cardId).toBe("xiaoyu_waiting_user");
+    expect(after1.characters.xiaopi?.unlocked).toBe(true);
+    expect(isEffectiveDialable(xiaopiDef, after1)).toBe(true);
+    expect(after1.telephony?.redialSlot?.cardId).toBe("xiaopi_waiting_user");
 
     // 未解锁前不可拨（用初始 profile 快照已测）；再测错误码路径：
     // 临时把 unlocked 关掉验证 CHARACTER_NOT_DIALABLE
-    after1.characters.xiaoyu!.unlocked = false;
+    after1.characters.xiaopi!.unlocked = false;
     const blocked = await host.resolveAsync("demo-user", {
       kind: "user_dial",
-      agentId: "xiaoyu",
+      agentId: "xiaopi",
     });
     expect(isEngineError(blocked)).toBe(true);
     if (isEngineError(blocked)) {
       expect(blocked.code).toBe("CHARACTER_NOT_DIALABLE");
     }
-    after1.characters.xiaoyu!.unlocked = true;
+    after1.characters.xiaopi!.unlocked = true;
 
     // —— 通 2：小雨 user_dial ——
     const r2 = await host.resolveAsync("demo-user", {
       kind: "user_dial",
-      agentId: "xiaoyu",
+      agentId: "xiaopi",
     });
     if (isEngineError(r2)) throw r2;
     expect(r2.source).toBe("story_pending");
-    expect(r2.cardId).toBe("xiaoyu_waiting_user");
+    expect(r2.cardId).toBe("xiaopi_waiting_user");
     expect(host.getLoadedCardCount("golden_handoff")).toBe(2);
 
     const s2 = await host.beginCall("demo-user", r2, {
@@ -135,7 +135,7 @@ describe("golden_handoff", () => {
     });
     if (isEngineError(s2)) throw s2;
     expect(s2.composeScene.callDirection).toBe("inbound");
-    expect(s2.frozenCard.cardId).toBe("xiaoyu_waiting_user");
+    expect(s2.frozenCard.cardId).toBe("xiaopi_waiting_user");
 
     const e2 = await host.endCall(s2.sessionId, {
       flags: { answered_completed: true },
@@ -146,10 +146,10 @@ describe("golden_handoff", () => {
     expect(e2.selectedExitId).toBe("meet_ok");
 
     const after2 = await host.ensureProfile("demo-user");
-    const pending = after2.callCards.board.byAgent.xiaoyu?.pending ?? [];
+    const pending = after2.callCards.board.byAgent.xiaopi?.pending ?? [];
     expect(
       pending.some(function (p) {
-        return p.cardId === "xiaoyu_waiting_user" && p.status === "pending";
+        return p.cardId === "xiaopi_waiting_user" && p.status === "pending";
       }),
     ).toBe(false);
 

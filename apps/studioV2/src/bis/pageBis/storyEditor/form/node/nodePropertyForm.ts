@@ -3,7 +3,7 @@
 	* 校验态 / exitCount / 包配置不进表单（包级见 PackageConfigFloat）；仅会话内节点 data，不写盘。
 	*/
 import type { FormikErrors } from "formik";
-import type { CardKind } from "@airpc/rpg-engine";
+import type { CardKind } from "@studio-v2/typeFiles/story/callCard/engineCallCard";
 import type { PromptSceneLayerForm } from "@studio-v2/typeFiles/library/characters/form/characterFormShapes";
 import type {
 	EditorCallCardProjection,
@@ -23,6 +23,8 @@ import {
 } from "@studio-v2/src/bis/pageBis/storyEditor/form/exitList/exitListForm";
 
 export {
+	buildNodeBasicItems,
+	buildNodeContextItems,
 	buildNodeToolPolicyItems,
 	NODE_BASIC_ITEMS,
 	NODE_CONTEXT_ITEMS,
@@ -218,6 +220,7 @@ function applySchedule(
 	* 将表单合并回节点 data。
 	* 保留 cardId / owner* / validationBadge；cardKind / exits/toolPolicy/promptScenes 可改。
 	* schedule 仅 cardKind=schedule 写回。
+	* voicemail：强制 mailbox_open + playback_only + deny_all（与引擎校验一致）。
 	*/
 export function applyNodePropertyForm(
 	previous: EditorCallCardProjection,
@@ -225,12 +228,17 @@ export function applyNodePropertyForm(
 ): EditorCallCardProjection {
 	const promptScenes = asPromptSceneList(values.context.promptScenes);
 	const cardKind = values.cardKind;
+	const voicemail = cardKind === "voicemail";
 	return {
 		...previous,
 		cardKind,
 		title: values.title.trim(),
-		entryMode: optionalMode(values.entryMode),
-		interactionMode: optionalMode(values.interactionMode),
+		entryMode: voicemail
+			? "mailbox_open"
+			: optionalMode(values.entryMode),
+		interactionMode: voicemail
+			? "playback_only"
+			: optionalMode(values.interactionMode),
 		context: {
 			...previous.context,
 			objective: optionalTrimmed(values.context.objective),
@@ -251,7 +259,9 @@ export function applyNodePropertyForm(
 				.filter((item) => item.length > 0),
 		},
 		exits: normalizeExitList(values.exits),
-		toolPolicy: applyToolPolicy(values.toolPolicy),
+		toolPolicy: voicemail
+			? { mode: "deny_all" }
+			: applyToolPolicy(values.toolPolicy),
 		schedule:
 			cardKind === "schedule"
 				? applySchedule(values.schedule) ??

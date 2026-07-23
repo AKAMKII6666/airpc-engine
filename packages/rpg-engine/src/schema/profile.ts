@@ -99,6 +99,79 @@ export const StorySaveSchema = z
 
 export type StorySave = z.infer<typeof StorySaveSchema>;
 
+/**
+ * 信箱槽生命周期（Profile.telephony.voicemails[]）。
+ * 未读真源由此 status 推导，禁止另存 hasUnread 布尔第二真源。
+ */
+export const VoicemailSlotStatusSchema = z.enum([
+  /** 已入生成栈 / 物化中；尚无可播正文 */
+  "pending_generate",
+  /** 物化失败；不回滚其它已成功 Effect */
+  "generate_failed",
+  /** 已物化、未听；计入 deriveVoicemailHasUnread */
+  "unread",
+  /** 已听完（mailbox_open Outcome 后） */
+  "listened",
+  /**
+   * 历史 create_voicemail 桩只读兼容；不得再经 Effect 新写。
+   * 计入 deriveVoicemailHasUnread，直至存档自然消化。
+   */
+  "stub_pending",
+]);
+
+/**
+ * 单条语音留言槽：物化写 text/audioRef；听完改 status=listened。
+ * passthrough 保留壳侧扩展字段，避免 IO round-trip 丢键。
+ */
+export const VoicemailSlotSchema = z
+  .object({
+    id: z.string(),
+    agentId: z.string(),
+    cardId: z.string().optional(),
+    packageId: z.string().optional(),
+    /** 物化入栈时的 instance 关联（可选） */
+    instanceId: z.string().optional(),
+    topicHint: z.string().optional(),
+    /** 调试 / TTS 正文；与 audioRef 在 unread 态通常至少其一有值 */
+    text: z.string().optional(),
+    /** 真机音频引用；引擎不解码 WAV */
+    audioRef: z.string().optional(),
+    status: VoicemailSlotStatusSchema,
+    createdAt: z.string(),
+    listenedAt: z.string().optional(),
+  })
+  .passthrough();
+
+export type VoicemailSlotStatus = z.infer<typeof VoicemailSlotStatusSchema>;
+export type VoicemailSlot = z.infer<typeof VoicemailSlotSchema>;
+
+/** 计入「信箱有未读」的 status；pending_generate / generate_failed / listened 不计 */
+const VOICEMAIL_UNREAD_STATUSES: ReadonlySet<VoicemailSlotStatus> = new Set([
+  "unread",
+  "stub_pending",
+]);
+
+/**
+ * 未读真源唯一推导：只读 telephony.voicemails[].status。
+ * 壳 LED / 角标应订阅 onVoicemailUnreadChanged 或读本函数结果，禁止私自改未读。
+ */
+export function deriveVoicemailHasUnread(
+  telephony:
+    | {
+        voicemails?: ReadonlyArray<{ status: string }> | null;
+      }
+    | null
+    | undefined,
+): boolean {
+  const list = telephony?.voicemails;
+  if (!Array.isArray(list) || list.length === 0) {
+    return false;
+  }
+  return list.some(function (slot) {
+    return VOICEMAIL_UNREAD_STATUSES.has(slot.status as VoicemailSlotStatus);
+  });
+}
+
 export const PlayerProfileSchema = z
   .object({
     schemaVersion: z.literal(1),
@@ -131,6 +204,32 @@ export const PlayerProfileSchema = z
             cardId: z.string().optional(),
           })
           .nullable()
+          .optional(),
+        /**
+         * 语音留言信箱槽（真源）；hasUnread 由 deriveVoicemailHasUnread 推导，
+         * 勿在此对象上另加持久化 hasUnread 字段。
+         */
+        voicemails: z.array(VoicemailSlotSchema).optional(),
+        /**
+         * 待物化生成栈（attach/schedule 入栈；VM-6 Materialize 出栈写 voicemails）。
+         * 形状宽松：运行时写入，Zod 不剥未知键。
+         */
+        voicemailGenStack: z
+          .array(
+            z
+              .object({
+                id: z.string(),
+                agentId: z.string(),
+                cardId: z.string(),
+                packageId: z.string(),
+                source: z.enum(["attach", "schedule"]),
+                createdAt: z.string(),
+                instanceId: z.string().optional(),
+                topicHint: z.string().optional(),
+                intentId: z.string().optional(),
+              })
+              .passthrough(),
+          )
           .optional(),
       })
       .optional(),

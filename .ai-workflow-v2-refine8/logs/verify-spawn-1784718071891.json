@@ -1,0 +1,13 @@
+{
+  "command": "/bin/sh",
+  "args": [
+    "-c",
+    "npm run quality:studio"
+  ],
+  "workdir": "/Users/bolbiao/workspace/airpc-engine",
+  "logFile": "/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-refine8/logs/verify-1784718071891.log",
+  "heartbeatMs": 30000,
+  "label": "verify:npm run quality:studio",
+  "role": "verify",
+  "uiPipe": true
+}

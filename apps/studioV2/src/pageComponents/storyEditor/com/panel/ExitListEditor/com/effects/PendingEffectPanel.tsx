@@ -6,7 +6,7 @@
 
 import type { FC } from "react";
 import { Typography } from "@mui/material";
-import type { KnownEffectName } from "@airpc/rpg-engine";
+import type { KnownEffectName } from "@studio-v2/typeFiles/story/callCard/engineOutcome";
 import { effectNameLabel } from "@studio-v2/typeFiles/story/callCardLabels";
 import styles from "./effectPanels.module.scss";
 

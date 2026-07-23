@@ -6,7 +6,8 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
-import { createEngineHost, isEngineError } from "../../src/index.js";
+import { isEngineError } from "../../src/index.js";
+import { createTestHostWithMemory } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -24,12 +25,12 @@ describe("E4b A→B knowledge／memory", () => {
     }
   });
 
-  it("doubao-sister exit writes xiaoyu knowledge + semantic memory", async () => {
+  it("lanxing exit writes xiaopi knowledge + semantic memory", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-e4b-ab-"));
     const dataRoot = path.join(tmpRoot, "data");
     await cp(dataSrc, dataRoot, { recursive: true });
 
-    const host = createEngineHost({ persist: true });
+    const host = createTestHostWithMemory({ persist: true, dataRoot });
     await host.loadWorkspace(dataRoot);
     await host.ensureProfile("demo-user");
 
@@ -39,14 +40,14 @@ describe("E4b A→B knowledge／memory", () => {
       cardId: "doubao_a_writes_b",
     });
     if (isEngineError(resolved)) throw resolved;
-    expect(resolved.agentId).toBe("doubao-sister");
+    expect(resolved.agentId).toBe("lanxing");
     expect(resolved.cardId).toBe("doubao_a_writes_b");
 
     const session = await host.beginCall("demo-user", resolved, {
       channel: "manual",
     });
     if (isEngineError(session)) throw session;
-    expect(session.resolve.agentId).toBe("doubao-sister");
+    expect(session.resolve.agentId).toBe("lanxing");
 
     const end = await host.endCall(session.sessionId, {
       flags: { answered_completed: true },
@@ -73,22 +74,22 @@ describe("E4b A→B knowledge／memory", () => {
     };
 
     expect(
-      saved.world?.facts?.some((f) => f.factId === "doubao_shared_xiaoyu_topic"),
+      saved.world?.facts?.some((f) => f.factId === "doubao_shared_xiaopi_topic"),
     ).toBe(true);
-    expect(saved.world?.knowledge?.xiaoyu).toContain(
-      "doubao_shared_xiaoyu_topic",
+    expect(saved.world?.knowledge?.xiaopi).toContain(
+      "doubao_shared_xiaopi_topic",
     );
     // 通话方是澜星，不应把 knowledge 误写到澜星键下
-    expect(saved.world?.knowledge?.["doubao-sister"] ?? []).not.toContain(
-      "doubao_shared_xiaoyu_topic",
+    expect(saved.world?.knowledge?.["lanxing"] ?? []).not.toContain(
+      "doubao_shared_xiaopi_topic",
     );
 
     const mem = host.getMemoryPort();
     expect(mem).toBeTruthy();
     const hits = await mem!.search({
       userId: "demo-user",
-      agentId: "xiaoyu",
-      textQuery: "doubao_shared_xiaoyu_topic",
+      agentId: "xiaopi",
+      textQuery: "doubao_shared_xiaopi_topic",
       maxResults: 5,
     });
     expect(hits.length).toBeGreaterThan(0);
@@ -97,8 +98,8 @@ describe("E4b A→B knowledge／memory", () => {
 
     const aHits = await mem!.search({
       userId: "demo-user",
-      agentId: "doubao-sister",
-      textQuery: "doubao_shared_xiaoyu_topic",
+      agentId: "lanxing",
+      textQuery: "doubao_shared_xiaopi_topic",
       maxResults: 5,
     });
     expect(aHits.some((h) => h.text.includes("澜星转告"))).toBe(false);

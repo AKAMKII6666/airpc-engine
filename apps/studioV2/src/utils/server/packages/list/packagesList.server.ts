@@ -1,9 +1,16 @@
 /**
 	* 扫描 data/storis-packages 下各包 story.conf.json 为列表摘要。
+	* characterCount = 本包派生引用角色数（读 cards），非 participants.length。
 	*/
 import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
-import type { DiskStoryPackageSummary } from "@studio-v2/typeFiles/story/package/diskStoryPackage";
+import {
+	CallCardDefinitionSchema,
+	type CallCardDefinition,
+	type StoryPackageConf,
+} from "@airpc/rpg-engine";
+import { listDerivedReferencedAgentIds } from "@studio-v2/src/utils/server/packages/conf/referencedAgentsDerive.server";
+import type { DiskStoryPackageSummary } from "@studio-v2/src/utils/server/types/diskStoryPackage.server";
 import { isValidPackageId, packagesRoot } from "../paths/packagesPaths.server";
 
 /**
@@ -30,6 +37,31 @@ export async function listDiskStoryPackages(): Promise<
 	});
 }
 
+async function tryLoadCardsSoft(
+	root: string,
+	packageId: string,
+	cardRefs: readonly { cardId?: unknown }[],
+): Promise<CallCardDefinition[]> {
+	const cards: CallCardDefinition[] = [];
+	for (const ref of cardRefs) {
+		if (typeof ref.cardId !== "string" || ref.cardId.trim() === "") continue;
+		const cardPath = path.join(
+			root,
+			packageId,
+			"cards",
+			`${ref.cardId}.s-card.json`,
+		);
+		try {
+			const raw = JSON.parse(await readFile(cardPath, "utf8")) as unknown;
+			const parsed = CallCardDefinitionSchema.safeParse(raw);
+			if (parsed.success) cards.push(parsed.data);
+		} catch {
+			/* 列表摘要：单卡破损跳过，不拖垮整包行 */
+		}
+	}
+	return cards;
+}
+
 async function tryReadPackageSummary(
 	root: string,
 	name: string,
@@ -41,7 +73,6 @@ async function tryReadPackageSummary(
 			title?: string;
 			schemaVersion?: number;
 			cards?: unknown[];
-			participants?: unknown[];
 			assetRefs?: unknown[];
 			entryCardId?: string;
 		};
@@ -49,6 +80,22 @@ async function tryReadPackageSummary(
 			typeof raw.packageId === "string" && raw.packageId.length > 0
 				? raw.packageId
 				: name;
+		const cardRefs = Array.isArray(raw.cards)
+			? (raw.cards as { cardId?: unknown }[])
+			: [];
+		const cards = await tryLoadCardsSoft(root, packageId, cardRefs);
+		const confStub = {
+			schemaVersion:
+				typeof raw.schemaVersion === "number" ? raw.schemaVersion : 1,
+			packageId,
+			cards: cardRefs
+				.filter(function (r) {
+					return typeof r.cardId === "string";
+				})
+				.map(function (r) {
+					return { cardId: r.cardId as string };
+				}),
+		} as StoryPackageConf;
 		let lastEditedAt = "";
 		try {
 			const st = await stat(path.join(root, name));
@@ -62,12 +109,12 @@ async function tryReadPackageSummary(
 				typeof raw.title === "string" && raw.title.trim() !== ""
 					? raw.title
 					: packageId,
-			schemaVersion:
-				typeof raw.schemaVersion === "number" ? raw.schemaVersion : 1,
-			cardCount: Array.isArray(raw.cards) ? raw.cards.length : 0,
-			characterCount: Array.isArray(raw.participants)
-				? raw.participants.length
-				: 0,
+			schemaVersion: confStub.schemaVersion,
+			cardCount: cardRefs.length,
+			characterCount: listDerivedReferencedAgentIds({
+				conf: confStub,
+				cards,
+			}).length,
 			assetCount: Array.isArray(raw.assetRefs) ? raw.assetRefs.length : 0,
 			entryCardId:
 				typeof raw.entryCardId === "string" ? raw.entryCardId : "",

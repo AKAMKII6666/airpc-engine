@@ -1,7 +1,9 @@
 /**
 	* 包配置浮窗与 chapter_end 下拉：由已加载磁盘 bundle / 列表投影。
-	* 禁止再读 MOCK_STORY_PACKAGES 或内存种子。
+	* entryCardId / assetRefs / worldFacts / meta 可经 PackageConfigFloat 写会话。
+	* participants 字段 = 本包引用角色派生，非 conf.participants 白名单。
 	*/
+import { listDerivedReferencedAgentIds } from "@studio-v2/src/bis/pageBis/storyEditor/package/conf/referencedAgentsDerive";
 import type { CallCardLabelOption } from "@studio-v2/typeFiles/story/callCardLabels";
 import type { EditorStoryPackageConfProjection } from "@studio-v2/typeFiles/story/editor/package/editorStoryPackageConf";
 import type { DiskStoryPackageBundle } from "@studio-v2/typeFiles/story/package/diskStoryPackage";
@@ -16,7 +18,7 @@ export function projectEditorPackageConfFromBundle(
 		schemaVersion: conf.schemaVersion,
 		packageId: conf.packageId,
 		title: conf.title?.trim() ? conf.title : conf.packageId,
-		participants: conf.participants ?? [],
+		participants: listDerivedReferencedAgentIds(bundle),
 		entryCardId: conf.entryCardId ?? "",
 		assetRefs: conf.assetRefs ?? [],
 		cards: (conf.cards ?? []).map(function (ref) {

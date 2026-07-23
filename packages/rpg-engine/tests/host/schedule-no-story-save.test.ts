@@ -7,10 +7,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import {
-  createEngineHost,
   isEngineError,
   SCHEDULE_PACKAGE_ID,
 } from "../../src/index.js";
+import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const dataSrc = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -28,7 +28,7 @@ describe("ScheduleCard StorySave gate (REST-E6/E7)", () => {
     const dataRoot = path.join(tmpRoot, "data");
     await cp(dataSrc, dataRoot, { recursive: true });
 
-    const host = createEngineHost({ persist: false, autoMemory: false });
+    const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);
     const profile = await host.ensureProfile("demo-user");
     profile.schedule = {
@@ -37,12 +37,12 @@ describe("ScheduleCard StorySave gate (REST-E6/E7)", () => {
         {
           kind: "recurring",
           intentId: "rec-nosave",
-          agentId: "doubao-sister",
+          agentId: "lanxing",
           hour: 9,
           minute: 0,
           scheduleMode: "daily",
           status: "active",
-          scheduleCardId: "doubao_morning_checkin",
+          scheduleCardId: "lanxing_morning_checkin",
         },
       ],
     };
@@ -56,7 +56,7 @@ describe("ScheduleCard StorySave gate (REST-E6/E7)", () => {
 
     const resolved = await host.resolveAsync("demo-user", {
       kind: "agent_outbound",
-      agentId: "doubao-sister",
+      agentId: "lanxing",
     });
     expect(isEngineError(resolved)).toBe(false);
     if (isEngineError(resolved)) return;

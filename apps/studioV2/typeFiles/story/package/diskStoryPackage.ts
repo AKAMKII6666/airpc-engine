@@ -5,7 +5,7 @@
 import type {
 	CallCardDefinition,
 	StoryPackageConf,
-} from "@airpc/rpg-engine";
+} from "@studio-v2/typeFiles/story/callCard/engineCallCard";
 
 /**
 	* 列表扫描摘要：来自 story.conf.json + 目录 mtime，非 UI mock 投影。
@@ -19,7 +19,7 @@ export type DiskStoryPackageSummary = {
 	schemaVersion: number;
 	/** conf.cards.length */
 	cardCount: number;
-	/** conf.participants.length */
+	/** 本包派生引用角色数（cards owner/effects）；非 participants.length */
 	characterCount: number;
 	/** conf.assetRefs?.length ?? 0 */
 	assetCount: number;
@@ -86,7 +86,7 @@ export type StudioCanvasLayout = {
 	schemaVersion: number;
 	/** 包目录名；须与 story.conf.json.packageId 一致 */
 	packageId: string;
-	/** 角色泳道序；agentId 来自 conf.participants；可省略 */
+	/** 角色泳道序；由本包派生引用角色写入；可省略；引擎忽略 */
 	lanes?: Array<{ agentId: string; order: number }>;
 	/** 全量画布节点；坐标与章节壳；内容真源在 cards */
 	nodes: StudioCanvasLayoutNode[];

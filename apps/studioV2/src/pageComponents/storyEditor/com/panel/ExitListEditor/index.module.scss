@@ -42,6 +42,18 @@
 	color: t.$text-secondary;
 }
 
+.conditionBlock {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding-top: 4px;
+}
+
+.conditionHint {
+	color: t.$text-muted;
+	line-height: 1.4;
+}
+
 .effects {
 	display: flex;
 	flex-direction: column;

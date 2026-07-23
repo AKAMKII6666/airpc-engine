@@ -1,7 +1,7 @@
 /**
 	* 定时外呼写盘：表单提交与删除 / 暂停。
 	*/
-import type { ScheduledIntent } from "@airpc/rpg-engine";
+import type { ScheduledIntent } from "@studio-v2/typeFiles/library/schedule/engineScheduledIntent";
 import {
 	deleteAgentScheduleIntent,
 	upsertAgentScheduleIntent,

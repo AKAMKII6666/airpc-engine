@@ -1,6 +1,6 @@
 {
   "name": "general-batch-exe",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "private": true,
   "description": "External FSM orchestrator for batch execute–review–repair loops. Independent of any host project and of @batch-execute.",
   "type": "commonjs",

@@ -7,15 +7,17 @@ import { afterEach, describe, expect, it } from "vitest";
 import { buildDefaultCanvasLayout } from "@studio-v2/src/utils/server/packages/layout/defaultCanvasLayout.server";
 import { listDiskStoryPackages } from "@studio-v2/src/utils/server/packages/list/packagesList.server";
 import {
+	createDiskStoryPackage,
 	readDiskStoryPackage,
 	writeDiskStoryPackage,
 } from "@studio-v2/src/utils/server/packages/fs/packagesFs.server";
+import { writeValidatedDiskStoryPackage } from "@studio-v2/src/utils/server/packages/fs/writeValidatedPackage.server";
 
 const REPO_ROOT = path.join(__dirname, "../../../..");
 const DATA_ROOT = path.join(REPO_ROOT, "data");
 
 describe("buildDefaultCanvasLayout", () => {
-	it("lays cards on a 3-column grid with participant lanes", () => {
+	it("lays cards on a 3-column grid with derived agent lanes", () => {
 		const layout = buildDefaultCanvasLayout(
 			"demo_pkg",
 			["a", "b", "c", "d"],
@@ -58,6 +60,8 @@ describe("packagesFs against data/storis-packages", () => {
 		expect(act1?.title).toBe("第一幕：打错电话");
 		expect(act1?.cardCount).toBe(3);
 		expect(act1?.entryCardId).toBe("lanxing_wrong_number");
+		/** V2-S8-11：characterCount 派生自 cards，非空/缺省 participants */
+		expect(act1?.characterCount).toBe(1);
 	});
 
 	it("reads wrong_number_act1 with three cards and existing layout", async () => {
@@ -152,7 +156,16 @@ describe("packagesFs against data/storis-packages", () => {
 			path.join(dir, "story.conf.json"),
 			"utf8",
 		);
-		expect(JSON.parse(confText).packageId).toBe(probeId);
+		const confJson = JSON.parse(confText) as {
+			packageId: string;
+			participants?: unknown;
+		};
+		expect(confJson.packageId).toBe(probeId);
+		/** V2-S8-11：保存不写 participants 白名单 */
+		expect(confJson.participants).toBeUndefined();
+		expect(written.layout.lanes).toEqual([
+			{ agentId: "lanxing", order: 0 },
+		]);
 	});
 
 	it("falls back to default layout when canvas.layout.json missing", async () => {
@@ -196,5 +209,77 @@ describe("packagesFs against data/storis-packages", () => {
 			x: 200,
 			y: 120,
 		});
+	});
+
+	it("createDiskStoryPackage writes minimal conf + optional entry card", async () => {
+		const pkgId = "studio_v2_create_probe";
+		probeIds.push(pkgId);
+		const created = await createDiskStoryPackage({
+			packageId: pkgId,
+			title: "新建探针",
+			description: "S8-17",
+			withStartCard: true,
+		});
+		expect(created.conf.packageId).toBe(pkgId);
+		expect(created.conf.entryCardId).toBe(`card_${pkgId}_start`);
+		expect(created.cards).toHaveLength(1);
+		expect(created.layout.nodes).toHaveLength(1);
+		const confText = await readFile(
+			path.join(DATA_ROOT, "storis-packages", pkgId, "story.conf.json"),
+			"utf8",
+		);
+		expect(JSON.parse(confText).participants).toBeUndefined();
+	});
+
+	it("writeValidatedDiskStoryPackage rolls back when validate has errors", async () => {
+		const pkgId = "studio_v2_validate_gate";
+		probeIds.push(pkgId);
+		const card = {
+			cardId: "gate_card",
+			cardKind: "story" as const,
+			title: "闸门卡",
+			ownerAgentId: "lanxing",
+			entryMode: "inbound_user_dial" as const,
+			interactionMode: "realtime_dialogue" as const,
+			context: { privateBrief: "", speakableBrief: "" },
+			objectives: { requiredBeats: [] as string[] },
+			toolPolicy: { mode: "inherit_free" as const },
+			exits: [],
+		};
+		await writeDiskStoryPackage(pkgId, {
+			conf: {
+				schemaVersion: 1,
+				packageId: pkgId,
+				title: "校验前标题",
+				entryCardId: "gate_card",
+				cards: [{ cardId: "gate_card" }],
+			},
+			cards: [card],
+			layout: null,
+		});
+
+		const bad = await writeValidatedDiskStoryPackage(pkgId, {
+			conf: {
+				schemaVersion: 1,
+				packageId: pkgId,
+				title: "坏包标题应回滚",
+				entryCardId: "missing_entry_card",
+				cards: [{ cardId: "gate_card" }],
+			},
+			cards: [card],
+			layout: null,
+		});
+		expect(bad.ok).toBe(false);
+		if (bad.ok) return;
+		expect(bad.restored).toBe(true);
+		expect(
+			bad.report.errors.some(function (e) {
+				return e.ruleId === "ENTRY_CARD_UNKNOWN";
+			}),
+		).toBe(true);
+
+		const onDisk = await readDiskStoryPackage(pkgId);
+		expect(onDisk.conf.title).toBe("校验前标题");
+		expect(onDisk.conf.entryCardId).toBe("gate_card");
 	});
 });

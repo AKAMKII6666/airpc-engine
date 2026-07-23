@@ -17,6 +17,7 @@ alwaysApply: true
 |----------|----------|
 | `packages/rpg-engine/**` | `npm run quality:engine`（含 import、typecheck、structure、Vitest、门禁自测） |
 | `apps/studio/**` | `npm run typecheck -w @airpc/studio`；确认 client 未 import 引擎写口、无 LLM Key、无 Studio barrel |
+| `apps/studioV2/**` | `npm run quality:studio`；Client 禁止任何 `@airpc/rpg-engine` import（含 type）；Server 禁止倒引 Client 区 |
 | 架构 / rules | Host 单例、UserGate、调试/编辑分离、目录聚类 |
 | 仅文档 / `.mdc` | 核对 `需求/` 与 `技术设计文档/` 交叉链接 |
 

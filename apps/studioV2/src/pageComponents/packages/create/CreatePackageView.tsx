@@ -1,6 +1,6 @@
 /**
 	* 新建故事包薄入口页：Formik + AutoForm（对齐列表 FormModal）。
-	* 主流程在列表 FormModal；本页保留为可选整页入口，不写盘。
+	* 主流程在列表 FormModal；本页保留为可选整页入口，POST 落盘。
 	*/
 "use client";
 
@@ -11,7 +11,7 @@ import { Formik } from "formik";
 import Link from "next/link";
 // 引用了AutoForm组件，用于声明式字段编排
 import { AutoForm } from "@studio-v2/src/commonUiComponents/form/AutoForm";
-import { commitCreatePackageMock } from "@studio-v2/src/bis/pageBis/packages/createPackage_bis";
+import { commitCreatePackage } from "@studio-v2/src/bis/pageBis/packages/createPackage_bis";
 import {
 	CREATE_PACKAGE_FORM_ITEMS,
 	CREATE_PACKAGE_INITIAL_VALUES,
@@ -24,7 +24,7 @@ export const CreatePackageView: FC = function CreatePackageView() {
 	const router = useRouter();
 
 	async function onSubmit(values: CreatePackageFormValues): Promise<void> {
-		const { packageId } = commitCreatePackageMock(values);
+		const { packageId } = await commitCreatePackage(values);
 		router.push(`/stories/${packageId}`);
 	}
 

@@ -41,6 +41,33 @@ export {
 } from "./runtime/scheduleTick.js";
 
 export {
+  listVoicemailGenStack,
+  pushVoicemailGenStack,
+  takeVoicemailGenStack,
+  VOICEMAIL_MAILBOX_DELIVERY,
+  type VoicemailGenStackEntry,
+} from "./runtime/voicemail/voicemailGenStack.js";
+
+export {
+  assembleVoicemailPrompt,
+  runVoicemailMaterializePipeline,
+  type VoicemailMaterializeDeps,
+  type VoicemailMaterializeItemResult,
+  type VoicemailMaterializeItemStatus,
+  type VoicemailMaterializeResult,
+} from "./runtime/voicemail/voicemailMaterialize.js";
+
+export {
+  createNoopGenerateVoicemail,
+  createRecordingGenerateVoicemail,
+  createRecordingUnreadNotifier,
+  type GenerateVoicemailInput,
+  type GenerateVoicemailPort,
+  type GenerateVoicemailResult,
+  type OnVoicemailUnreadChanged,
+} from "./runtime/voicemail/voicemailPorts.js";
+
+export {
   isLocalHourInOutboundWindow,
   localHourFromIso,
   type OutboundWindow,
@@ -114,8 +141,7 @@ export type { LoreBootstrapPort, LoreBootstrapInput } from "./lore/types.js";
 export {
   redactSensitive,
   redactLogRecord,
-  readEngineLogJsonlSlice,
-} from "./host/engineLogFile.js";
+} from "./host/engineLogViaPort.js";
 
 export {
   WET_APPENDABLE_TYPES,
@@ -165,7 +191,6 @@ export {
   type EffectSinkResultErr,
 } from "./runtime/effectSink.js";
 
-export { createSqliteMemoryPort } from "./memory/sqliteMemoryPort.js";
 export type {
   MemoryPort,
   MemoryProjection,
@@ -174,6 +199,14 @@ export type {
   MemoryCommitInput,
   MemoryCommitResult,
 } from "./memory/types.js";
+
+export type { ProfilePort } from "./ports/profilePort.js";
+export type {
+  ContentPort,
+  WorkspaceSnapshot,
+  PackageValidateBundle,
+} from "./ports/contentPort.js";
+export type { EngineLogPort } from "./ports/engineLogPort.js";
 
 export {
   listBuiltinTools,
@@ -192,10 +225,15 @@ export {
   UserSchema,
   ActiveStoryLockSchema,
   StorySaveSchema,
+  VoicemailSlotSchema,
+  VoicemailSlotStatusSchema,
+  deriveVoicemailHasUnread,
   type PlayerProfile,
   type User,
   type ActiveStoryLock,
   type StorySave,
+  type VoicemailSlot,
+  type VoicemailSlotStatus,
 } from "./schema/profile.js";
 
 export {
@@ -208,6 +246,8 @@ export {
 export {
   CallCardDefinitionSchema,
   StoryPackageConfSchema,
+  FactMetaSchema,
+  StoryPackageMetaSchema,
   EntryModeSchema,
   InteractionModeSchema,
   CardKindSchema,
@@ -215,10 +255,14 @@ export {
   ToolPolicySchema,
   formatZodError,
   isScheduleCard,
+  isVoicemailCard,
   type CallCardDefinition,
   type StoryPackageConf,
+  type FactMeta,
+  type StoryPackageMeta,
   type ScheduleMeta,
   type CardKind,
+  type EntryMode,
 } from "./schema/callCard.js";
 
 export {
@@ -237,9 +281,12 @@ export {
 
 export {
   OutcomeSchema,
+  OutcomeFlagSchema,
+  ExitConditionSchema,
   EffectSchema,
   KNOWN_EFFECT_NAMES,
   type Outcome,
+  type ExitCondition,
   type Effect,
   type KnownEffectName,
 } from "./schema/outcome.js";
@@ -249,6 +296,10 @@ export {
   VALIDATE_PACKAGE_ERROR_COVERAGE,
   type ValidatePackageInput,
 } from "./validation/validatePackage.js";
+export {
+  collectReferencedAgentIds,
+  type StoryPackageContentBundle,
+} from "./validation/collectReferencedAgentIds.js";
 export type {
   ValidationIssue,
   ValidationLevel,

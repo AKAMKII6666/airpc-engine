@@ -95,7 +95,7 @@ describe("effect plan status + EffectSink (V1-E8)", () => {
       {
         id: "ok1",
         effect: "set_character_unlocked",
-        agentId: "xiaoyu",
+        agentId: "xiaopi",
         unlocked: true,
       },
       {
@@ -122,7 +122,7 @@ describe("effect plan status + EffectSink (V1-E8)", () => {
       "failed",
       "executed",
     ]);
-    expect(profile.characters.xiaoyu?.unlocked).toBe(true);
+    expect(profile.characters.xiaopi?.unlocked).toBe(true);
     const facts = profile.world.facts as Array<{ factId: string }>;
     expect(facts.some((f) => f.factId === "after_error")).toBe(true);
   });
@@ -228,8 +228,8 @@ describe("effect plan status + EffectSink (V1-E8)", () => {
       [
         {
           id: "m-crit",
-          effect: "create_voicemail",
-          agentId: "agent_a",
+          effect: "play_system_prompt",
+          clipId: "clip_crit",
           critical: true,
         },
         {

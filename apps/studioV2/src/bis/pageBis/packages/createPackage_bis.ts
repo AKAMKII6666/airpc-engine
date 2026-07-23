@@ -1,20 +1,30 @@
 /**
-	* 新建故事包编排：本步未接磁盘落盘；调用方应禁用入口或提示后续批次。
+	* 新建故事包编排：POST /api/stories 落盘最小 conf + layout + 可选入口卡。
+	* 已清零 commitCreatePackageMock throw 路径。
 	*/
 import type { CreatePackageFormValues } from "./createPackageForm";
+import { postDiskStoryPackage } from "@studio-v2/src/utils/ajaxProxy/packages/api/storiesApi";
+import { createStudioId } from "@studio-v2/typeFiles/ids/createStudioId";
 
-/** 新建故事包结果；packageId 仅当落盘成功时有意义 */
+/** 新建故事包结果；packageId 与 data/storis-packages 目录名一致 */
 export type CreatePackageResult = {
-	/** 落盘成功后的故事包目录键；与 data/storis-packages 下文件夹名一致 */
+	/** 落盘成功后的故事包目录键 */
 	packageId: string;
 };
 
 /**
-	* 新建故事包落盘尚未接通（第三步 B 末可选）。
-	* @throws 始终抛错，防止误写会话 mock
+	* 由表单提交新建磁盘故事包；成功返回 packageId 供跳转编辑器。
 	*/
-export function commitCreatePackageMock(
-	_values: CreatePackageFormValues,
-): CreatePackageResult {
-	throw new Error("新建故事包落盘尚未接通；请打开已有磁盘包或等待后续批次");
+export async function commitCreatePackage(
+	values: CreatePackageFormValues,
+): Promise<CreatePackageResult> {
+	const title = values.title.trim();
+	const packageId = createStudioId("package", title);
+	const bundle = await postDiskStoryPackage({
+		packageId,
+		title,
+		description: values.description.trim(),
+		withStartCard: values.withStartCard !== false,
+	});
+	return { packageId: bundle.conf.packageId };
 }

@@ -11,7 +11,7 @@ description: >-
 
 用 **独立 Node/JS CLI（`gbx`）** 驱动「执行 → 审查 → 修复 → 验证 → 全量审查」状态机。进度落在执行索引与工作目录文件上，每轮起干净 Agent 上下文。
 
-**v0.5.0：** 普通 Fixer 熔断后自动进入阻断分析 → 策略门 → 受限修复 → 复验；任务内问题断点续跑，越界/项目外/gbx 自身问题才人工 BLOCKED。
+**v0.8.0：** `--economy 1|2|3`（默认 1 严格；2 省量跳过批审；3 超省推迟门禁，可配 `defer_verify_every`）。普通 Fixer 熔断后仍自动阻断分析 → 策略门 → 受限修复 → 复验。
 
 ## 独立性（必须）
 
@@ -35,6 +35,7 @@ description: >-
    ```bash
    node bin/gbx.js --exFile <path> --workdir <root> --dry-run
    node bin/gbx.js --exFile <path> --workdir <root>
+   # 经济模式：--economy 1|2|3（默认 1；3 最省）。economy=3 可加 --defer-verify-every 3
    # 默认直播 Agent／verify 输出；要静默：--quiet
    # 无 cursor-agent 时：--mock-agent（索引请用副本）
    # 需要 git checkpoint 时显式：--checkpoint（脏树会 BLOCKED）

@@ -1,0 +1,13 @@
+{
+  "command": "/bin/sh",
+  "args": [
+    "-c",
+    "人工核对链接"
+  ],
+  "workdir": "/Users/bolbiao/workspace/airpc-engine",
+  "logFile": "/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-voicemail/logs/verify-1784787725278.log",
+  "heartbeatMs": 30000,
+  "label": "verify:人工核对链接",
+  "role": "verify",
+  "uiPipe": true
+}

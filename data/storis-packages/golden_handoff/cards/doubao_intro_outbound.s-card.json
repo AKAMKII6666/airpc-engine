@@ -2,7 +2,7 @@
   "cardId": "doubao_intro_outbound",
   "cardKind": "story",
   "title": "介绍小雨",
-  "ownerAgentId": "doubao-sister",
+  "ownerAgentId": "lanxing",
   "entryMode": "outbound_auto",
   "interactionMode": "realtime_dialogue",
   "context": {
@@ -79,7 +79,7 @@
   },
   "objectives": {
     "requiredBeats": [
-      "user_knows_to_call_xiaoyu"
+      "user_knows_to_call_xiaopi"
     ]
   },
   "toolPolicy": {
@@ -105,29 +105,29 @@
           },
           {
             "op": "beat_completed",
-            "beatId": "user_knows_to_call_xiaoyu"
+            "beatId": "user_knows_to_call_xiaopi"
           }
         ]
       },
       "effects": [
         {
-          "id": "unlock_xiaoyu",
+          "id": "unlock_xiaopi",
           "effect": "set_character_unlocked",
-          "agentId": "xiaoyu",
+          "agentId": "xiaopi",
           "unlocked": true
         },
         {
-          "id": "attach_xiaoyu",
+          "id": "attach_xiaopi",
           "effect": "attach_call_card",
-          "agentId": "xiaoyu",
-          "cardId": "xiaoyu_waiting_user",
+          "agentId": "xiaopi",
+          "cardId": "xiaopi_waiting_user",
           "activation": "inbound_user_dial"
         },
         {
-          "id": "redial_xiaoyu",
+          "id": "redial_xiaopi",
           "effect": "set_redial_slot",
-          "agentId": "xiaoyu",
-          "cardId": "xiaoyu_waiting_user"
+          "agentId": "xiaopi",
+          "cardId": "xiaopi_waiting_user"
         }
       ]
     },
@@ -149,9 +149,9 @@
       ]
     },
     {
-      "exitId": "edge_to_xiaoyu_story_3",
+      "exitId": "edge_to_xiaopi_story_3",
       "exitKind": "handoff",
-      "title": "连到 xiaoyu_story_3",
+      "title": "连到 xiaopi_story_3",
       "priority": 50,
       "condition": {
         "op": "always"

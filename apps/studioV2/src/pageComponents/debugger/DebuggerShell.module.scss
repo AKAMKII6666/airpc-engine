@@ -1,320 +1,327 @@
 @use "../../../typeFiles/theme/tokens.scss" as t;
 
 .root {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  color: t.$text-primary;
-  min-height: calc(100vh - 48px);
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	color: t.$text-primary;
+	min-height: calc(100vh - 48px);
 }
 
 .topBar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px 16px;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 14px;
-  background: t.$bg-panel;
-  border: 1px solid t.$border-panel;
-  border-radius: 12px;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px 16px;
+	align-items: center;
+	justify-content: space-between;
+	padding: 12px 14px;
+	background: t.$bg-panel;
+	border: 1px solid t.$border-panel;
+	border-radius: 12px;
 }
 
 .topMeta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 14px;
-  align-items: center;
-  font-size: 13px;
-  color: t.$text-secondary;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px 14px;
+	align-items: center;
+	font-size: 13px;
+	color: t.$text-secondary;
 }
 
 .topTitle {
-  font-weight: 600;
-  font-size: 16px;
-  color: t.$text-primary;
+	font-weight: 600;
+	font-size: 16px;
+	color: t.$text-primary;
 }
 
 .topActions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
 }
 
 .grid {
-  display: grid;
-  grid-template-columns: 220px minmax(0, 1fr) 240px;
-  gap: 12px;
-  flex: 1;
-  min-height: 360px;
+	display: grid;
+	grid-template-columns: 220px minmax(0, 1fr) 280px;
+	gap: 12px;
+	flex: 1;
+	min-height: 360px;
+}
+
+.sideCol {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	min-height: 0;
 }
 
 @media (max-width: 1100px) {
-  .grid {
-    grid-template-columns: 1fr;
-  }
+	.grid {
+		grid-template-columns: 1fr;
+	}
 }
 
 .panel {
-  background: t.$bg-panel;
-  border: 1px solid t.$border-panel;
-  border-radius: 12px;
-  padding: 12px 14px;
-  min-height: 0;
-  overflow: auto;
+	background: t.$bg-panel;
+	border: 1px solid t.$border-panel;
+	border-radius: 12px;
+	padding: 12px 14px;
+	min-height: 0;
+	overflow: auto;
 }
 
 .panelTitle {
-  margin: 0 0 10px;
-  font-size: 13px;
-  font-weight: 600;
-  color: t.$text-secondary;
+	margin: 0 0 10px;
+	font-size: 13px;
+	font-weight: 600;
+	color: t.$text-secondary;
 }
 
 .field {
-  margin-bottom: 10px;
+	margin-bottom: 10px;
 }
 
 .fieldLabel {
-  display: block;
-  font-size: 11px;
-  color: t.$text-muted;
-  margin-bottom: 2px;
+	display: block;
+	font-size: 11px;
+	color: t.$text-muted;
+	margin-bottom: 2px;
 }
 
 .fieldValue {
-  font-size: 13px;
-  color: t.$text-primary;
+	font-size: 13px;
+	color: t.$text-primary;
 }
 
 .sceneList {
-  list-style: none;
-  margin: 8px 0 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+	list-style: none;
+	margin: 8px 0 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
 }
 
 .sceneChip,
 .sceneChipActive {
-  text-align: left;
-  padding: 6px 8px;
-  border-radius: 6px;
-  border: 1px solid t.$border-subtle;
-  background: t.$bg-input;
-  color: t.$text-secondary;
-  font-size: 12px;
-  cursor: default;
+	text-align: left;
+	padding: 6px 8px;
+	border-radius: 6px;
+	border: 1px solid t.$border-subtle;
+	background: t.$bg-input;
+	color: t.$text-secondary;
+	font-size: 12px;
+	cursor: default;
 }
 
 .sceneChipActive {
-  border-color: t.$border-strong;
-  color: t.$text-primary;
-  background: t.$bg-active;
+	border-color: t.$border-strong;
+	color: t.$text-primary;
+	background: t.$bg-active;
 }
 
 .callHero {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
 }
 
 .callBadge {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  color: t.$brand-cyan;
-  background: rgba(50, 214, 255, 0.12);
-  width: fit-content;
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 6px;
+	font-size: 12px;
+	font-weight: 600;
+	color: t.$brand-cyan;
+	background: rgba(50, 214, 255, 0.12);
+	width: fit-content;
 }
 
 .callCardTitle {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
+	margin: 0;
+	font-size: 18px;
+	font-weight: 600;
 }
 
 .summaryBlock {
-  padding: 10px 12px;
-  background: t.$bg-input;
-  border-radius: 8px;
-  border: 1px solid t.$border-subtle;
-  font-size: 13px;
-  line-height: 1.5;
-  color: t.$text-secondary;
+	padding: 10px 12px;
+	background: t.$bg-input;
+	border-radius: 8px;
+	border: 1px solid t.$border-subtle;
+	font-size: 13px;
+	line-height: 1.5;
+	color: t.$text-secondary;
 }
 
 .summaryLabel {
-  color: t.$text-muted;
-  font-size: 11px;
-  margin-bottom: 4px;
+	color: t.$text-muted;
+	font-size: 11px;
+	margin-bottom: 4px;
 }
 
 .eventRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 4px;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin-top: 4px;
 }
 
 .exitBox {
-  margin-top: 12px;
-  padding: 12px;
-  border-radius: 10px;
-  border: 1px solid t.$border-panel;
-  background: t.$bg-panel-elevated;
+	margin-top: 12px;
+	padding: 12px;
+	border-radius: 10px;
+	border: 1px solid t.$border-panel;
+	background: t.$bg-panel-elevated;
 }
 
 .exitTitle {
-  font-weight: 600;
-  font-size: 14px;
-  margin: 0 0 6px;
+	font-weight: 600;
+	font-size: 14px;
+	margin: 0 0 6px;
 }
 
 .exitReason {
-  font-size: 13px;
-  color: t.$text-secondary;
-  margin-bottom: 8px;
+	font-size: 13px;
+	color: t.$text-secondary;
+	margin-bottom: 8px;
 }
 
 .actionList {
-  margin: 0;
-  padding-left: 18px;
-  font-size: 13px;
-  color: t.$text-primary;
-  line-height: 1.55;
+	margin: 0;
+	padding-left: 18px;
+	font-size: 13px;
+	color: t.$text-primary;
+	line-height: 1.55;
 }
 
 .effectList {
-  list-style: none;
-  margin: 10px 0 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+	list-style: none;
+	margin: 10px 0 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
 }
 
 .effectItem {
-  padding: 8px 10px;
-  border-radius: 8px;
-  background: t.$bg-input;
-  border: 1px solid t.$border-subtle;
-  font-size: 12px;
+	padding: 8px 10px;
+	border-radius: 8px;
+	background: t.$bg-input;
+	border: 1px solid t.$border-subtle;
+	font-size: 12px;
 }
 
 .effectHead {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  font-weight: 600;
-  margin-bottom: 4px;
+	display: flex;
+	justify-content: space-between;
+	gap: 8px;
+	font-weight: 600;
+	margin-bottom: 4px;
 }
 
 .roleCard {
-  padding: 10px;
-  border-radius: 8px;
-  background: t.$bg-input;
-  border: 1px solid t.$border-subtle;
-  margin-bottom: 8px;
-  font-size: 12px;
+	padding: 10px;
+	border-radius: 8px;
+	background: t.$bg-input;
+	border: 1px solid t.$border-subtle;
+	margin-bottom: 8px;
+	font-size: 12px;
 }
 
 .roleName {
-  font-weight: 600;
-  font-size: 13px;
-  margin-bottom: 4px;
+	font-weight: 600;
+	font-size: 13px;
+	margin-bottom: 4px;
 }
 
 .roleMeta {
-  color: t.$text-muted;
-  line-height: 1.45;
+	color: t.$text-muted;
+	line-height: 1.45;
 }
 
 .delayHint {
-  margin-top: 4px;
-  color: t.$state-warning;
-  font-weight: 600;
+	margin-top: 4px;
+	color: t.$state-warning;
+	font-weight: 600;
 }
 
 .bottom {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 12px 14px;
-  background: t.$bg-panel;
-  border: 1px solid t.$border-panel;
-  border-radius: 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 12px 14px;
+	background: t.$bg-panel;
+	border: 1px solid t.$border-panel;
+	border-radius: 12px;
 }
 
 .timeline {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
 }
 
 .timelineItem {
-  display: grid;
-  grid-template-columns: 72px 1fr auto;
-  gap: 10px;
-  align-items: start;
-  font-size: 12px;
-  padding: 6px 0;
-  border-bottom: 1px solid t.$border-subtle;
+	display: grid;
+	grid-template-columns: 72px 1fr auto;
+	gap: 10px;
+	align-items: start;
+	font-size: 12px;
+	padding: 6px 0;
+	border-bottom: 1px solid t.$border-subtle;
 }
 
 .timelinePhase {
-  font-weight: 600;
-  color: t.$brand-violet;
+	font-weight: 600;
+	color: t.$brand-violet;
 }
 
 .timelineSummary {
-  color: t.$text-secondary;
+	color: t.$text-secondary;
 }
 
 .timelineStatus {
-  color: t.$text-muted;
-  white-space: nowrap;
+	color: t.$text-muted;
+	white-space: nowrap;
 }
 
 .drawer {
-  margin-top: 8px;
-  padding: 12px;
-  border-radius: 10px;
-  background: t.$bg-canvas;
-  border: 1px dashed t.$border-node;
+	margin-top: 8px;
+	padding: 12px;
+	border-radius: 10px;
+	background: t.$bg-canvas;
+	border: 1px dashed t.$border-node;
 }
 
 .drawerPre {
-  margin: 8px 0 0;
-  padding: 10px;
-  overflow: auto;
-  max-height: 200px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 11px;
-  line-height: 1.45;
-  color: t.$text-muted;
-  background: t.$bg-input;
-  border-radius: 8px;
+	margin: 8px 0 0;
+	padding: 10px;
+	overflow: auto;
+	max-height: 200px;
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 11px;
+	line-height: 1.45;
+	color: t.$text-muted;
+	background: t.$bg-input;
+	border-radius: 8px;
 }
 
 .badgeOk {
-  color: t.$state-success;
+	color: t.$state-success;
 }
 
 .badgeWarn {
-  color: t.$state-warning;
+	color: t.$state-warning;
 }
 
 .badgeDanger {
-  color: t.$state-danger;
+	color: t.$state-danger;
 }
 
 .badgeMuted {
-  color: t.$text-muted;
+	color: t.$text-muted;
 }

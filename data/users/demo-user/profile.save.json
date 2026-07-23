@@ -22,12 +22,8 @@
     "updatedAt": "2026-07-13T00:00:00.000Z"
   },
   "characters": {
-    "doubao-sister": {
-      "agentId": "doubao-sister",
-      "unlocked": true
-    },
-    "xiaoyu": {
-      "agentId": "xiaoyu",
+    "lanxing": {
+      "agentId": "lanxing",
       "unlocked": true
     }
   },
@@ -41,30 +37,10 @@
   },
   "callCards": {
     "board": {
-      "byAgent": {
-        "xiaoyu": {
-          "pending": [
-            {
-              "instanceId": "caa1bf9f-bcc2-46ff-b00f-1f2890a2f328",
-              "cardId": "xiaoyu_waiting_user",
-              "packageId": "golden_handoff",
-              "agentId": "xiaoyu",
-              "status": "pending",
-              "entryMode": "inbound_user_dial",
-              "createdAt": "2026-07-14T07:39:21.572Z",
-              "updatedAt": "2026-07-14T07:39:21.572Z"
-            }
-          ]
-        }
-      }
+      "byAgent": {}
     }
   },
-  "telephony": {
-    "redialSlot": {
-      "agentId": "xiaoyu",
-      "cardId": "xiaoyu_waiting_user"
-    }
-  },
+  "telephony": {},
   "world": {
     "lore": {
       "version": 1,
@@ -77,23 +53,23 @@
       },
       "sharedPremise": "世界背景（降级）：用户与角色们的故事发生在「中国·广东省·深圳市」语境下；保持日常电话感，勿剧透未解锁内容。",
       "perspectives": {
-        "doubao-sister": [
+        "lanxing": [
           "你知道用户大致在「中国·广东省·深圳市」附近生活。",
           "不要编造未提供的地域细节。"
         ],
-        "xiaoyu": [
+        "xiaopi": [
           "你知道用户大致在「中国·广东省·深圳市」附近生活。",
           "不要编造未提供的地域细节。"
         ]
       },
       "characters": {
-        "doubao-sister": {
+        "lanxing": {
           "displayName": "澜星",
           "blurb": "澜星是本地可通话的角色。"
         },
-        "xiaoyu": {
-          "displayName": "小雨",
-          "blurb": "小雨是本地可通话的角色。"
+        "xiaopi": {
+          "displayName": "小皮",
+          "blurb": "小皮是本地可通话的角色。"
         }
       }
     },

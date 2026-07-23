@@ -22,6 +22,7 @@ import {
 	createApplyCallCardNodeData,
 	createApplyChapterNodeData,
 } from "@studio-v2/src/pageComponents/storyEditor/canvas/canvasApplyNodeData";
+import { createSelectCallCardByCardId } from "@studio-v2/src/pageComponents/storyEditor/canvas/createSelectCallCardByCardId";
 import type {
 	CharacterAnchorNodeData,
 	StoryEditorSelection,
@@ -35,6 +36,8 @@ export type CreateStoryCanvasNodeCommandsArgs = {
 	setNodes: Dispatch<SetStateAction<Node[]>>;
 	setEdges: Dispatch<SetStateAction<Edge[]>>;
 	onSelectionChange: (selection: StoryEditorSelection | null) => void;
+	/** 双击 / 定位 / 落点打开属性浮窗 */
+	onOpenPropertyPanel: (selection: StoryEditorSelection | null) => void;
 	setToolMode: StoryCanvasStageApi["setToolMode"];
 	getToolMode: StoryCanvasStageApi["getToolMode"];
 	fitView: () => void;
@@ -51,6 +54,7 @@ export function createStoryCanvasNodeCommands(
 		setNodes,
 		setEdges,
 		onSelectionChange,
+		onOpenPropertyPanel,
 		setToolMode,
 		getToolMode,
 		fitView,
@@ -104,12 +108,18 @@ export function createStoryCanvasNodeCommands(
 			nodesRef,
 			selectedIdRef,
 			setNodes,
-			onSelectionChange,
+			onOpenPropertyPanel,
 			setToolMode,
 		}),
 		getGraphSnapshot: () => ({
 			nodes: [...nodesRef.current],
 			edges: [...edgesRef.current],
+		}),
+		selectCallCardByCardId: createSelectCallCardByCardId({
+			nodesRef,
+			selectedIdRef,
+			setNodes,
+			onOpenPropertyPanel,
 		}),
 	};
 }

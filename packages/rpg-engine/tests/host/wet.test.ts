@@ -188,7 +188,7 @@ describe("WET query filters", function () {
 
 describe("EngineHost WET API", function () {
   it("appendWet + queryWet + getWetReplay", async function () {
-    const host = createEngineHost({ persist: false, autoMemory: false });
+    const host = createEngineHost({ persist: false });
 
     const bad = host.appendWet({
       type: "call.completed",

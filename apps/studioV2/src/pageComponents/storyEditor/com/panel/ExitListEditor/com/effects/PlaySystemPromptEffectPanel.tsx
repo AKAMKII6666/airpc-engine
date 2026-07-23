@@ -1,6 +1,6 @@
 /**
 	* play_system_prompt 参数面板（B 表单参数型）。
-	* 仅一个必填片段 id；走资源片段下拉，禁手填。
+	* clipId 可选；下拉真源 = /api/assets（经 EffectPanelSources.clips），禁手填。
 	*/
 "use client";
 
@@ -31,13 +31,13 @@ export const PlaySystemPromptEffectPanel: FC<EffectPanelSlotProps> =
 		}
 		return (
 			<div className={styles.panel}>
-				{/* 引用了EffectNodeSelect组件，用于播放片段下拉（必填） */}
+				{/* 引用了EffectNodeSelect组件，用于播放片段下拉（可选合法 assetId） */}
 				<EffectNodeSelect
-					label="播放片段（必填）"
+					label="播放片段"
 					value={value.clipId ?? ""}
 					options={sources.clips}
-					allowEmpty={false}
-					emptyHint="资源浮窗暂无可选片段，请先添加资源"
+					allowEmpty={true}
+					emptyHint="资源库暂无资产；请先在资源浮窗或资源库新建"
 					onChange={(next) => {
 						patch({ clipId: next === "" ? undefined : next });
 					}}

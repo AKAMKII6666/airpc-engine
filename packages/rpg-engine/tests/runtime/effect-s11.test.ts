@@ -53,13 +53,13 @@ describe("effectExecutor S11 world / story / media stubs", () => {
       {
         id: "f1",
         effect: "set_world_fact",
-        factId: "met_xiaoyu",
+        factId: "met_xiaopi",
         value: true,
       },
       {
         id: "f2",
         effect: "set_world_fact",
-        factId: "met_xiaoyu",
+        factId: "met_xiaopi",
         value: "yes",
       },
     ];
@@ -72,7 +72,7 @@ describe("effectExecutor S11 world / story / media stubs", () => {
     expect(plan.results.every((r) => r.status === "executed")).toBe(true);
     const facts = profile.world.facts as Array<{ factId: string; value: unknown }>;
     expect(facts).toHaveLength(1);
-    expect(facts[0]?.factId).toBe("met_xiaoyu");
+    expect(facts[0]?.factId).toBe("met_xiaopi");
     expect(facts[0]?.value).toBe("yes");
   });
 
@@ -84,27 +84,27 @@ describe("effectExecutor S11 world / story / media stubs", () => {
         {
           id: "k1",
           effect: "update_npc_knowledge",
-          agentId: "xiaoyu",
-          factId: "met_xiaoyu",
+          agentId: "xiaopi",
+          factId: "met_xiaopi",
           known: true,
         },
       ],
       { profile, session, nowIso: "2026-07-14T00:00:00.000Z" },
     );
-    expect(profile.world.knowledge.xiaoyu).toEqual(["met_xiaoyu"]);
+    expect(profile.world.knowledge.xiaopi).toEqual(["met_xiaopi"]);
     await executeEffects(
       [
         {
           id: "k2",
           effect: "update_npc_knowledge",
-          agentId: "xiaoyu",
-          factId: "met_xiaoyu",
+          agentId: "xiaopi",
+          factId: "met_xiaopi",
           known: false,
         },
       ],
       { profile, session, nowIso: "2026-07-14T00:01:00.000Z" },
     );
-    expect(profile.world.knowledge.xiaoyu).toEqual([]);
+    expect(profile.world.knowledge.xiaopi).toEqual([]);
   });
 
   it("end_story marks package completed in Profile.stories", async () => {
@@ -137,17 +137,11 @@ describe("effectExecutor S11 world / story / media stubs", () => {
     expect(story.reason).toBe("cleared");
   });
 
-  it("create_voicemail / play_system_prompt are executable stubs", async () => {
+  it("play_system_prompt is an executable media stub", async () => {
     const profile = baseProfile();
     const session = baseSession();
     const plan = await executeEffects(
       [
-        {
-          id: "vm1",
-          effect: "create_voicemail",
-          agentId: "agent_a",
-          topicHint: "missed",
-        },
         {
           id: "ps1",
           effect: "play_system_prompt",
@@ -156,14 +150,7 @@ describe("effectExecutor S11 world / story / media stubs", () => {
       ],
       { profile, session, nowIso: "2026-07-14T00:00:00.000Z" },
     );
-    expect(plan.results.map((r) => r.status)).toEqual([
-      "executed",
-      "executed",
-    ]);
-    const tel = profile.telephony as {
-      voicemails?: Array<{ topicHint?: string }>;
-    };
-    expect(tel.voicemails?.[0]?.topicHint).toBe("missed");
+    expect(plan.results.map((r) => r.status)).toEqual(["executed"]);
     expect(Array.isArray(profile.meta?.mediaStubs)).toBe(true);
   });
 

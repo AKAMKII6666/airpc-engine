@@ -19,12 +19,13 @@ import {
 	validateCharacterDetailForm,
 	type CharacterDetailFormValues,
 } from "@studio-v2/src/bis/pageBis/characters/detail/form/characterDetailForm";
+import { withAvatarUploadItems } from "@studio-v2/src/bis/pageBis/assets/withAvatarUploadItems";
 import type { CharacterSummary } from "@studio-v2/typeFiles/library/characters/form/characterSummary";
 
-const EDIT_CHARACTER_FORM_ITEMS = [
+const EDIT_CHARACTER_FORM_ITEMS = withAvatarUploadItems([
 	...CHARACTER_BASIC_ITEMS,
 	...CHARACTER_PROMPT_ITEMS,
-];
+]);
 
 export type StoryEditorCharacterModalsProps = {
 	createOpen: boolean;

@@ -1,0 +1,13 @@
+{
+  "command": "/bin/sh",
+  "args": [
+    "-c",
+    "true"
+  ],
+  "workdir": "/Users/bolbiao/workspace/airpc-engine",
+  "logFile": "/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-engine-io-ports/logs/verify-1784786635231.log",
+  "heartbeatMs": 30000,
+  "label": "verify:true",
+  "role": "verify",
+  "uiPipe": true
+}

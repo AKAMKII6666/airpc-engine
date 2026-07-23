@@ -7,9 +7,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import {
-  createEngineHost,
   isEngineError,
 } from "../../src/index.js";
+import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -41,7 +41,7 @@ describe("playback_only session (S4)", () => {
           cardId,
           cardKind: "story",
           title: "播放桩",
-          ownerAgentId: "doubao-sister",
+          ownerAgentId: "lanxing",
           entryMode: "outbound_auto",
           interactionMode: "hybrid",
           context: {
@@ -77,7 +77,7 @@ describe("playback_only session (S4)", () => {
     conf.cards.push({ cardId });
     await writeFile(confPath, JSON.stringify(conf, null, 2) + "\n", "utf8");
 
-    const host = createEngineHost({ persist: false, autoMemory: false });
+    const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot, { resetRuntime: true });
     await host.ensureProfile("demo-user");
 
@@ -99,7 +99,7 @@ describe("playback_only session (S4)", () => {
     const blocked = await host.invokeTool(
       session.sessionId,
       "share_expert_number",
-      { target_agent_id: "xiaoyu" },
+      { target_agent_id: "xiaopi" },
     );
     expect(isEngineError(blocked)).toBe(true);
     if (isEngineError(blocked)) {

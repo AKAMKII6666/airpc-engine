@@ -86,4 +86,9 @@ export type StoryCanvasStageApi = {
 	) => void;
 	/** 保存用：当前 nodes/edges 快照（浅拷贝数组） */
 	getGraphSnapshot: () => { nodes: Node[]; edges: Edge[] };
+	/**
+		* 按业务 cardId 选中 CallCard 并打开属性浮窗。
+		* validate 错误定位用；找不到返回 false。
+		*/
+	selectCallCardByCardId: (cardId: string) => boolean;
 };

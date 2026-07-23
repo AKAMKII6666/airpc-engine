@@ -39,6 +39,8 @@ function printHelp() {
     '  --continue-on-executor-fail     Do not BLOCKED when executor exits non-zero.',
     '  --agent-cmd <cmd>               Override agent binary (default: cursor-agent, falls back to agent).',
     '  --max-iterations <n>            Override max_rounds from index.',
+    '  --economy 1|2|3                 Agent spend mode (default 1). 1=strict 2=lean 3=defer(cheapest).',
+    '  --defer-verify-every <n>        With --economy 3: mid-verify every N batches (0=only at end).',
     '  --quiet                         Capture-only agent/verify (no live tee/heartbeats).',
     '  --verbose                       Live console (default; overrides GBX_QUIET).',
     '  --no-heartbeat                  Live agent output without periodic heartbeat lines.',

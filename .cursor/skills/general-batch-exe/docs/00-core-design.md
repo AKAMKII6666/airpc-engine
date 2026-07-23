@@ -40,6 +40,8 @@
 
 ## 3. 状态机（主流程）
 
+默认 **economy=1（strict）**：
+
 ```text
 PLAN_APPROVED
       │
@@ -56,17 +58,14 @@ BATCH_REVIEW
       └── 通过
             │
             ▼
-      是否还有任务？
-       │          │
-       是         否
-       │          │
-       ▼          ▼
-EXECUTE_BATCH   FULL_REVIEW
-                   │
-                   ├── 有问题 → FULL_FIX → FULL_VERIFY
-                   │
-                   └── 通过 → READY_FOR_MANUAL_QA
+      VERIFY_BATCH → 下一批 / FULL_REVIEW …
+```
 
+**economy=2（lean）：** `EXECUTE` 后跳过 `BATCH_REVIEW`，直接 `VERIFY_BATCH`；红了只开 Fixer（不开批 Reviewer）。收尾仍 `FULL_REVIEW`。
+
+**economy=3（defer）：** `EXECUTE` 后跳过批审与批门禁，直接下一批；可选每 `defer_verify_every` 批偷跑一次 `VERIFY_BATCH`。无待办后：`FULL_VERIFY` → `FULL_REVIEW` →（Fix）→ `READY`。
+
+```text
 普通 Fixer 预算耗尽 / 同指纹反复失败
                    │
                    ▼
@@ -82,7 +81,7 @@ EXECUTE_BATCH   FULL_REVIEW
 只有策略门判定越界、涉及项目外/gbx 自身/授权，或恢复预算也耗尽时，才进入 `BLOCKED`（需人介入）。
 
 **关键原则：Agent 不能仅靠自报「完成」结束阶段。**  
-阶段切换由编排脚本根据 **机器可验证条件** 决定。
+阶段切换由编排脚本根据 **机器可验证条件** 决定（economy=3 把机器门禁推迟到收尾或 mid-verify，但仍非口头完成）。
 
 ---
 

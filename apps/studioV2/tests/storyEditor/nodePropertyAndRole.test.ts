@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import type { Connection, Edge, Node } from "@xyflow/react";
 import {
 	applyNodePropertyForm,
+	buildNodeBasicItems,
 	buildNodeToolPolicyItems,
 	toNodePropertyFormValues,
 	validateNodePropertyForm,
@@ -61,6 +62,7 @@ const sampleCard: EditorCallCardProjection = {
 			title: "出口A",
 			exitKind: "handoff",
 			priority: 0,
+			condition: { op: "always" },
 			conditionSummary: "转交",
 			effects: [
 				{
@@ -75,6 +77,7 @@ const sampleCard: EditorCallCardProjection = {
 			title: "出口B",
 			exitKind: "terminal",
 			priority: 0,
+			condition: { op: "always" },
 			conditionSummary: "终结",
 			effects: [],
 		},
@@ -107,6 +110,7 @@ describe("nodePropertyForm", () => {
 				title: "完成",
 				exitKind: "terminal",
 				priority: 5,
+				condition: { op: "always" },
 				conditionSummary: "结束本话",
 				effects: [
 					{
@@ -176,6 +180,26 @@ describe("nodePropertyForm", () => {
 		const storyNext = applyNodePropertyForm(sampleCard, storyValues);
 		expect(storyNext.schedule).toBeUndefined();
 	});
+
+	it("voicemail 强制 mailbox_open + playback_only + deny_all，并锁定表单项", () => {
+		const values = toNodePropertyFormValues(sampleCard);
+		values.cardKind = "voicemail";
+		values.entryMode = "inbound_user_dial";
+		values.interactionMode = "realtime_dialogue";
+		values.toolPolicy.mode = "allowlist";
+		const next = applyNodePropertyForm(sampleCard, values);
+		expect(next.cardKind).toBe("voicemail");
+		expect(next.entryMode).toBe("mailbox_open");
+		expect(next.interactionMode).toBe("playback_only");
+		expect(next.toolPolicy).toEqual({ mode: "deny_all" });
+		expect(next.schedule).toBeUndefined();
+
+		const items = buildNodeBasicItems("voicemail");
+		const entry = items.find((item) => item.name === "entryMode");
+		const interaction = items.find((item) => item.name === "interactionMode");
+		expect(entry?.disabled).toBe(true);
+		expect(interaction?.disabled).toBe(true);
+	});
 });
 
 describe("exitHandleLayout and tooltip", () => {
@@ -215,14 +239,19 @@ describe("exitHandleLayout and tooltip", () => {
 describe("callCardLabels", () => {
 	it("maps entryMode and cardKind to Chinese labels", () => {
 		expect(entryModeLabel("inbound_user_dial")).toBe("用户呼入");
+		expect(entryModeLabel("mailbox_open")).toBe("信箱打开");
 		expect(cardKindLabel("schedule")).toBe("调度卡");
+		expect(cardKindLabel("voicemail")).toBe("语音留言");
 	});
 
-	it("exposes EFFECT_NAME_OPTIONS covering keep_card_pending", () => {
+	it("exposes EFFECT_NAME_OPTIONS without create_voicemail", () => {
 		expect(effectNameLabel("keep_card_pending")).toBe("保持卡待处理");
 		expect(
 			EFFECT_NAME_OPTIONS.some((o) => o.value === "keep_card_pending"),
 		).toBe(true);
+		expect(
+			EFFECT_NAME_OPTIONS.some((o) => o.value === "create_voicemail"),
+		).toBe(false);
 	});
 
 	it("exposes BUILTIN_TOOL_OPTIONS for allowlist multi-select", () => {

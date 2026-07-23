@@ -41,14 +41,21 @@ export type CallIntent =
   | { kind: "simulate_start"; packageId: string; cardId: string }
   | { kind: "user_dial"; agentId: string }
   | { kind: "agent_outbound"; agentId: string }
-  | { kind: "free_call"; agentId: string };
+  | { kind: "free_call"; agentId: string }
+  /** 信箱打开：听已物化留言；不从 Board.pending 挑选 */
+  | {
+      kind: "mailbox_open";
+      agentId: string;
+      voicemailId: string;
+      cardId: string;
+    };
 
 /** 本通真实入口（相对卡上 preferred/entryMode；Composer 据此定方向） */
 export type ActualCallEntry = "inbound_user_dial" | "outbound_auto";
 
 export interface ResolveResult {
 	ok: true;
-	source: "story_pending" | "free" | "redial" | "simulate";
+	source: "story_pending" | "free" | "redial" | "simulate" | "mailbox";
 	instanceId: string;
 	cardId: string;
 	agentId: string;

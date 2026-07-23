@@ -16,7 +16,8 @@ import {
 	readCharacterJson,
 	writeCharacterJson,
 } from "@studio-v2/src/utils/server/characters/charactersFs.server";
-import { findTimeBucketsRejectReason } from "@studio-v2/src/bis/pageBis/characters/detail/form/characterDefMapper";
+import { findTimeBucketsRejectReason } from "@studio-v2/src/utils/server/characters/timeBucketsReject.server";
+import { reloadStudioV2WorkspaceIfBooted } from "@studio-v2/src/utils/server/host/engineHost.server";
 
 export async function GET(
 	_req: Request,
@@ -74,6 +75,7 @@ export async function PUT(
 			});
 		}
 		await writeCharacterJson(agentId, parsed.data);
+		await reloadStudioV2WorkspaceIfBooted();
 		return apiOk({ character: parsed.data });
 	} catch (err) {
 		if (isEngineError(err)) {
@@ -94,6 +96,7 @@ export async function DELETE(
 	try {
 		const { agentId } = await ctx.params;
 		await deleteCharacterJson(agentId);
+		await reloadStudioV2WorkspaceIfBooted();
 		return apiOk({ ok: true });
 	} catch (err) {
 		const code =

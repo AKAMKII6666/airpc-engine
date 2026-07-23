@@ -198,7 +198,7 @@ ${config.executor_extra || ''}
 Rules:
 - Implement ONLY the active task IDs listed above.
 - Do not implement later tasks.
-- Before marking tasks done, run the batch verify command(s) from the execution index / verify_default when your environment allows shell.
+- Before marking tasks done, run the batch verify command(s) from the execution index / verify_default when your environment allows shell (unless the orchestrator economy mode defers gates — still prefer a quick self-check when Shell works).
 - If verify fails, fix before ⬜→✅. If shell is denied/unavailable, your summary MUST say "verify NOT run" and leave tasks ⬜ (do not check them off).
 - HARD: When every batch verify command exits 0 in this same turn, you MUST mark those active task IDs done in the execution index (⬜ → ✅ or [ ] → [x]) before ending. Leaving them ⬜ after a green verify is an incomplete round.
 - HARD: Do not end with "code done / verify green / index still ⬜". That state is invalid unless the summary contains "verify NOT run".

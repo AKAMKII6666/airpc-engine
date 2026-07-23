@@ -2,7 +2,7 @@
 	* CharacterDef ↔ Summary 映射与 timeBuckets 拒载轻量回归。
 	*/
 import { describe, expect, it } from "vitest";
-import type { CharacterDef } from "@airpc/rpg-engine";
+import type { CharacterDef } from "@studio-v2/typeFiles/library/characters/engineCharacterDef";
 import {
 	buildCreateCharacterDef,
 	characterDefToSummary,
@@ -15,7 +15,7 @@ describe("characterDefMapper", () => {
 	it("maps disk def to summary with fullName/nickname and no timeBuckets", () => {
 		const def: CharacterDef = {
 			schemaVersion: 1,
-			agentId: "doubao-sister",
+			agentId: "lanxing",
 			displayName: "澜星",
 			dialable: true,
 			identity: {

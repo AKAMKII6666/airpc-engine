@@ -9,7 +9,6 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import {
-  createEngineHost,
   createRecordingEffectSink,
   findActiveStoryLock,
   isEngineError,
@@ -21,6 +20,7 @@ import {
   type EffectSinkResult,
 } from "../../src/index.js";
 import { executeEffects } from "../../src/runtime/effectExecutor.js";
+import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -134,10 +134,10 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
       await cp(dataSrc, dataRoot, { recursive: true });
       await cloneChapter02(dataRoot);
 
-      const host = createEngineHost({ persist: false, autoMemory: false });
+      const host = createTestHost({ persist: false, dataRoot });
       await host.loadWorkspace(dataRoot);
       const profile = await host.ensureProfile("demo-user");
-      profile.characters.xiaoyu = { agentId: "xiaoyu", unlocked: true };
+      profile.characters.xiaopi = { agentId: "xiaopi", unlocked: true };
       profile.stories.golden_handoff = {
         packageId: "golden_handoff",
         status: "active",
@@ -146,19 +146,19 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
           activeStoryInstanceId: "inst-7.4",
           packageId: "golden_handoff",
           lockLevel: "soft",
-          allowedAgentIds: ["doubao-sister", "xiaoyu"],
+          allowedAgentIds: ["lanxing", "xiaopi"],
           blockedPolicy: "allow_with_warning",
           reason: "7.4-next",
           startedAt: "2026-07-14T00:00:00.000Z",
         },
       };
-      profile.callCards.board.byAgent.xiaoyu = {
+      profile.callCards.board.byAgent.xiaopi = {
         pending: [
           {
             instanceId: "old-pending",
-            cardId: "xiaoyu_waiting_user",
+            cardId: "xiaopi_waiting_user",
             packageId: "golden_handoff",
-            agentId: "xiaoyu",
+            agentId: "xiaopi",
             status: "pending",
             entryMode: "inbound_user_dial",
             createdAt: "2026-07-14T00:00:00.000Z",
@@ -171,8 +171,8 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
           {
             kind: "once",
             intentId: "once-old-ch1",
-            agentId: "xiaoyu",
-            cardId: "xiaoyu_waiting_user",
+            agentId: "xiaopi",
+            cardId: "xiaopi_waiting_user",
             packageId: "golden_handoff",
             fireAtMs: 60_000,
             status: "pending",
@@ -207,8 +207,8 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
               cleanup: { clearStoryCards: "all", preserveFreeCards: true },
               next: {
                 packageId: "chapter_02",
-                agentId: "xiaoyu",
-                cardId: "xiaoyu_waiting_user",
+                agentId: "xiaopi",
+                cardId: "xiaopi_waiting_user",
                 activation: "wait_user_dial",
               },
             },
@@ -230,7 +230,7 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
       ).toBe("completed");
       expect(findActiveStoryLock(after)).toBeNull();
       expect(
-        (after.callCards.board.byAgent.xiaoyu?.pending ?? []).some(
+        (after.callCards.board.byAgent.xiaopi?.pending ?? []).some(
           (p) => p.instanceId === "old-pending",
         ),
       ).toBe(false);
@@ -242,17 +242,17 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
       ) as { status?: string };
       expect(oldOnce?.status).toBe("cancelled");
 
-      const entry = after.callCards.board.byAgent.xiaoyu?.pending.find(
+      const entry = after.callCards.board.byAgent.xiaopi?.pending.find(
         (p) =>
           p.packageId === "chapter_02" &&
-          p.cardId === "xiaoyu_waiting_user" &&
+          p.cardId === "xiaopi_waiting_user" &&
           p.status === "pending",
       );
       expect(entry).toBeTruthy();
       expect(
         (after.stories.chapter_02 as { plannedEntry?: { cardId?: string } })
           .plannedEntry?.cardId,
-      ).toBe("xiaoyu_waiting_user");
+      ).toBe("xiaopi_waiting_user");
     });
 
     it("end_story(无 next)：清场后任意角色 user_dial source===free", async () => {
@@ -260,10 +260,10 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
       const dataRoot = path.join(tmpRoot, "data");
       await cp(dataSrc, dataRoot, { recursive: true });
 
-      const host = createEngineHost({ persist: false, autoMemory: false });
+      const host = createTestHost({ persist: false, dataRoot });
       await host.loadWorkspace(dataRoot);
       const profile = await host.ensureProfile("demo-user");
-      profile.characters.xiaoyu = { agentId: "xiaoyu", unlocked: true };
+      profile.characters.xiaopi = { agentId: "xiaopi", unlocked: true };
       profile.stories.golden_handoff = {
         packageId: "golden_handoff",
         status: "active",
@@ -272,19 +272,19 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
           activeStoryInstanceId: "inst-7.4-free",
           packageId: "golden_handoff",
           lockLevel: "soft",
-          allowedAgentIds: ["doubao-sister", "xiaoyu"],
+          allowedAgentIds: ["lanxing", "xiaopi"],
           blockedPolicy: "allow_with_warning",
           reason: "7.4-free",
           startedAt: "2026-07-14T00:00:00.000Z",
         },
       };
-      profile.callCards.board.byAgent.xiaoyu = {
+      profile.callCards.board.byAgent.xiaopi = {
         pending: [
           {
             instanceId: "old-story-pending",
-            cardId: "xiaoyu_waiting_user",
+            cardId: "xiaopi_waiting_user",
             packageId: "golden_handoff",
-            agentId: "xiaoyu",
+            agentId: "xiaopi",
             status: "pending",
             entryMode: "inbound_user_dial",
             createdAt: "2026-07-14T00:00:00.000Z",
@@ -329,7 +329,7 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
       expect(isEngineError(end)).toBe(false);
       if (isEngineError(end)) return;
 
-      for (const agentId of ["xiaoyu", "doubao-sister"] as const) {
+      for (const agentId of ["xiaopi", "lanxing"] as const) {
         const dial = await host.resolveAsync("demo-user", {
           kind: "user_dial",
           agentId,
@@ -346,10 +346,10 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
       await cp(dataSrc, dataRoot, { recursive: true });
       await cloneChapter02(dataRoot);
 
-      const host = createEngineHost({ persist: false, autoMemory: false });
+      const host = createTestHost({ persist: false, dataRoot });
       await host.loadWorkspace(dataRoot);
       const profile = await host.ensureProfile("demo-user");
-      profile.characters.xiaoyu = { agentId: "xiaoyu", unlocked: true };
+      profile.characters.xiaopi = { agentId: "xiaopi", unlocked: true };
       profile.stories.golden_handoff = {
         packageId: "golden_handoff",
         status: "active",
@@ -358,13 +358,13 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
           activeStoryInstanceId: "inst-7.4-delay",
           packageId: "golden_handoff",
           lockLevel: "soft",
-          allowedAgentIds: ["doubao-sister", "xiaoyu"],
+          allowedAgentIds: ["lanxing", "xiaopi"],
           blockedPolicy: "allow_with_warning",
           reason: "7.4-delay",
           startedAt: "2026-07-14T00:00:00.000Z",
         },
       };
-      profile.callCards.board.byAgent.xiaoyu = { pending: [] };
+      profile.callCards.board.byAgent.xiaopi = { pending: [] };
       profile.schedule = { clockMs: 0, intents: [] };
 
       const resolved = await host.resolveAsync("demo-user", {
@@ -392,8 +392,8 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
               cleanup: { clearStoryCards: "all", preserveFreeCards: true },
               next: {
                 packageId: "chapter_02",
-                agentId: "xiaoyu",
-                cardId: "xiaoyu_waiting_user",
+                agentId: "xiaopi",
+                cardId: "xiaopi_waiting_user",
                 activation: "delay",
                 delayMs: 300_000,
                 entryMode: "either",
@@ -413,10 +413,10 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
       if (isEngineError(end)) return;
 
       const mid = await host.ensureProfile("demo-user");
-      const entry = mid.callCards.board.byAgent.xiaoyu?.pending.find(
+      const entry = mid.callCards.board.byAgent.xiaopi?.pending.find(
         (p) =>
           p.packageId === "chapter_02" &&
-          p.cardId === "xiaoyu_waiting_user" &&
+          p.cardId === "xiaopi_waiting_user" &&
           p.status === "pending",
       );
       expect(entry).toBeTruthy();
@@ -432,12 +432,12 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
 
       const dial = await host.resolveAsync("demo-user", {
         kind: "user_dial",
-        agentId: "xiaoyu",
+        agentId: "xiaopi",
       });
       expect(isEngineError(dial)).toBe(false);
       if (isEngineError(dial)) return;
       expect(dial.source).toBe("story_pending");
-      expect(dial.cardId).toBe("xiaoyu_waiting_user");
+      expect(dial.cardId).toBe("xiaopi_waiting_user");
       expect(dial.packageId).toBe("chapter_02");
 
       const call = await host.beginCall("demo-user", dial, {
@@ -466,7 +466,7 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
       expect(isEngineError(fired)).toBe(false);
       if (isEngineError(fired)) return;
       expect(
-        fired.filter((f) => f.cardId === "xiaoyu_waiting_user"),
+        fired.filter((f) => f.cardId === "xiaopi_waiting_user"),
       ).toHaveLength(0);
     });
   });
@@ -478,10 +478,10 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
       const plan = await executeEffects(
         [{ id: "m1", effect: "play_system_prompt", clipId: "clip_ok" }],
         {
-          profile: baseProfile(),
+		profile: baseProfile(),
           session,
           nowIso: "2026-07-14T00:00:00.000Z",
-          effectSink: sink,
+        effectSink: sink,
         },
       );
       expect(plan.status).toBe("completed");
@@ -505,10 +505,10 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
           },
         ],
         {
-          profile: baseProfile(),
+		profile: baseProfile(),
           session,
           nowIso: "2026-07-14T00:00:00.000Z",
-          effectSink: failingSink("media denied"),
+        effectSink: failingSink("media denied"),
         },
       );
       expect(plan.status).toBe("completed_with_errors");
@@ -527,8 +527,8 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
         [
           {
             id: "m-crit",
-            effect: "create_voicemail",
-            agentId: "agent_a",
+            effect: "play_system_prompt",
+            clipId: "clip_crit",
             critical: true,
           },
           {
@@ -539,10 +539,10 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
           },
         ],
         {
-          profile: baseProfile(),
+		profile: baseProfile(),
           session,
           nowIso: "2026-07-14T00:00:00.000Z",
-          effectSink: failingSink("hw down"),
+        effectSink: failingSink("hw down"),
         },
       );
       expect(plan.status).toBe("aborted");
@@ -565,10 +565,10 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
       const plan = await executeEffects(
         [{ id: "m-rej", effect: "play_system_prompt", clipId: "r" }],
         {
-          profile: baseProfile(),
+		profile: baseProfile(),
           session,
           nowIso: "2026-07-14T00:00:00.000Z",
-          effectSink: sink,
+        effectSink: sink,
         },
       );
       expect(plan.status).toBe("completed_with_errors");
@@ -587,9 +587,9 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
       await cp(dataSrc, dataRoot, { recursive: true });
 
       const sink = delaySink(50);
-      const host = createEngineHost({
+      const host = createTestHost({
         persist: false,
-        autoMemory: false,
+        dataRoot,
         effectSink: sink,
       });
       await host.loadWorkspace(dataRoot);

@@ -6,7 +6,9 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
-import { createEngineHost, isEngineError } from "../../src/index.js";
+import {
+  isEngineError } from "../../src/index.js";
+import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -29,7 +31,7 @@ describe("E7 chat turns → endCall", () => {
     const dataRoot = path.join(tmpRoot, "data");
     await cp(dataSrc, dataRoot, { recursive: true });
 
-    const host = createEngineHost({ persist: true });
+    const host = createTestHost({ persist: true, dataRoot });
     await host.loadWorkspace(dataRoot);
     await host.ensureProfile("demo-user");
 
@@ -65,7 +67,7 @@ describe("E7 chat turns → endCall", () => {
 
     const end = await host.endCall(session.sessionId, {
       flags: { answered_completed: true },
-      completedBeats: ["user_knows_to_call_xiaoyu"],
+      completedBeats: ["user_knows_to_call_xiaopi"],
       missedRequiredBeats: [],
     });
     expect(isEngineError(end)).toBe(false);
@@ -79,13 +81,13 @@ describe("E7 chat turns → endCall", () => {
     const dataRoot = path.join(tmpRoot, "data");
     await cp(dataSrc, dataRoot, { recursive: true });
 
-    const host = createEngineHost({ persist: true });
+    const host = createTestHost({ persist: true, dataRoot });
     await host.loadWorkspace(dataRoot);
     await host.ensureProfile("demo-user");
 
     const resolved = await host.resolveAsync("demo-user", {
       kind: "free_call",
-      agentId: "doubao-sister",
+      agentId: "lanxing",
     });
     if (isEngineError(resolved)) throw resolved;
 

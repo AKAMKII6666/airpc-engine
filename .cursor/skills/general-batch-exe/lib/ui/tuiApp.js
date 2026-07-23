@@ -26,10 +26,20 @@ const TUI_LAYOUT = Object.freeze({
   statusContentLines: 2,
 });
 
+/**
+ * Escape literal `{`/`}` so neo-blessed `tags:true` won't treat agent/verify text as markup.
+ * Upstream neo-blessed crashes on multi-part attrs like `{a,b}` (`_attr(...).slice` on null).
+ */
+function escapeBlessedTags(text) {
+  // Single-pass: sequential replaces would corrupt `{open}` via its trailing `}`.
+  return String(text ?? '').replace(/[{}]/g, (ch) => (ch === '{' ? '{open}' : '{close}'));
+}
+
 function tag(hue, text, { bold = false, dim = false } = {}) {
   const colorTag = dim && hue === 'white' ? 'gray-fg' : HUE_TAG[hue] || 'white-fg';
   const open = `${bold ? '{bold}' : ''}{${colorTag}}`;
-  return `${open}${text}{/}`;
+  // Body is user-controlled; markup delimiters stay outside escapeBlessedTags.
+  return `${open}${escapeBlessedTags(text)}{/}`;
 }
 
 function stripAnsi(text) {
@@ -193,15 +203,17 @@ function createTuiApp(options = {}) {
   }
 
   function renderHeader() {
-    const batch = state.batchIds.join(',') || '-';
-    const tasks = state.taskIds.join(',') || '-';
+    const batch = escapeBlessedTags(state.batchIds.join(',') || '-');
+    const tasks = escapeBlessedTags(state.taskIds.join(',') || '-');
     const ex = truncateText(path.basename(state.exFile) || '-', 40);
     const wf = truncateText(state.workflow || '-', 36);
     const rec =
       state.recovery != null
         ? ` · recovery ${state.recovery.current}/${state.recovery.max}`
         : '';
-    const kind = state.recoveryKind ? ` · ${state.recoveryKind}` : '';
+    const kind = state.recoveryKind
+      ? ` · ${escapeBlessedTags(String(state.recoveryKind))}`
+      : '';
     header.setContent(
       [
         `${tag('cyan', 'gbx', { bold: true })} ${tag('white', state.title, { dim: true })} · ${tag('yellow', ex)}`,
@@ -236,15 +248,28 @@ function createTuiApp(options = {}) {
   }
 
   function render() {
-    renderHeader();
-    renderStatus();
-    screen.render();
+    try {
+      renderHeader();
+      renderStatus();
+      screen.render();
+    } catch {
+      // neo-blessed tag parse can still throw on residual markup; keep orchestrator alive.
+    }
   }
 
   function appendLogLine(line) {
     const plain = stripAnsi(line);
     if (!plain.trim()) return;
-    logBox.log(plain);
+    try {
+      logBox.log(plain);
+    } catch {
+      // Last resort: treat entire line as literal (loses intentional color tags).
+      try {
+        logBox.log(escapeBlessedTags(plain));
+      } catch {
+        /* ignore */
+      }
+    }
   }
 
   const ui = {
@@ -261,11 +286,11 @@ function createTuiApp(options = {}) {
             : '';
       if (multiline) {
         for (const line of body.split('\n')) {
-          if (line.trim()) appendLogLine(prefix + line);
+          if (line.trim()) appendLogLine(prefix + escapeBlessedTags(line));
         }
       } else {
         for (const line of body.split('\n')) {
-          appendLogLine(prefix + line);
+          appendLogLine(prefix + escapeBlessedTags(line));
         }
       }
       render();
@@ -321,7 +346,9 @@ function createTuiApp(options = {}) {
         appendLogLine(tag(hue, `▶ ${ev.label || 'agent'}`, { bold: true }));
       } else if (ev.kind === 'activity') {
         const hue = roleStyle(ev.role || 'default').hue;
-        appendLogLine(`${tag(hue, '· ', { bold: true })}${truncateText(ev.text, 96)}`);
+        appendLogLine(
+          `${tag(hue, '· ', { bold: true })}${escapeBlessedTags(truncateText(ev.text, 96))}`,
+        );
       } else if (ev.kind === 'heartbeat') {
         appendLogLine(formatHeartbeatLine(ev));
       } else if (ev.kind === 'done') {
@@ -337,7 +364,7 @@ function createTuiApp(options = {}) {
         appendLogLine(tag('red', `✖ ${ev.label}: ${ev.text}`, { bold: true }));
       } else if (ev.kind === 'result') {
         for (const line of String(ev.text || '').split('\n')) {
-          if (line.trim()) appendLogLine(line);
+          if (line.trim()) appendLogLine(escapeBlessedTags(line));
         }
       } else if (ev.kind === 'stderr') {
         for (const line of String(ev.text || '').split('\n')) {
@@ -345,7 +372,8 @@ function createTuiApp(options = {}) {
         }
       } else if (ev.kind === 'banner') {
         for (const line of ev.lines || []) {
-          appendLogLine(line);
+          // Banner may mix ANSI (stripped) with literal braces from themes/paths.
+          appendLogLine(escapeBlessedTags(stripAnsi(line)));
         }
       }
       render();
@@ -483,6 +511,7 @@ module.exports = {
   createTuiApp,
   tag,
   stripAnsi,
+  escapeBlessedTags,
   formatHeartbeatLine,
   TUI_LAYOUT,
 };

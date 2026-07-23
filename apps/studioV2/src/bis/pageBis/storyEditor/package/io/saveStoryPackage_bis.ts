@@ -1,5 +1,5 @@
 /**
-	* 编辑器整包保存：会话图 → bundle → PUT /api/stories/:id。
+	* 编辑器整包保存：会话图 → bundle → PUT /api/stories/:id（含 validate 闸门）。
 	*/
 import {
 	editorGraphToBundle,
@@ -8,6 +8,7 @@ import {
 import { putDiskStoryPackage } from "@studio-v2/src/utils/ajaxProxy/packages/api/storiesApi";
 import type { Edge, Node } from "@xyflow/react";
 import type { DiskStoryPackageBundle } from "@studio-v2/typeFiles/story/package/diskStoryPackage";
+import type { PutStoryPackageResult } from "@studio-v2/typeFiles/story/editor/validate/packageValidationDto";
 
 /** 整包保存入参；由编辑器壳层在顶栏保存时组装 */
 export type SaveStoryPackageInput = {
@@ -21,10 +22,10 @@ export type SaveStoryPackageInput = {
 	edges: readonly Edge[];
 };
 
-/** 整包写回 data/storis-packages；响应为写后回读 */
+/** 整包写回；服务端 validate 失败抛 StudioApiError（details.report） */
 export async function saveStoryPackageToDisk(
 	input: SaveStoryPackageInput,
-): Promise<DiskStoryPackageBundle> {
+): Promise<PutStoryPackageResult> {
 	const bundle = editorGraphToBundle(
 		input.baseBundle,
 		input.nodes,

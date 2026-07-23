@@ -2,7 +2,6 @@
  * 模块名称：EngineHost 实现（Story + Free + Memory + Tools）
  */
 import { randomUUID } from "node:crypto";
-import path from "node:path";
 import { engineError, isEngineError, type EngineError } from "./errors.js";
 import type {
   ActualCallEntry,
@@ -19,13 +18,15 @@ import type { Outcome } from "../schema/outcome.js";
 import { OutcomeSchema } from "../schema/outcome.js";
 import {
   getFreeCard,
-  loadCard,
   lookupCharacterSideCard,
-  loadWorkspaceState,
-  readProfile,
   type WorkspaceState,
 } from "../workspace/loadWorkspace.js";
-import { writeProfile } from "../workspace/persistProfile.js";
+import { loadCardViaPort } from "../workspace/loadCardViaPort.js";
+import {
+  loadProfileViaPort,
+  saveProfileViaPort,
+} from "./profileViaPort.js";
+import { loadWorkspaceViaPort } from "./contentViaPort.js";
 import { buildComposeScene } from "../runtime/composeScene.js";
 import { composeRenderedPrompt } from "../runtime/composer.js";
 import { selectExit } from "../runtime/exitSelector.js";
@@ -33,6 +34,8 @@ import { executeEffects } from "../runtime/effectExecutor.js";
 import { runFreeCallPostPipeline } from "../runtime/freeCallPostPipeline.js";
 import { isEffectiveDialable } from "../schema/character.js";
 import { pickPendingForIntent } from "../runtime/pickPendingForUserDial.js";
+import { resolvePendingStoryCard } from "../runtime/resolvePendingStoryCard.js";
+import { cardForBeginCall } from "../runtime/voicemail/cardForBeginCall.js";
 import {
   evaluateStoryLockGate,
   findActiveStoryLock,
@@ -42,52 +45,56 @@ import {
   maybeActivateStoryOnBegin,
   sessionIsFreeLike,
 } from "./callNarrativeGate.js";
-import { FREE_PACKAGE_ID, SCHEDULE_PACKAGE_ID } from "../constants.js";
-import { createSqliteMemoryPort } from "../memory/sqliteMemoryPort.js";
+import { FREE_PACKAGE_ID } from "../constants.js";
 import type { MemoryPort } from "../memory/types.js";
+import {
+  createHostPushLog,
+  createInjectedPortAccessorsFromOptions,
+  type CreateEngineHostOptions,
+  type EngineHost,
+  type LoadWorkspaceOptions,
+} from "../ports/engineHostApi.js";
 import { invokeSessionTool } from "../tools/invokeSessionLocal.js";
 import type { ToolInvokeResult } from "../tools/types.js";
 import {
   validatePackage as runValidatePackage,
 } from "../validation/validatePackage.js";
 import type { ValidationReport } from "../validation/types.js";
-import type {
-  AdvanceToNextResult,
-  FiredScheduleItem,
-} from "../runtime/scheduleTick.js";
 import { createScheduleClockApi } from "./createScheduleClockApi.js";
 import { consumeLinkedOnceIntent } from "../runtime/scheduleTick.js";
 import {
   createNoopEffectSink,
   type EffectSink,
 } from "../runtime/effectSink.js";
+import { materializeVoicemailsAfterPlan } from "./materializeVoicemailsAfterPlan.js";
+import { markVoicemailListenedAfterEndCall } from "../runtime/voicemail/markVoicemailListened.js";
+import { resolveMailboxOpenIntent } from "../runtime/voicemail/resolveMailboxOpen.js";
 import {
-  appendEngineLogJsonl,
-  readEngineLogJsonlSlice,
   redactLogRecord,
-} from "./engineLogFile.js";
+  readLogFileSliceViaPort,
+  queryWetViaPort,
+} from "./engineLogViaPort.js";
 import {
-  WET_STORAGE_NOTE,
   buildWetAppendRecord,
   buildWetReplayView,
-  filterWetRecords,
-  mergeWetSources,
   validateWetAppend,
-  type WetAppendInput,
-  type WetQueryOpts,
-  type WetReplayView,
 } from "./wet.js";
 import {
   selectCallFlowPrompt,
   type CallFlowSimEventKind,
 } from "../runtime/selectCallFlowPrompt.js";
 import { bootstrapLoreOntoProfile } from "../lore/bootstrapLore.js";
-import type { LoreBootstrapPort } from "../lore/types.js";
 import {
   formatLoreSoftContext,
   WorldLoreDocSchema,
   type WorldLoreDoc,
 } from "../schema/worldLore.js";
+
+export type {
+  CreateEngineHostOptions,
+  EngineHost,
+  LoadWorkspaceOptions,
+} from "../ports/engineHostApi.js";
 
 const ACTIVE_STATUSES = new Set<CallSession["status"]>([
   "resolving",
@@ -98,172 +105,54 @@ const ACTIVE_STATUSES = new Set<CallSession["status"]>([
   "executing_effects",
 ]);
 
-export interface LoadWorkspaceOptions {
-  /**
-   * 为 true 时清空 profiles / sessions / activeByUser。
-   * 默认 false：仅刷 Content 缓存，保留本通调试 Session 与已载 Profile。
-   * rootDir 变更时强制视为 true。
-   */
-  resetRuntime?: boolean;
-}
-
-export interface EngineHost {
-  loadWorkspace(
-    rootDir: string,
-    opts?: LoadWorkspaceOptions,
-  ): Promise<void>;
-  /** 显式踢会话／清 Profile 缓存；不重读 Content。禁与普通 Content 保存绑定。 */
-  resetRuntime(): void;
-  preloadCard(
-    packageId: string,
-    cardId: string,
-  ): Promise<void | EngineError>;
-  ensureProfile(userId: string): Promise<PlayerProfile>;
-  saveProfile(userId: string, reason: SaveReason): Promise<void>;
-  resolve(userId: string, intent: CallIntent): ResolveResult | EngineError;
-  resolveAsync(
-    userId: string,
-    intent: CallIntent,
-  ): Promise<ResolveResult | EngineError>;
-  beginCall(
-    userId: string,
-    result: ResolveResult,
-    opts: BeginCallOpts,
-  ): Promise<CallSession | EngineError>;
-  endCall(
-    sessionId: string,
-    outcome: Outcome,
-  ): Promise<EndCallResult | EngineError>;
-  invokeTool(
-    sessionId: string,
-    toolId: string,
-    args?: Record<string, unknown>,
-  ): Promise<ToolInvokeResult | EngineError>;
-  /**
-   * 播放完成（桩）：置 playback_completed；
-   * hybrid → dialogue；playback_only 仍可挂机收 Outcome。
-   */
-  completePlayback(sessionId: string): CallSession | EngineError;
-  /**
-   * 过程话术模拟：壳／Studio 上报事件，引擎选型注入 lastSimEvent（不计时、不写 Profile）。
-   */
-  simEvent(
-    sessionId: string,
-    kind: CallFlowSimEventKind,
-  ): CallSession | EngineError;
-  /**
-   * 文本调试轮次登记（通话中）；不跑 Effect、不写 Profile。
-   */
-  recordChatTurn(
-    sessionId: string,
-    turn: { role: "user" | "assistant" | "system"; text: string },
-  ): CallSession | EngineError;
-  getActiveSession(userId: string): CallSession | null;
-  getSession(sessionId: string): CallSession | null;
-  getRecentLogs(opts?: { userId?: string; limit?: number }): LogRecord[];
-  /** 读 data/logs/engine-YYYYMMDD.jsonl 切片（已脱敏写入） */
-  readLogFileSlice(opts?: {
-    day?: string;
-    limit?: number;
-  }): Promise<{
-    file: string;
-    lines: LogRecord[];
-    truncated: boolean;
-  } | EngineError>;
-  /**
-   * WET 查询：合并 ring（+可选当日 jsonl），按 type／session／时间过滤。
-   */
-  queryWet(opts?: WetQueryOpts & { includeFile?: boolean }): Promise<{
-    events: LogRecord[];
-    storageNote: string;
-    file?: string;
-    truncated?: boolean;
-  } | EngineError>;
-  /**
-   * 受控追加：仅 wet.annotation／wet.compensation；禁止改写历史／冒充 effect 账本。
-   */
-  appendWet(input: WetAppendInput): LogRecord | EngineError;
-  /** 重放视图：session 相关事件 + exit／effect plan 摘要（只读） */
-  getWetReplay(sessionId: string): Promise<WetReplayView | EngineError>;
-  getLoadedCardCount(packageId: string): number;
-  getMemoryPort(): MemoryPort | null;
-  validatePackage(packageId: string): Promise<ValidationReport>;
-  /**
-   * 推进 Profile.schedule.clockMs：物化到期 recurring→once，再 tick once → outbound pending。
-   * 返回本拍 fired 列表，供调试台再 resolve(agent_outbound)。
-   */
-  advanceClock(
-    userId: string,
-    deltaMs: number,
-  ): FiredScheduleItem[] | EngineError;
-  /** 跳到绝对逻辑时刻（仅前进）并 Tick */
-  setClockMs(
-    userId: string,
-    toClockMs: number,
-  ): FiredScheduleItem[] | EngineError;
-  /** 推到下一意图（pending once 或 recurring 下次 occurrence） */
-  advanceClockToNextIntent(
-    userId: string,
-  ): AdvanceToNextResult | EngineError;
-  /**
-   * Lore bootstrap：有 location 或 force 时写入 Profile.world.lore；
-   * port 失败降级 fallback；不阻塞调用方。
-   */
-  bootstrapLore(
-    userId: string,
-    opts?: { force?: boolean },
-  ): Promise<
-    | {
-        lore: WorldLoreDoc;
-        usedFallback: boolean;
-        errorMessage?: string;
-      }
-    | EngineError
-  >;
-}
-
-export interface CreateEngineHostOptions {
-  persist?: boolean;
-  memory?: MemoryPort | null;
-  /** 未注入 memory 且 persist 时，在 workspaceRoot/memory/memory.sqlite 建库 */
-  autoMemory?: boolean;
-  /** 媒介 EffectSink；缺省 Noop 桩 */
-  effectSink?: EffectSink | null;
-  /** Lore 生成端口；null／缺省 → 直接 fallback */
-  loreBootstrap?: LoreBootstrapPort | null;
-}
-
 export function createEngineHost(
   options: CreateEngineHostOptions = {},
 ): EngineHost {
   const persist = options.persist !== false;
-  const autoMemory = options.autoMemory !== false;
   const effectSink: EffectSink =
     options.effectSink === undefined
       ? createNoopEffectSink()
       : (options.effectSink ?? createNoopEffectSink());
   const loreBootstrapPort =
     options.loreBootstrap === undefined ? null : options.loreBootstrap;
+  const voicemailPorts = {
+    generateVoicemail:
+      options.generateVoicemail === undefined
+        ? null
+        : options.generateVoicemail,
+    onVoicemailUnreadChanged:
+      options.onVoicemailUnreadChanged === undefined
+        ? null
+        : options.onVoicemailUnreadChanged,
+  };
   let workspace: WorkspaceState | null = null;
+  /** Memory 须由宿主注入（本机：engineIOModule）；引擎不再内建 sqlite。 */
   let memory: MemoryPort | null =
     options.memory === undefined ? null : options.memory;
+  /** Profile 须由宿主注入（本机：engineIOModule createFsProfilePort）；引擎不再直写 fs。 */
+  const profilePort =
+    options.profile === undefined ? null : options.profile;
+  /** Content 须由宿主注入（本机：engineIOModule createFsContentPort）；引擎不再扫盘。 */
+  const contentPort =
+    options.content === undefined ? null : options.content;
+  /** EngineLog 可选注入（本机：engineIOModule createFsEngineLogPort）；无则仅内存 ring。 */
+  const engineLogPort =
+    options.engineLog === undefined ? null : options.engineLog;
   const profiles = new Map<string, PlayerProfile>();
   const sessions = new Map<string, CallSession>();
   const activeByUser = new Map<string, string>();
   const logs: LogRecord[] = [];
 
-  function pushLog(record: LogRecord): void {
-    const safe = redactLogRecord(record);
-    logs.push(safe);
-    if (logs.length > 500) {
-      logs.shift();
-    }
-    if (persist && workspace) {
-      void appendEngineLogJsonl(workspace.rootDir, safe).catch(function () {
-        // 旁路失败不打断主路径
-      });
-    }
-  }
+  const pushLog = createHostPushLog({
+    logs,
+    isPersist() {
+      return persist;
+    },
+    getEngineLogPort() {
+      return engineLogPort;
+    },
+    redact: redactLogRecord,
+  });
 
   function requireWorkspace(): WorkspaceState {
     if (!workspace) {
@@ -332,14 +221,12 @@ export function createEngineHost(
 			const rootChanged =
 				workspace !== null && workspace.rootDir !== rootDir;
 			const resetRuntime = opts?.resetRuntime === true || rootChanged;
-			workspace = await loadWorkspaceState(rootDir);
+			workspace = await loadWorkspaceViaPort({
+				rootDir,
+				contentPort,
+			});
 			if (resetRuntime) {
 				clearRuntimeMaps();
-			}
-			if (memory === null && autoMemory) {
-				memory = createSqliteMemoryPort(
-					path.join(rootDir, "memory", "memory.sqlite"),
-				);
 			}
 			pushLog({
 				at: new Date().toISOString(),
@@ -366,40 +253,33 @@ export function createEngineHost(
 			cardId: string,
 		): Promise<void | EngineError> {
 			const ws = requireWorkspace();
-			const card = await loadCard(ws, packageId, cardId);
+			const card = await loadCardViaPort(
+				ws,
+				contentPort,
+				packageId,
+				cardId,
+			);
 			if (isEngineError(card)) {
 				return card;
 			}
 		},
 
 		async ensureProfile(userId: string): Promise<PlayerProfile> {
-			const cached = profiles.get(userId);
-			if (cached) {
-				return cached;
-			}
-			const ws = requireWorkspace();
-			const loaded = await readProfile(ws.rootDir, userId);
-			if (isEngineError(loaded)) {
-				throw loaded;
-			}
-			profiles.set(userId, structuredClone(loaded));
-			return profiles.get(userId)!;
+			return loadProfileViaPort({
+				userId,
+				profilePort,
+				profiles,
+			});
 		},
 
 		async saveProfile(userId: string, reason: SaveReason): Promise<void> {
-			const profile = profiles.get(userId);
-			if (!profile) {
-				throw engineError("NOT_FOUND", `profile not in memory: ${userId}`);
-			}
-			if (persist) {
-				const ws = requireWorkspace();
-				await writeProfile(ws.rootDir, profile);
-			}
-			pushLog({
-				at: new Date().toISOString(),
-				type: "profile.saved",
+			await saveProfileViaPort({
 				userId,
-				payload: { reason },
+				reason,
+				persist,
+				profilePort,
+				profiles,
+				pushLog,
 			});
 		},
 
@@ -451,62 +331,18 @@ export function createEngineHost(
 				};
 			}
 
-			function resolveEntryModeFromContent(
-				instance: {
-					entryMode?: string;
-					packageId: string;
-					cardId: string;
-				},
-			): string | undefined {
-				if (instance.entryMode) {
-					return instance.entryMode;
-				}
-				return (
-					lookupCharacterSideCard(
-						ws,
-						instance.packageId,
-						instance.cardId,
-					)?.entryMode ??
-					ws.packages
-						.get(instance.packageId)
-						?.cards.get(instance.cardId)?.entryMode
-				);
-			}
-
 			function resolvePendingStory(
 				agentId: string,
 				kind: "user_dial" | "agent_outbound",
 				intent: CallIntent,
 			): ResolveResult | EngineError | null {
-				const pending = pickPendingForIntent(profile, agentId, kind, {
-					resolveEntryMode: resolveEntryModeFromContent,
-				});
-				if (!pending) {
-					return null;
-				}
-				const card =
-					lookupCharacterSideCard(
-						ws,
-						pending.packageId,
-						pending.cardId,
-					) ??
-					ws.packages.get(pending.packageId)?.cards.get(pending.cardId);
-				if (!card) {
-					return engineError(
-						"NOT_FOUND",
-						`card not loaded: ${pending.packageId}/${pending.cardId}; use resolveAsync`,
-					);
-				}
-				return {
-					ok: true,
-					source: "story_pending",
-					instanceId: pending.instanceId,
-					cardId: pending.cardId,
-					agentId: pending.agentId,
-					packageId: pending.packageId,
+				return resolvePendingStoryCard({
+					profile,
+					workspace: ws,
+					agentId,
+					kind,
 					intent,
-					card: structuredClone(card),
-				};
+				});
 			}
 
       function applyActiveStoryLockGate(
@@ -636,6 +472,14 @@ export function createEngineHost(
         return resolveFreeForAgent(userId, intent.agentId, intent);
       }
 
+      if (intent.kind === "mailbox_open") {
+        return resolveMailboxOpenIntent({
+          profile,
+          workspace: ws,
+          intent,
+        });
+      }
+
       const _exhaustive: never = intent;
       return engineError(
         "ENGINE_INTERNAL",
@@ -651,6 +495,22 @@ export function createEngineHost(
 				const pre = await host.preloadCard(intent.packageId, intent.cardId);
 				if (pre && isEngineError(pre)) {
 					return pre;
+				}
+			}
+			if (intent.kind === "mailbox_open") {
+				const profile = profiles.get(userId);
+				if (!profile) {
+					return engineError("USER_REQUIRED", "call ensureProfile first");
+				}
+				const slot = profile.telephony?.voicemails?.find(function (item) {
+					return item.id === intent.voicemailId;
+				});
+				const packageId = slot?.packageId;
+				if (packageId) {
+					const pre = await host.preloadCard(packageId, intent.cardId);
+					if (pre && isEngineError(pre)) {
+						return pre;
+					}
 				}
 			}
 			if (intent.kind === "user_dial" || intent.kind === "agent_outbound") {
@@ -715,11 +575,11 @@ export function createEngineHost(
             : result.intent.kind === "user_dial" ||
                 result.intent.kind === "free_call"
               ? "inbound_user_dial"
-              : result.intent.kind === "simulate_start"
-                ? undefined
-                : undefined;
+              : undefined;
+        /** mailbox_open / voicemail：强制 playback_only + mailbox_open（与校验一致） */
+        const beginCard = cardForBeginCall(result);
         const composeScene = buildComposeScene({
-          entryMode: result.card.entryMode,
+          entryMode: beginCard.entryMode,
           actualEntry,
           packageId: result.packageId,
           localNowIso: opts.localNowIso,
@@ -734,7 +594,7 @@ export function createEngineHost(
           const projection = await memory.projectForCall({
             userId,
             agentId: result.agentId,
-            card: result.card,
+            card: beginCard,
             nowIso: now,
           });
           if (projection.softText) {
@@ -754,7 +614,7 @@ export function createEngineHost(
         }
 
         const rendered = composeRenderedPrompt({
-          card: result.card,
+          card: beginCard,
           characterDef,
           scene: composeScene,
           softExtras,
@@ -763,16 +623,16 @@ export function createEngineHost(
           return rendered;
         }
 
-        const interactionMode = result.card.interactionMode;
+        const interactionMode = beginCard.interactionMode;
         const startInPlayback =
           interactionMode === "playback_only" ||
           interactionMode === "hybrid";
         const clipId =
-          result.card.context &&
-          typeof result.card.context === "object" &&
-          typeof (result.card.context as { playbackClipId?: string })
+          beginCard.context &&
+          typeof beginCard.context === "object" &&
+          typeof (beginCard.context as { playbackClipId?: string })
             .playbackClipId === "string"
-            ? (result.card.context as { playbackClipId: string }).playbackClipId
+            ? (beginCard.context as { playbackClipId: string }).playbackClipId
             : undefined;
         const playback =
           startInPlayback && clipId
@@ -803,7 +663,7 @@ export function createEngineHost(
             agentId: result.agentId,
             intent: result.intent,
           },
-          frozenCard: structuredClone(result.card),
+          frozenCard: structuredClone(beginCard),
           actualEntry,
           composeScene,
           renderedPrompt: rendered,
@@ -839,7 +699,7 @@ export function createEngineHost(
         maybeActivateStoryOnBegin({
           profile: profileForBegin,
           packageId: result.packageId,
-          cardKind: result.card.cardKind,
+          cardKind: beginCard.cardKind,
           source: result.source,
           instanceId: result.instanceId,
           nowIso: now,
@@ -1028,14 +888,27 @@ export function createEngineHost(
       if (!profile) {
         return engineError("NOT_FOUND", "profile missing for endCall");
       }
+      // 嵌套函数会冲掉 Map.get 收窄；固定为本通引用
+      const endSession = session;
+      const endProfile = profile;
 
       const isFree = sessionIsFreeLike({
-        packageId: session.packageId,
-        cardKind: session.frozenCard.cardKind,
-        source: session.resolve.source,
+        packageId: endSession.packageId,
+        cardKind: endSession.frozenCard.cardKind,
+        source: endSession.resolve.source,
       });
 
       const nowIso = new Date().toISOString();
+
+      function applyVoicemailListenedSideEffect(): void {
+        markVoicemailListenedAfterEndCall({
+          session: endSession,
+          profile: endProfile,
+          outcome,
+          nowIso,
+          onVoicemailUnreadChanged: voicemailPorts.onVoicemailUnreadChanged,
+        });
+      }
 
       if (isFree) {
         session.status = "selecting_exit";
@@ -1049,6 +922,13 @@ export function createEngineHost(
           effectSink,
           lookupCard,
         });
+        await materializeVoicemailsAfterPlan({
+          profile,
+          nowIso,
+          lookupCard,
+          ports: voicemailPorts,
+        });
+        applyVoicemailListenedSideEffect();
         await host.saveProfile(session.userId, "after_free_pipeline");
         session.status =
           pipe.effectPlanResult.status === "aborted"
@@ -1134,9 +1014,11 @@ export function createEngineHost(
         session.exitCandidates,
       );
       if (!selected) {
+        applyVoicemailListenedSideEffect();
         session.status = "aborted";
         session.endedAt = nowIso;
         activeByUser.delete(session.userId);
+        await host.saveProfile(session.userId, "after_effect");
         pushLog({
           at: session.endedAt,
           type: "call.no_exit",
@@ -1171,6 +1053,13 @@ export function createEngineHost(
       });
       session.effectPlanResult = plan;
 
+      await materializeVoicemailsAfterPlan({
+        profile,
+        nowIso,
+        lookupCard,
+        ports: voicemailPorts,
+      });
+      applyVoicemailListenedSideEffect();
       await host.saveProfile(session.userId, "after_effect");
 
       session.status =
@@ -1225,52 +1114,19 @@ export function createEngineHost(
     },
 
     async readLogFileSlice(opts) {
-      try {
-        const ws = requireWorkspace();
-        return await readEngineLogJsonlSlice({
-          rootDir: ws.rootDir,
-          day: opts?.day,
-          limit: opts?.limit,
-        });
-      } catch (err) {
-        if (isEngineError(err)) return err;
-        return engineError(
-          "ENGINE_INTERNAL",
-          err instanceof Error ? err.message : String(err),
-        );
-      }
+      return readLogFileSliceViaPort({
+        engineLogPort,
+        day: opts?.day,
+        limit: opts?.limit,
+      });
     },
 
     async queryWet(opts) {
-      try {
-        const includeFile = opts?.includeFile !== false;
-        let fileLines: LogRecord[] = [];
-        let file: string | undefined;
-        let truncated: boolean | undefined;
-        if (includeFile && workspace) {
-          const slice = await readEngineLogJsonlSlice({
-            rootDir: workspace.rootDir,
-            limit: Math.min(opts?.limit ?? 200, 500),
-          });
-          fileLines = slice.lines;
-          file = slice.file;
-          truncated = slice.truncated;
-        }
-        const merged = mergeWetSources(logs, fileLines);
-        const events = filterWetRecords(merged, opts);
-        return {
-          events,
-          storageNote: WET_STORAGE_NOTE,
-          file,
-          truncated,
-        };
-      } catch (err) {
-        if (isEngineError(err)) return err;
-        return engineError(
-          "ENGINE_INTERNAL",
-          err instanceof Error ? err.message : String(err),
-        );
-      }
+      return queryWetViaPort({
+        ring: logs,
+        engineLogPort,
+        opts,
+      });
     },
 
     appendWet(input) {
@@ -1312,15 +1168,26 @@ export function createEngineHost(
       return ws.packages.get(packageId)?.cards.size ?? 0;
     },
 
-    getMemoryPort(): MemoryPort | null {
+    ...createInjectedPortAccessorsFromOptions(options, function () {
       return memory;
-    },
+    }),
 
     async validatePackage(packageId: string): Promise<ValidationReport> {
       const ws = requireWorkspace();
-      return runValidatePackage({
-        rootDir: ws.rootDir,
+      if (!contentPort) {
+        throw engineError(
+          "ENGINE_INTERNAL",
+          "ContentPort required: inject createFsContentPort (engineIOModule) or test fake",
+        );
+      }
+      const bundle = await contentPort.loadPackageForValidate({
+        workspaceKey: ws.rootDir,
         packageId,
+      });
+      return runValidatePackage({
+        bundle,
+        workspaceKey: ws.rootDir,
+        content: contentPort,
         characters: ws.characters,
       });
     },

@@ -1,0 +1,68 @@
+[gbx] ▶ verify:npm run quality:studio start cmd=/bin/sh cwd=/Users/bolbiao/workspace/airpc-engine
+
+> quality:studio
+> node scripts/studio-quality/quality-studio.mjs
+
+
+==> ensure-modal-layout (pre-typecheck)
+ensure-modal-layout: nothing to remove
+
+==> ensure-migrated-layout (pre-typecheck)
+ensure-migrated-layout: nothing to remove
+
+==> lint (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 lint
+> node ./scripts/run-eslint.mjs . --max-warnings 0
+
+
+==> typecheck (@airpc/studio-v2)
+
+> @airpc/studio-v2@0.0.1 typecheck
+> tsc -p tsconfig.json --noEmit
+
+
+==> check:comments
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/library/schedule/engineScheduledIntent.ts:8:2  严格契约字段「EngineScheduledIntentOnce.kind」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/library/schedule/engineScheduledIntent.ts:32:2  严格契约字段「EngineScheduledIntentRecurring.kind」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/callCard/engineCallCard.ts:43:2  严格契约字段「ToolPolicy.mode」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/callCard/engineCallCard.ts:44:2  严格契约字段「ToolPolicy.allowedToolIds」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/callCard/engineCallCard.ts:73:2  严格契约字段「CallCardExit.exitKind」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/callCard/engineCallCard.ts:74:2  严格契约字段「CallCardExit.title」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/callCard/engineCallCard.ts:77:2  严格契约字段「CallCardExit.condition」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/callCard/engineCallCard.ts:78:2  严格契约字段「CallCardExit.effects」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/callCard/engineCallCard.ts:83:2  严格契约字段「CallCardContext.privateBrief」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/callCard/engineCallCard.ts:84:2  严格契约字段「CallCardContext.speakableBrief」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/callCard/engineCallCard.ts:85:2  严格契约字段「CallCardContext.background」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/callCard/engineCallCard.ts:86:2  严格契约字段「CallCardContext.premise」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/callCard/engineCallCard.ts:87:2  严格契约字段「CallCardContext.emotion」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/callCard/engineCallCard.ts:88:2  严格契约字段「CallCardContext.objective」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/callCard/engineCallCard.ts:89:2  严格契约字段「CallCardContext.forbidden」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/callCard/engineCallCard.ts:92:2  严格契约字段「CallCardContext.playbackClipId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/callCard/engineCallCard.ts:101:2  严格契约字段「ScheduleMeta.mode」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/callCard/engineCallCard.ts:108:2  严格契约字段「ScheduleMeta.timeWindow」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/callCard/engineCallCard.ts:114:2  严格契约字段「ScheduleMeta.priority」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/callCard/engineCallCard.ts:115:2  严格契约字段「ScheduleMeta.blockedByActiveStoryLock」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/callCard/engineCallCard.ts:125:2  严格契约字段「CallCardDefinition.title」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/callCard/engineCallCard.ts:128:2  严格契约字段「CallCardDefinition.entryMode」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/callCard/engineCallCard.ts:129:2  严格契约字段「CallCardDefinition.interactionMode」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/callCard/engineCallCard.ts:130:2  严格契约字段「CallCardDefinition.context」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/callCard/engineCallCard.ts:131:2  严格契约字段「CallCardDefinition.objectives」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/callCard/engineCallCard.ts:134:2  严格契约字段「CallCardDefinition.toolPolicy」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/callCard/engineCallCard.ts:156:2  严格契约字段「StoryPackageMeta.conflictsWith」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/callCard/engineCallCard.ts:157:2  严格契约字段「StoryPackageMeta.imports」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/callCard/engineCallCard.ts:161:2  严格契约字段「StoryPackageMeta.exports」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/callCard/engineCallCard.ts:174:2  严格契约字段「StoryPackageConf.title」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/callCard/engineCallCard.ts:180:2  严格契约字段「StoryPackageConf.entryCardId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/callCard/engineCallCard.ts:187:2  严格契约字段「StoryPackageConf.cards」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-001  apps/studioV2/typeFiles/story/callCard/engineOutcome.ts:39:1  严格契约目录中的导出「KnownEffectName」缺少意图注释或 JSDoc  在声明上方补充说明为什么存在、约束或副作用
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/validate/engineValidation.ts:13:2  严格契约字段「ValidationIssue.level」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/validate/engineValidation.ts:16:2  严格契约字段「ValidationIssue.message」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/validate/engineValidation.ts:21:2  严格契约字段「ValidationReport.packageId」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/validate/engineValidation.ts:22:2  严格契约字段「ValidationReport.errors」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+STUDIO-COMMENT-002  apps/studioV2/typeFiles/story/validate/engineValidation.ts:23:2  严格契约字段「ValidationReport.warnings」缺少字段级说明  补充单位、可空语义、所有权、持久化或生命周期说明
+check:comments failed (38 issues, 368 files)
+check:comments failed (exit 1)
+
+quality:studio FAILED
+[gbx] ■ verify:npm run quality:studio done exit=1 elapsed=6s

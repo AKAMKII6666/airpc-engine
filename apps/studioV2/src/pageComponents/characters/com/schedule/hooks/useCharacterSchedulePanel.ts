@@ -2,7 +2,7 @@
 	* 角色定时外呼列表面板状态：列表加载 + Modal 新增/编辑 + 删除确认。
 	*/
 import { useState } from "react";
-import type { ScheduledIntent } from "@airpc/rpg-engine";
+import type { ScheduledIntent } from "@studio-v2/typeFiles/library/schedule/engineScheduledIntent";
 import {
 	SCHEDULE_INTENT_INITIAL_VALUES,
 	intentToFormValues,

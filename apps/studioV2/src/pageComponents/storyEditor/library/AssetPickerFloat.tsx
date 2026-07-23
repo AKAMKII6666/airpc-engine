@@ -1,6 +1,6 @@
 /**
-	* 编辑器内资源浮窗：列表 + 增删改入口；表单复用 /assets FormModal。
-	* 缺文件带警告；默认可收起；不挤压画布主区。
+	* 编辑器内资源浮窗：列表 + 增删改 + 回填当前卡 playbackClipId。
+	* 真源 = /api/assets ↔ data/assets；缺文件带警告；默认可收起。
 	*/
 "use client";
 
@@ -16,7 +16,7 @@ import styles from "./EditorLibraryFloat.module.scss";
 export type AssetPickerFloatProps = {
 	open: boolean;
 	onClose: () => void;
-	/** 会话内资源快照；由 hook 刷新 */
+	/** 磁盘资源投影快照；由 hook 经 /api/assets 刷新 */
 	assets: readonly AssetSummary[];
 	/** 打开新建 FormModal */
 	onCreate: () => void;
@@ -24,6 +24,13 @@ export type AssetPickerFloatProps = {
 	onEdit: (asset: AssetSummary) => void;
 	/** 打开删除确认 */
 	onRequestDelete: (assetId: string) => void;
+	/**
+		* 是否可回填当前选中 CallCard 的 playbackClipId。
+		* 无选中通话卡时为 false，隐藏「用作播放片段」。
+		*/
+	canUseAsPlaybackClip: boolean;
+	/** 把 assetId 写入当前选中卡 context.playbackClipId（会话内） */
+	onUseAsPlaybackClip: (assetId: string) => void;
 };
 
 export const AssetPickerFloat: FC<AssetPickerFloatProps> =
@@ -32,14 +39,18 @@ export const AssetPickerFloat: FC<AssetPickerFloatProps> =
 		open,
 		// onClose 是关闭回调，用于收起浮窗
 		onClose,
-		// assets 是会话内资源列表，用于展示与 CRUD 入口
+		// assets 是磁盘资源列表投影，用于展示与 CRUD 入口
 		assets,
 		// onCreate 打开新建弹层，用于登记资源
 		onCreate,
 		// onEdit 打开编辑弹层，用于改资源投影
 		onEdit,
-		// onRequestDelete 打开删除确认，用于会话内移除
+		// onRequestDelete 打开删除确认，用于落盘移除
 		onRequestDelete,
+		// canUseAsPlaybackClip 表示是否可选中卡回填，用于显示「用作播放片段」
+		canUseAsPlaybackClip,
+		// onUseAsPlaybackClip 是回填回调，用于写入当前卡 playbackClipId
+		onUseAsPlaybackClip,
 	}) {
 		if (!open) return null;
 
@@ -57,7 +68,8 @@ export const AssetPickerFloat: FC<AssetPickerFloatProps> =
 				</div>
 				{/* 引用了Typography组件，用于操作提示文案 */}
 				<Typography variant="caption" className={styles.hint}>
-					增删改复用资源库表单。选择后可回填到当前卡或出口动作（本步仅会话列表）。
+					经 /api/assets 读写 data/assets。选中通话卡后可「用作播放片段」回填
+					playbackClipId；包级 assetRefs 在包配置浮窗勾选。
 				</Typography>
 				<div className={styles.toolbar}>
 					{/* 引用了Button组件，用于打开新建资源 FormModal */}
@@ -68,7 +80,7 @@ export const AssetPickerFloat: FC<AssetPickerFloatProps> =
 				{assets.length === 0 ? (
 					// 引用了Typography组件，用于空列表提示
 					<Typography variant="body2" color="text.secondary">
-						暂无资源。可点击「新建资源」创建会话内条目。
+						暂无资源。可点击「新建资源」写入 data/assets。
 					</Typography>
 				) : (
 					<ul className={styles.list}>
@@ -90,6 +102,17 @@ export const AssetPickerFloat: FC<AssetPickerFloatProps> =
 									</span>
 								</span>
 								<span className={styles.itemActions}>
+									{canUseAsPlaybackClip ? (
+										// 引用了Button组件，用于回填当前卡 playbackClipId
+										<Button
+											size="small"
+											variant="outlined"
+											onClick={() => onUseAsPlaybackClip(a.assetId)}
+											aria-label={`将 ${a.displayName} 用作播放片段`}
+										>
+											用作播放片段
+										</Button>
+									) : null}
 									{/* 引用了Button组件，用于打开编辑 FormModal */}
 									<Button
 										size="small"

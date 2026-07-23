@@ -4,7 +4,7 @@
 	*/
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
 	applyNodeChanges,
 	type Edge,
@@ -21,13 +21,14 @@ import {
 	readCharacterAnchorData,
 } from "@studio-v2/src/bis/pageBis/storyEditor/role/roleConnection";
 import { useStoryCanvasEffectEdges } from "@studio-v2/src/pageComponents/storyEditor/canvas/useStoryCanvasEffectEdges";
-import { createCanvasOnConnect } from "@studio-v2/src/pageComponents/storyEditor/canvas/canvasConnectHandlers";
+import { useStoryCanvasConnect } from "@studio-v2/src/pageComponents/storyEditor/canvas/useStoryCanvasConnect";
 import {
 	toStoryCanvasSelection,
 	useRegisterStoryCanvasApi,
 	useStoryCanvasSelection,
 } from "@studio-v2/src/pageComponents/storyEditor/canvas/storyCanvasSelection";
 import { useStoryCanvasNodeMutations } from "@studio-v2/src/pageComponents/storyEditor/canvas/useStoryCanvasNodeMutations";
+import { useStoryCanvasPanelGestures } from "@studio-v2/src/pageComponents/storyEditor/canvas/useStoryCanvasPanelGestures";
 import type {
 	CharacterAnchorNodeData,
 	EditorCallCardProjection,
@@ -63,6 +64,8 @@ export type UseStoryCanvasGraphArgs = {
 	/** 磁盘包打开后的初始图；由 loadStoryPackageForEditor 提供 */
 	graphSeed: EditorGraphSeed;
 	onSelectionChange: (selection: StoryEditorSelection | null) => void;
+	/** 双击 / 定位 / 落点打开属性浮窗 */
+	onOpenPropertyPanel: (selection: StoryEditorSelection | null) => void;
 	onCharacterAnchorSelect: (anchor: CharacterAnchorNodeData | null) => void;
 	onReady: (api: StoryCanvasStageApi) => void;
 	/** 节点变化时同步底栏 chapter_end 禁用与归属选项 */
@@ -100,6 +103,7 @@ export function useStoryCanvasGraph(args: UseStoryCanvasGraphArgs) {
 	const {
 		graphSeed,
 		onSelectionChange,
+		onOpenPropertyPanel,
 		onCharacterAnchorSelect,
 		onReady,
 		onGraphMetaChange,
@@ -114,16 +118,11 @@ export function useStoryCanvasGraph(args: UseStoryCanvasGraphArgs) {
 	const selectedIdRef = useRef<string | null>(
 		graphSeed.initialSelectionNodeId,
 	);
-	// onConnectStart 依修饰键置位；onConnect 据此把本次连接当作 attach 效果边（反向写 effects 行）
-	const effectConnectArmedRef = useRef(false);
 
 	useEffect(() => {
 		nodesRef.current = nodes;
-	}, [nodes]);
-
-	useEffect(() => {
 		edgesRef.current = edges;
-	}, [edges]);
+	}, [nodes, edges]);
 
 	useEffect(() => {
 		onGraphMetaChange?.({
@@ -140,30 +139,17 @@ export function useStoryCanvasGraph(args: UseStoryCanvasGraphArgs) {
 		setNodes,
 		setEdges,
 		onSelectionChange,
+		onOpenPropertyPanel,
 		toolModeApi,
 	});
 
-	const onConnect = useMemo(
-		() =>
-			createCanvasOnConnect({
-				nodesRef,
-				selectedIdRef,
-				setNodes,
-				setEdges,
-				onSelectionChange,
-				effectConnectArmedRef,
-			}),
-		[onSelectionChange],
-	);
-
-	const onConnectStart = useCallback(
-		(event: MouseEvent | TouchEvent) => {
-			// 修饰键（Alt/Meta）拖 = 效果边；普通拖 = 剧情流转/归属线
-			effectConnectArmedRef.current =
-				"altKey" in event && Boolean(event.altKey || event.metaKey);
-		},
-		[],
-	);
+	const { onConnect, onConnectStart } = useStoryCanvasConnect({
+		nodesRef,
+		selectedIdRef,
+		setNodes,
+		setEdges,
+		onSelectionChange,
+	});
 
 	useRegisterStoryCanvasApi(canvasApi, onReady);
 
@@ -177,6 +163,14 @@ export function useStoryCanvasGraph(args: UseStoryCanvasGraphArgs) {
 	const onNodesChange = useCallback((changes: NodeChange[]) => {
 		setNodes((prev) => applyNodeChanges(changes, prev));
 	}, []);
+
+	const gestures = useStoryCanvasPanelGestures({
+		selectedIdRef,
+		setNodes,
+		onSelectionChange,
+		onOpenPropertyPanel,
+		onCharacterAnchorSelect,
+	});
 
 	const { onEdgesChange } = useStoryCanvasEffectEdges({
 		nodesRef,
@@ -196,5 +190,7 @@ export function useStoryCanvasGraph(args: UseStoryCanvasGraphArgs) {
 		onConnectStart,
 		handleSelectionChange,
 		addNodeAt: canvasApi.addNodeAt,
+		clearCanvasSelection: gestures.clearCanvasSelection,
+		onNodeDoubleClick: gestures.onNodeDoubleClick,
 	};
 }

@@ -1,5 +1,5 @@
 /**
-	* 过程话术变体列表：可增删，写回 PromptVariant[]（variantId + text）。
+	* 过程话术变体列表：可增删；variantId 系统 UUID 生成且 UI 隐藏，只编正文。
 	*/
 "use client";
 
@@ -14,18 +14,28 @@ import {
 } from "../../fields/formBoundFieldProps";
 import styles from "./index.module.scss";
 
+/** 新变体稳定键；隐藏字段，禁止作者手填 */
+function newVariantId(): string {
+	if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+		return crypto.randomUUID();
+	}
+	return `v_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
 function asVariantList(raw: unknown): PromptVariantForm[] {
 	if (!Array.isArray(raw)) return [];
 	return raw.map((item, index) => {
 		if (typeof item !== "object" || item === null) {
-			return { variantId: `v_${index + 1}`, text: "" };
+			return { variantId: newVariantId(), text: "" };
 		}
 		const row = item as { variantId?: unknown; text?: unknown };
+		const existing =
+			typeof row.variantId === "string" && row.variantId.trim() !== ""
+				? row.variantId
+				: newVariantId();
+		void index;
 		return {
-			variantId:
-				typeof row.variantId === "string" && row.variantId.trim() !== ""
-					? row.variantId
-					: `v_${index + 1}`,
+			variantId: existing,
 			text: typeof row.text === "string" ? row.text : "",
 		};
 	});
@@ -62,7 +72,7 @@ export const FormPromptVariantListEditor: FC<
 	const watchText =
 		list.length === 0
 			? "（空列表）"
-			: list.map((v) => v.text || v.variantId).join("；");
+			: list.map((v) => v.text || "（空正文）").join("；");
 
 	function writeList(next: PromptVariantForm[]): void {
 		if (onChangeOverride) {
@@ -85,21 +95,9 @@ export const FormPromptVariantListEditor: FC<
 		>
 			<ul className={styles.list}>
 				{list.map((row, index) => (
-					<li key={`${name}-${index}`} className={styles.card}>
+					<li key={row.variantId || `${name}-${index}`} className={styles.card}>
 						<div className={styles.cardHead}>
-							{/* 引用了TextField组件，用于编辑 variantId */}
-							<TextField
-								label="变体 id"
-								value={row.variantId}
-								onChange={(e) => {
-									const next = list.slice();
-									next[index] = { ...row, variantId: e.target.value };
-									writeList(next);
-								}}
-								size="small"
-								disabled={disabled}
-								inputProps={{ "aria-label": `${label} 变体 id ${index + 1}` }}
-							/>
+							<span className={styles.cardIndex}>变体 {index + 1}</span>
 							{/* 引用了IconButton组件，用于删除本变体 */}
 							<IconButton
 								type="button"
@@ -132,17 +130,14 @@ export const FormPromptVariantListEditor: FC<
 					</li>
 				))}
 			</ul>
-			{/* 引用了Button组件，用于追加变体 */}
+			{/* 引用了Button组件，用于追加变体（variantId 自动 UUID） */}
 			<Button
 				type="button"
 				size="small"
 				variant="outlined"
 				disabled={disabled}
 				onClick={() =>
-					writeList([
-						...list,
-						{ variantId: `v_${list.length + 1}`, text: "" },
-					])
+					writeList([...list, { variantId: newVariantId(), text: "" }])
 				}
 			>
 				添加变体

@@ -14,6 +14,7 @@ const path = require('path');
 const { spawn, spawnSync } = require('child_process');
 const {
   tag,
+  escapeBlessedTags,
   formatHeartbeatLine,
   TUI_LAYOUT,
 } = require('../lib/ui/tuiApp');
@@ -61,6 +62,30 @@ describe('console UI mode', () => {
       console.error = orig;
     }
     assert.equal(lines.length, 0);
+  });
+});
+
+describe('TUI blessed tag safety', () => {
+  it('escapes braces that neo-blessed would parse as multi-attr tags', () => {
+    assert.equal(escapeBlessedTags('{a,b}'), '{open}a,b{close}');
+    assert.equal(escapeBlessedTags('x{y}z'), 'x{open}y{close}z');
+  });
+
+  it('tag() keeps markup delimiters but escapes body braces', () => {
+    const value = tag('red', 'fail {a,b}', { bold: true });
+    assert.match(value, /^\{bold\}\{red-fg\}/);
+    assert.match(value, /\{open\}a,b\{close\}/);
+    assert.doesNotMatch(value, /\{a,b\}/);
+  });
+
+  it('heartbeat with brace-heavy activity stays parse-safe', () => {
+    const line = formatHeartbeatLine({
+      label: 'fixer:V2-IO-7',
+      elapsed: 12,
+      text: 'edit props: {a,b}; path apps/[assetId]/route.ts',
+    });
+    assert.doesNotMatch(line, /\{a,b\}/);
+    assert.match(line, /\{open\}a,b\{close\}/);
   });
 });
 

@@ -1,6 +1,6 @@
 /**
 	* React Flow 画布舞台：节点拖拽、选中、出口连线与角色归属连线。
-	* 支持 toolMode（框选 / placement）；禁止泳道背景；不持久化布局 / Host。
+	* 单击选中；双击打开属性；空白取消选中。支持 toolMode（框选 / placement）。
 	*/
 "use client";
 
@@ -49,8 +49,10 @@ const NODE_TYPES = {
 export type StoryCanvasStageProps = {
 	/** 磁盘包打开后的初始图 */
 	graphSeed: EditorGraphSeed;
-	/** 选中 CallCard / 章节节点投影变化；null 表示无选中 */
+	/** 单击选中投影；null 表示无选中（不单独打开属性浮窗） */
 	onSelectionChange: (selection: StoryEditorSelection | null) => void;
+	/** 双击打开属性浮窗 */
+	onOpenPropertyPanel: (selection: StoryEditorSelection | null) => void;
 	/**
 		* 选中角色锚点；由壳层打开编辑 FormModal。
 		* 非锚点选中时传 null。
@@ -72,8 +74,10 @@ export type StoryCanvasStageProps = {
 const StoryCanvasInner: FC<StoryCanvasStageProps> = function StoryCanvasInner({
 	// graphSeed 是磁盘打开的初始图，用于画布会话 seed
 	graphSeed,
-	// onSelectionChange 同步 CallCard 选中投影，用于属性浮窗
+	// onSelectionChange 是单击选中回调，用于同步高亮与写回
 	onSelectionChange,
+	// onOpenPropertyPanel 是双击回调，用于打开属性浮窗
+	onOpenPropertyPanel,
 	// onCharacterAnchorSelect 选中角色锚点，用于打开编辑 FormModal
 	onCharacterAnchorSelect,
 	// onReady 注册壳层命令口，用于属性/角色写回节点
@@ -104,6 +108,7 @@ const StoryCanvasInner: FC<StoryCanvasStageProps> = function StoryCanvasInner({
 	const graph = useStoryCanvasGraph({
 		graphSeed,
 		onSelectionChange,
+		onOpenPropertyPanel,
 		onCharacterAnchorSelect,
 		onReady,
 		onGraphMetaChange,
@@ -117,18 +122,26 @@ const StoryCanvasInner: FC<StoryCanvasStageProps> = function StoryCanvasInner({
 		[onRequestDeleteNode],
 	);
 
-	/** placement：空白点击 → flow 坐标 → 工厂落点 */
+	/** placement：空白点击落点；否则取消选中 */
 	const onPaneClick = useCallback<NonNullable<ReactFlowProps["onPaneClick"]>>(
 		(event) => {
 			const state = toolMode.getToolMode();
-			if (state.mode !== "placement" || !state.placementKind) return;
-			const position = screenToFlowPosition({
-				x: event.clientX,
-				y: event.clientY,
-			});
-			graph.addNodeAt(state.placementKind, position);
+			if (state.mode === "placement" && state.placementKind) {
+				const position = screenToFlowPosition({
+					x: event.clientX,
+					y: event.clientY,
+				});
+				graph.addNodeAt(state.placementKind, position);
+				return;
+			}
+			graph.clearCanvasSelection();
 		},
-		[graph.addNodeAt, screenToFlowPosition, toolMode.getToolMode],
+		[
+			graph.addNodeAt,
+			graph.clearCanvasSelection,
+			screenToFlowPosition,
+			toolMode.getToolMode,
+		],
 	);
 
 	return (
@@ -152,6 +165,7 @@ const StoryCanvasInner: FC<StoryCanvasStageProps> = function StoryCanvasInner({
 					onConnect={graph.onConnect}
 					onConnectStart={graph.onConnectStart}
 					onSelectionChange={graph.handleSelectionChange}
+					onNodeDoubleClick={graph.onNodeDoubleClick}
 					onPaneClick={onPaneClick}
 					fitView
 					minZoom={0.35}
@@ -180,8 +194,10 @@ const StoryCanvasInner: FC<StoryCanvasStageProps> = function StoryCanvasInner({
 export const StoryCanvasStage: FC<StoryCanvasStageProps> = function StoryCanvasStage({
 	// graphSeed 是磁盘打开的初始图，用于画布会话 seed
 	graphSeed,
-	// onSelectionChange 同步 CallCard 选中投影，用于属性浮窗
+	// onSelectionChange 是单击选中回调，用于同步高亮与写回
 	onSelectionChange,
+	// onOpenPropertyPanel 是双击回调，用于打开属性浮窗
+	onOpenPropertyPanel,
 	// onCharacterAnchorSelect 选中角色锚点，用于打开编辑 FormModal
 	onCharacterAnchorSelect,
 	// onReady 注册壳层命令口，用于属性/角色写回节点
@@ -200,6 +216,7 @@ export const StoryCanvasStage: FC<StoryCanvasStageProps> = function StoryCanvasS
 			<StoryCanvasInner
 				graphSeed={graphSeed}
 				onSelectionChange={onSelectionChange}
+				onOpenPropertyPanel={onOpenPropertyPanel}
 				onCharacterAnchorSelect={onCharacterAnchorSelect}
 				onReady={onReady}
 				onToolModeChange={onToolModeChange}

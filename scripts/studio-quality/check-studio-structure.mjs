@@ -28,7 +28,7 @@ const RULE = {
   FN_LINES: "STUDIO-STRUCT-002",
   COMPLEXITY: "STUDIO-STRUCT-003",
   PAGE_LINES: "STUDIO-STRUCT-004",
-  ENGINE_WRITE: "STUDIO-STRUCT-005",
+  ENGINE_WRITE: "STUDIO-STRUCT-005", // Client/非 Server 禁止任何 @airpc/rpg-engine import（含 type）
   DEEP_ENGINE: "STUDIO-STRUCT-006",
   COLOCATED_TEST: "STUDIO-STRUCT-007",
   CLUSTER: "STUDIO-STRUCT-008",
@@ -43,6 +43,7 @@ const RULE = {
   TAB_INDENT: "STUDIO-STRUCT-017",
   JSX_COMPONENT_COMMENT: "STUDIO-STRUCT-018",
   COMPONENT_PROPS_DESTRUCTURE: "STUDIO-STRUCT-019",
+  SERVER_CLIENT_IMPORT: "STUDIO-STRUCT-020", // Server 禁止倒引 Client 区
 };
 
 /** @typedef {{ ruleId: string, file: string, line: number, column: number, message: string, suggestion: string, severity?: "error"|"warn" }} Violation */
@@ -333,6 +334,103 @@ function analyzeSizeAndComplexity(fileAbs, text, ctx) {
 }
 
 /**
+ * 相对 studioRoot 的路径（posix）。
+ * @param {string} fileAbs
+ * @param {object} ctx
+ */
+function toStudioRel(fileAbs, ctx) {
+  const studioRootAbs =
+    ctx.studioRootAbs ??
+    path.resolve(ctx.repoRoot, ctx.config.studioRoot ?? ".");
+  return path.relative(studioRootAbs, fileAbs).split(path.sep).join("/");
+}
+
+/**
+ * 是否允许 import @airpc/rpg-engine（Server 白名单）。
+ * @param {string} studioRel
+ * @param {object} ctx
+ */
+function isServerEngineAllowPath(studioRel, ctx) {
+  const prefixes = ctx.config.serverEngineImportAllowPathPrefixes ?? [
+    "app/api/",
+    "src/utils/server/",
+  ];
+  const suffixes = ctx.config.serverEngineImportAllowFileSuffixes ?? [
+    ".server.ts",
+    ".server.tsx",
+  ];
+  if (prefixes.some((p) => studioRel === p.slice(0, -1) || studioRel.startsWith(p))) {
+    return true;
+  }
+  return suffixes.some((s) => studioRel.endsWith(s));
+}
+
+/**
+ * 是否落在 Client 区（Server 不得倒引）。
+ * @param {string} studioRel
+ * @param {object} ctx
+ */
+function isClientZonePath(studioRel, ctx) {
+  const prefixes = ctx.config.clientZonePathPrefixes ?? [
+    "src/pageComponents/",
+    "src/bis/",
+    "src/stores/",
+    "src/commonUiComponents/",
+    "src/utils/ajaxProxy/",
+    "typeFiles/",
+    "features/",
+    "store/",
+  ];
+  return prefixes.some(
+    (p) => studioRel === p.slice(0, -1) || studioRel.startsWith(p),
+  );
+}
+
+/**
+ * Client 禁止值/type 导入的 Server-only 路径（如 engineIOModule）。
+ * @param {string} studioRel
+ * @param {object} ctx
+ */
+function isClientBannedPath(studioRel, ctx) {
+  const prefixes = ctx.config.clientBannedPathPrefixes ?? ["engineIOModule/"];
+  return prefixes.some(
+    (p) => studioRel === p.slice(0, -1) || studioRel.startsWith(p),
+  );
+}
+
+/**
+ * 将 import spec 解析为相对 studioRoot 的路径（无扩展名亦可）。
+ * @param {string} importerAbs
+ * @param {string} spec
+ * @param {object} ctx
+ * @returns {string | null}
+ */
+function resolveStudioImportTarget(importerAbs, spec, ctx) {
+  const aliases = ctx.config.studioPathAliases ?? { "@studio-v2/": "" };
+  let resolved = null;
+  for (const [prefix, dest] of Object.entries(aliases)) {
+    if (spec === prefix.slice(0, -1) || spec.startsWith(prefix)) {
+      const rest = spec.slice(prefix.length);
+      resolved = `${dest}${rest}`.replace(/^\//, "");
+      break;
+    }
+  }
+  if (!resolved) {
+    if (spec.startsWith(".") || spec.startsWith("/")) {
+      const studioRootAbs =
+        ctx.studioRootAbs ??
+        path.resolve(ctx.repoRoot, ctx.config.studioRoot ?? ".");
+      const abs = path.resolve(path.dirname(importerAbs), spec);
+      resolved = path.relative(studioRootAbs, abs).split(path.sep).join("/");
+    } else {
+      return null;
+    }
+  }
+  // 去掉查询与扩展，便于前缀匹配
+  return resolved.replace(/\.(ts|tsx|js|jsx|mjs|cjs)$/, "");
+}
+
+/**
  * @param {string} fileAbs
  * @param {string} text
  * @param {object} ctx
@@ -341,7 +439,9 @@ function analyzeDependencies(fileAbs, text, ctx) {
   /** @type {Violation[]} */
   const violations = [];
   const rel = path.relative(ctx.repoRoot, fileAbs).split(path.sep).join("/");
-  const isClient =
+  const studioRel = toStudioRel(fileAbs, ctx);
+  const serverAllow = isServerEngineAllowPath(studioRel, ctx);
+  const isLegacyClientMarker =
     /^\s*["']use client["']/.test(text) ||
     /(^|\/)features\//.test(rel) ||
     /(^|\/)store\//.test(rel);
@@ -354,7 +454,6 @@ function analyzeDependencies(fileAbs, text, ctx) {
     fileAbs.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
   );
 
-  const bannedSymbols = new Set(ctx.config.bannedClientEngineWriteSymbols ?? []);
   const bannedPatterns = ctx.config.bannedImportPatterns ?? [];
 
   for (const stmt of sf.statements) {
@@ -363,6 +462,12 @@ function analyzeDependencies(fileAbs, text, ctx) {
     }
     const spec = stmt.moduleSpecifier.text;
     const { line, character } = sf.getLineAndCharacterOfPosition(stmt.getStart(sf));
+    const isTypeOnly =
+      stmt.importClause?.isTypeOnly === true ||
+      (stmt.importClause?.namedBindings &&
+        ts.isNamedImports(stmt.importClause.namedBindings) &&
+        stmt.importClause.namedBindings.elements.length > 0 &&
+        stmt.importClause.namedBindings.elements.every((el) => el.isTypeOnly));
 
     for (const pat of bannedPatterns) {
       if (spec.includes(pat) || spec.startsWith(pat)) {
@@ -374,29 +479,18 @@ function analyzeDependencies(fileAbs, text, ctx) {
             column: character + 1,
             severity: "error",
             message: `禁止深挖引擎内部路径：${spec}`,
-            suggestion: "仅允许 import from \"@airpc/rpg-engine\" 门面，且 client 禁写口",
+            suggestion:
+              "仅 Server（app/api、*.server.ts、utils/server）可 import \"@airpc/rpg-engine\" 门面；Client 禁止任何引擎 import",
           });
         }
       }
     }
 
-    if (!isClient) continue;
-
-    const clause = stmt.importClause;
-    if (!clause) continue;
-    /** @type {string[]} */
-    const names = [];
-    if (clause.name) names.push(clause.name.text);
-    if (clause.namedBindings && ts.isNamedImports(clause.namedBindings)) {
-      for (const el of clause.namedBindings.elements) {
-        names.push(el.propertyName?.text ?? el.name.text);
-      }
-    }
+    // STUDIO-STRUCT-005：非 Server 路径禁止任何 @airpc/rpg-engine（含 import type）
     if (
       (spec === "@airpc/rpg-engine" || spec.startsWith("@airpc/rpg-engine/")) &&
-      names.some((n) => bannedSymbols.has(n))
+      !serverAllow
     ) {
-      const hit = names.filter((n) => bannedSymbols.has(n)).join(", ");
       if (!isAllowlisted(ctx, RULE.ENGINE_WRITE, rel)) {
         violations.push({
           ruleId: RULE.ENGINE_WRITE,
@@ -404,8 +498,45 @@ function analyzeDependencies(fileAbs, text, ctx) {
           line: line + 1,
           column: character + 1,
           severity: "error",
-          message: `client 侧禁止导入引擎写口：${hit}`,
-          suggestion: "写口仅经 Next API 门面；client 只请求与展示",
+          message: `非 Server 路径禁止导入 @airpc/rpg-engine${isTypeOnly ? "（含 import type）" : ""}：${spec}`,
+          suggestion:
+            "Client 与引擎仅经 XHR↔API；类型与轻量逻辑在 FE 侧复制镜像，勿交叉 import",
+        });
+      }
+    }
+
+    const target = resolveStudioImportTarget(fileAbs, spec, ctx);
+
+    // STUDIO-STRUCT-020：Server 不得倒引 Client 区
+    if (serverAllow) {
+      if (target && isClientZonePath(target, ctx)) {
+        if (!isAllowlisted(ctx, RULE.SERVER_CLIENT_IMPORT, rel)) {
+          violations.push({
+            ruleId: RULE.SERVER_CLIENT_IMPORT,
+            file: rel,
+            line: line + 1,
+            column: character + 1,
+            severity: "error",
+            message: `Server 禁止倒引 Client 区模块：${spec}`,
+            suggestion:
+              "在 Server 树内实现或复制所需逻辑；Client↔Server 仅经 XHR",
+          });
+        }
+      }
+    }
+
+    // STUDIO-STRUCT-020：Client 禁止引用 Server-only 路径（如 engineIOModule）
+    if (isClientZonePath(studioRel, ctx) && target && isClientBannedPath(target, ctx)) {
+      if (!isAllowlisted(ctx, RULE.SERVER_CLIENT_IMPORT, rel)) {
+        violations.push({
+          ruleId: RULE.SERVER_CLIENT_IMPORT,
+          file: rel,
+          line: line + 1,
+          column: character + 1,
+          severity: "error",
+          message: `Client 禁止引用 Server-only 模块：${spec}`,
+          suggestion:
+            "engineIOModule 等仅 Server/Host 装配可引用；浏览器经 XHR↔API",
         });
       }
     }
@@ -413,7 +544,7 @@ function analyzeDependencies(fileAbs, text, ctx) {
 
   // 展示组件裸 fetch：features 下 tsx 且含 fetch( 调用
   if (
-    isClient &&
+    isLegacyClientMarker &&
     rel.includes("/features/") &&
     /\.tsx$/.test(rel) &&
     /\bfetch\s*\(/.test(text)
@@ -576,7 +707,7 @@ async function analyzeStudioV2Layout(studioRootAbs, ctx) {
         severity: "error",
         message: `Studio V2 禁止旧式或未登记顶层业务目录：${entry.name}`,
         suggestion:
-          "按 09 目录规则迁入 app/src/typeFiles/tests；不要保留旧目录兼容期",
+          "按 09 目录规则迁入 app/src/typeFiles/tests/engineIOModule；不要保留旧目录兼容期",
       });
     }
   }
@@ -1096,8 +1227,8 @@ export async function runStructureGate(opts = {}) {
     opts.studioRoot ?? config.studioRoot,
   );
 
-  /** @type {{ repoRoot: string, config: any }} */
-  const ctx = { repoRoot, config };
+  /** @type {{ repoRoot: string, config: any, studioRootAbs: string }} */
+  const ctx = { repoRoot, config, studioRootAbs };
 
   /** @type {Violation[]} */
   const all = [...validateAllowlist(ctx)];

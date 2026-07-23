@@ -1,12 +1,11 @@
 /**
 * 属性浮窗壳：按选中 CallCard / 章节节点展示可编辑投影；可关闭。
-* 提交仅回调父级更新会话内节点，不写盘。
+* 标题栏拖移；右下角拖改宽高；提交仅会话内，不写盘。
 */
 "use client";
 
 import type { FC } from "react";
 import { Button, Typography } from "@mui/material";
-import { Formik } from "formik";
 import type {
 	CharacterAnchorNodeData,
 	EditorCallCardProjection,
@@ -16,23 +15,10 @@ import type {
 import type { ChapterPackageDiskContext } from "@studio-v2/src/bis/pageBis/storyEditor/form/chapter/chapterPropertyForm";
 import type { CallCardLabelOption } from "@studio-v2/typeFiles/story/callCardLabels";
 import type { EffectPanelSources } from "@studio-v2/typeFiles/story/editor/callCard/editorEffectParams";
-import {
-	toNodePropertyFormValues,
-	validateNodePropertyForm,
-} from "@studio-v2/src/bis/pageBis/storyEditor/form/node/nodePropertyForm";
-import {
-	toChapterPropertyFormValues,
-	validateChapterPropertyForm,
-} from "@studio-v2/src/bis/pageBis/storyEditor/form/chapter/chapterPropertyForm";
-import {
-	submitCallCardPropertyForm,
-	submitChapterPropertyForm,
-} from "@studio-v2/src/bis/pageBis/storyEditor/form/panel/floatingPanelSubmit";
-import { NodePropertyForm } from "@studio-v2/src/pageComponents/storyEditor/com/panel/NodePropertyForm";
-// 引用了ChapterPropertyForm组件，用于章节起止节点属性
-import { ChapterPropertyForm } from "@studio-v2/src/pageComponents/storyEditor/com/panel/ChapterPropertyForm";
-// 引用了useFloatingPanelDrag hook，用于标题栏拖拽浮窗
-import { useFloatingPanelDrag } from "@studio-v2/src/pageComponents/storyEditor/hooks/panel/useFloatingPanelDrag";
+// 引用了FloatingPanelFormBody组件，用于属性表单主体
+import { FloatingPanelFormBody } from "@studio-v2/src/pageComponents/storyEditor/com/panel/FloatingPanelFormBody";
+// 引用了useFloatingPanelLayout hook，用于拖移与缩放浮窗
+import { useFloatingPanelLayout } from "@studio-v2/src/pageComponents/storyEditor/hooks/panel/useFloatingPanelDrag";
 import styles from "./FloatingPanelShell.module.scss";
 
 export type FloatingPanelShellProps = {
@@ -89,8 +75,8 @@ export const FloatingPanelShell: FC<FloatingPanelShellProps> = function ({
 	// onAssignOwner 即时写归属
 	onAssignOwner,
 }) {
-	// 浮窗拖拽：标题栏按住移动，返回根 ref、定位样式与按下回调
-	const { panelRef, panelStyle, onDragStart } = useFloatingPanelDrag();
+	const { panelRef, panelStyle, onDragStart, onResizeStart } =
+		useFloatingPanelLayout();
 
 	if (!selection) return null;
 
@@ -122,69 +108,28 @@ export const FloatingPanelShell: FC<FloatingPanelShellProps> = function ({
 			</div>
 			{/* 引用了Typography组件，用于不写盘提示 */}
 			<Typography variant="caption" className={styles.hint}>
-				编辑本地投影；点顶栏「保存」整包写回 data/storis-packages。
+				编辑本地投影；点顶栏「保存」整包写回。右下角可拖改大小。
 			</Typography>
-			{selection.selectionKind === "chapter" ? (
-				// 引用了Formik组件，用于章节属性表单状态
-				<Formik
-					initialValues={toChapterPropertyFormValues(selection.data)}
-					enableReinitialize
-					validate={validateChapterPropertyForm}
-					onSubmit={(values, helpers) =>
-						submitChapterPropertyForm({
-							data: selection.data,
-							nodeId: selection.nodeId,
-							values,
-							helpers,
-							onApplyChapterNodeData,
-							chapterDiskCtx,
-						})
-					}
-				>
-					{(formik) => (
-						// 引用了ChapterPropertyForm组件，用于章节起止字段
-						<ChapterPropertyForm
-							nodeData={selection.data}
-							formik={formik}
-							chapterDiskCtx={chapterDiskCtx}
-							chapterPackageOptions={chapterPackageOptions}
-						/>
-					)}
-				</Formik>
-			) : (
-				// 引用了Formik组件，用于 CallCard 属性表单状态
-				<Formik
-					initialValues={toNodePropertyFormValues(selection.data)}
-					enableReinitialize
-					validate={validateNodePropertyForm}
-					onSubmit={(values, helpers) =>
-						submitCallCardPropertyForm({
-							data: selection.data,
-							nodeId: selection.nodeId,
-							values,
-							helpers,
-							onApplyNodeData,
-						})
-					}
-				>
-					{(formik) => (
-						// 引用了NodePropertyForm组件，用于 CallCard 属性字段
-						<NodePropertyForm
-							nodeData={selection.data}
-							formik={formik}
-							characterAnchors={characterAnchors}
-							effectPanelSources={effectPanelSources}
-							onAssignOwner={(agentId, displayName) => {
-								onAssignOwner(
-									selection.nodeId,
-									agentId,
-									displayName,
-								);
-							}}
-						/>
-					)}
-				</Formik>
-			)}
+			<div className={styles.body}>
+				{/* 引用了FloatingPanelFormBody组件，用于属性表单 */}
+				<FloatingPanelFormBody
+					selection={selection}
+					onApplyNodeData={onApplyNodeData}
+					onApplyChapterNodeData={onApplyChapterNodeData}
+					characterAnchors={characterAnchors}
+					effectPanelSources={effectPanelSources}
+					chapterDiskCtx={chapterDiskCtx}
+					chapterPackageOptions={chapterPackageOptions}
+					onAssignOwner={onAssignOwner}
+				/>
+			</div>
+			{/* 引用了缩放手柄，用于拖改浮窗宽高 */}
+			<button
+				type="button"
+				className={styles.resizeHandle}
+				aria-label="拖拽调整浮窗大小"
+				onMouseDown={onResizeStart}
+			/>
 		</aside>
 	);
 };

@@ -19,8 +19,9 @@ function requireVariantList(
 ): string | undefined {
 	if (list.length === 0) return `请至少添加一条${label}`;
 	for (const row of list) {
-		if (row.variantId.trim().length === 0 || row.text.trim().length === 0) {
-			return `${label}的变体 id 与正文均必填`;
+		// variantId 由系统生成并隐藏；作者只填正文
+		if (row.text.trim().length === 0) {
+			return `${label}的正文必填`;
 		}
 	}
 	return undefined;
@@ -56,7 +57,7 @@ function validateMeta(
 	}
 	const avatarErr = requireNonEmpty(
 		values.meta.avatarAssetId,
-		"请选择或填写头像资源",
+		"请上传头像",
 	);
 	if (avatarErr) metaErrors.avatarAssetId = avatarErr;
 	if (Object.keys(metaErrors).length === 0) return undefined;

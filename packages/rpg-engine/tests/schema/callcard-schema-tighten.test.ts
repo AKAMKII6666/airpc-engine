@@ -34,8 +34,8 @@ describe("callCard schema tighten (S7)", () => {
     const ok = EffectSchema.safeParse({
       id: "attach_x",
       effect: "attach_call_card",
-      agentId: "xiaoyu",
-      cardId: "xiaoyu_waiting_user",
+      agentId: "xiaopi",
+      cardId: "xiaopi_waiting_user",
       activation: "inbound_user_dial",
     });
     expect(ok.success).toBe(true);
@@ -44,5 +44,9 @@ describe("callCard schema tighten (S7)", () => {
   it("EntryModeSchema 含 either / 别名", () => {
     expect(EntryModeSchema.safeParse("either").success).toBe(true);
     expect(EntryModeSchema.safeParse("outbound").success).toBe(true);
+  });
+
+  it("EntryModeSchema 含 mailbox_open（语音留言）", () => {
+    expect(EntryModeSchema.safeParse("mailbox_open").success).toBe(true);
   });
 });

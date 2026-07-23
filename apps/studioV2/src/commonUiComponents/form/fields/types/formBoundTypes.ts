@@ -29,4 +29,9 @@ export type FormBoundFieldProps<TValues extends Record<string, unknown>> = {
 		* comProps 逃生（Checkbox）：覆盖 checked；未传则读 Formik boolean。
 		*/
 	checked?: boolean;
+	/**
+		* AvatarUpload：选图后直传并返回 assetId；由 bis withAvatarUploadItems 注入。
+		* 未注入时控件禁用上传，避免手填假 id。
+		*/
+	uploadFile?: (file: File) => Promise<string>;
 };

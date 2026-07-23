@@ -7,12 +7,9 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
-import { createEngineHost, isEngineError } from "../../src/index.js";
-
-const repoRoot = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "../../../..",
-);
+import { isEngineError } from "../../src/index.js";
+import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../..");
 const dataSrc = path.join(repoRoot, "data");
 
 describe("schedule_call_card linked pending + early dial (V1-E4/E5)", () => {
@@ -30,18 +27,18 @@ describe("schedule_call_card linked pending + early dial (V1-E4/E5)", () => {
     const dataRoot = path.join(tmpRoot, "data");
     await cp(dataSrc, dataRoot, { recursive: true });
 
-    const host = createEngineHost({ persist: false, autoMemory: false });
+    const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);
     const profile = await host.ensureProfile("demo-user");
-    delete profile.characters.xiaoyu;
+    delete profile.characters.xiaopi;
     if (profile.callCards?.board?.byAgent) {
-      profile.callCards.board.byAgent.xiaoyu = { pending: [] };
+      profile.callCards.board.byAgent.xiaopi = { pending: [] };
     }
     profile.schedule = { clockMs: 0, intents: [] };
 
     const resolved = await host.resolveAsync("demo-user", {
       kind: "free_call",
-      agentId: "doubao-sister",
+      agentId: "lanxing",
     });
     if (isEngineError(resolved)) throw resolved;
     const session = await host.beginCall("demo-user", resolved, {
@@ -50,8 +47,8 @@ describe("schedule_call_card linked pending + early dial (V1-E4/E5)", () => {
     if (isEngineError(session)) throw session;
 
     const inv = await host.invokeTool(session.sessionId, "refer_to_expert", {
-      target_agent_id: "xiaoyu",
-      card_id: "xiaoyu_waiting_user",
+      target_agent_id: "xiaopi",
+      card_id: "xiaopi_waiting_user",
       package_id: "golden_handoff",
       topic_hint: "followup",
       delay_minutes: 5,
@@ -74,9 +71,9 @@ describe("schedule_call_card linked pending + early dial (V1-E4/E5)", () => {
     const host = await scheduleXiaoyuFollowup();
     const profile = await host.ensureProfile("demo-user");
     const pending =
-      profile.callCards.board.byAgent.xiaoyu?.pending.find(
+      profile.callCards.board.byAgent.xiaopi?.pending.find(
         (p) =>
-          p.cardId === "xiaoyu_waiting_user" && p.status === "pending",
+          p.cardId === "xiaopi_waiting_user" && p.status === "pending",
       );
     expect(pending).toBeTruthy();
     expect(pending?.entryMode).toBe("either");
@@ -88,7 +85,7 @@ describe("schedule_call_card linked pending + early dial (V1-E4/E5)", () => {
         row !== null &&
         typeof row === "object" &&
         (row as { kind?: string }).kind === "once" &&
-        (row as { cardId?: string }).cardId === "xiaoyu_waiting_user",
+        (row as { cardId?: string }).cardId === "xiaopi_waiting_user",
     ) as {
       linkedInstanceId?: string;
       status?: string;
@@ -96,7 +93,7 @@ describe("schedule_call_card linked pending + early dial (V1-E4/E5)", () => {
       packageId?: string;
     };
     expect(once?.status).toBe("pending");
-    expect(once?.agentId).toBe("xiaoyu");
+    expect(once?.agentId).toBe("xiaopi");
     expect(once?.packageId).toBe("golden_handoff");
     expect(once?.linkedInstanceId).toBe(pending?.instanceId);
   });
@@ -106,12 +103,12 @@ describe("schedule_call_card linked pending + early dial (V1-E4/E5)", () => {
 
     const dial = await host.resolveAsync("demo-user", {
       kind: "user_dial",
-      agentId: "xiaoyu",
+      agentId: "xiaopi",
     });
     expect(isEngineError(dial)).toBe(false);
     if (isEngineError(dial)) return;
     expect(dial.source).toBe("story_pending");
-    expect(dial.cardId).toBe("xiaoyu_waiting_user");
+    expect(dial.cardId).toBe("xiaopi_waiting_user");
 
     const call = await host.beginCall("demo-user", dial, {
       channel: "manual",
@@ -127,7 +124,7 @@ describe("schedule_call_card linked pending + early dial (V1-E4/E5)", () => {
         row !== null &&
         typeof row === "object" &&
         (row as { kind?: string }).kind === "once" &&
-        (row as { cardId?: string }).cardId === "xiaoyu_waiting_user",
+        (row as { cardId?: string }).cardId === "xiaopi_waiting_user",
     ) as { status?: string };
     expect(once?.status).toBe("consumed");
 
@@ -141,14 +138,14 @@ describe("schedule_call_card linked pending + early dial (V1-E4/E5)", () => {
     expect(isEngineError(fired)).toBe(false);
     if (isEngineError(fired)) return;
     expect(
-      fired.filter((f) => f.cardId === "xiaoyu_waiting_user"),
+      fired.filter((f) => f.cardId === "xiaopi_waiting_user"),
     ).toHaveLength(0);
 
     const after = await host.ensureProfile("demo-user");
     const stillPending =
-      after.callCards.board.byAgent.xiaoyu?.pending.filter(
+      after.callCards.board.byAgent.xiaopi?.pending.filter(
         (p) =>
-          p.cardId === "xiaoyu_waiting_user" && p.status === "pending",
+          p.cardId === "xiaopi_waiting_user" && p.status === "pending",
       ) ?? [];
     expect(stillPending).toHaveLength(0);
   });
@@ -156,19 +153,19 @@ describe("schedule_call_card linked pending + early dial (V1-E4/E5)", () => {
   it("定时外呼：actualEntry=outbound_auto，命中同一 linked pending", async () => {
     const host = await scheduleXiaoyuFollowup();
     const before = await host.ensureProfile("demo-user");
-    const linkedId = before.callCards.board.byAgent.xiaoyu?.pending.find(
-      (p) => p.cardId === "xiaoyu_waiting_user",
+    const linkedId = before.callCards.board.byAgent.xiaopi?.pending.find(
+      (p) => p.cardId === "xiaopi_waiting_user",
     )?.instanceId;
 
     const fired = host.advanceClock("demo-user", 5 * 60_000);
     expect(isEngineError(fired)).toBe(false);
     if (isEngineError(fired)) return;
-    expect(fired.some((f) => f.cardId === "xiaoyu_waiting_user")).toBe(true);
+    expect(fired.some((f) => f.cardId === "xiaopi_waiting_user")).toBe(true);
     expect(fired[0]?.instanceId).toBe(linkedId);
 
     const outbound = await host.resolveAsync("demo-user", {
       kind: "agent_outbound",
-      agentId: "xiaoyu",
+      agentId: "xiaopi",
     });
     expect(isEngineError(outbound)).toBe(false);
     if (isEngineError(outbound)) return;

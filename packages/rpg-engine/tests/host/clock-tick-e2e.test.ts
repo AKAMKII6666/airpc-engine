@@ -9,10 +9,10 @@ import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   SCHEDULE_DAY_MS,
-  createEngineHost,
   isEngineError,
   PlayerProfileSchema,
 } from "../../src/index.js";
+import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -36,7 +36,7 @@ async function seedUser(
       updatedAt: now,
     },
     characters: {
-      "doubao-sister": { agentId: "doubao-sister", unlocked: true },
+      "lanxing": { agentId: "lanxing", unlocked: true },
     },
     schedule: { clockMs: 0, intents: [] },
   });
@@ -93,7 +93,7 @@ describe("E9 clock / daily tick simulator", () => {
     const dataRoot = path.join(tmpRoot, "data");
     await cp(dataSrc, dataRoot, { recursive: true });
 
-    const host = createEngineHost({ persist: true, autoMemory: false });
+    const host = createTestHost({ persist: true, dataRoot });
     await host.loadWorkspace(dataRoot);
     const profile = await host.ensureProfile("demo-user");
     profile.schedule = { clockMs: 0, intents: [] };
@@ -103,7 +103,7 @@ describe("E9 clock / daily tick simulator", () => {
 
     const resolved = await host.resolveAsync("demo-user", {
       kind: "free_call",
-      agentId: "doubao-sister",
+      agentId: "lanxing",
     });
     if (isEngineError(resolved)) throw resolved;
     const session = await host.beginCall("demo-user", resolved, {
@@ -145,7 +145,7 @@ describe("E9 clock / daily tick simulator", () => {
     const after = await host.ensureProfile("demo-user");
     expect(after.schedule?.clockMs).toBe(30 * 60_000);
     expect(
-      after.callCards.board.byAgent["doubao-sister"]?.pending?.some(
+      after.callCards.board.byAgent["lanxing"]?.pending?.some(
         (p) => p.cardId === "doubao_intro_outbound",
       ),
     ).toBe(true);
@@ -156,7 +156,7 @@ describe("E9 clock / daily tick simulator", () => {
     const dataRoot = path.join(tmpRoot, "data");
     await cp(dataSrc, dataRoot, { recursive: true });
 
-    const host = createEngineHost({ persist: true, autoMemory: false });
+    const host = createTestHost({ persist: true, dataRoot });
     await host.loadWorkspace(dataRoot);
     const profile = await host.ensureProfile("demo-user");
     profile.schedule = {
@@ -165,13 +165,13 @@ describe("E9 clock / daily tick simulator", () => {
         {
           kind: "recurring",
           intentId: "rec-morning",
-          agentId: "doubao-sister",
+          agentId: "lanxing",
           hour: 9,
           minute: 30,
           scheduleMode: "daily",
           status: "active",
           topicHint: "morning",
-          scheduleCardId: "doubao_morning_checkin",
+          scheduleCardId: "lanxing_morning_checkin",
         },
       ],
     };
@@ -183,7 +183,7 @@ describe("E9 clock / daily tick simulator", () => {
     const jumped = host.setClockMs("demo-user", fireAt);
     expect(isEngineError(jumped)).toBe(false);
     if (isEngineError(jumped)) return;
-    expect(jumped.some((f) => f.cardId === "doubao_morning_checkin")).toBe(true);
+    expect(jumped.some((f) => f.cardId === "lanxing_morning_checkin")).toBe(true);
     expect(jumped.some((f) => f.packageId === "__schedule__")).toBe(true);
 
     const after = await host.ensureProfile("demo-user");
@@ -194,7 +194,7 @@ describe("E9 clock / daily tick simulator", () => {
     expect(onceRow).toBeTruthy();
     expect(onceRow?.status).toBe("fired");
     expect(onceRow?.fireAtMs).toBe(fireAt);
-    expect(onceRow?.cardId).toBe("doubao_morning_checkin");
+    expect(onceRow?.cardId).toBe("lanxing_morning_checkin");
     expect(onceRow?.packageId).toBe("__schedule__");
 
     const recurring = (after.schedule?.intents ?? []).find(function (row) {
@@ -224,7 +224,7 @@ describe("E9 clock / daily tick simulator", () => {
     const nextDay = host.setClockMs("demo-user", fireAt + SCHEDULE_DAY_MS);
     expect(isEngineError(nextDay)).toBe(false);
     if (isEngineError(nextDay)) return;
-    expect(nextDay.some((f) => f.cardId === "doubao_morning_checkin")).toBe(true);
+    expect(nextDay.some((f) => f.cardId === "lanxing_morning_checkin")).toBe(true);
     const day2 = await host.ensureProfile("demo-user");
     const occ2 = (day2.schedule?.intents ?? [])
       .map(asOnce)
@@ -239,7 +239,7 @@ describe("E9 clock / daily tick simulator", () => {
     const dataRoot = path.join(tmpRoot, "data");
     await cp(dataSrc, dataRoot, { recursive: true });
 
-    const host = createEngineHost({ persist: true, autoMemory: false });
+    const host = createTestHost({ persist: true, dataRoot });
     await host.loadWorkspace(dataRoot);
     const profile = await host.ensureProfile("demo-user");
     profile.schedule = {
@@ -248,7 +248,7 @@ describe("E9 clock / daily tick simulator", () => {
         {
           kind: "recurring",
           intentId: "rec-obs",
-          agentId: "doubao-sister",
+          agentId: "lanxing",
           hour: 9,
           minute: 0,
           scheduleMode: "daily",
@@ -280,7 +280,7 @@ describe("E9 clock / daily tick simulator", () => {
     }) as { status?: string } | undefined;
     expect(rec?.status).toBe("disabled");
     expect(
-      after.callCards.board.byAgent["doubao-sister"]?.pending ?? [],
+      after.callCards.board.byAgent["lanxing"]?.pending ?? [],
     ).toEqual([]);
   });
 
@@ -290,7 +290,7 @@ describe("E9 clock / daily tick simulator", () => {
     await cp(dataSrc, dataRoot, { recursive: true });
     await seedUser(dataRoot, "user-b", "小乙");
 
-    const host = createEngineHost({ persist: true, autoMemory: false });
+    const host = createTestHost({ persist: true, dataRoot });
     await host.loadWorkspace(dataRoot);
 
     const profileA = await host.ensureProfile("demo-user");
@@ -300,7 +300,7 @@ describe("E9 clock / daily tick simulator", () => {
         {
           kind: "once",
           intentId: "a-once",
-          agentId: "doubao-sister",
+          agentId: "lanxing",
           cardId: "doubao_intro_outbound",
           packageId: "golden_handoff",
           fireAtMs: 5_000,
@@ -322,7 +322,7 @@ describe("E9 clock / daily tick simulator", () => {
     const b = await host.ensureProfile("user-b");
     expect(b.schedule?.clockMs).toBe(0);
     expect(b.schedule?.intents ?? []).toEqual([]);
-    expect(b.callCards.board.byAgent["doubao-sister"]?.pending ?? []).toEqual(
+    expect(b.callCards.board.byAgent["lanxing"]?.pending ?? []).toEqual(
       [],
     );
   });

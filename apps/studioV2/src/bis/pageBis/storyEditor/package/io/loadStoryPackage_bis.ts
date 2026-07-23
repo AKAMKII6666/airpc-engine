@@ -1,5 +1,6 @@
 /**
-	* 编辑器打开：读盘整包 + 角色 displayName + 画布 seed。
+	* 编辑器打开：读盘整包 + 角色库全量 displayName + 画布 seed。
+	* 锚点真源 = fetchCharacterDefs()（路径 B）；不再按 conf.participants 裁剪。
 	*/
 import { bundleToEditorGraph } from "@studio-v2/src/bis/pageBis/storyEditor/package/graph/diskBundleGraph";
 import { fetchCharacterDefs } from "@studio-v2/src/utils/ajaxProxy/library/api/charactersApi";
@@ -16,9 +17,11 @@ export type LoadedStoryPackageSession = {
 	graphSeed: EditorGraphSeed;
 };
 
-async function buildCharacterNameLookup(
-	participants: readonly string[],
-): Promise<CharacterDisplayLookup> {
+/**
+	* GET /api/characters → agentId→displayName；供全库锚点投影。
+	* 失败时回落空表，由 diskBundleGraph 用 lanes / 派生引用降级。
+	*/
+async function buildCharacterLibraryLookup(): Promise<CharacterDisplayLookup> {
 	const lookup: Record<string, { displayName: string }> = {};
 	try {
 		const defs = await fetchCharacterDefs();
@@ -27,25 +30,17 @@ async function buildCharacterNameLookup(
 			lookup[def.agentId] = { displayName: name };
 		}
 	} catch {
-		for (const agentId of participants) {
-			lookup[agentId] = { displayName: agentId };
-		}
 		return lookup;
-	}
-	for (const agentId of participants) {
-		if (!lookup[agentId]) {
-			lookup[agentId] = { displayName: agentId };
-		}
 	}
 	return lookup;
 }
 
-/** GET /api/stories/:id 并投影画布初始图 */
+/** GET /api/stories/:id 并投影画布初始图（锚点 = 角色库全量） */
 export async function loadStoryPackageForEditor(
 	packageId: string,
 ): Promise<LoadedStoryPackageSession> {
 	const bundle = await fetchDiskStoryPackage(packageId);
-	const names = await buildCharacterNameLookup(bundle.conf.participants);
+	const names = await buildCharacterLibraryLookup();
 	const graphSeed = bundleToEditorGraph(bundle, names);
 	return { bundle, graphSeed };
 }

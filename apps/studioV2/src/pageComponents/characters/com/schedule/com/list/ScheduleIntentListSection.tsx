@@ -5,7 +5,7 @@
 
 import type { FC } from "react";
 import { Alert, Typography } from "@mui/material";
-import type { ScheduledIntent } from "@airpc/rpg-engine";
+import type { ScheduledIntent } from "@studio-v2/typeFiles/library/schedule/engineScheduledIntent";
 // 引用了ScheduleIntentList组件，用于标准列表行
 import { ScheduleIntentList } from "./ScheduleIntentList";
 // 引用了ScheduleIntentEmptyBlock组件，用于无数据占位

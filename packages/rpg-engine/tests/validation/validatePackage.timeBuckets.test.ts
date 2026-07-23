@@ -7,6 +7,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { createEngineHost } from "../../src/index.js";
+import { createFsContentPort } from "../helpers/fsContentPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -46,7 +47,7 @@ describe("validatePackage promptScene timeBuckets", () => {
     ];
     await writeFile(cardPath, JSON.stringify(card, null, 2));
 
-    const host = createEngineHost({ persist: false, autoMemory: false });
+    const host = createEngineHost({ persist: false, content: createFsContentPort() });
     await host.loadWorkspace(dataRoot);
     const report = await host.validatePackage("golden_handoff");
     expect(

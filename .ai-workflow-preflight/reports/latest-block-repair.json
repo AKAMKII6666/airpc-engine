@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "repairRunId": "preflight-repair-1784789831531-48df848d",
+  "role": "block-resolver",
+  "result": "repaired",
+  "summary": "Fixed INDEX_SCHEMA_CORRUPTION: changed `## workflow_dir:` to YAML key `workflow_dir:`, closed frontmatter with --- immediately after `adapter: table`, and kept the human-readable title/usage block after the closing ---. gbx --dry-run parse OK; workflow_dir=.ai-workflow-v2-voicemail.",
+  "changedPaths": [
+    "docs/AI和人类/里程碑/v2.0/语音留言改造_执行索引.md"
+  ],
+  "dependencyAction": "none"
+}

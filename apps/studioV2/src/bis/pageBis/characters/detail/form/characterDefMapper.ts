@@ -3,7 +3,7 @@
 	* 保存时合并既有 JSON，避免冲掉 social / freeCardId 等本轮不编辑字段。
 	* 禁止写入 timeBuckets；记忆不进角色 JSON。
 	*/
-import type { CharacterDef } from "@airpc/rpg-engine";
+import type { CharacterDef } from "@studio-v2/typeFiles/library/characters/engineCharacterDef";
 import type {
 	PromptSceneLayerForm,
 	PromptVariantForm,
@@ -42,17 +42,28 @@ function mapEditGenderToDef(
 	return "non_binary";
 }
 
+function newVariantId(fallback: string): string {
+	if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+		return crypto.randomUUID();
+	}
+	return fallback;
+}
+
 function mapVariants(
 	raw: unknown,
 	fallbackPrefix: string,
 ): PromptVariantForm[] {
 	if (!Array.isArray(raw) || raw.length === 0) {
-		return [{ variantId: `${fallbackPrefix}_1`, text: "" }];
+		return [{ variantId: newVariantId(`${fallbackPrefix}_1`), text: "" }];
 	}
 	return raw.map(function (item, index) {
 		const row = item as { variantId?: unknown; text?: unknown };
+		const existing =
+			typeof row.variantId === "string" && row.variantId.trim() !== ""
+				? row.variantId.trim()
+				: newVariantId(`${fallbackPrefix}_${index + 1}`);
 		return {
-			variantId: asString(row.variantId, `${fallbackPrefix}_${index + 1}`),
+			variantId: existing,
 			text: asString(row.text),
 		};
 	});

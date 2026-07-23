@@ -1,7 +1,7 @@
 /**
 	* 角色详情保存：经 API 写 data/characters，回读投影；禁止把记忆写入角色 JSON。
 	*/
-import type { CharacterDef } from "@airpc/rpg-engine";
+import type { CharacterDef } from "@studio-v2/typeFiles/library/characters/engineCharacterDef";
 import type { CharacterSummary } from "@studio-v2/typeFiles/library/characters/form/characterSummary";
 import {
 	fetchCharacterDef,

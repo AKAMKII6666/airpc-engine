@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "reviewRunId": "batch-reviewer-11-fce8f2f3-d9bd-4810-b455-655d6d6320a1",
+  "role": "batch-reviewer",
+  "batchId": "11",
+  "exFile": "docs/AI和人类/里程碑/v2.0/细化修改8_执行索引.md",
+  "result": "pass",
+  "blocker": 0,
+  "critical": 0,
+  "major": 0,
+  "minor": 0,
+  "recommendedNextState": "VERIFY_BATCH",
+  "summary": "V2-S8-11 去 participants 双轨已落地：包配置只读派生引用、lanes/characterCount 经 collectReferencedAgentIds 派生、保存 omit 白名单键、Effect 下拉接全库锚点；quality:engine + quality:studio 均绿；索引已 ✅。未命中 Participants 双轨等硬停。docs/AI/02 仍写旧 participants 锚点口径，属 S8-18 收口范围，本批不记缺陷。",
+  "issues": [
+    {
+      "id": "R11-I1",
+      "severity": "info",
+      "file": "docs/AI/studio-v2/02-角色库与人设编辑.md",
+      "location": "~L50 bundle.participants 锚点描述",
+      "description": "docs/AI 仍写「锚点由 bundle.participants 生成」，与本批路径 B（全库锚点 + 派生引用）代码事实不一致。",
+      "expectedBehavior": "S8-18 收口时同步 docs/AI/02（及 01/04 相关句）为全库锚点 + 派生引用口径。",
+      "suggestedVerification": "S8-18 勾选 docs/AI 后全文检索 participants 锚点旧述"
+    }
+  ],
+  "checks": {
+    "typecheck": "pass",
+    "lint": "pass",
+    "tests": "pass",
+    "behaviorChecks": "pass",
+    "negativeChecks": "pass",
+    "structureChecks": "pass",
+    "baselineDelta": "0",
+    "qualityEngine": "pass",
+    "qualityStudio": "pass"
+  },
+  "notes": "只读审查；未改应用代码。对照细化修改8_需求 §2.0/§2.5/§2.8：无白名单 UI 双轨；PackageConfigFloat 展示「本包引用角色（派生）」；editorGraphToBundle 清空 participants 并由 writeDiskStoryPackage omit 键；列表 characterCount 读 cards 派生（act1=1）；effectPanelSources 映射全库 characterAnchors。Executor 本轮已跑 quality:engine + quality:studio（exit 0）；编排器仍应跑 VERIFY_BATCH。无裸 CSS 单位陷阱。"
+}

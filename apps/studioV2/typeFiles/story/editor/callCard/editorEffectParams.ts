@@ -3,7 +3,7 @@
 	* 字段名与「必填」意图对齐引擎 effectExecutor.ts 读取（只读镜像，禁 import 引擎值）。
 	* 仅内存 UI 投影；不写 storis-packages / Host；缺省字段等同「未配置」，前端仅角标提示。
 	*/
-import type { KnownEffectName } from "@airpc/rpg-engine";
+import type { KnownEffectName } from "@studio-v2/typeFiles/story/callCard/engineOutcome";
 import type { EditorEntryMode } from "@studio-v2/typeFiles/story/editor/callCard/editorCallCardProjection";
 import type { CallCardLabelOption } from "@studio-v2/typeFiles/story/callCardLabels";
 
@@ -198,18 +198,6 @@ export type EndStoryParams = {
 	next?: EndStoryNext;
 };
 
-/** create_voicemail：生成语音信箱桩，真播由电话壳执行 */
-export type CreateVoicemailParams = {
-	/** 判别键；固定该 effect 名 */
-	effect: "create_voicemail";
-	/** 归属角色 agentId；缺省语义=当前会话角色 */
-	agentId?: string;
-	/** 关联卡 cardId；缺省表示不关联具体卡 */
-	cardId?: string;
-	/** 信箱话题提示；缺省表示不带提示 */
-	topicHint?: string;
-};
-
 /** play_system_prompt：记录系统提示播放桩（片段 id），引擎不直接播音频 */
 export type PlaySystemPromptParams = {
 	/** 判别键；固定该 effect 名 */
@@ -221,6 +209,7 @@ export type PlaySystemPromptParams = {
 /**
 	* Effect 参数判别式联合；判别键=effect，与 EditorExitEffectProjection.effect 保持一致。
 	* 每变体只列该 effect 合法字段，编译期防止写错字段；禁 catchall 任意透传。
+	* create_voicemail 已从联合移除（VM-12）；旧包行经 coerce 回落到合法 effect。
 	*/
 export type EditorEffectParams =
 	| SetCharacterUnlockedParams
@@ -236,7 +225,6 @@ export type EditorEffectParams =
 	| SetWorldFactParams
 	| UpdateNpcKnowledgeParams
 	| EndStoryParams
-	| CreateVoicemailParams
 	| PlaySystemPromptParams;
 
 /** 按 effect 名取对应参数变体类型；供面板与读取器强类型收窄 */
@@ -247,7 +235,7 @@ export type EffectParamsFor<E extends KnownEffectName> = Extract<
 
 /**
 	* Effect 面板 id 下拉的候选数据源（会话投影）。
-	* 数据来自画布/包/资源，由上层查询注入；本轮未接入时给空数组走 helperText 提示。
+	* 数据来自画布/包/资源/schedule-cards，由上层查询注入；本轮未接入时给空数组走 helperText 提示。
 	*/
 export type EffectPanelSources = {
 	/** 角色候选；value=agentId · label=显示名，来自画布锚点 */
@@ -259,10 +247,20 @@ export type EffectPanelSources = {
 	/** 片段候选；value=资源 id · label=资源名，来自资源浮窗 */
 	clips: readonly CallCardLabelOption[];
 	/**
+		* 角色日常 ScheduleCard 候选；value=cardId，来自 /api/schedule-cards。
+		* 仅供 schedule_recurring_call.scheduleCardId；与画布包内 schedule 剧情节点分离。
+		*/
+	scheduleCards: readonly CallCardLabelOption[];
+	/**
 		* 卡 cardId → 归属角色 agentId 映射；来自画布 CallCard 节点的 ownerAgentId。
 		* 供 attach/unmount 目标卡选定后默认回填角色（§2.3）；无归属的卡不入表。
 		*/
 	cardOwnerAgentId: Readonly<Record<string, string>>;
+	/**
+		* 卡 cardId → cardKind；供 attach/schedule 摘要区分「挂待接通」vs「进信箱」。
+		* 来自画布 CallCard 节点；缺省未入表时按普通卡摘要。
+		*/
+	cardKindById: Readonly<Record<string, string>>;
 };
 
 /** 空数据源常量；下拉无候选时复用，避免每处新建空数组 */
@@ -271,5 +269,7 @@ export const EMPTY_EFFECT_PANEL_SOURCES: EffectPanelSources = {
 	cards: [],
 	packages: [],
 	clips: [],
+	scheduleCards: [],
 	cardOwnerAgentId: {},
+	cardKindById: {},
 };

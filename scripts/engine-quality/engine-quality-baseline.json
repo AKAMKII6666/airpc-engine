@@ -14,16 +14,6 @@
       "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
     },
     {
-      "file": "packages/rpg-engine/src/memory/sqliteMemoryPort.ts",
-      "effectiveLines": 607,
-      "maxFnLines": 473,
-      "maxComplexity": 64,
-      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
-      "owner": "rpg-engine",
-      "recordedAt": "2026-07-16",
-      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
-    },
-    {
       "file": "packages/rpg-engine/src/runtime/composer.ts",
       "effectiveLines": 203,
       "maxFnLines": 68,
@@ -68,26 +58,6 @@
       "effectiveLines": 138,
       "maxFnLines": 121,
       "maxComplexity": 21,
-      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
-      "owner": "rpg-engine",
-      "recordedAt": "2026-07-16",
-      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
-    },
-    {
-      "file": "packages/rpg-engine/src/validation/validatePackage.ts",
-      "effectiveLines": 800,
-      "maxFnLines": 297,
-      "maxComplexity": 47,
-      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
-      "owner": "rpg-engine",
-      "recordedAt": "2026-07-16",
-      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
-    },
-    {
-      "file": "packages/rpg-engine/src/workspace/loadWorkspace.ts",
-      "effectiveLines": 217,
-      "maxFnLines": 85,
-      "maxComplexity": 17,
       "reason": "休整期止血：既有超限遗留，触碰不得净增长",
       "owner": "rpg-engine",
       "recordedAt": "2026-07-16",
@@ -238,16 +208,6 @@
       "effectiveLines": 206,
       "maxFnLines": 155,
       "maxComplexity": 4,
-      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
-      "owner": "rpg-engine/tests",
-      "recordedAt": "2026-07-16",
-      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
-    },
-    {
-      "file": "packages/rpg-engine/tests/memory/sqlite-memory.test.ts",
-      "effectiveLines": 304,
-      "maxFnLines": 290,
-      "maxComplexity": 12,
       "reason": "休整期止血：既有超限遗留，触碰不得净增长",
       "owner": "rpg-engine/tests",
       "recordedAt": "2026-07-16",

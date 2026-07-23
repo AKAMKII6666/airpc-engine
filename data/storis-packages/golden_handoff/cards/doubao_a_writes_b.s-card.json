@@ -2,7 +2,7 @@
   "cardId": "doubao_a_writes_b",
   "cardKind": "story",
   "title": "E4b：澜星出口写小雨 knowledge／memory",
-  "ownerAgentId": "doubao-sister",
+  "ownerAgentId": "lanxing",
   "entryMode": "inbound_user_dial",
   "interactionMode": "realtime_dialogue",
   "context": {
@@ -46,23 +46,23 @@
         {
           "id": "fact_cross_topic",
           "effect": "set_world_fact",
-          "factId": "doubao_shared_xiaoyu_topic",
+          "factId": "doubao_shared_xiaopi_topic",
           "value": true
         },
         {
-          "id": "know_xiaoyu_topic",
+          "id": "know_xiaopi_topic",
           "effect": "update_npc_knowledge",
-          "agentId": "xiaoyu",
-          "factId": "doubao_shared_xiaoyu_topic",
+          "agentId": "xiaopi",
+          "factId": "doubao_shared_xiaopi_topic",
           "known": true
         },
         {
-          "id": "mem_xiaoyu_topic",
+          "id": "mem_xiaopi_topic",
           "effect": "patch_memory",
-          "agentId": "xiaoyu",
+          "agentId": "xiaopi",
           "layer": "semantic",
           "kind": "semantic",
-          "text": "澜星转告：用户可能拨过来聊 doubao_shared_xiaoyu_topic。"
+          "text": "澜星转告：用户可能拨过来聊 doubao_shared_xiaopi_topic。"
         }
       ]
     }

@@ -3,7 +3,7 @@
 	* 供出口列表预览 / 节点 Tooltip；用户手改后不再覆盖（dirty 判定见 ExitEffectsList）。
 	* 纯函数：不 import 引擎值；可选 sources 仅用于把 id 换成显示名。
 	*/
-import type { KnownEffectName } from "@airpc/rpg-engine";
+import type { KnownEffectName } from "@studio-v2/typeFiles/story/callCard/engineOutcome";
 import type {
 	EditorEffectParams,
 	EffectPanelSources,
@@ -64,7 +64,12 @@ const SUMMARY_BY_EFFECT: Partial<Record<KnownEffectName, SummaryFormatter>> = {
 	attach_call_card: (params, sources) => {
 		if (params?.effect !== "attach_call_card") return "挂载通话卡";
 		const card = labelOf(sources?.cards, params.cardId) || "（未选卡）";
-		return `挂载「${card}」${agentPhrase(params.agentId, sources)}`.trim();
+		const who = agentPhrase(params.agentId, sources);
+		// 目标 voicemail → 进信箱，与引擎 attach 分流对齐（不写 Board.pending）
+		if (params.cardId && sources?.cardKindById?.[params.cardId] === "voicemail") {
+			return `进信箱「${card}」${who}`.trim();
+		}
+		return `挂载「${card}」${who}`.trim();
 	},
 	unmount_call_card: (params, sources) => {
 		if (params?.effect !== "unmount_call_card") return "卸载通话卡";
@@ -84,7 +89,12 @@ const SUMMARY_BY_EFFECT: Partial<Record<KnownEffectName, SummaryFormatter>> = {
 		if (params?.effect !== "schedule_call_card") return "调度通话卡";
 		const card = labelOf(sources?.cards, params.cardId) || "（未选卡）";
 		const delay = params.delayMinutes ?? 5;
-		return `${delay} 分钟后外呼「${card}」${agentPhrase(params.agentId, sources)}`.trim();
+		const who = agentPhrase(params.agentId, sources);
+		// 目标 voicemail → 延迟进信箱，禁止写成「外呼」以免与响铃语义混淆
+		if (params.cardId && sources?.cardKindById?.[params.cardId] === "voicemail") {
+			return `${delay} 分钟后进信箱「${card}」${who}`.trim();
+		}
+		return `${delay} 分钟后外呼「${card}」${who}`.trim();
 	},
 	schedule_recurring_call: (params, sources) => {
 		if (params?.effect !== "schedule_recurring_call") return "登记重复外呼";
@@ -123,10 +133,6 @@ const SUMMARY_BY_EFFECT: Partial<Record<KnownEffectName, SummaryFormatter>> = {
 			? labelOf(sources?.packages, params.next.packageId)
 			: "";
 		return nextPkg ? `结束本章，下一章：${nextPkg}` : "结束本章";
-	},
-	create_voicemail: (params, sources) => {
-		if (params?.effect !== "create_voicemail") return "创建语音信箱";
-		return `创建语音信箱${agentPhrase(params.agentId, sources)}`.trim();
 	},
 	play_system_prompt: (params, sources) => {
 		if (params?.effect !== "play_system_prompt") return "播放系统提示";

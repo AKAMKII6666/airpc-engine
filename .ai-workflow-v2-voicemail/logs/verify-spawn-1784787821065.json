@@ -1,0 +1,13 @@
+{
+  "command": "/bin/sh",
+  "args": [
+    "-c",
+    "test -f \"docs/AI和人类/需求/01-CallCard数据模型.md\" && test -f \"docs/AI和人类/需求/02-运行时协议.md\" && grep -q 'voicemail' \"docs/AI和人类/需求/01-CallCard数据模型.md\" && grep -q 'mailbox_open' \"docs/AI和人类/需求/02-运行时协议.md\" && grep -q 'create_voicemail' \"docs/AI和人类/需求/01-CallCard数据模型.md\""
+  ],
+  "workdir": "/Users/bolbiao/workspace/airpc-engine",
+  "logFile": "/Users/bolbiao/workspace/airpc-engine/.ai-workflow-v2-voicemail/logs/verify-1784787821065.log",
+  "heartbeatMs": 30000,
+  "label": "verify:test -f \"docs/AI和人类/需求/01-CallCard数据模型.md\" && test -f \"docs/",
+  "role": "verify",
+  "uiPipe": true
+}

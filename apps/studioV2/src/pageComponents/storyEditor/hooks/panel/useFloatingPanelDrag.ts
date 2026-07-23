@@ -1,6 +1,6 @@
 /**
-	* 属性浮窗拖拽：按住标题栏移动浮窗，限制在父容器内保留可见。
-	* left/top 必须相对 offsetParent（画布叠层），不能直接用视口坐标，否则会因顶栏偏移漂移。
+	* 属性浮窗布局：标题栏拖移 + 右下角拖改宽高。
+	* left/top/width/height 均相对 offsetParent（画布叠层）。
 	*/
 "use client";
 
@@ -11,18 +11,35 @@ import {
 	type CSSProperties,
 } from "react";
 
-/** 拖拽 hook 返回：根节点 ref、当前定位样式、标题栏按下回调 */
-export type FloatingPanelDrag = {
-	/** 绑到浮窗根节点，用于拖拽时读取几何 */
+const MIN_WIDTH = 320;
+const MIN_HEIGHT = 280;
+
+/** 布局 hook：根 ref、合并样式、拖移/缩放回调 */
+export type FloatingPanelLayout = {
+	/** 绑到浮窗根节点 */
 	panelRef: React.MutableRefObject<HTMLElement | null>;
-	/** 拖动后覆盖默认锚点的绝对定位样式；未拖动为 undefined */
+	/** 覆盖默认 CSS 的定位与尺寸；未交互为 undefined */
 	panelStyle: CSSProperties | undefined;
-	/** 标题栏 onMouseDown；开始一次拖拽会话 */
+	/** 标题栏按下：开始拖移 */
 	onDragStart: (e: ReactMouseEvent) => void;
+	/** 右下角手柄按下：开始缩放 */
+	onResizeStart: (e: ReactMouseEvent) => void;
 };
 
-/** 读 offsetParent 的视口矩形；无父级时回落视口原点 */
-function readParentRect(panel: HTMLElement): DOMRect | { left: number; top: number; width: number; height: number } {
+/** @deprecated 兼容旧名；请用 FloatingPanelLayout */
+export type FloatingPanelDrag = FloatingPanelLayout;
+
+type PanelBox = {
+	left: number;
+	top: number;
+	width: number;
+	height: number;
+};
+
+/** 读 offsetParent 的视口矩形；无父级时回落视口 */
+function readParentRect(
+	panel: HTMLElement,
+): DOMRect | { left: number; top: number; width: number; height: number } {
 	const parent = panel.offsetParent;
 	if (parent instanceof HTMLElement) {
 		return parent.getBoundingClientRect();
@@ -35,29 +52,43 @@ function readParentRect(panel: HTMLElement): DOMRect | { left: number; top: numb
 	};
 }
 
-export function useFloatingPanelDrag(): FloatingPanelDrag {
-	// 拖拽位置（相对 offsetParent）；null=默认锚定（由 CSS 右上角），拖动后切换为绝对 left/top
-	const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
+function clamp(n: number, min: number, max: number): number {
+	return Math.min(Math.max(min, n), max);
+}
+
+/**
+	* 属性浮窗拖移与缩放；交互后把几何钉死为绝对 left/top/width/height。
+	*/
+export function useFloatingPanelLayout(): FloatingPanelLayout {
+	const [box, setBox] = useState<PanelBox | null>(null);
 	const panelRef = useRef<HTMLElement | null>(null);
+
+	function captureCurrentBox(panel: HTMLElement): PanelBox {
+		const rect = panel.getBoundingClientRect();
+		const parentRect = readParentRect(panel);
+		return {
+			left: rect.left - parentRect.left,
+			top: rect.top - parentRect.top,
+			width: rect.width,
+			height: rect.height,
+		};
+	}
 
 	function onDragStart(e: ReactMouseEvent): void {
 		const panel = panelRef.current;
 		if (!panel) return;
-		const rect = panel.getBoundingClientRect();
 		const parentRect = readParentRect(panel);
-		// 换算为相对父容器的坐标，避免把视口 Y（含顶栏）直接写入 CSS top 导致下跳
-		const baseLeft = rect.left - parentRect.left;
-		const baseTop = rect.top - parentRect.top;
+		const current = box ?? captureCurrentBox(panel);
 		const startX = e.clientX;
 		const startY = e.clientY;
-		const width = rect.width;
 		function onMove(ev: MouseEvent): void {
-			const maxLeft = Math.max(8, parentRect.width - width - 8);
-			// 底部至少保留约一个标题栏高度可见，避免拖出父容器后找不到
+			const maxLeft = Math.max(8, parentRect.width - current.width - 8);
 			const maxTop = Math.max(8, parentRect.height - 48);
-			const left = Math.min(Math.max(8, baseLeft + ev.clientX - startX), maxLeft);
-			const top = Math.min(Math.max(8, baseTop + ev.clientY - startY), maxTop);
-			setPos({ left, top });
+			setBox({
+				...current,
+				left: clamp(current.left + ev.clientX - startX, 8, maxLeft),
+				top: clamp(current.top + ev.clientY - startY, 8, maxTop),
+			});
 		}
 		function onUp(): void {
 			window.removeEventListener("mousemove", onMove);
@@ -68,10 +99,63 @@ export function useFloatingPanelDrag(): FloatingPanelDrag {
 		e.preventDefault();
 	}
 
-	const panelStyle =
-		pos !== null
-			? { left: pos.left, top: pos.top, right: "auto" as const }
-			: undefined;
+	function onResizeStart(e: ReactMouseEvent): void {
+		const panel = panelRef.current;
+		if (!panel) return;
+		e.stopPropagation();
+		const parentRect = readParentRect(panel);
+		const current = box ?? captureCurrentBox(panel);
+		const startX = e.clientX;
+		const startY = e.clientY;
+		function onMove(ev: MouseEvent): void {
+			const maxW = Math.max(
+				MIN_WIDTH,
+				parentRect.width - current.left - 8,
+			);
+			const maxH = Math.max(
+				MIN_HEIGHT,
+				parentRect.height - current.top - 8,
+			);
+			setBox({
+				...current,
+				width: clamp(
+					current.width + ev.clientX - startX,
+					MIN_WIDTH,
+					maxW,
+				),
+				height: clamp(
+					current.height + ev.clientY - startY,
+					MIN_HEIGHT,
+					maxH,
+				),
+			});
+		}
+		function onUp(): void {
+			window.removeEventListener("mousemove", onMove);
+			window.removeEventListener("mouseup", onUp);
+		}
+		window.addEventListener("mousemove", onMove);
+		window.addEventListener("mouseup", onUp);
+		e.preventDefault();
+	}
 
-	return { panelRef, panelStyle, onDragStart };
+	const panelStyle: CSSProperties | undefined =
+		box === null
+			? undefined
+			: {
+					left: box.left,
+					top: box.top,
+					right: "auto",
+					width: box.width,
+					height: box.height,
+					maxWidth: "none",
+					maxHeight: "none",
+				};
+
+	return { panelRef, panelStyle, onDragStart, onResizeStart };
+}
+
+/** 兼容旧 import 名 */
+export function useFloatingPanelDrag(): FloatingPanelLayout {
+	return useFloatingPanelLayout();
 }

@@ -18,7 +18,7 @@ export function advanceClockWithCardLookup(
   lookupCard: ScheduledCardLookup,
 ): FiredScheduleItem[] {
   reconcileRecurringIntents(profile, lookupCard);
-  return advanceProfileClock(profile, deltaMs);
+  return advanceProfileClock(profile, deltaMs, undefined, lookupCard);
 }
 
 export function setClockMsWithCardLookup(
@@ -27,7 +27,7 @@ export function setClockMsWithCardLookup(
   lookupCard: ScheduledCardLookup,
 ): FiredScheduleItem[] {
   reconcileRecurringIntents(profile, lookupCard);
-  return setProfileClockMs(profile, toClockMs);
+  return setProfileClockMs(profile, toClockMs, undefined, lookupCard);
 }
 
 export function advanceToNextWithCardLookup(
@@ -35,5 +35,5 @@ export function advanceToNextWithCardLookup(
   lookupCard: ScheduledCardLookup,
 ): AdvanceToNextResult {
   reconcileRecurringIntents(profile, lookupCard);
-  return advanceProfileClockToNextIntent(profile);
+  return advanceProfileClockToNextIntent(profile, undefined, lookupCard);
 }

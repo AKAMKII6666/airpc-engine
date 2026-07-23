@@ -104,13 +104,13 @@ export const AssetDetailEditForm: FC<AssetDetailEditFormProps> =
 				</div>
 
 				<div className={styles.section}>
-					{/* 引用了Button组件，用于提交会话内更改 */}
+					{/* 引用了Button组件，用于提交并写盘 */}
 					<Button
 						type="submit"
 						variant="contained"
 						disabled={formik.isSubmitting}
 					>
-						应用更改（会话内）
+						保存到磁盘
 					</Button>
 				</div>
 			</form>

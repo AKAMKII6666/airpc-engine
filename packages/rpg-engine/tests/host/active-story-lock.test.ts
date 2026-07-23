@@ -7,11 +7,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import {
-  createEngineHost,
   isEngineError,
   releaseStoryLock,
   type ActiveStoryLock,
 } from "../../src/index.js";
+import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -24,7 +24,7 @@ function hardRejectLock(overrides?: Partial<ActiveStoryLock>): ActiveStoryLock {
     activeStoryInstanceId: "story-inst-1",
     packageId: "golden_handoff",
     lockLevel: "hard",
-    allowedAgentIds: ["doubao-sister"],
+    allowedAgentIds: ["lanxing"],
     blockedPolicy: "reject_call",
     reason: "test hard lock",
     startedAt: "2026-07-14T00:00:00.000Z",
@@ -47,10 +47,10 @@ describe("ActiveStoryLock resolver gate", () => {
     const dataRoot = path.join(tmpRoot, "data");
     await cp(dataSrc, dataRoot, { recursive: true });
 
-    const host = createEngineHost({ persist: false });
+    const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);
     const profile = await host.ensureProfile("demo-user");
-    profile.characters.xiaoyu = { agentId: "xiaoyu", unlocked: true };
+    profile.characters.xiaopi = { agentId: "xiaopi", unlocked: true };
     profile.stories.golden_handoff = {
       packageId: "golden_handoff",
       status: "active",
@@ -60,7 +60,7 @@ describe("ActiveStoryLock resolver gate", () => {
 
     const blocked = host.resolve("demo-user", {
       kind: "user_dial",
-      agentId: "xiaoyu",
+      agentId: "xiaopi",
     });
     expect(isEngineError(blocked)).toBe(true);
     if (isEngineError(blocked)) {
@@ -73,10 +73,10 @@ describe("ActiveStoryLock resolver gate", () => {
     const dataRoot = path.join(tmpRoot, "data");
     await cp(dataSrc, dataRoot, { recursive: true });
 
-    const host = createEngineHost({ persist: false });
+    const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);
     const profile = await host.ensureProfile("demo-user");
-    profile.characters.xiaoyu = { agentId: "xiaoyu", unlocked: true };
+    profile.characters.xiaopi = { agentId: "xiaopi", unlocked: true };
     // 清 pending，避免未预载卡干扰读闸断言
     profile.callCards.board.byAgent = {};
     profile.stories.golden_handoff = {
@@ -88,7 +88,7 @@ describe("ActiveStoryLock resolver gate", () => {
 
     const blocked = host.resolve("demo-user", {
       kind: "user_dial",
-      agentId: "xiaoyu",
+      agentId: "xiaopi",
     });
     expect(isEngineError(blocked)).toBe(true);
     if (isEngineError(blocked)) {
@@ -98,7 +98,7 @@ describe("ActiveStoryLock resolver gate", () => {
     releaseStoryLock(profile, "golden_handoff");
     const opened = host.resolve("demo-user", {
       kind: "user_dial",
-      agentId: "xiaoyu",
+      agentId: "xiaopi",
     });
     expect(isEngineError(opened)).toBe(false);
     if (!isEngineError(opened)) {
@@ -111,7 +111,7 @@ describe("ActiveStoryLock resolver gate", () => {
     const dataRoot = path.join(tmpRoot, "data");
     await cp(dataSrc, dataRoot, { recursive: true });
 
-    const host = createEngineHost({ persist: false });
+    const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);
     const profile = await host.ensureProfile("demo-user");
     profile.stories.other_pkg = {

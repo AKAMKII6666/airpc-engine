@@ -6,11 +6,11 @@
 import type { Effect } from "../schema/outcome.js";
 import type { CallSession } from "../host/types.js";
 
-/** 须走 Sink 的媒介 effect 名（Executor 仍可先 WET／记账） */
-export const MEDIA_EFFECT_NAMES = [
-  "create_voicemail",
-  "play_system_prompt",
-] as const;
+/**
+ * 须走 Sink 的媒介 effect 名（Executor 仍可先 WET／记账）。
+ * create_voicemail 已废弃：留言改 voicemail 卡 + Materialize 端口，不再经 Sink 新写。
+ */
+export const MEDIA_EFFECT_NAMES = ["play_system_prompt"] as const;
 
 export type MediaEffectName = (typeof MEDIA_EFFECT_NAMES)[number];
 

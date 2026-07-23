@@ -5,7 +5,6 @@
 "use client";
 
 import type { FC } from "react";
-import { useMemo } from "react";
 import { Alert, Button, Chip, Typography } from "@mui/material";
 import type { FormikProps } from "formik";
 // 引用了AutoForm组件，用于声明式字段编排
@@ -14,16 +13,14 @@ import type { EditorCallCardProjection } from "@studio-v2/typeFiles/story/editor
 import type { EffectPanelSources } from "@studio-v2/typeFiles/story/editor/callCard/editorEffectParams";
 import type { CharacterAnchorNodeData } from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
 import {
-	NODE_BASIC_ITEMS,
-	NODE_CONTEXT_ITEMS,
 	nodeKindBadgeLabel,
 	type NodePropertyFormValues,
 } from "@studio-v2/src/bis/pageBis/storyEditor/form/node/nodePropertyForm";
-import { exitCountFromProjection } from "@studio-v2/typeFiles/story/editor/callCard/editorCallCardProjection";
 // 引用了CallCardOwnerSelect组件，用于归属角色下拉
 import { CallCardOwnerSelect } from "@studio-v2/src/pageComponents/storyEditor/com/panel/CallCardOwnerSelect";
 // 引用了NodePropertySubModules组件，用于 promptScenes/exits/toolPolicy/schedule
 import { NodePropertySubModules } from "@studio-v2/src/pageComponents/storyEditor/com/panel/NodePropertySubModules";
+import { useNodePropertyFormDerived } from "@studio-v2/src/pageComponents/storyEditor/com/panel/hooks/useNodePropertyFormDerived";
 import styles from "./NodePropertyForm.module.scss";
 
 export type NodePropertyFormProps = {
@@ -40,20 +37,6 @@ export type NodePropertyFormProps = {
 	onAssignOwner: (agentId: string, displayName: string) => void;
 };
 
-function readFormError(
-	status: FormikProps<NodePropertyFormValues>["status"],
-): string | undefined {
-	if (
-		typeof status === "object" &&
-		status !== null &&
-		"formError" in status &&
-		typeof (status as { formError?: unknown }).formError === "string"
-	) {
-		return (status as { formError: string }).formError;
-	}
-	return undefined;
-}
-
 export const NodePropertyForm: FC<NodePropertyFormProps> =
 	function NodePropertyForm({
 		// nodeData 是当前选中卡投影，用于只读身份与归属 value
@@ -67,19 +50,14 @@ export const NodePropertyForm: FC<NodePropertyFormProps> =
 		// onAssignOwner 是归属写回回调，用于即时同步 role 边
 		onAssignOwner,
 	}) {
-		const formError = readFormError(formik.status);
-		const exitCount = exitCountFromProjection(nodeData);
-		const showSchedule = formik.values.cardKind === "schedule";
-		// Effect 目标卡下拉排除本卡：卡的 attach/unmount/调度等目标应指向其它卡
-		const effectSources = useMemo(
-			() => ({
-				...effectPanelSources,
-				cards: effectPanelSources.cards.filter(
-					(card) => card.value !== nodeData.cardId,
-				),
-			}),
-			[effectPanelSources, nodeData.cardId],
-		);
+		const {
+			formError,
+			exitCount,
+			showSchedule,
+			effectSources,
+			basicItems,
+			contextItems,
+		} = useNodePropertyFormDerived(formik, nodeData, effectPanelSources);
 
 		return (
 			<form onSubmit={formik.handleSubmit} noValidate className={styles.form}>
@@ -126,7 +104,7 @@ export const NodePropertyForm: FC<NodePropertyFormProps> =
 					formik={formik}
 					mode="edit"
 					enabled
-					items={NODE_BASIC_ITEMS}
+					items={basicItems}
 				/>
 
 				{/* 引用了Typography组件，用于 context 分段标题 */}
@@ -138,7 +116,7 @@ export const NodePropertyForm: FC<NodePropertyFormProps> =
 					formik={formik}
 					mode="edit"
 					enabled
-					items={NODE_CONTEXT_ITEMS}
+					items={contextItems}
 				/>
 
 				{/* 引用了NodePropertySubModules组件，用于子模块折叠区 */}

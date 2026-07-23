@@ -1,0 +1,27 @@
+{
+  "studioRoot": ".",
+  "excludeDirNames": ["node_modules", ".next", "tests", "dist"],
+  "thresholds": {
+    "page": { "warnLines": 120, "hardLines": 200 },
+    "uiComponent": { "warnLines": 250, "hardLines": 400 },
+    "hookOrCommand": { "warnLines": 250, "hardLines": 400 },
+    "other": { "warnLines": 350, "hardLines": 500 },
+    "function": { "warnLines": 60, "hardLines": 100 },
+    "complexity": { "warn": 10, "hard": 15 }
+  },
+  "serverEngineImportAllowPathPrefixes": ["app/api/", "src/utils/server/"],
+  "serverEngineImportAllowFileSuffixes": [".server.ts", ".server.tsx"],
+  "clientZonePathPrefixes": [
+    "src/pageComponents/",
+    "src/bis/",
+    "src/stores/",
+    "src/commonUiComponents/",
+    "src/utils/ajaxProxy/",
+    "typeFiles/",
+    "features/",
+    "store/"
+  ],
+  "studioPathAliases": { "@studio-v2/": "" },
+  "bannedImportPatterns": ["@airpc/rpg-engine/"],
+  "allowlist": []
+}

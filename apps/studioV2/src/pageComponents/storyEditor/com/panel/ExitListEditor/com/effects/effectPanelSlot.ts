@@ -2,7 +2,7 @@
 	* Effect 专属面板统一 slot 契约：分发器把当前行参数与数据源交给具体面板。
 	* 各面板内部用 readEffectParams(effect, params) 收窄到自己的变体。
 	*/
-import type { KnownEffectName } from "@airpc/rpg-engine";
+import type { KnownEffectName } from "@studio-v2/typeFiles/story/callCard/engineOutcome";
 import type {
 	EditorEffectParams,
 	EffectPanelSources,

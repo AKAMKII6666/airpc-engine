@@ -1,7 +1,7 @@
 /**
 	* 引擎 User ↔ 玩家配置页投影；落盘前后投影一致，不做年龄↔生日交叉。
 	*/
-import type { User } from "@airpc/rpg-engine";
+import type { User } from "@studio-v2/typeFiles/library/users/engineUser";
 import type {
 	UserGender,
 	UserProfileSummary,

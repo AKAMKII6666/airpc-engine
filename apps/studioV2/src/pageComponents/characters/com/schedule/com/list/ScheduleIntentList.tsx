@@ -4,7 +4,7 @@
 "use client";
 
 import type { FC } from "react";
-import type { ScheduledIntent } from "@airpc/rpg-engine";
+import type { ScheduledIntent } from "@studio-v2/typeFiles/library/schedule/engineScheduledIntent";
 import styles from "../../index.module.scss";
 // 引用了ScheduleIntentRow组件，用于单行摘要与操作
 import { ScheduleIntentRow } from "./ScheduleIntentRow";

@@ -2,7 +2,11 @@
 	* 故事编辑器通话卡会话投影：字段名贴近 CallCardDefinition。
 	* 仅 UI / 会话 mock；不写 storis-packages / Host；校验角标不进 Formik。
 	*/
-import type { CardKind, KnownEffectName } from "@airpc/rpg-engine";
+import type { CardKind } from "@studio-v2/typeFiles/story/callCard/engineCallCard";
+import type {
+	ExitCondition,
+	KnownEffectName,
+} from "@studio-v2/typeFiles/story/callCard/engineOutcome";
 import type { PromptSceneLayerForm } from "@studio-v2/typeFiles/library/characters/form/characterFormShapes";
 import type { EditorEffectParams } from "@studio-v2/typeFiles/story/editor/callCard/editorEffectParams";
 
@@ -14,7 +18,9 @@ export type EditorEntryMode =
 	| "inbound"
 	| "outbound"
 	| "agent_outbound"
-	| "playback";
+	| "playback"
+	/** 信箱打开：仅 voicemail；Studio 锁定 */
+	| "mailbox_open";
 
 /** 对齐 InteractionModeSchema */
 export type EditorInteractionMode =
@@ -50,6 +56,11 @@ export type EditorExitEffectProjection = {
 		* 仅允许枚举下拉写入；与 params.effect 判别键保持一致。
 		*/
 	effect: KnownEffectName;
+	/**
+		* 失败是否中止后续 Effect；对齐 EffectSchema.critical。
+		* 缺省等同 false；须 roundtrip 写盘，禁止投影 strip。
+		*/
+	critical?: boolean;
 	/** 人话摘要；缺省由 params 派生（S7-6），用户手改后不覆盖 */
 	summary?: string;
 	/**
@@ -60,7 +71,7 @@ export type EditorExitEffectProjection = {
 };
 
 /**
-	* 出口投影；完整 ExitCondition 树留给后续刀次。
+	* 出口投影；v1 编辑叶子 condition，and/or/not 嵌套本轮只读保留。
 	* exitId 与画布 Handle id 对齐；Handle 按 exits[] 动态渲染。
 	*/
 export type EditorCallCardExitProjection = {
@@ -72,7 +83,14 @@ export type EditorCallCardExitProjection = {
 	title?: string;
 	/** ExitSelector 优先级；数值越大越优先，默认 0 */
 	priority: number;
-	/** 条件人话概要；供节点 Tooltip / 列表预览，非完整条件树 */
+	/**
+		* 引擎 ExitCondition 真源；属性浮窗 v1 可编叶子 op。
+		* 嵌套 and/or/not 保留原样；缺省时写盘回落 base.condition，禁止 DEFAULT 覆盖。
+		*/
+	condition?: ExitCondition;
+	/**
+		* 条件人话概要；默认由 condition 派生，可覆盖显示，但不替代 condition 写盘。
+		*/
 	conditionSummary: string;
 	/**
 		* Effect 列表 mock；结构对齐 EffectSchema 意图。
@@ -161,7 +179,7 @@ export type EditorCallCardProjection = {
 	schedule?: EditorScheduleMetaProjection;
 	/** 仅节点 footer badge；不进属性 Formik */
 	validationBadge: EditorNodeValidationBadge;
-	/** 初始选中示意；运行时以 React Flow selected 为准 */
+	/** 已废弃：勿写 data.selected；选中态只用 React Flow node.selected */
 	selected?: boolean;
 };
 

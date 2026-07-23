@@ -1,12 +1,10 @@
 /**
 	* 新建故事包表单契约（导向稿 04 第一版字段）。
-	* 供整页 CreatePackageView 与列表 FormModal 共用；不写盘。
+	* 供整页 CreatePackageView 与列表 FormModal 共用；落盘经 commitCreatePackage。
 	* AutoForm items[] 主编排。
 	*/
 import type { FormikErrors } from "formik";
 import type { AutoFormItem } from "@studio-v2/src/commonUiComponents/form/autoFormTypes";
-import type { StoryPackageSummary } from "@studio-v2/typeFiles/story/summary/storyPackageSummary";
-import { createStudioId } from "@studio-v2/typeFiles/ids/createStudioId";
 
 /**
 	* Formik values；字段名与 AutoForm items name 对齐。
@@ -17,13 +15,12 @@ export type CreatePackageFormValues = {
 	description: string;
 	/** 默认语言 BCP-47 标签；静态列表投影暂不展示，保留对齐导向稿 */
 	language: string;
-	/** true 时会话内 mock 记一张起点卡；静态阶段不落 story.conf */
+	/** true 时创建默认入口卡并写入 conf.entryCardId */
 	withStartCard: boolean;
 } & Record<string, unknown>;
 
 /**
 	* 新建弹层 / 整页表单的初始值；language 默认 zh-CN，withStartCard 默认开启。
-	* 仅会话态 Formik，不写盘。
 	*/
 export const CREATE_PACKAGE_INITIAL_VALUES: CreatePackageFormValues = {
 	title: "",
@@ -61,7 +58,7 @@ export const CREATE_PACKAGE_FORM_ITEMS: AutoFormItem[] = [
 		name: "withStartCard",
 		label: "创建默认起点卡",
 		comType: "Checkbox",
-		helperText: "初始角色可为空；本步不接真实角色库写入。",
+		helperText: "写入 cards/ 与 conf.entryCardId；初始角色可空。",
 	},
 ];
 
@@ -76,28 +73,4 @@ export function validateCreatePackageForm(
 		errors.title = "请填写故事包名称";
 	}
 	return errors;
-}
-
-/**
-	* 由表单值生成会话内 mock 列表项；packageId 系统生成。
-	* withStartCard 只影响 cardCount 投影，不写盘。
-	* language 暂不进入 StoryPackageSummary（列表无语言列）。
-	*/
-export function buildMockPackageFromForm(
-	values: CreatePackageFormValues,
-): StoryPackageSummary {
-	const title = values.title.trim();
-	void values.language;
-	return {
-		packageId: createStudioId("package", title),
-		title,
-		description: values.description.trim(),
-		lastEditedAt: new Date().toISOString(),
-		cardCount: values.withStartCard ? 1 : 0,
-		characterCount: 0,
-		assetCount: 0,
-		validation: "ok",
-		saveState: "unsaved",
-		lastExportedAt: null,
-	};
 }

@@ -1,7 +1,7 @@
 {
   "studioRoot": "apps/studioV2",
   "excludeDirNames": ["node_modules", ".next", "tests", "dist", "public", "scripts"],
-  "allowedBusinessRootDirs": ["app", "src", "typeFiles", "tests", "public", "scripts"],
+  "allowedBusinessRootDirs": ["app", "src", "typeFiles", "tests", "public", "scripts", "engineIOModule"],
   "legacyBusinessRootDirs": ["features", "domain", "services", "commands", "store"],
   "allowedPageComponentIndexPattern": "src/pageComponents/",
   "thresholds": {
@@ -12,15 +12,31 @@
     "function": { "warnLines": 60, "hardLines": 100 },
     "complexity": { "warn": 10, "hard": 15 }
   },
-  "bannedClientEngineWriteSymbols": [
-    "createEngineHost",
-    "getEngineHost",
-    "resetEngineHostForTests",
-    "createSqliteMemoryPort",
-    "executeEffects",
-    "beginCall",
-    "endCall"
+  "serverEngineImportAllowPathPrefixes": [
+    "app/api/",
+    "src/utils/server/",
+    "engineIOModule/"
   ],
+  "clientBannedPathPrefixes": [
+    "engineIOModule/"
+  ],
+  "serverEngineImportAllowFileSuffixes": [
+    ".server.ts",
+    ".server.tsx"
+  ],
+  "clientZonePathPrefixes": [
+    "src/pageComponents/",
+    "src/bis/",
+    "src/stores/",
+    "src/commonUiComponents/",
+    "src/utils/ajaxProxy/",
+    "typeFiles/",
+    "features/",
+    "store/"
+  ],
+  "studioPathAliases": {
+    "@studio-v2/": ""
+  },
   "bannedImportPatterns": [
     "@airpc/rpg-engine/",
     "packages/rpg-engine/",

@@ -26,7 +26,7 @@ import styles from "./editorNodes.module.scss";
 
 export const CallCardFlowNode: FC<NodeProps> = function (props) {
 	const data = props.data as EditorCallCardProjection;
-	const selected = Boolean(props.selected || data.selected);
+	const selected = Boolean(props.selected);
 	const rootClass = selected ? styles.callCardSelected : styles.callCard;
 	const exitCount = exitCountFromProjection(data);
 	const canvasUi = useStoryCanvasUi();

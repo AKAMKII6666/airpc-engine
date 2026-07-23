@@ -22,8 +22,9 @@
 .floatRight {
 	left: auto;
 	right: 20px;
-	top: 200px;
-	width: 300px;
+	top: 160px;
+	width: 340px;
+	max-height: min(560px, calc(100% - 100px));
 }
 
 .floatOffsetRail {

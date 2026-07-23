@@ -5,7 +5,6 @@ import { describe, expect, it } from "vitest";
 import {
   bootstrapLoreOntoProfile,
   buildFallbackLore,
-  createEngineHost,
   isEngineError,
   resetEngineHostForTests,
   type LoreBootstrapPort,
@@ -14,11 +13,9 @@ import {
 } from "@airpc/rpg-engine";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
-const rootDir = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "../../../../data",
-);
+const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../../data");
 
 function bareProfile(userId: string): PlayerProfile {
   const now = new Date().toISOString();
@@ -60,7 +57,7 @@ describe("lore bootstrap", function () {
       characters: [
         {
           schemaVersion: 1,
-          agentId: "xiaoyu",
+          agentId: "xiaopi",
           displayName: "小雨",
           dialable: false,
         },
@@ -83,10 +80,10 @@ describe("lore bootstrap", function () {
       },
       sharedPremise: "LLM 生成的深圳日常电话世界。",
       perspectives: {
-        xiaoyu: ["你知道用户在深圳附近。"],
+        xiaopi: ["你知道用户在深圳附近。"],
       },
       characters: {
-        xiaoyu: { displayName: "小雨", blurb: "本地可通话角色" },
+        xiaopi: { displayName: "小雨", blurb: "本地可通话角色" },
       },
     };
     const profile = bareProfile("u-llm");
@@ -95,7 +92,7 @@ describe("lore bootstrap", function () {
       characters: [
         {
           schemaVersion: 1,
-          agentId: "xiaoyu",
+          agentId: "xiaopi",
           displayName: "小雨",
           dialable: false,
         },
@@ -129,7 +126,7 @@ describe("lore bootstrap", function () {
 
   it("host.bootstrapLore without port uses fallback", async function () {
     resetEngineHostForTests();
-    const host = createEngineHost({ persist: false, autoMemory: false });
+    const host = createTestHost({ persist: false, dataRoot: rootDir });
     await host.loadWorkspace(rootDir, { resetRuntime: true });
     const userId = "demo-user";
     const p = await host.ensureProfile(userId);
@@ -160,9 +157,9 @@ describe("lore bootstrap", function () {
       sharedPremise: "Host 注入 mock LLM Lore。",
       perspectives: {},
     };
-    const host = createEngineHost({
+    const host = createTestHost({
       persist: false,
-      autoMemory: false,
+      dataRoot: rootDir,
       loreBootstrap: mockLlmPort(llmDoc),
     });
     await host.loadWorkspace(rootDir, { resetRuntime: true });
@@ -190,9 +187,9 @@ describe("lore bootstrap", function () {
         throw new Error("vendor 503");
       },
     };
-    const host = createEngineHost({
+    const host = createTestHost({
       persist: false,
-      autoMemory: false,
+      dataRoot: rootDir,
       loreBootstrap: failing,
     });
     await host.loadWorkspace(rootDir, { resetRuntime: true });

@@ -18,7 +18,8 @@ import {
 	readCharacterJson,
 	writeCharacterJson,
 } from "@studio-v2/src/utils/server/characters/charactersFs.server";
-import { findTimeBucketsRejectReason } from "@studio-v2/src/bis/pageBis/characters/detail/form/characterDefMapper";
+import { findTimeBucketsRejectReason } from "@studio-v2/src/utils/server/characters/timeBucketsReject.server";
+import { reloadStudioV2WorkspaceIfBooted } from "@studio-v2/src/utils/server/host/engineHost.server";
 
 export async function GET(): Promise<Response> {
 	try {
@@ -81,6 +82,7 @@ export async function POST(req: Request): Promise<Response> {
 			});
 		}
 		await writeCharacterJson(parsed.data.agentId, parsed.data);
+		await reloadStudioV2WorkspaceIfBooted();
 		return apiOk({ character: parsed.data });
 	} catch (err) {
 		if (isEngineError(err)) {

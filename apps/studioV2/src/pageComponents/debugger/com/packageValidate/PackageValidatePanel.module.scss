@@ -1,0 +1,132 @@
+@use "../../../../../typeFiles/theme/tokens.scss" as t;
+
+.root {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding: 12px 14px;
+	background: t.$bg-panel;
+	border: 1px solid t.$border-panel;
+	border-radius: 12px;
+}
+
+.head {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px 16px;
+	align-items: flex-start;
+	justify-content: space-between;
+}
+
+.headText {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+.title {
+	font-weight: 600;
+	color: t.$text-primary;
+}
+
+.hint {
+	font-size: 12px;
+	color: t.$text-muted;
+}
+
+.actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+}
+
+.select {
+	min-width: 240px;
+}
+
+.report {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.summary {
+	color: t.$text-secondary;
+}
+
+.empty {
+	margin: 0;
+	font-size: 13px;
+	color: t.$text-muted;
+}
+
+.blockError,
+.blockWarn {
+	padding: 8px 10px;
+	border-radius: 8px;
+	border: 1px solid t.$border-subtle;
+	max-height: 160px;
+	overflow: auto;
+}
+
+.blockError {
+	background: rgba(80, 24, 28, 0.55);
+}
+
+.blockWarn {
+	background: rgba(64, 52, 20, 0.55);
+}
+
+.blockTitle {
+	margin-bottom: 6px;
+	color: t.$text-primary;
+	font-weight: 600;
+}
+
+.list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.issue {
+	display: grid;
+	grid-template-columns: minmax(100px, auto) 1fr minmax(80px, 1.2fr);
+	gap: 8px;
+	align-items: baseline;
+	font-size: 12px;
+	line-height: 1.35;
+}
+
+.rule {
+	color: t.$text-secondary;
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.msg {
+	color: t.$text-primary;
+}
+
+.path {
+	color: t.$text-muted;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@media (max-width: 900px) {
+	.issue {
+		grid-template-columns: 1fr;
+	}
+
+	.select {
+		min-width: 0;
+		width: 100%;
+	}
+}
