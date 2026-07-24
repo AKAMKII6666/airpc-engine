@@ -1,0 +1,79 @@
+---
+description: Studio V2 客户端 Zustand · shell bis · feature bis 分层与编辑器双层状态
+globs:
+  - "apps/studioV2/src/pageComponents/**"
+  - "apps/studioV2/src/bis/**"
+  - "apps/studioV2/src/stores/**"
+  - "apps/studioV2/src/commonUiComponents/**"
+  - "apps/studioV2/src/utils/ajaxProxy/**"
+  - "apps/studioV2/typeFiles/**"
+alwaysApply: false
+---
+
+# Studio V2 · 客户端分层（store · shell · bis）
+
+真源：[技术设计 21](../../docs/AI和人类/技术设计文档/21-Studio客户端分层.md) · [目录落点 09](../../docs/AI和人类/sudioV2.0版本/需求/ui/09-Studio-V2前端目录结构与落点规则.md)。  
+硬门禁：`check:studio-structure`（`STUDIO-STRUCT-021`～`024`）；存量触碰即清见 `studio-v2-layering-baseline.json`。
+
+## 数据流（必须）
+
+```text
+读：store → feature bis → UI
+写：UI → feature bis → store
+请求：shell bis / feature bis → ajaxProxy → API
+```
+
+| 层 | 职责 | 禁止 |
+|----|------|------|
+| **store**（一域一账本） | 纯状态 + 结果型 setState | 请求、toast、导航、import bis / ajaxProxy |
+| **shell bis**（`src/bis/shellBis/**/*.shell.bis.ts`） | 页级灌数、听 `*RefreshStamp` 再拉 | 一类页挂多次；代替 feature 处理每个按钮 |
+| **feature bis**（`pageBis/**/*.bis.ts`） | 读 store 给 UI、命令 xhr、写 store、toast | import `next/navigation`；自拉整页列表（应 bump stamp）；value import UI |
+| **\*Flow.ts** | 需要路由导航等副作用 | 勿命名为 `.bis.ts` |
+| **UI**（`pageComponents` / `commonUiComponents`） | 布局、绑事件、展示 bis 数据 | 直读 store、直引 ajaxProxy、裸 fetch、堆业务会话真源 |
+
+## 一域一 store
+
+- 按路由域 / 功能页建 `src/stores/<domain>/`（如 `characters`、`storyEditor`、`debugger`）。
+- **禁止**把各页列表/选中塞进全局上帝 store；`studioV2Store` 仅壳层极薄偏好。
+- store **不是** Profile / Memory / 磁盘包真源。
+
+## 允许的本地 useState
+
+纯 UI 瞬时态可以：Menu/Tooltip 开合、拖拽预览开关、Formik 提交前字段、布局测量。  
+**禁止** page/com hook 把「列表数据、业务选中、loading/error 会话、与保存相关的 conf/草稿」当本地真源长期自管（应进 store，经 bis）。
+
+## 故事编辑器双层（定稿）
+
+```text
+高频渲染（nodes/edges/viewport 拖动）
+  → React Flow / 画布自管
+  → 节流同步 + 松手/属性提交/切选中时 flush → storyEditor store
+
+数据/配置/save/validate/浮窗业务态
+  → 一律 store + bis；UI 只调 bis
+```
+
+- **保存真源**：先 flush 画布→store，再以 store 投影组 bundle；禁止「有时读 canvasApi、有时读 store」。
+- **勿**把每帧 transform 写入 store；只同步业务结构快照（及可选需持久化的 viewport）。
+
+## 目录与后缀
+
+```text
+src/stores/<domain>/
+src/bis/shellBis/**/*.shell.bis.ts
+src/bis/pageBis/<domain>/**/*.{bis,helpers,Flow}.ts
+src/utils/ajaxProxy/          # 唯一浏览器请求出口
+typeFiles/                    # store / bis / xhr 契约
+pageComponents/<route>/com/   # 只展示；禁横向乱引实现
+```
+
+## 硬门禁对照
+
+| ID | 约束 |
+|----|------|
+| STRUCT-021 | UI 禁 import `stores/**` 与 `ajaxProxy/**` |
+| STRUCT-022 | `stores/**` 禁 import bis / ajaxProxy / `next/navigation` |
+| STRUCT-023 | 非 shell bis / 非 `*Flow.ts` 禁 `next/navigation` |
+| STRUCT-024 | bis 禁 value import `pageComponents` / `commonUiComponents` |
+
+存量文件以 layering baseline 哈希冻结；**触碰文件内容变化即必须合规**。禁止用永久大目录 allowlist 绕过。

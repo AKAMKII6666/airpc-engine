@@ -4,8 +4,8 @@
 	*/
 "use client";
 
-import type { FC } from "react";
-import { Alert, Button, Typography } from "@mui/material";
+import { useState, type FC } from "react";
+import { Alert, Typography } from "@mui/material";
 import type { FormikProps } from "formik";
 import { AutoForm } from "@studio-v2/src/commonUiComponents/form/AutoForm";
 import type { CharacterSummary } from "@studio-v2/typeFiles/library/characters/form/characterSummary";
@@ -17,6 +17,10 @@ import {
 import { withAvatarUploadItems } from "@studio-v2/src/bis/pageBis/assets/withAvatarUploadItems";
 // 引用了CharacterSchedulePanel组件，用于场景提示词下方的定时外呼
 import { CharacterSchedulePanel } from "@studio-v2/src/pageComponents/characters/com/schedule/CharacterSchedulePanel";
+// 引用了CharacterDetailSaveActions组件，用于保存角色与编辑 Free 卡
+import { CharacterDetailSaveActions } from "@studio-v2/src/pageComponents/characters/com/CharacterDetailSaveActions";
+// 引用了FreeCardEditModal组件，用于编辑角色绑定的自由通话卡
+import { FreeCardEditModal } from "@studio-v2/src/pageComponents/characters/com/freeCard/FreeCardEditModal";
 import styles from "@studio-v2/src/pageComponents/library/LibrarySplit.module.scss";
 
 const BASIC_ITEMS_WITH_AVATAR_UPLOAD = withAvatarUploadItems(CHARACTER_BASIC_ITEMS);
@@ -47,6 +51,7 @@ export const CharacterDetailEditForm: FC<CharacterDetailEditFormProps> =
 		formik,
 	}) {
 		const formError = readFormError(formik.status);
+		const [freeCardOpen, setFreeCardOpen] = useState(false);
 
 		return (
 			<form onSubmit={formik.handleSubmit} noValidate>
@@ -108,16 +113,25 @@ export const CharacterDetailEditForm: FC<CharacterDetailEditFormProps> =
 					</Typography>
 				</div>
 
-				<div className={styles.section}>
-					{/* 引用了Button组件，用于提交并落盘 */}
-					<Button
-						type="submit"
-						variant="contained"
-						disabled={formik.isSubmitting}
-					>
-						保存到角色 JSON
-					</Button>
-				</div>
+				{/* 引用了CharacterDetailSaveActions组件，用于保存与 Free 卡入口 */}
+				<CharacterDetailSaveActions
+					character={character}
+					submitting={formik.isSubmitting}
+					onOpenFreeCard={function () {
+						setFreeCardOpen(true);
+					}}
+				/>
+
+				{character.freeCardId ? (
+					// 引用了FreeCardEditModal组件，用于编辑自由通话卡内容与能力开关
+					<FreeCardEditModal
+						open={freeCardOpen}
+						freeCardId={character.freeCardId}
+						onClose={function () {
+							setFreeCardOpen(false);
+						}}
+					/>
+				) : null}
 			</form>
 		);
 	};

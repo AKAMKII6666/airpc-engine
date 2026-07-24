@@ -1,0 +1,4 @@
+[gbx] ▶ block-analyzer:V2-LY-9 start cmd=cursor-agent cwd=/Users/bolbiao/workspace/airpc-engine
+[gbx] … block-analyzer:V2-LY-9 (15s)
+Error: [aborted] Client network socket disconnected before secure TLS connection was established
+[gbx] ■ block-analyzer:V2-LY-9 done exit=1 elapsed=30s

@@ -8,9 +8,9 @@ import { listDerivedReferencedAgentIds } from "@studio-v2/src/bis/pageBis/storyE
 import type { CharacterAnchorNodeData } from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
 import type { DiskStoryPackageBundle } from "@studio-v2/typeFiles/story/package/diskStoryPackage";
 
-/** agentId → 展示名；打开包时由角色库 BFF 注入，不写回故事包 */
+/** agentId → 展示名 + 可选头像；打开包时由角色库 BFF 注入，不写回故事包 */
 export type CharacterDisplayLookup = Readonly<
-	Record<string, { displayName: string }>
+	Record<string, { displayName: string; avatarAssetId?: string | null }>
 >;
 
 function anchorNodeId(agentId: string): string {
@@ -101,11 +101,17 @@ export function buildCharacterAnchorNodes(
 		const displayName =
 			rawName !== undefined && rawName !== "" ? rawName : agentId;
 		const pendingCardCount = pendingCountForAgent(agentId, bundle.cards);
+		const avatarRaw = names[agentId]?.avatarAssetId;
+		const avatarAssetId =
+			typeof avatarRaw === "string" && avatarRaw.trim().length > 0
+				? avatarRaw.trim()
+				: null;
 		const data: CharacterAnchorNodeData = {
 			agentId,
 			displayName,
 			statusLabel: characterAnchorStatusLabel(pendingCardCount),
 			pendingCardCount,
+			avatarAssetId,
 		};
 		return {
 			id: anchorNodeId(agentId),

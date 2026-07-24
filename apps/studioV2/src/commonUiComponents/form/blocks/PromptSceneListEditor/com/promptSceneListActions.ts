@@ -3,7 +3,7 @@
 	* 抽出后压低 FormPromptSceneListEditor 有效行数。
 	*/
 import type { PromptSceneLayerForm } from "@studio-v2/typeFiles/library/characters/form/characterFormShapes";
-import { rewriteScenePriorities } from "../promptSceneListHelpers";
+import { rewriteScenePriorities } from "@studio-v2/src/utils/promptScene/promptSceneListHelpers";
 
 export type WritePromptSceneList = (next: PromptSceneLayerForm[]) => void;
 

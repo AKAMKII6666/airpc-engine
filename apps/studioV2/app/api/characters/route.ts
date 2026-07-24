@@ -18,6 +18,7 @@ import {
 	readCharacterJson,
 	writeCharacterJson,
 } from "@studio-v2/src/utils/server/characters/charactersFs.server";
+import { ensureFreeCardOnCreate } from "@studio-v2/src/utils/server/characters/freeCards/ensureFreeCardOnCreate.server";
 import { findTimeBucketsRejectReason } from "@studio-v2/src/utils/server/characters/timeBucketsReject.server";
 import { reloadStudioV2WorkspaceIfBooted } from "@studio-v2/src/utils/server/host/engineHost.server";
 
@@ -81,9 +82,13 @@ export async function POST(req: Request): Promise<Response> {
 				issues: parsed.error.issues,
 			});
 		}
-		await writeCharacterJson(parsed.data.agentId, parsed.data);
+		const ensured = await ensureFreeCardOnCreate(parsed.data);
+		if (!ensured.ok) {
+			return apiFail(ensured.code, ensured.message);
+		}
+		await writeCharacterJson(ensured.character.agentId, ensured.character);
 		await reloadStudioV2WorkspaceIfBooted();
-		return apiOk({ character: parsed.data });
+		return apiOk({ character: ensured.character });
 	} catch (err) {
 		if (isEngineError(err)) {
 			return apiFail(err.code, err.message, httpStatusForCode(err.code));

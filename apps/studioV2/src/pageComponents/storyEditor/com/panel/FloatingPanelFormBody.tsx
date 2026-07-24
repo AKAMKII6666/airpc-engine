@@ -31,6 +31,8 @@ import { NodePropertyForm } from "@studio-v2/src/pageComponents/storyEditor/com/
 import { ChapterPropertyForm } from "@studio-v2/src/pageComponents/storyEditor/com/panel/ChapterPropertyForm";
 
 export type FloatingPanelFormBodyProps = {
+	/** 路由故事包键；首通提示词预览 */
+	packageId: string;
 	selection: Exclude<StoryEditorSelection, null>;
 	onApplyNodeData: (nodeId: string, next: EditorCallCardProjection) => void;
 	onApplyChapterNodeData: (
@@ -50,6 +52,8 @@ export type FloatingPanelFormBodyProps = {
 
 export const FloatingPanelFormBody: FC<FloatingPanelFormBodyProps> =
 	function FloatingPanelFormBody({
+		// packageId 是路由包键，用于首通提示词预览
+		packageId,
 		// selection 是当前选中投影，用于分支 CallCard / 章节表单
 		selection,
 		// onApplyNodeData 是通话卡写回回调，用于提交属性
@@ -120,6 +124,7 @@ export const FloatingPanelFormBody: FC<FloatingPanelFormBodyProps> =
 					return (
 						// 引用了NodePropertyForm组件，用于 CallCard 属性字段
 						<NodePropertyForm
+							packageId={packageId}
 							nodeData={selection.data}
 							formik={formik}
 							characterAnchors={characterAnchors}

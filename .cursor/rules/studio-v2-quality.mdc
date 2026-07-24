@@ -29,6 +29,7 @@ alwaysApply: true
 - 代码行为、字段语义或约束变化时必须同步更新相关注释；错误注释视为缺陷。
 - V2 合并前必须通过统一质量命令；不得以人工承诺替代机器门禁。
 - **Client / Server 端口隔离**：Client 与引擎/Server 禁止模块级 import（含 `import type`）；唯一互通 XHR↔API；类型与轻量函数可复制镜像。详见 [studio-v2-client-server-isolation.mdc](./studio-v2-client-server-isolation.mdc)；`check:studio-structure` 硬失败。
+- **Client 分层（store · shell · bis）**：读 store→bis→UI；写 UI→bis→store；请求只经 ajaxProxy。UI 禁直读 store / 直引 ajaxProxy；store 禁网络与 import bis。一域一 store；故事编辑器画布高频自管并 flush。详见 [studio-v2-client-layering.mdc](./studio-v2-client-layering.mdc) 与技术设计 21；硬门禁 `STUDIO-STRUCT-021`～`024`。
 
 ## 注释不要求覆盖的内容
 

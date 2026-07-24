@@ -19,11 +19,12 @@ export function characterSummaryToAnchorData(
 		displayName: summary.displayName,
 		statusLabel: "本章未挂卡",
 		pendingCardCount: 0,
+		avatarAssetId: summary.avatarAssetId,
 	};
 }
 
 /**
-	* 编辑落盘后同步锚点显示名；挂卡数与状态标签保留会话值。
+	* 编辑落盘后同步锚点显示名与头像；挂卡数与状态标签保留会话值。
 	*/
 export function patchAnchorDisplayName(
 	previous: CharacterAnchorNodeData,
@@ -33,6 +34,7 @@ export function patchAnchorDisplayName(
 		...previous,
 		agentId: summary.agentId,
 		displayName: summary.displayName,
+		avatarAssetId: summary.avatarAssetId,
 	};
 }
 

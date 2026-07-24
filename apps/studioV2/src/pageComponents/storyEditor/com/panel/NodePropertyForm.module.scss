@@ -63,7 +63,9 @@
 .actions {
 	flex-shrink: 0;
 	display: flex;
-	flex-direction: column;
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: center;
 	gap: 6px;
 	padding-top: 8px;
 	border-top: 1px solid t.$border-panel;
@@ -71,6 +73,7 @@
 }
 
 .hint {
+	flex-basis: 100%;
 	color: t.$text-muted;
 	line-height: 1.4;
 }

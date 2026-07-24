@@ -30,6 +30,15 @@
 	margin: 24px;
 }
 
+.gateBlock {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 32px;
+	color: t.$text-secondary;
+}
+
 .canvasWrap {
 	flex: 1;
 	min-width: 0;

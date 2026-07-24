@@ -9,6 +9,11 @@ import { Handle, Position, type NodeProps } from "@xyflow/react";
 import type { CharacterAnchorNodeData } from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
 import styles from "./editorNodes.module.scss";
 
+/** 头像二进制预览路径；与 ajaxProxy assetFilePreviewUrl 同构，UI 禁直引 ajaxProxy */
+function avatarPreviewSrc(assetId: string): string {
+	return `/api/assets/${encodeURIComponent(assetId)}/file`;
+}
+
 export const CharacterAnchorFlowNode: FC<NodeProps> = function CharacterAnchorFlowNode({
 	// data 是锚点投影，用于显示名与挂卡状态
 	data: rawData,
@@ -22,12 +27,25 @@ export const CharacterAnchorFlowNode: FC<NodeProps> = function CharacterAnchorFl
 	]
 		.filter(Boolean)
 		.join(" ");
+	const avatarId =
+		typeof data.avatarAssetId === "string" && data.avatarAssetId.trim().length > 0
+			? data.avatarAssetId.trim()
+			: null;
 
 	return (
 		<div className={rootClass} title={`${data.statusLabel} · 点选编辑`}>
-			<span className={styles.anchorAvatar} aria-hidden>
-				{data.displayName.slice(0, 1)}
-			</span>
+			{avatarId ? (
+				<img
+					className={styles.anchorAvatarImg}
+					src={avatarPreviewSrc(avatarId)}
+					alt=""
+					draggable={false}
+				/>
+			) : (
+				<span className={styles.anchorAvatar} aria-hidden>
+					{data.displayName.slice(0, 1)}
+				</span>
+			)}
 			<div className={styles.anchorBody}>
 				<div className={styles.anchorName}>{data.displayName}</div>
 				<div className={styles.anchorMeta}>{data.statusLabel}</div>

@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "description": "Studio V2 客户端分层存量违规（STRUCT-021～024）。内容哈希不变则豁免；触碰文件必须改合规后移出本表。",
+  "updatedAt": "2026-07-24",
+  "files": {}
+}

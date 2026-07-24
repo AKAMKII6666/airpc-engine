@@ -170,6 +170,11 @@ export function characterDefToSummary(def: CharacterDef): CharacterSummary {
 		REALTIME_VOICE_OPTIONS[0]?.value ||
 		"";
 
+	const freeCardId =
+		typeof def.freeCardId === "string" && def.freeCardId.length > 0
+			? def.freeCardId
+			: null;
+
 	return {
 		agentId: def.agentId,
 		displayName: asString(def.displayName, def.agentId),
@@ -178,6 +183,7 @@ export function characterDefToSummary(def: CharacterDef): CharacterSummary {
 		bio: "",
 		packageRefCount: 0,
 		freeCall: inferFreeCall(def),
+		freeCardId,
 		lastEditedAt: new Date().toISOString(),
 		referenceLines: [],
 		identity: {
@@ -339,12 +345,16 @@ export function buildCreateCharacterDef(input: {
 	bio: string;
 }): CharacterDef {
 	const displayName = input.displayName.trim();
+	const isNarrativeOnly = input.kind === "support";
+	// 可通话角色创建时即绑 freeCardId；API POST 原子落盘 free-cards 文件
+	const freeCardId = isNarrativeOnly ? undefined : `${input.agentId}_free`;
 	return {
 		schemaVersion: 1,
 		agentId: input.agentId,
 		displayName,
 		dialable: false,
-		isNarrativeOnly: input.kind === "support",
+		isNarrativeOnly,
+		...(freeCardId ? { freeCardId } : {}),
 		identity: {
 			fullName: displayName,
 			nickname: displayName,

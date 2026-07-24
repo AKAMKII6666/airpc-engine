@@ -179,6 +179,16 @@
 	flex-shrink: 0;
 }
 
+.anchorAvatarImg {
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	object-fit: cover;
+	border: 1px solid t.$border-node;
+	flex-shrink: 0;
+	display: block;
+}
+
 .anchorBody {
 	min-width: 0;
 	flex: 1;

@@ -2,7 +2,7 @@
 	* 故事包整包读 / 整包写（conf + cards + layout）。
 	* 仅 Next API 门面调用；禁止 client 直引。
 	*/
-import { mkdir, readdir, readFile, unlink, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, rm, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import {
 	CallCardDefinitionSchema,
@@ -15,6 +15,8 @@ import {
 	listDerivedReferencedAgentIds,
 	omitParticipantsForDiskWrite,
 } from "@studio-v2/src/utils/server/packages/conf/referencedAgentsDerive.server";
+import { listDiskStoryPackages } from "@studio-v2/src/utils/server/packages/list/packagesList.server";
+import { readWorkspaceConfig } from "@studio-v2/src/utils/server/workspace/workspaceFs.server";
 import { buildDefaultCanvasLayout } from "../layout/defaultCanvasLayout.server";
 import {
 	isValidPackageId,
@@ -350,4 +352,36 @@ export async function createDiskStoryPackage(input: {
 			[],
 		),
 	});
+}
+
+/**
+	* 删除故事包目录（递归）。
+	* 拒删：不存在 / 当前首故事 / 工作区仅剩一包（须保留首故事）。
+	*/
+export async function deleteDiskStoryPackage(
+	packageId: string,
+): Promise<{ packageId: string }> {
+	const id = packageId.trim();
+	if (!isValidPackageId(id)) {
+		packageFail("VALIDATION_FAILED", "invalid packageId");
+	}
+	if (!(await packageExists(id))) {
+		packageFail("NOT_FOUND", `package not found: ${id}`);
+	}
+	const packages = await listDiskStoryPackages();
+	if (packages.length <= 1) {
+		packageFail(
+			"VALIDATION_FAILED",
+			"不能删除工作区最后一个故事包（须至少保留一个首故事）",
+		);
+	}
+	const workspace = await readWorkspaceConfig();
+	if (workspace.startupPackageId.trim() === id) {
+		packageFail(
+			"VALIDATION_FAILED",
+			"不能删除当前首故事；请先将其它包设定为首故事",
+		);
+	}
+	await rm(packageDir(id), { recursive: true, force: true });
+	return { packageId: id };
 }

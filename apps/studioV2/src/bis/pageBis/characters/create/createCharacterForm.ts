@@ -89,6 +89,7 @@ export function buildCharacterSummaryFromForm(
 		bio: values.bio.trim(),
 		packageRefCount: 0,
 		freeCall: "missing",
+		freeCardId: null,
 		lastEditedAt: new Date().toISOString(),
 		referenceLines: [],
 		socialSummary: "",

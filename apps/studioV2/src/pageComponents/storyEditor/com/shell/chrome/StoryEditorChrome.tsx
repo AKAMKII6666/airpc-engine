@@ -9,7 +9,7 @@ import { Alert, CircularProgress, Typography } from "@mui/material";
 import { StoryEditorTopBar } from "@studio-v2/src/pageComponents/storyEditor/StoryEditorTopBar";
 // 引用了SaveValidationBanner组件，用于保存校验错误定位
 import { SaveValidationBanner } from "@studio-v2/src/pageComponents/storyEditor/com/shell/chrome/SaveValidationBanner";
-import type { EditorPackageSaveState } from "@studio-v2/src/pageComponents/storyEditor/hooks/package/useStoryEditorPackageSession";
+import type { EditorPackageSaveState } from "@studio-v2/src/bis/pageBis/storyEditor/package/session/packageSession.bis";
 import type { ValidationReport } from "@studio-v2/typeFiles/story/validate/engineValidation";
 import styles from "../../../StoryEditorShell.module.scss";
 
@@ -71,6 +71,8 @@ export type StoryEditorChromeProps = {
 	onSave: () => void;
 	onLocateValidationIssue: (issuePath: string) => void;
 	dismissSaveValidation: () => void;
+	currentUserLabel?: string;
+	onSwitchUser?: () => void;
 	children: ReactNode;
 };
 
@@ -92,6 +94,10 @@ export const StoryEditorChrome: FC<StoryEditorChromeProps> = function ({
 	onLocateValidationIssue,
 	// dismissSaveValidation 关闭条幅
 	dismissSaveValidation,
+	// currentUserLabel 顶栏当前玩家
+	currentUserLabel,
+	// onSwitchUser 打开 UserGate
+	onSwitchUser,
 	// children 是画布与底栏区
 	children,
 }) {
@@ -112,6 +118,8 @@ export const StoryEditorChrome: FC<StoryEditorChromeProps> = function ({
 					saveState,
 				)}
 				onSave={onSave}
+				currentUserLabel={currentUserLabel}
+				onSwitchUser={onSwitchUser}
 			/>
 			{showValidationBanner ? (
 				// 引用了SaveValidationBanner组件，用于校验问题列表与定位

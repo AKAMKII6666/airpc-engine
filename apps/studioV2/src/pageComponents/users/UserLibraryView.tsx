@@ -1,6 +1,6 @@
 /**
 	* 玩家配置页：列表 + 详情 Formik + 新建 FormModal + 删除确认。
-	* 详情与新建共用同一套 AutoForm 字段；读写经 API 落盘 Profile.user。
+	* 挂 shell 灌 users store；增删改经 pageBis ↔ /api/users。
 	*/
 "use client";
 
@@ -14,6 +14,7 @@ import {
 	validateCreateUserForm,
 	type CreateUserFormValues,
 } from "@studio-v2/src/bis/pageBis/users/create/createUserForm";
+import { useUsersShellBis } from "@studio-v2/src/bis/shellBis/users/users.shell.bis";
 import { UserLibraryList } from "@studio-v2/src/pageComponents/users/UserLibraryList";
 import { UserLibraryDetail } from "@studio-v2/src/pageComponents/users/UserLibraryDetail";
 import { UserLibraryHeader } from "@studio-v2/src/pageComponents/users/com/UserLibraryHeader";
@@ -57,6 +58,7 @@ function userDeleteReferenceLines(
 }
 
 export const UserLibraryView: FC = function () {
+	useUsersShellBis();
 	const page = useUserLibraryPage();
 
 	return (

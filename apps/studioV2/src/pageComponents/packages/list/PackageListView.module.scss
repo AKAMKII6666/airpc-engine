@@ -29,6 +29,23 @@
 .actions {
 	display: flex;
 	gap: 8px;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	max-width: 720px;
+	justify-content: flex-end;
+}
+
+.contentPackBlock {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	align-items: flex-end;
+}
+
+.contentPackButtons {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
 }
 
 .search {
@@ -62,14 +79,37 @@
 	flex-wrap: wrap;
 }
 
+/** 工作区首故事：金色描边置顶强调 */
+.itemStartup {
+	border-color: #d4a017;
+	box-shadow: 0 0 0 1px rgba(212, 160, 23, 0.45);
+}
+
 .itemMain {
 	min-width: 0;
 	flex: 1;
 }
 
+.itemTitleRow {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
 .itemTitle {
 	font-weight: 600;
 	font-size: 15px;
+}
+
+.startupBadge {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 6px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #1a1408;
+	background: linear-gradient(135deg, #f0c14b 0%, #d4a017 100%);
 }
 
 .itemDesc {

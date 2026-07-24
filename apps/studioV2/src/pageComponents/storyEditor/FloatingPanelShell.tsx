@@ -22,6 +22,8 @@ import { useFloatingPanelLayout } from "@studio-v2/src/pageComponents/storyEdito
 import styles from "./FloatingPanelShell.module.scss";
 
 export type FloatingPanelShellProps = {
+	/** 路由故事包键；首通提示词预览需要 */
+	packageId: string;
 	/** 当前选中节点投影；null 时浮窗收起 */
 	selection: StoryEditorSelection | null;
 	onClose: () => void;
@@ -56,6 +58,8 @@ export type FloatingPanelShellProps = {
 };
 
 export const FloatingPanelShell: FC<FloatingPanelShellProps> = function ({
+	// packageId 是路由包键，用于首通提示词预览
+	packageId,
 	// selection 是当前选中投影，用于切换 CallCard / 章节表单
 	selection,
 	// onClose 关闭属性浮窗
@@ -113,6 +117,7 @@ export const FloatingPanelShell: FC<FloatingPanelShellProps> = function ({
 			<div className={styles.body}>
 				{/* 引用了FloatingPanelFormBody组件，用于属性表单 */}
 				<FloatingPanelFormBody
+					packageId={packageId}
 					selection={selection}
 					onApplyNodeData={onApplyNodeData}
 					onApplyChapterNodeData={onApplyChapterNodeData}

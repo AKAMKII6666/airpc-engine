@@ -218,4 +218,24 @@ describe("check:studio-structure", () => {
     // Windows/macOS/Linux：相对路径用 /
     assert.match(errors[0].file, /app\/page\.tsx$/);
   });
+
+  it("UI 直引 stores/ajaxProxy 失败（STRUCT-021）", async () => {
+    const { errors } = await gateFor("fail-ui-layering");
+    assert.ok(errors.some((v) => v.ruleId === "STUDIO-STRUCT-021"));
+  });
+
+  it("stores import bis 失败（STRUCT-022）", async () => {
+    const { errors } = await gateFor("fail-store-layering");
+    assert.ok(errors.some((v) => v.ruleId === "STUDIO-STRUCT-022"));
+  });
+
+  it("非 shell bis import next/navigation 失败（STRUCT-023）", async () => {
+    const { errors } = await gateFor("fail-bis-nav");
+    assert.ok(errors.some((v) => v.ruleId === "STUDIO-STRUCT-023"));
+  });
+
+  it("bis value import UI 失败（STRUCT-024）", async () => {
+    const { errors } = await gateFor("fail-bis-ui");
+    assert.ok(errors.some((v) => v.ruleId === "STUDIO-STRUCT-024"));
+  });
 });

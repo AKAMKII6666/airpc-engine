@@ -44,6 +44,14 @@ const RULE = {
   JSX_COMPONENT_COMMENT: "STUDIO-STRUCT-018",
   COMPONENT_PROPS_DESTRUCTURE: "STUDIO-STRUCT-019",
   SERVER_CLIENT_IMPORT: "STUDIO-STRUCT-020", // Server 禁止倒引 Client 区
+  /** UI 禁直读 stores / 直引 ajaxProxy */
+  UI_LAYERING: "STUDIO-STRUCT-021",
+  /** stores 禁 bis / ajax / navigation */
+  STORE_LAYERING: "STUDIO-STRUCT-022",
+  /** 非 shell / Flow 的 bis 禁 next/navigation */
+  BIS_NAVIGATION: "STUDIO-STRUCT-023",
+  /** bis 禁 value import UI 区 */
+  BIS_UI_IMPORT: "STUDIO-STRUCT-024",
 };
 
 /** @typedef {{ ruleId: string, file: string, line: number, column: number, message: string, suggestion: string, severity?: "error"|"warn" }} Violation */
@@ -399,6 +407,98 @@ function isClientBannedPath(studioRel, ctx) {
 }
 
 /**
+ * 展示层：禁止直读 store / 直引 ajaxProxy。
+ * @param {string} studioRel
+ */
+function isUiPresentationPath(studioRel) {
+  return (
+    studioRel.startsWith("src/pageComponents/") ||
+    studioRel.startsWith("src/commonUiComponents/")
+  );
+}
+
+/**
+ * @param {string} studioRel
+ */
+function isStoresPath(studioRel) {
+  return (
+    studioRel === "src/stores" || studioRel.startsWith("src/stores/")
+  );
+}
+
+/**
+ * @param {string} studioRel
+ */
+function isBisPath(studioRel) {
+  return studioRel === "src/bis" || studioRel.startsWith("src/bis/");
+}
+
+/**
+ * @param {string} studioRel
+ */
+function isAjaxProxyPath(studioRel) {
+  return (
+    studioRel === "src/utils/ajaxProxy" ||
+    studioRel.startsWith("src/utils/ajaxProxy/")
+  );
+}
+
+/**
+ * @param {string} fileAbs
+ */
+function isShellBisFile(fileAbs) {
+  const base = path.basename(fileAbs);
+  return base.endsWith(".shell.bis.ts") || base.endsWith(".shell.bis.tsx");
+}
+
+/**
+ * @param {string} fileAbs
+ */
+function isBisFlowFile(fileAbs) {
+  const base = path.basename(fileAbs);
+  return /Flow\.tsx?$/.test(base);
+}
+
+/**
+ * 加载分层 baseline：哈希未变则豁免 021～024。
+ * @param {object} ctx
+ * @returns {Promise<Record<string, string>>}
+ */
+async function loadLayeringBaseline(ctx) {
+  const baselinePath = ctx.config.layeringBaselinePath
+    ? path.resolve(ctx.repoRoot, ctx.config.layeringBaselinePath)
+    : path.join(__dirname, "studio-v2-layering-baseline.json");
+  try {
+    const data = JSON.parse(await readFile(baselinePath, "utf8"));
+    return data.files ?? {};
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * @param {Record<string, string>} baseline
+ * @param {string} relToStudio
+ * @param {string} text
+ */
+function isLayeringBaselined(baseline, relToStudio, text) {
+  const hash = baseline[relToStudio];
+  return Boolean(hash && hash === sha1(text));
+}
+
+/**
+ * @param {string} spec
+ */
+function isNextNavigationSpec(spec) {
+  return (
+    spec === "next/navigation" ||
+    spec === "next/router" ||
+    spec.startsWith("next/navigation/") ||
+    spec.startsWith("next/router/")
+  );
+}
+
+/**
  * 将 import spec 解析为相对 studioRoot 的路径（无扩展名亦可）。
  * @param {string} importerAbs
  * @param {string} spec
@@ -445,6 +545,11 @@ function analyzeDependencies(fileAbs, text, ctx) {
     /^\s*["']use client["']/.test(text) ||
     /(^|\/)features\//.test(rel) ||
     /(^|\/)store\//.test(rel);
+  const layeringFrozen = isLayeringBaselined(
+    ctx.layeringBaseline ?? {},
+    studioRel,
+    text,
+  );
 
   const sf = ts.createSourceFile(
     fileAbs,
@@ -538,6 +643,92 @@ function analyzeDependencies(fileAbs, text, ctx) {
           suggestion:
             "engineIOModule 等仅 Server/Host 装配可引用；浏览器经 XHR↔API",
         });
+      }
+    }
+
+    // —— 客户端分层 021～024（baseline 冻结存量）——
+    if (!layeringFrozen && !serverAllow) {
+      if (isUiPresentationPath(studioRel) && target) {
+        if (isStoresPath(target) || isAjaxProxyPath(target)) {
+          if (!isAllowlisted(ctx, RULE.UI_LAYERING, rel)) {
+            violations.push({
+              ruleId: RULE.UI_LAYERING,
+              file: rel,
+              line: line + 1,
+              column: character + 1,
+              severity: "error",
+              message: `UI 禁止直引 ${isStoresPath(target) ? "stores" : "ajaxProxy"}：${spec}`,
+              suggestion:
+                "经 feature bis 读 store / 发请求；见技术设计 21 与 STUDIO-STRUCT-021",
+            });
+          }
+        }
+      }
+
+      if (isStoresPath(studioRel)) {
+        if (isNextNavigationSpec(spec)) {
+          if (!isAllowlisted(ctx, RULE.STORE_LAYERING, rel)) {
+            violations.push({
+              ruleId: RULE.STORE_LAYERING,
+              file: rel,
+              line: line + 1,
+              column: character + 1,
+              severity: "error",
+              message: `stores 禁止 import 路由导航：${spec}`,
+              suggestion: "导航留给 shell bis 或 *Flow.ts",
+            });
+          }
+        } else if (target && (isBisPath(target) || isAjaxProxyPath(target))) {
+          if (!isAllowlisted(ctx, RULE.STORE_LAYERING, rel)) {
+            violations.push({
+              ruleId: RULE.STORE_LAYERING,
+              file: rel,
+              line: line + 1,
+              column: character + 1,
+              severity: "error",
+              message: `stores 禁止 import ${isBisPath(target) ? "bis" : "ajaxProxy"}：${spec}`,
+              suggestion: "store 只做结果型 setState；请求与编排在 bis",
+            });
+          }
+        }
+      }
+
+      if (
+        isBisPath(studioRel) &&
+        !isShellBisFile(fileAbs) &&
+        !isBisFlowFile(fileAbs) &&
+        isNextNavigationSpec(spec)
+      ) {
+        if (!isAllowlisted(ctx, RULE.BIS_NAVIGATION, rel)) {
+          violations.push({
+            ruleId: RULE.BIS_NAVIGATION,
+            file: rel,
+            line: line + 1,
+            column: character + 1,
+            severity: "error",
+            message: `非 shell bis / *Flow.ts 禁止 import 路由：${spec}`,
+            suggestion: "导航封装为 *Flow.ts，或仅 *.shell.bis.ts 使用",
+          });
+        }
+      }
+
+      if (
+        isBisPath(studioRel) &&
+        !isTypeOnly &&
+        target &&
+        isUiPresentationPath(target)
+      ) {
+        if (!isAllowlisted(ctx, RULE.BIS_UI_IMPORT, rel)) {
+          violations.push({
+            ruleId: RULE.BIS_UI_IMPORT,
+            file: rel,
+            line: line + 1,
+            column: character + 1,
+            severity: "error",
+            message: `bis 禁止 value import UI 区：${spec}`,
+            suggestion: "类型上收 typeFiles；展示留 pageComponents；bis 只编排",
+          });
+        }
       }
     }
   }
@@ -1227,8 +1418,16 @@ export async function runStructureGate(opts = {}) {
     opts.studioRoot ?? config.studioRoot,
   );
 
-  /** @type {{ repoRoot: string, config: any, studioRootAbs: string }} */
-  const ctx = { repoRoot, config, studioRootAbs };
+  /** @type {{ repoRoot: string, config: any, studioRootAbs: string, layeringBaseline: Record<string, string> }} */
+  const ctx = {
+    repoRoot,
+    config,
+    studioRootAbs,
+    layeringBaseline: await loadLayeringBaseline({
+      repoRoot,
+      config,
+    }),
+  };
 
   /** @type {Violation[]} */
   const all = [...validateAllowlist(ctx)];
@@ -1301,12 +1500,85 @@ export function formatViolation(v) {
   return `${v.ruleId}  ${v.file}:${v.line}:${v.column}  ${v.message}  ${v.suggestion}`;
 }
 
+const LAYERING_RULE_IDS = new Set([
+  RULE.UI_LAYERING,
+  RULE.STORE_LAYERING,
+  RULE.BIS_NAVIGATION,
+  RULE.BIS_UI_IMPORT,
+]);
+
+/**
+ * 扫描当前分层违规文件并写入 baseline（触碰即清）。
+ * @param {{ studioRoot?: string, configPath?: string }} opts
+ */
+export async function writeLayeringBaseline(opts = {}) {
+  const configPath =
+    opts.configPath ?? path.join(__dirname, "structure-gate-config.json");
+  const config = JSON.parse(await readFile(configPath, "utf8"));
+  const studioRootAbs = path.resolve(
+    repoRoot,
+    opts.studioRoot ?? config.studioRoot,
+  );
+  const ctx = {
+    repoRoot,
+    config,
+    studioRootAbs,
+    layeringBaseline: {},
+  };
+  const excludeDirNames = new Set(config.excludeDirNames ?? []);
+  const files = await walkTsFiles(studioRootAbs, excludeDirNames);
+  /** @type {Map<string, string>} */
+  const frozen = new Map();
+
+  for (const file of files) {
+    const text = await readFile(file, "utf8");
+    const hits = analyzeDependencies(file, text, ctx).filter(
+      (v) =>
+        (v.severity ?? "error") === "error" && LAYERING_RULE_IDS.has(v.ruleId),
+    );
+    if (hits.length === 0) continue;
+    const relToStudio = path
+      .relative(studioRootAbs, file)
+      .split(path.sep)
+      .join("/");
+    frozen.set(relToStudio, sha1(text));
+  }
+
+  const sortedKeys = [...frozen.keys()].sort();
+  /** @type {Record<string, string>} */
+  const filesOut = {};
+  for (const k of sortedKeys) {
+    filesOut[k] = frozen.get(k);
+  }
+  const outPath = config.layeringBaselinePath
+    ? path.resolve(repoRoot, config.layeringBaselinePath)
+    : path.join(__dirname, "studio-v2-layering-baseline.json");
+  const payload = {
+    version: 1,
+    description:
+      "Studio V2 客户端分层存量违规（STRUCT-021～024）。内容哈希不变则豁免；触碰文件必须改合规后移出本表。",
+    updatedAt: new Date().toISOString().slice(0, 10),
+    files: filesOut,
+  };
+  const { writeFile } = await import("node:fs/promises");
+  await writeFile(outPath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
+  return { outPath, count: sortedKeys.length, files: filesOut };
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const rootIdx = args.indexOf("--root");
   const studioRoot =
     rootIdx >= 0 && args[rootIdx + 1] ? args[rootIdx + 1] : undefined;
   const asJson = args.includes("--json");
+
+  if (args.includes("--write-layering-baseline")) {
+    const written = await writeLayeringBaseline({ studioRoot });
+    console.log(
+      `wrote layering baseline: ${written.count} files → ${written.outPath}`,
+    );
+    return;
+  }
 
   const result = await runStructureGate({ studioRoot });
   if (asJson) {

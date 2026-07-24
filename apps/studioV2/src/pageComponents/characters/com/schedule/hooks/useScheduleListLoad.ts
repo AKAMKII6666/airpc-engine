@@ -1,57 +1,19 @@
 /**
-	* 定时外呼列表加载：按 userId×agentId 拉 intents。
+	* 定时外呼列表：转发 feature bis；intents/loading 真源在 characters store。
 	*/
-import { useCallback, useEffect, useState } from "react";
-import type { ScheduledIntent } from "@studio-v2/typeFiles/library/schedule/engineScheduledIntent";
-import { fetchAgentSchedule } from "@studio-v2/src/utils/ajaxProxy/library/api/scheduleApi";
+import {
+	useCharacterScheduleListBis,
+	type CharacterScheduleListBis,
+} from "@studio-v2/src/bis/pageBis/characters/schedule/session/characterScheduleList.bis";
 
-export type ScheduleListLoadState = {
-	intents: ScheduledIntent[];
-	clockMs: number;
-	loading: boolean;
-	error: string | undefined;
-	setError: (msg: string | undefined) => void;
-	reload: () => Promise<void>;
-};
+export type ScheduleListLoadState = CharacterScheduleListBis;
 
 /**
-	* 挂载/切换 userId 时拉取列表；无 userId 则清空。
+	* 挂载/切换 userId 时由 bis 拉取；无 userId 则清空。
 	*/
 export function useScheduleListLoad(
 	userId: string,
 	agentId: string,
 ): ScheduleListLoadState {
-	const [intents, setIntents] = useState<ScheduledIntent[]>([]);
-	const [clockMs, setClockMs] = useState(0);
-	const [loading, setLoading] = useState(false);
-	const [error, setError] = useState<string | undefined>();
-
-	const reload = useCallback(async () => {
-		if (!userId) {
-			setIntents([]);
-			return;
-		}
-		setLoading(true);
-		setError(undefined);
-		try {
-			const page = await fetchAgentSchedule({ userId, agentId });
-			setIntents(page.intents);
-			setClockMs(page.clockMs);
-		} catch (err) {
-			setIntents([]);
-			setError(
-				err instanceof Error && err.message.trim() !== ""
-					? err.message
-					: "加载定时外呼失败",
-			);
-		} finally {
-			setLoading(false);
-		}
-	}, [agentId, userId]);
-
-	useEffect(() => {
-		void reload();
-	}, [reload]);
-
-	return { intents, clockMs, loading, error, setError, reload };
+	return useCharacterScheduleListBis(userId, agentId);
 }

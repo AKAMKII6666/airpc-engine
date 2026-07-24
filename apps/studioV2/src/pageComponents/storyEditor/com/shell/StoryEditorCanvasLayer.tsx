@@ -84,8 +84,8 @@ export type StoryEditorCanvasLayerProps = {
 };
 
 export const StoryEditorCanvasLayer: FC<StoryEditorCanvasLayerProps> = function ({
-	// packageId 是路由包键；包配置浮窗从 bundle 投影，此处保留契约供壳层传入
-	packageId: _packageId,
+	// packageId 是路由包键；属性浮窗首通预览与包配置共用
+	packageId,
 	// graphSeed 是磁盘打开的初始画布
 	graphSeed,
 	// bundle 是当前整包，用于包配置投影
@@ -174,6 +174,7 @@ export const StoryEditorCanvasLayer: FC<StoryEditorCanvasLayerProps> = function 
 			<CanvasCharacterAddButton onAdd={onAddCharacter} />
 			{/* 引用了FloatingPanelShell组件，用于 CallCard / 章节属性浮窗 */}
 			<FloatingPanelShell
+				packageId={packageId}
 				selection={propertyPanelOpen ? selection : null}
 				onClose={onCloseSelection}
 				onApplyNodeData={onApplyNodeData}

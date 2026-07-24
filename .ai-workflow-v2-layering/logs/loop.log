@@ -1,0 +1,57 @@
+[2026-07-23T10:25:21.933Z] checkpoint preflight skipped=true checkpoints disabled (default; pass --checkpoint to enable)
+[2026-07-23T10:25:21.933Z] start status=EXECUTE_BATCH mock=false
+[2026-07-23T10:25:21.933Z] economy=3 (defer) defer_verify_every=3
+[2026-07-23T10:25:21.934Z] iter=1 status=EXECUTE_BATCH
+[2026-07-23T10:29:13.424Z] execute → EXECUTE_BATCH (economy=3 defer → next EXECUTE (skip batch review+verify))
+[2026-07-23T10:29:13.426Z] iter=2 status=EXECUTE_BATCH
+[2026-07-23T10:52:59.228Z] execute → EXECUTE_BATCH (economy=3 defer → next EXECUTE (skip batch review+verify))
+[2026-07-23T10:52:59.230Z] iter=3 status=EXECUTE_BATCH
+[2026-07-23T11:00:35.071Z] execute → VERIFY_BATCH (economy=3 defer mid-verify (batch 3 % 3 == 0))
+[2026-07-23T11:00:35.075Z] iter=4 status=VERIFY_BATCH
+[2026-07-23T11:00:44.184Z] checkpoint skipped=true sha=null checkpoints disabled
+[2026-07-23T11:00:44.184Z] verify ok=true checks=true → EXECUTE_BATCH (batch verify pass; more todos) fingerprint=-
+[2026-07-23T11:00:44.185Z] verify pass economy route → EXECUTE_BATCH (batch verify pass; more todos)
+[2026-07-23T11:00:44.185Z] iter=5 status=EXECUTE_BATCH
+[2026-07-23T11:24:24.486Z] execute → EXECUTE_BATCH (economy=3 defer → next EXECUTE (skip batch review+verify))
+[2026-07-23T11:24:24.489Z] iter=6 status=EXECUTE_BATCH
+[2026-07-23T11:27:50.494Z] execute → EXECUTE_BATCH (economy=3 defer → next EXECUTE (skip batch review+verify))
+[2026-07-23T11:27:50.495Z] iter=7 status=EXECUTE_BATCH
+[2026-07-23T11:30:09.236Z] execute → VERIFY_BATCH (economy=3 defer mid-verify (batch 6 % 3 == 0))
+[2026-07-23T11:30:09.237Z] iter=8 status=VERIFY_BATCH
+[2026-07-23T11:30:18.666Z] checkpoint skipped=true sha=null checkpoints disabled
+[2026-07-23T11:30:18.666Z] verify ok=true checks=true → EXECUTE_BATCH (batch verify pass; more todos) fingerprint=-
+[2026-07-23T11:30:18.666Z] verify pass economy route → EXECUTE_BATCH (batch verify pass; more todos)
+[2026-07-23T11:30:18.667Z] iter=9 status=EXECUTE_BATCH
+[2026-07-23T11:32:29.686Z] execute → EXECUTE_BATCH (economy=3 defer → next EXECUTE (skip batch review+verify))
+[2026-07-23T11:32:29.687Z] iter=10 status=EXECUTE_BATCH
+[2026-07-23T11:35:20.089Z] execute → EXECUTE_BATCH (economy=3 defer → next EXECUTE (skip batch review+verify))
+[2026-07-23T11:35:20.091Z] iter=11 status=EXECUTE_BATCH
+[2026-07-23T12:10:04.140Z] executor failed exit=1
+[2026-07-23T12:10:04.161Z] block recovery scheduled origin=EXECUTE_BATCH resume=EXECUTE_BATCH attempts=0/2: executor failed (exit 1)
+[2026-07-23T12:10:04.164Z] iter=12 status=BLOCK_ANALYZE
+[2026-07-23T12:10:04.165Z] hard_stop scan bypassed during BLOCK_ANALYZE
+[2026-07-23T12:10:34.225Z] iter=13 status=BLOCKED
+[2026-07-24T01:03:13.302Z] checkpoint preflight skipped=true checkpoints disabled (default; pass --checkpoint to enable)
+[2026-07-24T01:03:13.441Z] start status=BLOCKED mock=false
+[2026-07-24T01:03:13.443Z] economy=3 (defer) defer_verify_every=3
+[2026-07-24T01:03:13.454Z] iter=1 status=BLOCKED
+[2026-07-24T01:05:43.775Z] clear-blocked afterManual=false → EXECUTE_BATCH (remaining todos=3 → EXECUTE_BATCH)
+[2026-07-24T01:05:43.776Z] checkpoint preflight skipped=true checkpoints disabled (default; pass --checkpoint to enable)
+[2026-07-24T01:05:43.776Z] start status=EXECUTE_BATCH mock=false
+[2026-07-24T01:05:43.776Z] economy=3 (defer) defer_verify_every=3
+[2026-07-24T01:05:43.776Z] iter=1 status=EXECUTE_BATCH
+[2026-07-24T01:10:32.776Z] execute → VERIFY_BATCH (economy=3 defer mid-verify (batch 9 % 3 == 0))
+[2026-07-24T01:10:32.778Z] iter=2 status=VERIFY_BATCH
+[2026-07-24T01:10:45.273Z] checkpoint skipped=true sha=null checkpoints disabled
+[2026-07-24T01:10:45.273Z] verify ok=true checks=true → EXECUTE_BATCH (batch verify pass; more todos) fingerprint=-
+[2026-07-24T01:10:45.273Z] verify pass economy route → EXECUTE_BATCH (batch verify pass; more todos)
+[2026-07-24T01:10:45.274Z] iter=3 status=EXECUTE_BATCH
+[2026-07-24T01:17:07.835Z] execute → EXECUTE_BATCH (economy=3 defer → next EXECUTE (skip batch review+verify))
+[2026-07-24T01:17:07.839Z] iter=4 status=EXECUTE_BATCH
+[2026-07-24T01:18:18.929Z] execute → FULL_VERIFY (economy=3 defer → FULL_VERIFY (closing; no todos left))
+[2026-07-24T01:18:18.930Z] iter=5 status=FULL_VERIFY
+[2026-07-24T01:18:32.585Z] final checkpoint skipped=true sha=null checkpoints disabled
+[2026-07-24T01:18:32.585Z] full verify pass (defer closing) → FULL_REVIEW
+[2026-07-24T01:18:32.586Z] iter=6 status=FULL_REVIEW
+[2026-07-24T01:19:57.970Z] full review → READY_FOR_MANUAL_QA (full review pass)
+[2026-07-24T01:19:57.971Z] iter=7 status=READY_FOR_MANUAL_QA

@@ -27,6 +27,7 @@ type Props = {
 	formalBlocked: boolean;
 	canExport: boolean;
 	doneMsg: string | null;
+	exportError: string | undefined;
 	onPackageChange: (packageId: string) => void;
 	onKindChange: (kind: ExportKind) => void;
 	onExport: () => void;
@@ -45,13 +46,15 @@ export const ExportPackageForm: FC<Props> = function ExportPackageForm({
 	formalBlocked,
 	// canExport 表示是否允许点击导出，用于按钮 disabled
 	canExport,
-	// doneMsg 是模拟导出完成提示，用于成功文案
+	// doneMsg 是下载完成提示，用于成功文案
 	doneMsg,
+	// exportError 是下载失败人话，用于错误提示
+	exportError,
 	// onPackageChange 用于切换选中包
 	onPackageChange,
 	// onKindChange 用于切换导出用途
 	onKindChange,
-	// onExport 用于触发模拟导出
+	// onExport 用于触发 .storypack.json 下载
 	onExport,
 }) {
 	return (
@@ -112,14 +115,21 @@ export const ExportPackageForm: FC<Props> = function ExportPackageForm({
 				</Typography>
 			) : null}
 
+			{exportError ? (
+				// 引用了Typography组件，用于导出失败提示
+				<Typography variant="body2" color="error">
+					{exportError}
+				</Typography>
+			) : null}
+
 			<div className={styles.footer}>
 				{/* 引用了Button组件，用于返回列表 */}
 				<Button component={Link} href="/packages" variant="text">
 					返回
 				</Button>
-				{/* 引用了Button组件，用于触发导出 */}
+				{/* 引用了Button组件，用于触发导出下载 */}
 				<Button variant="contained" disabled={!canExport} onClick={onExport}>
-					导出文件
+					下载 .storypack.json
 				</Button>
 			</div>
 		</section>

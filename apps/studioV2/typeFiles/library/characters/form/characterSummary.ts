@@ -104,6 +104,11 @@ export type CharacterSummary = {
 	packageRefCount: number;
 	/** 默认自由通话卡就绪态（列表用；详情本轮不编辑） */
 	freeCall: FreeCallReadiness;
+	/**
+		* 绑定的 FreeCallCard id；null 表示未绑（narrative-only 或历史缺卡）。
+		* 「编辑自由通话卡」入口用此键拉盘。
+		*/
+	freeCardId: string | null;
 	/** 最近修改时间 ISO-8601；仅 UI 投影 */
 	lastEditedAt: string;
 	/** 引用关系人话摘要；空数组表示无引用 */

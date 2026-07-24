@@ -16,6 +16,7 @@ import {
 	readCharacterJson,
 	writeCharacterJson,
 } from "@studio-v2/src/utils/server/characters/charactersFs.server";
+import { deleteFreeCardJson } from "@studio-v2/src/utils/server/characters/freeCards/freeCardsFs.server";
 import { findTimeBucketsRejectReason } from "@studio-v2/src/utils/server/characters/timeBucketsReject.server";
 import { reloadStudioV2WorkspaceIfBooted } from "@studio-v2/src/utils/server/host/engineHost.server";
 
@@ -95,7 +96,24 @@ export async function DELETE(
 ): Promise<Response> {
 	try {
 		const { agentId } = await ctx.params;
+		// 先读 freeCardId，删角色 JSON 前幂等清 Free 卡文件
+		let freeCardId: string | undefined;
+		try {
+			const raw = await readCharacterJson(agentId);
+			if (
+				typeof raw === "object" &&
+				raw !== null &&
+				typeof (raw as { freeCardId?: unknown }).freeCardId === "string"
+			) {
+				freeCardId = (raw as { freeCardId: string }).freeCardId;
+			}
+		} catch {
+			freeCardId = undefined;
+		}
 		await deleteCharacterJson(agentId);
+		if (freeCardId) {
+			await deleteFreeCardJson(freeCardId);
+		}
 		await reloadStudioV2WorkspaceIfBooted();
 		return apiOk({ ok: true });
 	} catch (err) {

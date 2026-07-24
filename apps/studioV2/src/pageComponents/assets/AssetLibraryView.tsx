@@ -1,6 +1,6 @@
 /**
 	* 资源库独立页：类型筛选 + 列表 + 详情 Formik + 新建 FormModal + 删除确认。
-	* 增删改经 /api/assets 读写 data/assets。
+	* 挂 shell 灌 assets store；增删改经 pageBis ↔ /api/assets。
 	*/
 "use client";
 
@@ -14,6 +14,7 @@ import {
 	validateCreateAssetForm,
 	type CreateAssetFormValues,
 } from "@studio-v2/src/bis/pageBis/assets/createAssetForm";
+import { useAssetsShellBis } from "@studio-v2/src/bis/shellBis/assets/assets.shell.bis";
 // 引用了AssetLibraryList组件，用于资源列表
 import { AssetLibraryList } from "@studio-v2/src/pageComponents/assets/AssetLibraryList";
 // 引用了AssetLibraryDetail组件，用于资源详情
@@ -28,6 +29,7 @@ import { useAssetLibraryPage } from "@studio-v2/src/pageComponents/assets/hooks/
 import styles from "@studio-v2/src/pageComponents/library/LibrarySplit.module.scss";
 
 export const AssetLibraryView: FC = function () {
+	useAssetsShellBis();
 	const page = useAssetLibraryPage();
 
 	return (

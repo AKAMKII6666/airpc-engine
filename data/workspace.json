@@ -1,5 +1,6 @@
 {
   "schemaVersion": 1,
   "title": "airpc-engine local workspace",
-  "engineMinVersion": "0.1.0"
+  "engineMinVersion": "0.1.0",
+  "startupPackageId": "wrong_number_act1"
 }

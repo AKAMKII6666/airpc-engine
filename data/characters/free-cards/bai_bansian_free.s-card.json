@@ -1,0 +1,20 @@
+{
+  "cardId": "bai_bansian_free",
+  "cardKind": "free",
+  "title": "白半仙·自由通话",
+  "ownerAgentId": "bai-bansian",
+  "entryMode": "either",
+  "interactionMode": "realtime_dialogue",
+  "context": {
+    "privateBrief": "自由闲聊；无强制剧情目标。神神叨叨但不吓人。",
+    "speakableBrief": "随便聊聊。",
+    "background": "",
+    "premise": "",
+    "emotion": "玄乎",
+    "objective": "自然陪伴闲聊",
+    "forbidden": ["剧透未解锁剧情"]
+  },
+  "objectives": { "requiredBeats": [] },
+  "toolPolicy": { "mode": "inherit_free" },
+  "exits": []
+}

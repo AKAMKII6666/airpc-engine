@@ -6,7 +6,7 @@
 import type { FC } from "react";
 import Link from "next/link";
 import { Button, Typography } from "@mui/material";
-import type { EditorPackageSaveState } from "@studio-v2/src/pageComponents/storyEditor/hooks/package/useStoryEditorPackageSession";
+import type { EditorPackageSaveState } from "@studio-v2/src/bis/pageBis/storyEditor/package/session/packageSession.bis";
 import styles from "./StoryEditorTopBar.module.scss";
 
 export type StoryEditorTopBarProps = {
@@ -24,6 +24,10 @@ export type StoryEditorTopBarProps = {
 	onSave: () => void;
 	/** 加载中禁用保存 */
 	saveDisabled?: boolean;
+	/** 当前玩家展示名；空表示未选 */
+	currentUserLabel?: string;
+	/** 打开 UserGate 切换玩家 */
+	onSwitchUser?: () => void;
 };
 
 function saveStateLabel(state: EditorPackageSaveState): string {
@@ -48,6 +52,10 @@ export const StoryEditorTopBar: FC<StoryEditorTopBarProps> = function ({
 	onSave,
 	// saveDisabled 加载失败时禁用保存
 	saveDisabled,
+	// currentUserLabel 当前玩家展示
+	currentUserLabel,
+	// onSwitchUser 打开 UserGate
+	onSwitchUser,
 }) {
 	const validateLabel =
 		validationSummary && validationSummary.trim() !== ""
@@ -73,6 +81,16 @@ export const StoryEditorTopBar: FC<StoryEditorTopBarProps> = function ({
 				</div>
 			</div>
 			<div className={styles.actions}>
+				{/* 引用了Typography组件，用于当前玩家 */}
+				<Typography variant="caption" className={styles.user}>
+					玩家：{currentUserLabel?.trim() || "未选择"}
+				</Typography>
+				{onSwitchUser ? (
+					// 引用了Button组件，用于切换玩家
+					<Button size="small" variant="text" onClick={onSwitchUser}>
+						切换玩家
+					</Button>
+				) : null}
 				{/* 引用了Button组件，用于整包保存 */}
 				<Button
 					size="small"

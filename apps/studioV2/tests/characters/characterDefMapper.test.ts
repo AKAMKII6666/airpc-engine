@@ -82,6 +82,11 @@ describe("characterDefMapper", () => {
 			kind: "story",
 			bio: "",
 		});
+		expect(created.freeCardId).toBe("agent_round_1_free");
+		expect(characterDefToSummary(created).freeCardId).toBe(
+			"agent_round_1_free",
+		);
+		expect(characterDefToSummary(created).freeCall).toBe("ready");
 		const summary = characterDefToSummary(created);
 		const values = toCharacterDetailFormValues(summary);
 		values.identity.fullName = "全名回读";

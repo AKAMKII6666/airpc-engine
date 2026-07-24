@@ -13,7 +13,7 @@ import {
 	removeScheduleIntent,
 	saveScheduleIntentFromForm,
 	toggleRecurringPause,
-} from "./scheduleIntentMutations";
+} from "@studio-v2/src/bis/pageBis/characters/schedule/scheduleIntentMutations.bis";
 import { useScheduleListLoad } from "./useScheduleListLoad";
 
 export type UseCharacterSchedulePanelResult = {

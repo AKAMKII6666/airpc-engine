@@ -1,0 +1,36 @@
+.pane {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin-bottom: 14px;
+	min-width: 0;
+}
+
+.title {
+	color: rgba(255, 255, 255, 0.65);
+	font-weight: 600;
+}
+
+.monacoWrap {
+	width: 100%;
+	min-width: 640px;
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	border-radius: 6px;
+	overflow: hidden;
+}
+
+.pre {
+	margin: 0;
+	padding: 12px;
+	min-width: 640px;
+	max-height: 320px;
+	overflow: auto;
+	white-space: pre-wrap;
+	word-break: break-word;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+	font-size: 12px;
+	line-height: 1.45;
+	background: rgba(0, 0, 0, 0.35);
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	border-radius: 6px;
+}

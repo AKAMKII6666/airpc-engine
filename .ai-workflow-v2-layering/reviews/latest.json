@@ -1,0 +1,53 @@
+{
+	"schemaVersion": 1,
+	"reviewRunId": "final-reviewer-final-4416e015-8411-40d6-8ffa-c01e5a2b49be",
+	"role": "final-reviewer",
+	"batchId": "final",
+	"result": "pass",
+	"blocker": 0,
+	"critical": 0,
+	"major": 0,
+	"minor": 3,
+	"recommendedNextState": "READY_FOR_MANUAL_QA",
+	"summary": "V2-LY-1～12 全 ✅；对照规范改进需求 §3–§5：一域一 store + 各域唯一 shellBis、UI 无 stores/ajaxProxy 直引、编辑器保存先 flush→flushedGraph、layering baseline files 为空、latest-verify quality:studio 绿、技术设计 21 §10/§11 已勾、无 @deprecated 迁移壳。blocker 清单均未命中。残留为子面板列表态仍在 page hook、缺 commitStoryEditorPackageSave 专用单测、以及一份 skip 的临时测试文件，不阻收口。",
+	"issues": [
+		{
+			"id": "FR-1",
+			"severity": "minor",
+			"file": "apps/studioV2/src/pageComponents/characters/com/memory/hooks/useCharacterMemoryList.ts",
+			"location": "also useScheduleListLoad / useCharacterMemoryUsers / useDebuggerPackageValidate",
+			"description": "角色记忆/日程与调试器 validate 子面板仍在 page hook 自管列表/loading/选中；主库页与 debugger session/mailbox 已进 store。符合 §2.2「不全清 useState」，但未达理想全量子面板 store 化。",
+			"expectedBehavior": "主验收以库页列表/选中/CRUD 与 §3.5 session·mailbox 为准即可；子面板可另开增量里程碑迁 store。",
+			"suggestedVerification": "手工确认记忆/日程/validate 仍经 bis 请求且无 UI 直引 ajaxProxy。"
+		},
+		{
+			"id": "FR-2",
+			"severity": "minor",
+			"file": "apps/studioV2/src/bis/pageBis/storyEditor/package/session/packageSessionSave.ts",
+			"location": "commitStoryEditorPackageSave ~L70–92",
+			"description": "保存路径代码已强制 flush→读 flushedGraph 再 PUT；storyEditorStore 单测覆盖 flush/dirty/save 相位，但缺少对 commitStoryEditorPackageSave flush 失败门闸的直接单测。",
+			"expectedBehavior": "理想有用例：flush 返回 false / flushedGraph 缺失时不发 PUT 且 applySaveFailure。",
+			"suggestedVerification": "手工保存前拖节点确认落盘含未节流变更；或补 bis 单测 mock flush。"
+		},
+		{
+			"id": "FR-3",
+			"severity": "minor",
+			"file": "apps/studioV2/tests/tmp-remove-flat-prompt-scene.test.ts",
+			"location": "describe.skip",
+			"description": "遗留 skip 的临时 noop 测试文件，非本里程碑行为缺陷，属卫生债。",
+			"expectedBehavior": "删除该临时文件或转为有意义用例。",
+			"suggestedVerification": "quality:studio / vitest 列表不再出现该 skip。"
+		}
+	],
+	"checks": {
+		"qualityStudio": "pass",
+		"layeringBaselineEmpty": "pass",
+		"godStore": "pass",
+		"editorFlushBeforeSave": "pass",
+		"uiNoDirectStoreOrAjax": "pass",
+		"migrationShells": "pass",
+		"exFileAllDone": "pass",
+		"techDesign21Acceptance": "pass"
+	},
+	"notes": "只读全量审查；未改应用源码。verify 依据 .ai-workflow-v2-layering/reports/latest-verify.json（ok=true, quality:studio exit 0）。baseline updatedAt=2026-07-24、files={}。STRUCT-001～003 有大量 WARN（复杂度/行数）但不构成本里程碑硬失败。"
+}

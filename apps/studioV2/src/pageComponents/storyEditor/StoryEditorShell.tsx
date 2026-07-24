@@ -1,9 +1,10 @@
 /**
-	* 故事编辑器全屏壳：路由包键 → 加载 / 失败 / 就绪舞台。
+	* 故事编辑器全屏壳：挂 shell bis 灌账 → 加载 / 失败 / 就绪舞台。
 	*/
 "use client";
 
 import type { FC } from "react";
+import { useStoryEditorShellBis } from "@studio-v2/src/bis/shellBis/storyEditor/storyEditor.shell.bis";
 import {
 	StoryEditorLoadErrorView,
 	StoryEditorLoadingView,
@@ -20,6 +21,8 @@ export const StoryEditorShell: FC<StoryEditorShellProps> = function ({
 	// packageId 是路由包键，用于磁盘整包读写
 	packageId,
 }) {
+	// 页级唯一 shell：打开包灌 stores/storyEditor；听 refreshStamp
+	useStoryEditorShellBis(packageId);
 	const shell = useStoryEditorShellController(packageId);
 	const { loading, loadError, graphSeed, bundle } = shell.packageSession;
 

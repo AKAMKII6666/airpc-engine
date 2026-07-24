@@ -384,14 +384,15 @@ interface CallCardBoard {
 
 ## 7. FreeCallCard 规则
 
-1. 每个可参与通话的角色在 CharacterDef 上配置 `freeCardId`（见 [11](./11-角色与社交.md)）。
+1. 每个可参与通话的角色在 CharacterDef 上配置 `freeCardId`（见 [11](./11-角色与社交.md)）；**新建可通话角色须原子创建** `free-cards/<id>.s-card.json` 并绑 `freeCardId`（`isNarrativeOnly` 除外）。
 2. Resolver 在该角色**没有**可激活的 story/system pending 时使用 FreeCallCard。
-3. FreeCallCard 的 **静态 exits 可以为空**；无静态出口 ≠ 无后处理。
+3. FreeCallCard **没有故事卡式可编辑静态 exits**；Studio / BFF 落盘强制 `exits: []`。无静态出口 ≠ 无后处理。
 4. 挂机走 `FreeCallPostPipeline`（见 [19 §5](../技术设计文档/19-引擎宿主与会话模型.md)）：有效聊天 → MemoryCommit；若有 `RuntimeExitCandidate` 再跑 ExitSelector → Effect。
 5. **禁止**从 transcript 隐式扫描「约定/介绍」写 Profile；推进须来自工具候选或故事卡 Exit。
-6. **toolPolicy**：默认开放所有 Registry 中 `free` 可用工具（`inherit_free`）；作者可收紧。
+6. **固定出口能力** = Registry 中 `allowedCardKinds` 含 `free` 的工具清单；Studio 仅提供**开/关**（落盘 `toolPolicy`：全开=`inherit_free`，部分=`allowlist`，全关=`deny_all`），不可增删能力项。
 7. Free 通话上下文主要来自 [记忆](./12-记忆模型.md) + persona，而非强 beats。
 8. Free 会话 `packageId` 使用哨兵 `__free__`（见 [19](../技术设计文档/19-引擎宿主与会话模型.md)）。
+9. **主编辑入口在角色库**（「编辑自由通话卡」弹窗）；故事编辑器不编辑 Free 卡。
 ## 8. StoryPackage（静态包）
 
 ```ts

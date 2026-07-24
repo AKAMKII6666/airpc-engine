@@ -22,12 +22,24 @@ export type LoadedStoryPackageSession = {
 	* 失败时回落空表，由 diskBundleGraph 用 lanes / 派生引用降级。
 	*/
 async function buildCharacterLibraryLookup(): Promise<CharacterDisplayLookup> {
-	const lookup: Record<string, { displayName: string }> = {};
+	const lookup: Record<
+		string,
+		{ displayName: string; avatarAssetId: string | null }
+	> = {};
 	try {
 		const defs = await fetchCharacterDefs();
 		for (const def of defs) {
 			const name = def.displayName?.trim() || def.agentId;
-			lookup[def.agentId] = { displayName: name };
+			const meta =
+				def.meta && typeof def.meta === "object"
+					? (def.meta as { avatarAssetId?: unknown })
+					: {};
+			const avatar =
+				typeof meta.avatarAssetId === "string" &&
+				meta.avatarAssetId.trim().length > 0
+					? meta.avatarAssetId.trim()
+					: null;
+			lookup[def.agentId] = { displayName: name, avatarAssetId: avatar };
 		}
 	} catch {
 		return lookup;

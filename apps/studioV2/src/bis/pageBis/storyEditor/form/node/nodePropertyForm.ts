@@ -16,7 +16,7 @@ import {
 	BUILTIN_TOOL_ID_SET,
 	cardKindLabel,
 } from "@studio-v2/typeFiles/story/callCardLabels";
-import { asPromptSceneList } from "@studio-v2/src/commonUiComponents/form/blocks/PromptSceneListEditor/promptSceneListHelpers";
+import { asPromptSceneList } from "@studio-v2/src/utils/promptScene/promptSceneListHelpers";
 import {
 	normalizeExitList,
 	type ExitListFormRow,

@@ -1,0 +1,15 @@
+.list {
+	max-height: 280px;
+	overflow: auto;
+	margin-bottom: 12px;
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	border-radius: 6px;
+}
+
+.createRow {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+	margin: 12px 0;
+}

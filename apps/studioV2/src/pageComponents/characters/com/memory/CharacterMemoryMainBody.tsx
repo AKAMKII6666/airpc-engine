@@ -17,9 +17,7 @@ import { FrontendPagination } from "@studio-v2/src/commonUiComponents/pagination
 import type { MemoryListItemDto } from "@studio-v2/typeFiles/library/characters/memory/memoryReadModel";
 import type { DiskUserSummaryDto } from "@studio-v2/typeFiles/library/users/diskUserSummary";
 import styles from "@studio-v2/src/pageComponents/library/LibrarySplit.module.scss";
-import {
-	CHARACTER_MEMORY_PAGE_SIZE,
-} from "./hooks/useCharacterMemoryList";
+import { CHARACTER_MEMORY_PAGE_SIZE } from "@studio-v2/src/bis/pageBis/characters/memory/loadCharacterMemoryPage.bis";
 import { CharacterMemorySectionFrame } from "./CharacterMemorySectionFrame";
 
 export type CharacterMemoryMainBodyProps = {

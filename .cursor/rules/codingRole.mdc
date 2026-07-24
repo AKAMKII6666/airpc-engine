@@ -23,7 +23,7 @@ alwaysApply: true
 - **浏览器只请求与展示**：不持 LLM Key；不以 client store 为 Profile/Memory 真源；禁 import `engineIOModule`。
 - **Studio V2 端口隔离（硬）**：Client 与 Server/引擎禁止任何模块级 import（含 `import type`）；唯一互通 = XHR↔API；类型与轻量函数两端可复制、禁止交叉引用。详见 [studio-v2-client-server-isolation.mdc](./studio-v2-client-server-isolation.mdc)。
 - **Studio UI = 仅 MUI**；样式 **CSS Modules + SCSS**；画布 `@xyflow/react`。
-- **Studio 客户端 = Zustand + bis + shell**（见技术设计 [21](../../docs/AI和人类/技术设计文档/21-Studio客户端分层.md)）。
+- **Studio 客户端 = Zustand + bis + shell**（见技术设计 [21](../../docs/AI和人类/技术设计文档/21-Studio客户端分层.md)；V2 细则 [studio-v2-client-layering.mdc](./studio-v2-client-layering.mdc)；硬门禁 STRUCT-021～024）。
 - **经历态**：薄 Profile JSON + Memory SQLite；**CallSession** 在 Host 内存（默认不进 SaveGame）。
 - **持久化 v1** = Content/薄 Profile JSON + Memory SQLite + `logs/*.jsonl`（布局见 18/19/20；**读写经 Port**，本机实现 = `apps/studioV2/engineIOModule/`，协议见 [23](../../docs/AI和人类/技术设计文档/23-引擎存取Port与IO适配.md)）。
 - **Story**：Outcome → ExitSelector → Effect (+ Sink)。**Free**：`FreeCallPostPipeline`（MemoryCommit；有 candidate 再 Exit）；`packageId=__free__`。
@@ -51,6 +51,7 @@ alwaysApply: true
 | [studio-boundaries.mdc](./studio-boundaries.mdc) | `apps/studio/**` | [03](../../docs/AI和人类/需求/03-编辑器界面需求.md)、[21](../../docs/AI和人类/技术设计文档/21-Studio客户端分层.md)、[19](../../docs/AI和人类/技术设计文档/19-引擎宿主与会话模型.md) |
 | [studio-v2-client-server-isolation.mdc](./studio-v2-client-server-isolation.mdc) | `apps/studioV2/**` | Client↔Server 禁止交叉 import；[08 §3.3](../../docs/AI和人类/sudioV2.0版本/需求/ui/08-Studio-V2前端工程规则与质量门禁需求.md) |
 | [studio-v2-quality.mdc](./studio-v2-quality.mdc) | Studio V2 | [V2 质量门禁需求](../../docs/AI和人类/sudioV2.0版本/需求/ui/08-Studio-V2前端工程规则与质量门禁需求.md) |
+| [studio-v2-client-layering.mdc](./studio-v2-client-layering.mdc) | `apps/studioV2/src/{pageComponents,bis,stores,commonUiComponents,utils/ajaxProxy}` | [21](../../docs/AI和人类/技术设计文档/21-Studio客户端分层.md)、STRUCT-021～024 |
 | [docs-governance.mdc](./docs-governance.mdc) | `docs/**` | 三层 + 需求/技术分册 |
 | [docs-execution.mdc](./docs-execution.mdc) | docs/源码 | 编码前后读写 |
 | [testing-and-quality.mdc](./testing-and-quality.mdc) | 始终 | [06](../../docs/AI和人类/需求/06-验收标准.md) |

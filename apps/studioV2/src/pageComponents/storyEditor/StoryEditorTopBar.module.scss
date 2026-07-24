@@ -39,3 +39,12 @@
 	gap: 6px;
 	flex-shrink: 0;
 }
+
+.user {
+	color: t.$text-secondary;
+	max-width: 160px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+

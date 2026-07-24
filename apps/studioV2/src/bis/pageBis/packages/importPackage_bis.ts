@@ -1,20 +1,32 @@
 /**
-	* 导入故事包编排：本步未接真写盘；预检仍为 mock。
+	* 导入故事包编排：预检通过后 POST /api/stories/import 真写盘。
 	*/
-import type { ImportPrecheckReport } from "@studio-v2/typeFiles/story/transfer/packageTransfer";
+import { postImportDiskStoryPackage } from "@studio-v2/src/utils/ajaxProxy/packages/api/storiesApi";
+import type { DiskStoryPackageBundle } from "@studio-v2/typeFiles/story/package/diskStoryPackage";
 
-/** 导入 mock 提交结果；仅当落盘成功时有意义 */
+/** 导入提交结果 */
 export type ImportPackageResult = {
-	/** 导入落盘后的故事包目录键；与 data/storis-packages 下文件夹名一致 */
+	/** 落盘后的故事包目录键 */
 	packageId: string;
 };
 
 /**
-	* 导入落盘尚未接通（第三步 B 末可选）。
-	* @throws 始终抛错，防止误写会话 mock
+	* 将预检通过的 bundle 写入 storis-packages。
+	* 同名冲突 / 校验失败由 ajax 层抛错。
 	*/
-export function commitImportPackageMock(
-	_report: ImportPrecheckReport,
-): ImportPackageResult {
-	throw new Error("导入故事包落盘尚未接通；请使用已有磁盘包");
+export async function commitImportStoryPackage(input: {
+	packageId: string;
+	bundle: DiskStoryPackageBundle;
+}): Promise<ImportPackageResult> {
+	const conf = {
+		...input.bundle.conf,
+		packageId: input.packageId,
+	};
+	const saved = await postImportDiskStoryPackage({
+		packageId: input.packageId,
+		conf,
+		cards: input.bundle.cards,
+		layout: input.bundle.layout,
+	});
+	return { packageId: saved.packageId };
 }

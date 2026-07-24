@@ -12,7 +12,7 @@
 6. [docs/AI和人类/技术设计文档/00-技术设计索引.md](docs/AI和人类/技术设计文档/00-技术设计索引.md) — 工程分册入口 
 7. [docs/AI和人类/技术设计文档/19-引擎宿主与会话模型.md](docs/AI和人类/技术设计文档/19-引擎宿主与会话模型.md) — Host / CallSession 
 8. [docs/AI和人类/技术设计文档/23-引擎存取Port与IO适配.md](docs/AI和人类/技术设计文档/23-引擎存取Port与IO适配.md) — 存取 Port；本机 IO = studioV2/engineIOModule 
-9. [docs/AI和人类/技术设计文档/21-Studio客户端分层.md](docs/AI和人类/技术设计文档/21-Studio客户端分层.md) — Zustand · bis · shell 
+9. [docs/AI和人类/技术设计文档/21-Studio客户端分层.md](docs/AI和人类/技术设计文档/21-Studio客户端分层.md) — Zustand · bis · shell（V2 硬门禁 STRUCT-021～024） 
 10. [.cursor/rules/codingRole.mdc](.cursor/rules/codingRole.mdc) — 编码铁律 
 11. [packages/rpg-engine/README.md](packages/rpg-engine/README.md) — 引擎使用说明 
 

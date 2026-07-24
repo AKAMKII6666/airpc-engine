@@ -15,7 +15,7 @@ import {
 	resolveBoundDisplayString,
 	resolveBoundStringChangeHandler,
 } from "@studio-v2/src/commonUiComponents/form/fields/formBoundFieldProps";
-import { rewriteScenePriorities } from "@studio-v2/src/commonUiComponents/form/blocks/PromptSceneListEditor/promptSceneListHelpers";
+import { rewriteScenePriorities } from "@studio-v2/src/utils/promptScene/promptSceneListHelpers";
 import type { FormikProps } from "formik";
 import { createElement } from "react";
 import type { ChangeEvent } from "react";

@@ -45,6 +45,11 @@ export type CharacterAnchorNodeData = {
 	statusLabel: string;
 	/** 当前挂在该角色上的本包卡数量；0 表示未挂卡（UI 灰显） */
 	pendingCardCount: number;
+	/**
+		* 头像资源键；有则画布显示图片，无则回落显示名首字。
+		* 来自 CharacterDef.meta.avatarAssetId；不写回故事包。
+		*/
+	avatarAssetId?: string | null;
 };
 
 /**

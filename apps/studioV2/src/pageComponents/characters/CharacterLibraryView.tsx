@@ -1,6 +1,6 @@
 /**
 	* 角色库独立页：列表 + 详情 + 新建 FormModal + 删除确认。
-	* 增删改经 /api/characters 读写 data/characters。
+	* 挂 shell 灌 characters store；增删改经 pageBis ↔ /api/characters。
 	*/
 "use client";
 
@@ -13,6 +13,7 @@ import {
 	validateCreateCharacterForm,
 	type CreateCharacterFormValues,
 } from "@studio-v2/src/bis/pageBis/characters/create/createCharacterForm";
+import { useCharactersShellBis } from "@studio-v2/src/bis/shellBis/characters/characters.shell.bis";
 import { CharacterLibraryList } from "@studio-v2/src/pageComponents/characters/CharacterLibraryList";
 import { CharacterLibraryDetail } from "@studio-v2/src/pageComponents/characters/CharacterLibraryDetail";
 import { CharacterLibraryHeader } from "@studio-v2/src/pageComponents/characters/com/CharacterLibraryHeader";
@@ -21,6 +22,7 @@ import { useCharacterLibraryPage } from "@studio-v2/src/pageComponents/character
 import styles from "@studio-v2/src/pageComponents/library/LibrarySplit.module.scss";
 
 export const CharacterLibraryView: FC = function () {
+	useCharactersShellBis();
 	const page = useCharacterLibraryPage();
 
 	return (

@@ -1,6 +1,7 @@
 /**
-	* GET/PUT /api/stories/[packageId] — 整包读 / 整包写 data/storis-packages。
+	* GET/PUT/DELETE /api/stories/[packageId] — 整包读 / 写 / 删 data/storis-packages。
 	* PUT：写盘后 validatePackage；error 回滚并阻断（PACKAGE_VALIDATION_FAILED）。
+	* DELETE：拒删首故事与最后一个包。
 	*/
 import { isEngineError } from "@airpc/rpg-engine";
 import {
@@ -9,7 +10,10 @@ import {
 	httpStatusForCode,
 } from "@studio-v2/src/utils/server/http/apiResponse.server";
 import { reloadStudioV2WorkspaceIfBooted } from "@studio-v2/src/utils/server/host/engineHost.server";
-import { readDiskStoryPackage } from "@studio-v2/src/utils/server/packages/fs/packagesFs.server";
+import {
+	deleteDiskStoryPackage,
+	readDiskStoryPackage,
+} from "@studio-v2/src/utils/server/packages/fs/packagesFs.server";
 import { writeValidatedDiskStoryPackage } from "@studio-v2/src/utils/server/packages/fs/writeValidatedPackage.server";
 
 function failFromUnknown(err: unknown): Response {
@@ -82,6 +86,23 @@ export async function PUT(
 			bundle: result.bundle,
 			validation: result.report,
 		});
+	} catch (err) {
+		return failFromUnknown(err);
+	}
+}
+
+/**
+	* 删除故事包目录；首故事与最后一个包由 deleteDiskStoryPackage 拒删。
+	*/
+export async function DELETE(
+	_req: Request,
+	ctx: { params: Promise<{ packageId: string }> },
+): Promise<Response> {
+	try {
+		const { packageId } = await ctx.params;
+		const result = await deleteDiskStoryPackage(packageId);
+		await reloadStudioV2WorkspaceIfBooted();
+		return apiOk(result);
 	} catch (err) {
 		return failFromUnknown(err);
 	}

@@ -3,7 +3,7 @@
 	* 一条 attach_call_card / unmount_call_card 行 ↔ 画布上一条效果边（§2.3）：
 	* source=承载 exit 的卡节点、sourceHandle=exitId、target=目标卡节点（=cardId）。
 	* 效果边视觉区别于故事流转边（虚线 + 「挂载」/「卸载」标签 + 异色）；
-	* 会话内改 nodes/edges；整包保存时经 editorGraphToBundle 落盘 layout+cards，不改引擎。
+	* 会话内改 nodes/edges；整包保存先 flush→flushedGraph，再经 editorGraphToBundle 落盘 layout+cards，不改引擎。
 	*/
 import type { Edge, Node } from "@xyflow/react";
 import type {

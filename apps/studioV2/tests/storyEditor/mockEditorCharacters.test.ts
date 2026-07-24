@@ -28,6 +28,7 @@ function sampleSummary(): CharacterSummary {
 		bio: "",
 		packageRefCount: 0,
 		freeCall: "missing",
+		freeCardId: null,
 		lastEditedAt: new Date().toISOString(),
 		referenceLines: [],
 		socialSummary: "",

@@ -14,7 +14,7 @@ import {
 import {
 	asPromptSceneList,
 	emptyPromptScene,
-} from "./promptSceneListHelpers";
+} from "@studio-v2/src/utils/promptScene/promptSceneListHelpers";
 import {
 	applyPromptSceneDrop,
 	createWritePromptSceneList,

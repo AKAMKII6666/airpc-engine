@@ -5,7 +5,7 @@
 	*/
 import type { CallCardDefinition } from "@studio-v2/typeFiles/story/callCard/engineCallCard";
 import type { Effect, ExitCondition } from "@studio-v2/typeFiles/story/callCard/engineOutcome";
-import { asPromptSceneList } from "@studio-v2/src/commonUiComponents/form/blocks/PromptSceneListEditor/promptSceneListHelpers";
+import { asPromptSceneList } from "@studio-v2/src/utils/promptScene/promptSceneListHelpers";
 import type {
 	EditorCallCardExitProjection,
 	EditorCallCardProjection,

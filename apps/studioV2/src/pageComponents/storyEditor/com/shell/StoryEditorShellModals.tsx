@@ -19,7 +19,7 @@ import type { AssetDetailFormValues } from "@studio-v2/src/bis/pageBis/assets/as
 import type { AssetSummary } from "@studio-v2/typeFiles/library/assets/assetSummary";
 import type { PendingDeleteNode } from "@studio-v2/src/pageComponents/storyEditor/hooks/shell/useStoryEditorShellController";
 
-/** 与 useStoryEditorCharacterForms 弹层口对齐的投影 */
+/** 与 useStoryEditorCharacterFormsBis 弹层口对齐的投影 */
 export type StoryEditorShellCharacterModalState = {
 	createOpen: boolean;
 	closeCreate: () => void;
@@ -33,7 +33,7 @@ export type StoryEditorShellCharacterModalState = {
 	editLoadError: string | undefined;
 };
 
-/** 与 useStoryEditorAssetForms 弹层口对齐的投影 */
+/** 与 useStoryEditorAssetFormsBis 弹层口对齐的投影 */
 export type StoryEditorShellAssetModalState = {
 	createOpen: boolean;
 	closeCreate: () => void;

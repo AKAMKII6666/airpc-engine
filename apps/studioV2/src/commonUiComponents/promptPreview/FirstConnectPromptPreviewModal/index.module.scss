@@ -1,0 +1,23 @@
+.controls {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	align-items: center;
+	margin-bottom: 12px;
+}
+
+.userLine {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+}
+
+.field {
+	min-width: 180px;
+}
+
+.results {
+	overflow: auto;
+	max-height: min(70vh, 720px);
+}

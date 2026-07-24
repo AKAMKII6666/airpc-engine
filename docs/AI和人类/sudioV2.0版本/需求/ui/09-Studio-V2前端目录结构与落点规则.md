@@ -127,38 +127,47 @@ src/pageComponents/
 
 它不是 UI 展示层，也不是类型目录。它负责把用户动作、请求、store、mock 或后续 BFF 能力组织成页面可消费的状态和命令。
 
+分层真源：[技术设计 21](../../../技术设计文档/21-Studio客户端分层.md) · [studio-v2-client-layering.mdc](../../../../../.cursor/rules/studio-v2-client-layering.mdc)。
+
 ```text
 src/bis/
-  pageBis/
-    home/
-      home_bis.ts
-      com/
-    debugger/
-      debugger_bis.ts
-      com/
   shellBis/
-    studio_shell_bis.ts
+    packages/packages.shell.bis.ts      # 页级灌 store；可 next/navigation
+    storyEditor/storyEditor.shell.bis.ts
+  pageBis/
+    packages/
+      listPackages.bis.ts               # feature：读 store / 命令 xhr
+      listPackages.helpers.ts
+      openPackageFlow.ts                # 导航等副作用（非 .bis.ts）
+    storyEditor/
+      save/
+      form/
+      package/
 ```
 
 规则：
 
-- 页面级编排进 `pageBis/<page>/<page>_bis.ts`。
-- 页面内复杂组件编排进 `pageBis/<page>/com/<component>_bis.ts`。
-- 全局壳编排进 `shellBis/`。
+- **shell**：`shellBis/**/*.shell.bis.ts`；一类页只挂一次；负责灌 domain store、听 refreshStamp。
+- **feature**：`pageBis/<domain>/**/*.bis.ts`；读 store 供 UI、写 store、走 ajaxProxy；**禁止** `next/navigation`（导航用 `*Flow.ts`）。
+- **helpers**：无会话副作用的纯函数；**Flow**：路由导航等。
 - JSX 不进入 bis。
-- bis 可以导入 `typeFiles/`、`src/stores/`、`src/utils/`。
-- bis 不直接深挖引擎内部路径；真实写口后续只能经 Next / BFF 门面。
+- bis 可以导入 `typeFiles/`、`src/stores/`、`src/utils/ajaxProxy/`。
+- bis **禁止** value import `pageComponents/**`、`commonUiComponents/**`。
+- bis 不直接深挖引擎内部路径；真实写口只能经 Next / BFF 门面。
+- 硬门禁：`STUDIO-STRUCT-023` / `024`。
 
 ### 4.3 stores
 
-`src/stores/` 放前端状态容器。
+`src/stores/` 放前端状态容器；**一域一账本**（`stores/<domain>/`）。
 
 规则：
 
-- store 只保存前端会话状态、UI 偏好、当前选择、临时草稿。
-- store 不是真实 Profile、StorySave、Memory 或 StoryPackage 真源。
-- store 不直接读写磁盘。
-- store 不直接导入引擎写口。
+- store 只保存前端会话状态、UI 偏好、当前选择、临时草稿、编辑投影。
+- store 不是真实 Profile、StorySave、Memory 或 StoryPackage 磁盘真源。
+- store 不直接读写磁盘、不发请求、不 import bis / ajaxProxy / `next/navigation`。
+- **禁止** UI（`pageComponents` / `commonUiComponents`）直读 store；经 feature bis。
+- 故事编辑器：画布高频态自管并 flush 进 `storyEditor` store；配置/保存态只走 store（见技术设计 21 §5.1）。
+- 硬门禁：`STUDIO-STRUCT-021` / `022`；存量见 `studio-v2-layering-baseline.json`。
 
 ### 4.4 utils
 

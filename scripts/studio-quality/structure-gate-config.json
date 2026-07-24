@@ -37,6 +37,7 @@
   "studioPathAliases": {
     "@studio-v2/": ""
   },
+  "layeringBaselinePath": "scripts/studio-quality/studio-v2-layering-baseline.json",
   "bannedImportPatterns": [
     "@airpc/rpg-engine/",
     "packages/rpg-engine/",
