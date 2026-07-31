@@ -25,7 +25,7 @@ export const CreatePackageView: FC = function CreatePackageView() {
 
 	async function onSubmit(values: CreatePackageFormValues): Promise<void> {
 		const { packageId } = await commitCreatePackage(values);
-		router.push(`/stories/${packageId}`);
+		router.push(`/packages/${encodeURIComponent(packageId)}`);
 	}
 
 	return (

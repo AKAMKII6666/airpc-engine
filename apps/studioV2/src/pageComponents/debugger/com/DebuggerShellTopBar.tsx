@@ -49,7 +49,7 @@ export const DebuggerShellTopBar: FC<DebuggerShellTopBarProps> = function ({
 				{/* 引用了Button组件，用于返回选中包的编辑器 */}
 				<Button
 					component={Link}
-					href={`/stories/${encodeURIComponent(editorPackageId)}`}
+					href={`/packages/${encodeURIComponent(editorPackageId)}`}
 					size="small"
 					variant="contained"
 				>

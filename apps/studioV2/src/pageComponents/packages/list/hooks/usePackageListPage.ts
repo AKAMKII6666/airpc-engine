@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { sliceForPage } from "@studio-v2/src/commonUiComponents/pagination/sliceForPage";
 import type { CreatePackageFormValues } from "@studio-v2/src/bis/pageBis/packages/createPackageForm";
 import { usePackageListSessionBis } from "@studio-v2/src/bis/pageBis/packages/list/packageListSession.bis";
+import { usePackagesShellBis } from "@studio-v2/src/bis/shellBis/packages/packages.shell.bis";
 import { usePackageListDelete } from "./usePackageListDelete";
 import type { StoryPackageSummary } from "@studio-v2/typeFiles/story/summary/storyPackageSummary";
 
@@ -25,10 +26,17 @@ function matchesSearch(pkg: StoryPackageSummary, raw: string): boolean {
 	);
 }
 
+function editorHref(pkg: StoryPackageSummary): string {
+	const chapterId =
+		pkg.entryChapterId.trim() !== "" ? pkg.entryChapterId : pkg.packageId;
+	return `/packages/${encodeURIComponent(pkg.packageId)}/chapters/${encodeURIComponent(chapterId)}`;
+}
+
 /**
 	* 故事包列表页：列表经 session bis；搜索/分页/Modal 为 UI 瞬时态。
 	*/
 export function usePackageListPage() {
+	usePackagesShellBis();
 	const router = useRouter();
 	const session = usePackageListSessionBis();
 	const [page, setPage] = useState(1);
@@ -70,13 +78,7 @@ export function usePackageListPage() {
 	function onImported(packageId: string): void {
 		session.onImported(packageId);
 		setImportOpen(false);
-		router.push(`/stories/${packageId}`);
-	}
-
-	/** 内容包覆盖导入成功：只 bump，不跳单包编辑器 */
-	function onContentPackImported(startupPackageId: string): void {
-		session.onImported(startupPackageId);
-		setPage(1);
+		router.push(`/packages/${encodeURIComponent(packageId)}`);
 	}
 
 	async function onCreateSubmit(
@@ -84,7 +86,7 @@ export function usePackageListPage() {
 	): Promise<void> {
 		const { packageId } = await session.onCreateSubmit(values);
 		setCreateOpen(false);
-		router.push(`/stories/${packageId}`);
+		router.push(`/packages/${encodeURIComponent(packageId)}`);
 	}
 
 	async function onSetStartup(packageId: string): Promise<void> {
@@ -117,11 +119,11 @@ export function usePackageListPage() {
 		setCreateOpen,
 		pageItems,
 		onImported,
-		onContentPackImported,
 		onCreateSubmit,
 		onSetStartup,
 		startupBusy: startupBusyId !== undefined,
 		startupError,
+		editorHref,
 		deleteTarget: deleteFlow.deleteTarget,
 		deleteError: deleteFlow.deleteError,
 		deleteBusy: deleteFlow.deleteBusy,

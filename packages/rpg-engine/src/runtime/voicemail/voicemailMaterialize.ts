@@ -91,7 +91,7 @@ function baseSlotFields(
 	| "id"
 	| "agentId"
 	| "cardId"
-	| "packageId"
+	| "chapterId"
 	| "instanceId"
 	| "topicHint"
 	| "createdAt"
@@ -100,7 +100,7 @@ function baseSlotFields(
 		id: entry.id,
 		agentId: entry.agentId,
 		cardId: entry.cardId,
-		packageId: entry.packageId,
+		chapterId: entry.chapterId,
 		instanceId: instanceId ?? entry.instanceId,
 		topicHint: entry.topicHint,
 		createdAt: nowIso,
@@ -139,7 +139,7 @@ function resolveVoicemailCard(
 ):
 	| { ok: true; card: CallCardDefinition & { cardKind: "voicemail" } }
 	| { ok: false; result: VoicemailMaterializeItemResult } {
-	const card = deps.lookupCard?.(entry.packageId, entry.cardId) as
+	const card = deps.lookupCard?.(entry.chapterId, entry.cardId) as
 		| CallCardDefinition
 		| undefined;
 	if (!card) {
@@ -203,7 +203,7 @@ async function materializeViaPort(
 		const generated = await generate({
 			card,
 			agentId: entry.agentId,
-			packageId: entry.packageId,
+			chapterId: entry.chapterId,
 			instanceId,
 			assembledPrompt: assembleVoicemailPrompt(card),
 		});

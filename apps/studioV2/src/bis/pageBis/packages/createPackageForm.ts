@@ -15,7 +15,10 @@ export type CreatePackageFormValues = {
 	description: string;
 	/** 默认语言 BCP-47 标签；静态列表投影暂不展示，保留对齐导向稿 */
 	language: string;
-	/** true 时创建默认入口卡并写入 conf.entryCardId */
+	/**
+		* true 时额外创建第一张通话卡并连到章节开始（= 起点卡 / entryCardId）。
+		* 章节开始节点始终创建，与本开关无关。
+		*/
 	withStartCard: boolean;
 } & Record<string, unknown>;
 
@@ -29,7 +32,7 @@ export const CREATE_PACKAGE_INITIAL_VALUES: CreatePackageFormValues = {
 	withStartCard: true,
 };
 
-/** 名称 / 描述 / 默认语言 / 是否创建起点卡 */
+/** 名称 / 描述 / 默认语言 / 是否创建第一张通话卡 */
 export const CREATE_PACKAGE_FORM_ITEMS: AutoFormItem[] = [
 	{
 		name: "title",
@@ -56,9 +59,10 @@ export const CREATE_PACKAGE_FORM_ITEMS: AutoFormItem[] = [
 	},
 	{
 		name: "withStartCard",
-		label: "创建默认起点卡",
+		label: "同时创建第一张通话卡",
 		comType: "Checkbox",
-		helperText: "写入 cards/ 与 conf.entryCardId；初始角色可空。",
+		helperText:
+			"章节开始节点始终创建。勾选则写入第一张通话卡，连到章节开始，并设为入口卡。",
 	},
 ];
 

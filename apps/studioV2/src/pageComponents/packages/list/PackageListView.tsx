@@ -6,9 +6,6 @@
 
 import type { FC } from "react";
 import { Alert, Button, CircularProgress, Typography } from "@mui/material";
-import { usePackagesShellBis } from "@studio-v2/src/bis/shellBis/packages/packages.shell.bis";
-// 引用了ContentPackActions组件，用于内容包导入导出
-import { ContentPackActions } from "./com/contentPack/ContentPackActions";
 // 引用了PackageListBody组件，用于搜索与分页列表
 import { PackageListBody } from "./com/list/PackageListBody";
 // 引用了PackageListModals组件，用于导入/新建/删除弹层
@@ -20,7 +17,6 @@ import {
 import styles from "./PackageListView.module.scss";
 
 export const PackageListView: FC = function PackageListView() {
-	usePackagesShellBis();
 	const list = usePackageListPage();
 
 	return (
@@ -34,12 +30,10 @@ export const PackageListView: FC = function PackageListView() {
 					{/* 引用了Typography组件，用于页说明 */}
 					<Typography variant="body2" className={styles.sub}>
 						管理章节工程：列表来自磁盘扫描；首故事由工作区
-						startupPackageId 指定。单包导入导出与内容包（多包运行时）分开。
+						startupPackageId 指定。单包导入导出为 .storypack.json。
 					</Typography>
 				</div>
 				<div className={styles.actions}>
-					{/* 引用了ContentPackActions组件，用于内容包导入导出 */}
-					<ContentPackActions onImported={list.onContentPackImported} />
 					{/* 引用了Button组件，用于打开导入弹层 */}
 					<Button variant="outlined" onClick={() => list.setImportOpen(true)}>
 						导入故事包

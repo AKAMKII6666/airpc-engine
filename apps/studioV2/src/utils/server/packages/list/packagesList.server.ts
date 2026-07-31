@@ -1,21 +1,23 @@
 /**
-	* 扫描 data/storis-packages 下各包 story.conf.json 为列表摘要。
-	* characterCount = 本包派生引用角色数（读 cards），非 participants.length。
+	* 扫描 data/storis-packages 下各包 package.conf.json 为列表摘要。
+	* characterCount 取自入口章 cards 派生。
 	*/
 import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import {
-	CallCardDefinitionSchema,
 	type CallCardDefinition,
-	type StoryPackageConf,
+	type ChapterConf,
+	PackageConfSchema,
 } from "@airpc/rpg-engine";
+import { ensureFlatPackageMigrated } from "@studio-v2/engineIOModule/content/migrate/packageMigrate";
 import { listDerivedReferencedAgentIds } from "@studio-v2/src/utils/server/packages/conf/referencedAgentsDerive.server";
+import { tryReadChapterConfSoft } from "@studio-v2/src/utils/server/packages/list/chapterConfSoftRead.server";
+import {
+	packageConfPath,
+} from "@studio-v2/src/utils/server/packages/paths/packagesPaths.server";
 import type { DiskStoryPackageSummary } from "@studio-v2/src/utils/server/types/diskStoryPackage.server";
 import { isValidPackageId, packagesRoot } from "../paths/packagesPaths.server";
 
-/**
-	* 扫描含 story.conf.json 的包目录；破损目录跳过。
-	*/
 export async function listDiskStoryPackages(): Promise<
 	DiskStoryPackageSummary[]
 > {
@@ -37,87 +39,66 @@ export async function listDiskStoryPackages(): Promise<
 	});
 }
 
-async function tryLoadCardsSoft(
-	root: string,
-	packageId: string,
-	cardRefs: readonly { cardId?: unknown }[],
-): Promise<CallCardDefinition[]> {
-	const cards: CallCardDefinition[] = [];
-	for (const ref of cardRefs) {
-		if (typeof ref.cardId !== "string" || ref.cardId.trim() === "") continue;
-		const cardPath = path.join(
-			root,
-			packageId,
-			"cards",
-			`${ref.cardId}.s-card.json`,
-		);
-		try {
-			const raw = JSON.parse(await readFile(cardPath, "utf8")) as unknown;
-			const parsed = CallCardDefinitionSchema.safeParse(raw);
-			if (parsed.success) cards.push(parsed.data);
-		} catch {
-			/* 列表摘要：单卡破损跳过，不拖垮整包行 */
-		}
-	}
-	return cards;
-}
-
 async function tryReadPackageSummary(
 	root: string,
 	name: string,
 ): Promise<DiskStoryPackageSummary | null> {
-	const confPath = path.join(root, name, "story.conf.json");
+	const pkgDir = path.join(root, name);
+	await ensureFlatPackageMigrated(pkgDir, name);
 	try {
-		const raw = JSON.parse(await readFile(confPath, "utf8")) as {
-			packageId?: string;
-			title?: string;
-			schemaVersion?: number;
-			cards?: unknown[];
-			assetRefs?: unknown[];
-			entryCardId?: string;
-		};
+		const raw = JSON.parse(await readFile(packageConfPath(name), "utf8"));
+		const parsed = PackageConfSchema.safeParse(raw);
+		if (!parsed.success) return null;
+		const packageConf = parsed.data;
 		const packageId =
-			typeof raw.packageId === "string" && raw.packageId.length > 0
-				? raw.packageId
-				: name;
-		const cardRefs = Array.isArray(raw.cards)
-			? (raw.cards as { cardId?: unknown }[])
-			: [];
-		const cards = await tryLoadCardsSoft(root, packageId, cardRefs);
-		const confStub = {
-			schemaVersion:
-				typeof raw.schemaVersion === "number" ? raw.schemaVersion : 1,
+			packageConf.packageId.length > 0 ? packageConf.packageId : name;
+
+		let cardCount = 0;
+		for (const ch of packageConf.chapters) {
+			const conf = await tryReadChapterConfSoft(packageId, ch.chapterId);
+			if (conf) cardCount += conf.cards.length;
+		}
+
+		const entryConfRaw = await tryReadChapterConfSoft(
 			packageId,
-			cards: cardRefs
-				.filter(function (r) {
-					return typeof r.cardId === "string";
-				})
-				.map(function (r) {
-					return { cardId: r.cardId as string };
-				}),
-		} as StoryPackageConf;
+			packageConf.entryChapterId,
+		);
+		const entryCards =
+			entryConfRaw &&
+			"_cardsLoaded" in entryConfRaw
+				? (entryConfRaw as ChapterConf & {
+						_cardsLoaded: CallCardDefinition[];
+					})._cardsLoaded
+				: [];
+
 		let lastEditedAt = "";
 		try {
-			const st = await stat(path.join(root, name));
+			const st = await stat(pkgDir);
 			lastEditedAt = st.mtime.toISOString();
 		} catch {
 			lastEditedAt = "";
 		}
+
+		const entryConf = entryConfRaw;
 		return {
 			packageId,
 			title:
-				typeof raw.title === "string" && raw.title.trim() !== ""
-					? raw.title
+				typeof packageConf.title === "string" &&
+				packageConf.title.trim() !== ""
+					? packageConf.title
 					: packageId,
-			schemaVersion: confStub.schemaVersion,
-			cardCount: cardRefs.length,
-			characterCount: listDerivedReferencedAgentIds({
-				conf: confStub,
-				cards,
-			}).length,
-			assetCount: Array.isArray(raw.assetRefs) ? raw.assetRefs.length : 0,
-			entryCardId:
-				typeof raw.entryCardId === "string" ? raw.entryCardId : "",
+			schemaVersion: packageConf.schemaVersion,
+			chapterCount: packageConf.chapters.length,
+			entryChapterId: packageConf.entryChapterId,
+			cardCount,
+			characterCount: entryConf
+				? listDerivedReferencedAgentIds({
+						conf: entryConf,
+						cards: entryCards,
+					}).length
+				: 0,
+			assetCount: entryConf?.assetRefs?.length ?? 0,
+			entryCardId: entryConf?.entryCardId ?? "",
 			lastEditedAt,
 		};
 	} catch {

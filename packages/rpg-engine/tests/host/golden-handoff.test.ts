@@ -34,7 +34,7 @@ describe("golden_handoff", () => {
   it("layout sidecar exists on disk but is never required by engine", async () => {
     const layoutPath = path.join(
       dataSrc,
-      "storis-packages/golden_handoff/canvas.layout.json",
+      "storis-packages/golden_handoff/chapters/golden_handoff/canvas.layout.json",
     );
     await access(layoutPath);
 
@@ -45,7 +45,7 @@ describe("golden_handoff", () => {
     await rm(
       path.join(
         dataRoot,
-        "storis-packages/golden_handoff/canvas.layout.json",
+        "storis-packages/golden_handoff/chapters/golden_handoff/canvas.layout.json",
       ),
       { force: true },
     );
@@ -84,7 +84,7 @@ describe("golden_handoff", () => {
     expect(host.getLoadedCardCount("golden_handoff")).toBe(0);
     const r1 = await host.resolveAsync("demo-user", {
       kind: "simulate_start",
-      packageId: "golden_handoff",
+      chapterId: "golden_handoff",
       cardId: "doubao_intro_outbound",
     });
     if (isEngineError(r1)) throw r1;

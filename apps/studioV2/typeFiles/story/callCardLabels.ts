@@ -1,6 +1,7 @@
 /**
 	* CallCard 枚举 → 中文标签（故事编辑器 UI）。
 	* 与引擎 CallCardDefinition / KNOWN_EFFECT_NAMES 对齐；禁止在组件内散落 schema 原文。
+	* 剧情编辑器 Select 子集可少于引擎枚举（如不含 free）；labels 仍覆盖全量回显。
 	*/
 import type { CardKind } from "@studio-v2/typeFiles/story/callCard/engineCallCard";
 import type {
@@ -18,14 +19,26 @@ export type CallCardLabelOption = {
 	label: string;
 	/** 写入 Formik 的枚举字符串；与 CallCardDefinition 对齐 */
 	value: string;
-	/** 悬停 tooltip 说明；缺省表示该选项无需额外解释 */
-	description?: string;
+	/**
+		* 悬停「作用」；与 exampleScenario 成对展示。
+		* 缺省表示该选项无需 tooltip。
+		*/
+	purpose?: string;
+	/**
+		* 悬停「典型场景」；与 purpose 成对展示。
+		* 缺省表示该选项无需场景举例。
+		*/
+	exampleScenario?: string;
 };
 
 /** entryMode → 界面人话 */
 export function entryModeLabel(mode: EditorEntryMode | undefined): string {
 	if (mode === "inbound_user_dial" || mode === "inbound") return "用户呼入";
-	if (mode === "outbound_auto" || mode === "outbound" || mode === "agent_outbound") {
+	if (
+		mode === "outbound_auto" ||
+		mode === "outbound" ||
+		mode === "agent_outbound"
+	) {
 		return "角色外呼";
 	}
 	if (mode === "either") return "双向可拨";
@@ -55,7 +68,7 @@ export function exitKindLabel(kind: EditorExitKind | undefined): string {
 	return "出口";
 }
 
-/** cardKind → 界面人话；对齐引擎 CardKind */
+/** cardKind → 界面人话；对齐引擎 CardKind（含 free 回显） */
 export function cardKindLabel(kind: CardKind): string {
 	if (kind === "story") return "剧情通话";
 	if (kind === "free") return "自由通话";
@@ -65,33 +78,113 @@ export function cardKindLabel(kind: CardKind): string {
 	return "通话卡";
 }
 
-/** 属性浮窗 entryMode Select 选项（常用子集，含历史别名） */
+/**
+	* 属性浮窗 / end_story 入口覆盖 Select：只管进线方向。
+	* 不含 playback / mailbox_open（交互归 interactionMode；信箱由 voicemail 类型隐含）。
+	* entryModeLabel 仍可回显旧盘值。
+	*/
 export const ENTRY_MODE_OPTIONS: readonly CallCardLabelOption[] = [
-	{ label: "用户呼入", value: "inbound_user_dial" },
-	{ label: "角色外呼", value: "outbound_auto" },
-	{ label: "双向可拨", value: "either" },
-	{ label: "过场播放", value: "playback" },
-	{ label: "信箱打开", value: "mailbox_open" },
-	{ label: "呼入（别名）", value: "inbound" },
-	{ label: "外呼（别名）", value: "outbound" },
-	{ label: "角色外呼（别名）", value: "agent_outbound" },
+	{
+		label: "用户呼入",
+		value: "inbound_user_dial",
+		purpose: "只有用户主动拨打才会匹配到这张卡",
+		exampleScenario: "主线「你给老板打电话」",
+	},
+	{
+		label: "角色外呼",
+		value: "outbound_auto",
+		purpose: "只有系统/调度外呼才会匹配到这张卡",
+		exampleScenario: "「三十分钟后他打来」那张待接卡",
+	},
+	{
+		label: "双向可拨",
+		value: "either",
+		purpose: "用户呼入或角色外呼都能选中这张卡",
+		exampleScenario: "延迟外呼后仍允许用户提前打进来",
+	},
 ];
 
-/** 属性浮窗 interactionMode Select 选项 */
+/**
+	* 属性浮窗 interactionMode Select。
+	* hybrid 引擎/接线保留，作者入口不开放（产品未定稿）。
+	*/
 export const INTERACTION_MODE_OPTIONS: readonly CallCardLabelOption[] = [
 	{ label: "实时对话", value: "realtime_dialogue" },
 	{ label: "仅播放", value: "playback_only" },
-	{ label: "混合", value: "hybrid" },
 ];
 
-/** 属性浮窗 cardKind Select；新建默认 story，类型在面板改 */
+/**
+	* 故事包属性浮窗 cardKind Select：仅剧情 / 语音留言。
+	* system / schedule / free 不进作者下拉（free 在角色库；日常调度在 schedule-cards）。
+	*/
 export const CARD_KIND_OPTIONS: readonly CallCardLabelOption[] = [
-	{ label: "剧情通话", value: "story" },
-	{ label: "自由通话", value: "free" },
-	{ label: "系统卡（过场）", value: "system" },
-	{ label: "调度卡（延迟外呼）", value: "schedule" },
-	{ label: "语音留言", value: "voicemail" },
+	{
+		label: "剧情通话",
+		value: "story",
+		purpose: "包内主叙事通话卡，走出口与 Effect 推进剧情；过场用「仅播放」即可",
+		exampleScenario: "第一幕开场「打给老板」",
+	},
+	{
+		label: "语音留言",
+		value: "voicemail",
+		purpose: "进信箱听留言；入口/交互由类型隐含，不进待接通板",
+		exampleScenario: "未接后塞进信箱的语音留言卡",
+	},
 ];
+
+/** 遗留包内类型：仅当当前卡已是该 kind 时并入下拉，便于回显与改回 story/voicemail */
+const LEGACY_PACKAGE_CARD_KIND_OPTIONS: readonly CallCardLabelOption[] = [
+	{
+		label: "系统卡（遗留）",
+		value: "system",
+		purpose: "旧过场类型；请改回「剧情通话」并设交互为「仅播放」",
+	},
+	{
+		label: "调度卡（遗留）",
+		value: "schedule",
+		purpose: "包内不再新建；日常外呼模板请到角色库调度卡",
+	},
+];
+
+/**
+	* 故事包属性浮窗 cardKind 选项：默认 story/voicemail；当前值为遗留 kind 时追加一项。
+	*/
+export function cardKindOptionsForStoryPackage(
+	currentKind: CardKind,
+): CallCardLabelOption[] {
+	const legacy = LEGACY_PACKAGE_CARD_KIND_OPTIONS.find(function (o) {
+		return o.value === currentKind;
+	});
+	if (!legacy) return [...CARD_KIND_OPTIONS];
+	return [...CARD_KIND_OPTIONS, legacy];
+}
+
+/**
+	* 入口 Select：永远只给呼入/外呼/双向。
+	* playback / mailbox_open 仅引擎与 voicemail 锁定内部使用，不对作者暴露。
+	*/
+export function entryModeOptionsForEditor(): CallCardLabelOption[] {
+	return [...ENTRY_MODE_OPTIONS];
+}
+
+/**
+	* 交互 Select：默认实时/仅播放；当前值为 hybrid 时追加回显项。
+	*/
+export function interactionModeOptionsForEditor(
+	currentMode: string | undefined,
+): CallCardLabelOption[] {
+	if (currentMode === "hybrid") {
+		return [
+			...INTERACTION_MODE_OPTIONS,
+			{
+				label: "混合（遗留）",
+				value: "hybrid",
+				purpose: "引擎保留；产品入口未开放，请改回实时对话或仅播放",
+			},
+		];
+	}
+	return [...INTERACTION_MODE_OPTIONS];
+}
 
 /** 出口 exitKind Select 选项 */
 export const EXIT_KIND_OPTIONS: readonly CallCardLabelOption[] = [
@@ -139,7 +232,7 @@ export const SCHEDULE_MODE_OPTIONS: readonly CallCardLabelOption[] = [
 
 /**
 	* Effect 枚举 → 中文；与引擎 KNOWN_EFFECT_NAMES 对齐（只读镜像，不 import 引擎值）。
-	* 未知名回落原文，避免 Select 空白时完全失语。
+	* 含 UI 已隐藏项，避免旧盘摘要/coerce 失语。
 	*/
 const EFFECT_NAME_LABELS: Readonly<Record<string, string>> = {
 	set_character_unlocked: "解锁角色",
@@ -165,81 +258,77 @@ export function effectNameLabel(effect: string | undefined): string {
 }
 
 /**
-	* 出口 effects[].effect Select 选项。
-	* value 写入枚举字符串；label 为中文；禁止自由文本。
+	* 出口 effects[].effect Select 选项（剧情编辑器子集）。
+	* 不含登记重复外呼 / 研究承诺 / 播放系统提示；引擎仍识别旧盘值。
 	*/
 export const EFFECT_NAME_OPTIONS: readonly CallCardLabelOption[] = [
 	{
 		label: "解锁角色",
 		value: "set_character_unlocked",
-		description: "把指定角色标记为已解锁/可拨，写入用户 Profile 的角色解锁位",
+		purpose: "把指定角色标记为已解锁/可拨，写入 Profile 解锁位",
+		exampleScenario: "引荐成功后对方出现在通讯录",
 	},
 	{
 		label: "挂载通话卡",
 		value: "attach_call_card",
-		description:
-			"挂普通卡→待接通板；目标为语音留言卡时进信箱（不写 Board.pending）",
+		purpose:
+			"普通卡→待接通板；目标为语音留言卡时进信箱（不写 Board.pending）",
+		exampleScenario: "本通结束立刻挂「下一通待打」，或塞一条留言进信箱",
 	},
 	{
 		label: "设置重拨槽",
 		value: "set_redial_slot",
-		description: "设定用户「重拨」时默认接通的角色（及可选卡）",
+		purpose: "设定用户点「重拨」时默认接通的角色（及可选卡）",
+		exampleScenario: "专家线结束后重拨仍回到该专家",
 	},
 	{
 		label: "卸载通话卡",
 		value: "unmount_call_card",
-		description: "从指定角色待办板移除一张待处理卡；缺省作用于当前通话卡",
+		purpose: "从指定角色待办板移除一张待处理卡；缺省作用于当前卡",
+		exampleScenario: "取消已挂的下一通",
 	},
 	{
 		label: "保持卡待处理",
 		value: "keep_card_pending",
-		description: "让当前卡保持待处理，不因本次通话结束而被消费；无需参数",
+		purpose: "本通结束不消费当前 pending，无需参数",
+		exampleScenario: "目标未完成，同一张卡还要再打一次",
 	},
 	{
 		label: "调度通话卡",
 		value: "schedule_call_card",
-		description:
-			"登记一次性延迟意图；普通卡到点外呼，语音留言卡到点进信箱（非响铃）",
-	},
-	{
-		label: "登记重复外呼",
-		value: "schedule_recurring_call",
-		description: "登记每日/每周循环外呼意图（时/分/可选周几）",
-	},
-	{
-		label: "创建研究承诺",
-		value: "create_research_commitment",
-		description: "记录一个待研究问题，在下次通话或指定时机回访",
+		purpose:
+			"一次性延迟意图；普通卡到点外呼，语音留言卡到点进信箱（非响铃）",
+		exampleScenario: "「三十分钟后他打给你」；或定时塞留言",
 	},
 	{
 		label: "更新用户档案",
 		value: "update_user_profile",
-		description: "写入用户昵称/全名到用户档案",
+		purpose: "写入用户昵称/全名到薄 Profile",
+		exampleScenario: "通话里问到怎么称呼",
 	},
 	{
 		label: "补丁记忆",
 		value: "patch_memory",
-		description: "向指定角色的记忆层写入一条记忆文本",
+		purpose: "向指定角色的记忆层写入一条记忆文本",
+		exampleScenario: "记下「用户讨厌香菜」",
 	},
 	{
 		label: "写入世界事实",
 		value: "set_world_fact",
-		description: "写入或更新一条世界事实（键+值+可见范围）",
+		purpose: "写入或更新一条世界事实（键+值+可见范围）",
+		exampleScenario: "「公司已倒闭」这类全局事实",
 	},
 	{
 		label: "更新 NPC 知识",
 		value: "update_npc_knowledge",
-		description: "让指定角色「知道/忘记」某条世界事实",
+		purpose: "让指定角色「知道/忘记」某条世界事实",
+		exampleScenario: "A 知道、B 还不知道同一事实",
 	},
 	{
 		label: "结束故事",
 		value: "end_story",
-		description: "结束当前故事包，可清场并安排下一章入口卡",
-	},
-	{
-		label: "播放系统提示",
-		value: "play_system_prompt",
-		description: "记录一条系统提示播放桩（片段 id），引擎不直接播放音频",
+		purpose: "结束当前故事包，可清场并安排下一章入口卡",
+		exampleScenario: "章节终点卡，配置下一包/激活方式",
 	},
 ];
 

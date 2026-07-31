@@ -20,6 +20,7 @@ import type {
 } from "@studio-v2/typeFiles/story/editor/callCard/editorEffectParams";
 import { EFFECT_NAME_OPTIONS } from "@studio-v2/typeFiles/story/callCardLabels";
 import { coerceKnownEffectName } from "@studio-v2/src/bis/pageBis/storyEditor/form/exitList/exitListForm";
+import { formatSelectOptionTooltip } from "@studio-v2/src/commonUiComponents/form/formatSelectOptionTooltip";
 // 引用了ExitEffectPanel组件，用于按 effect 分发专属参数面板
 import { ExitEffectPanel } from "@studio-v2/src/pageComponents/storyEditor/com/panel/ExitListEditor/com/effects/ExitEffectPanel";
 import styles from "../index.module.scss";
@@ -65,15 +66,22 @@ export const ExitEffectRow: FC<ExitEffectRowProps> = function ExitEffectRow({
 					}}
 					helperText="悬停查看每种效果说明；仅可选已知枚举。"
 				>
-					{EFFECT_NAME_OPTIONS.map((opt) => (
-						// 引用了MenuItem组件，用于 Effect 枚举选项
-						<MenuItem key={opt.value} value={opt.value}>
-							{/* 引用了Tooltip组件，用于该 effect 的说明 */}
-							<Tooltip title={opt.description ?? ""} placement="right">
-								<span>{opt.label}</span>
-							</Tooltip>
-						</MenuItem>
-					))}
+					{EFFECT_NAME_OPTIONS.map((opt) => {
+						const tip = formatSelectOptionTooltip(opt);
+						return (
+							// 引用了MenuItem组件，用于 Effect 枚举选项
+							<MenuItem key={opt.value} value={opt.value}>
+								{tip != null ? (
+									// 引用了Tooltip组件，用于该 effect 的作用与典型场景
+									<Tooltip title={tip} placement="right">
+										<span>{opt.label}</span>
+									</Tooltip>
+								) : (
+									opt.label
+								)}
+							</MenuItem>
+						);
+					})}
 				</TextField>
 				{/* 引用了IconButton组件，用于删除 Effect 行 */}
 				<IconButton

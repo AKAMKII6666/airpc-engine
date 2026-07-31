@@ -55,6 +55,16 @@ export type PromptPreviewTool = {
 	toolId: string;
 	/** 人类可读名；仅展示 */
 	displayName: string;
+	/**
+		* 面向模型的用途说明（何时调用 / 语义边界）；
+		* 空串表示 Registry 缺描述（异常）。
+		*/
+	description: string;
+	/**
+		* 中性 JSON Schema（由引擎 Zod 导出）；
+		* Adapter 投影为厂商 tools；预览只读展示。
+		*/
+	inputSchema: unknown;
 	/** 允许的 cardKind 列表；空数组表示无 kind 限制（异常） */
 	allowedCardKinds: string[];
 	/** playback 阶段是否可用 */
@@ -70,7 +80,7 @@ export type PromptPreviewTool = {
 export type PromptPreviewResult = {
 	/** 本次预览所用玩家；须已 ensureProfile */
 	userId: string;
-	/** 有效 packageId；Free 为 __free__ */
+	/** 有效 chapterId（运行时键）；Free 为 __free__；请求体字段仍可称 packageId 兼容 */
 	packageId: string;
 	/** 本通 ComposeScene */
 	composeScene: PromptPreviewComposeScene;
@@ -98,7 +108,7 @@ export type PromptPreviewRequestBody = {
 	callDirection: PromptPreviewCallDirection;
 	/** 用户本地小时；单位 0–23 */
 	localHour: number;
-	/** 故事包键；Free 可省略（服务端回落 __free__） */
+	/** 故事章 chapterId；Free 可省略（服务端回落 __free__）；字段名兼容 packageId */
 	packageId?: string;
 	/** 引擎 CallCard 同构 JSON（Client 投影转 def 后提交） */
 	card: unknown;

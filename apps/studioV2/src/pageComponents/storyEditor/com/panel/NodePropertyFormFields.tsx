@@ -11,6 +11,7 @@ import { AutoForm } from "@studio-v2/src/commonUiComponents/form/AutoForm";
 import type { EditorCallCardProjection } from "@studio-v2/typeFiles/story/editor/callCard/editorCallCardProjection";
 import type { CharacterAnchorNodeData } from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
 import {
+	NODE_TITLE_ITEMS,
 	nodeKindBadgeLabel,
 	type NodePropertyFormValues,
 } from "@studio-v2/src/bis/pageBis/storyEditor/form/node/nodePropertyForm";
@@ -63,6 +64,13 @@ export const NodePropertyFormFields: FC<NodePropertyFormFieldsProps> =
 						cardId：{nodeData.cardId}
 					</Typography>
 				</div>
+				{/* 引用了AutoForm组件，用于标题（排在归属角色之上） */}
+				<AutoForm
+					formik={formik}
+					mode="edit"
+					enabled
+					items={NODE_TITLE_ITEMS}
+				/>
 				{/* 引用了CallCardOwnerSelect组件，用于归属角色下拉 */}
 				<CallCardOwnerSelect
 					ownerAgentId={nodeData.ownerAgentId ?? ""}
@@ -77,7 +85,7 @@ export const NodePropertyFormFields: FC<NodePropertyFormFieldsProps> =
 				<Typography variant="caption" className={styles.section}>
 					基本信息
 				</Typography>
-				{/* 引用了AutoForm组件，用于编排类型/标题与入口/交互枚举 */}
+				{/* 引用了AutoForm组件，用于编排类型与入口/交互枚举 */}
 				<AutoForm
 					formik={formik}
 					mode="edit"
@@ -86,7 +94,9 @@ export const NodePropertyFormFields: FC<NodePropertyFormFieldsProps> =
 				/>
 				{/* 引用了Typography组件，用于 context 分段标题 */}
 				<Typography variant="caption" className={styles.section}>
-					情境 · 目标
+					{formik.values.cardKind === "voicemail"
+						? "目标 · 播放"
+						: "情境 · 目标"}
 				</Typography>
 				{/* 引用了AutoForm组件，用于编排 context / objectives */}
 				<AutoForm
@@ -99,6 +109,7 @@ export const NodePropertyFormFields: FC<NodePropertyFormFieldsProps> =
 				<NodePropertySubModules
 					formik={formik}
 					showSchedule={derived.showSchedule}
+					showStoryExtras={derived.showStoryExtras}
 					effectPanelSources={derived.effectSources}
 				/>
 			</div>

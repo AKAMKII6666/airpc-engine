@@ -1,11 +1,14 @@
 /**
-	* 故事包 BFF：列 / 读 / 整包写 / 新建 / 删除 / 只读 validate / 导入 data/storis-packages（经 /api/stories）。
-	* 列表与编辑器 UI 已接线；见 listStoryPackages_bis / loadStoryPackageForEditor。
+	* 故事包 BFF：列 / 读 / 写章 / 新建 / 删 / validate / 导入。
 	*/
 import { parseStudioApiJson } from "@studio-v2/src/utils/ajaxHelper/studioApiClient";
 import type {
+	DiskChapterBundle,
+	DiskChapterSummary,
+	DiskPackageContainer,
 	DiskStoryPackageBundle,
 	DiskStoryPackageSummary,
+	PackageConf,
 } from "@studio-v2/typeFiles/story/package/diskStoryPackage";
 import type {
 	DiskPackageValidateResult,
@@ -15,20 +18,14 @@ import type { ValidationReport } from "@studio-v2/typeFiles/story/validate/engin
 
 export type StoriesListData = {
 	packages: DiskStoryPackageSummary[];
-	/**
-		* 工作区首故事 packageId；与 workspace.json 对齐。
-		* 旧响应缺字段时客户端按空串处理。
-		*/
 	startupPackageId?: string;
 };
 
-/** GET /api/stories：磁盘包列表 + 首故事指针 */
 export async function fetchDiskStoryPackagesList(): Promise<StoriesListData> {
 	const res = await fetch("/api/stories");
 	return parseStudioApiJson<StoriesListData>(res);
 }
 
-/** GET /api/stories：仅包列表（兼容旧调用方） */
 export async function fetchDiskStoryPackages(): Promise<
 	DiskStoryPackageSummary[]
 > {
@@ -36,55 +33,91 @@ export async function fetchDiskStoryPackages(): Promise<
 	return data.packages;
 }
 
-/** GET /api/stories/:packageId：整包（conf + cards + layout） */
+export async function fetchDiskPackageConf(
+	packageId: string,
+): Promise<{ packageConf: PackageConf }> {
+	const res = await fetch(`/api/stories/${encodeURIComponent(packageId)}`);
+	return parseStudioApiJson<{ packageConf: PackageConf }>(res);
+}
+
+export async function fetchDiskPackageContainer(
+	packageId: string,
+): Promise<DiskPackageContainer> {
+	const res = await fetch(
+		`/api/stories/${encodeURIComponent(packageId)}?view=container`,
+	);
+	return parseStudioApiJson<DiskPackageContainer>(res);
+}
+
+/** GET 章 bundle（编辑器打开） */
+export async function fetchDiskChapterBundle(
+	packageId: string,
+	chapterId: string,
+): Promise<DiskChapterBundle> {
+	const res = await fetch(
+		`/api/stories/${encodeURIComponent(packageId)}/chapters/${encodeURIComponent(chapterId)}`,
+	);
+	return parseStudioApiJson<DiskChapterBundle>(res);
+}
+
+/** @deprecated 读入口章 */
 export async function fetchDiskStoryPackage(
 	packageId: string,
 ): Promise<DiskStoryPackageBundle> {
-	const res = await fetch(`/api/stories/${encodeURIComponent(packageId)}`);
-	return parseStudioApiJson<DiskStoryPackageBundle>(res);
+	const list = await fetchDiskStoryPackagesList();
+	const pkg = list.packages.find(function (p) {
+		return p.packageId === packageId;
+	});
+	const chapterId = pkg?.entryChapterId ?? packageId;
+	return fetchDiskChapterBundle(packageId, chapterId);
 }
 
-/**
-	* PUT /api/stories/:packageId：整包落盘；服务端 validate，error 阻断并回滚。
-	* 成功返回 bundle + validation（含可展示的 warning）。
-	*/
+export async function putDiskChapterBundle(
+	packageId: string,
+	chapterId: string,
+	bundle: DiskChapterBundle,
+): Promise<PutStoryPackageResult> {
+	const res = await fetch(
+		`/api/stories/${encodeURIComponent(packageId)}/chapters/${encodeURIComponent(chapterId)}`,
+		{
+			method: "PUT",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				conf: bundle.conf,
+				cards: bundle.cards,
+				layout: bundle.layout,
+			}),
+		},
+	);
+	return parseStudioApiJson<PutStoryPackageResult>(res);
+}
+
+/** @deprecated 写章 bundle */
 export async function putDiskStoryPackage(
 	packageId: string,
 	bundle: DiskStoryPackageBundle,
 ): Promise<PutStoryPackageResult> {
-	const res = await fetch(`/api/stories/${encodeURIComponent(packageId)}`, {
-		method: "PUT",
-		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({
-			conf: bundle.conf,
-			cards: bundle.cards,
-			layout: bundle.layout,
-		}),
-	});
-	return parseStudioApiJson<PutStoryPackageResult>(res);
+	return putDiskChapterBundle(
+		packageId,
+		bundle.conf.chapterId,
+		bundle,
+	);
 }
 
-/**
-	* POST /api/stories：新建最小包；packageId 可由客户端或服务端派生。
-	*/
 export async function postDiskStoryPackage(body: {
 	title: string;
 	description?: string;
 	withStartCard?: boolean;
 	packageId?: string;
-}): Promise<DiskStoryPackageBundle> {
+}): Promise<DiskChapterBundle> {
 	const res = await fetch("/api/stories", {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify(body),
 	});
-	return parseStudioApiJson<DiskStoryPackageBundle>(res);
+	return parseStudioApiJson<DiskChapterBundle>(res);
 }
 
-/**
-	* DELETE /api/stories/:packageId：删除包目录。
-	* 服务端拒删首故事与最后一个包。
-	*/
 export async function deleteDiskStoryPackage(
 	packageId: string,
 ): Promise<{ packageId: string }> {
@@ -94,39 +127,120 @@ export async function deleteDiskStoryPackage(
 	return parseStudioApiJson<{ packageId: string }>(res);
 }
 
-/**
-	* GET /api/stories/:packageId/validate：对已落盘包只读 validate；不写盘、不 Host。
-	*/
-export async function fetchDiskStoryPackageValidation(
+export type ChaptersListData = {
+	chapters: DiskChapterSummary[];
+};
+
+export async function fetchDiskChapterSummaries(
 	packageId: string,
+): Promise<ChaptersListData> {
+	const res = await fetch(
+		`/api/stories/${encodeURIComponent(packageId)}/chapters`,
+	);
+	return parseStudioApiJson<ChaptersListData>(res);
+}
+
+export async function postDiskChapter(body: {
+	packageId: string;
+	chapterId: string;
+	title: string;
+	withStartCard?: boolean;
+}): Promise<DiskChapterBundle> {
+	const res = await fetch(
+		`/api/stories/${encodeURIComponent(body.packageId)}/chapters`,
+		{
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				chapterId: body.chapterId,
+				title: body.title,
+				withStartCard: body.withStartCard,
+			}),
+		},
+	);
+	return parseStudioApiJson<DiskChapterBundle>(res);
+}
+
+export async function patchEntryChapterId(
+	packageId: string,
+	entryChapterId: string,
+): Promise<{ packageConf: PackageConf }> {
+	const res = await fetch(
+		`/api/stories/${encodeURIComponent(packageId)}/chapters`,
+		{
+			method: "PATCH",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ entryChapterId }),
+		},
+	);
+	return parseStudioApiJson<{ packageConf: PackageConf }>(res);
+}
+
+export async function deleteDiskChapter(
+	packageId: string,
+	chapterId: string,
+): Promise<{ chapterId: string }> {
+	const res = await fetch(
+		`/api/stories/${encodeURIComponent(packageId)}/chapters/${encodeURIComponent(chapterId)}`,
+		{ method: "DELETE" },
+	);
+	return parseStudioApiJson<{ chapterId: string }>(res);
+}
+
+export async function fetchDiskChapterValidation(
+	packageId: string,
+	chapterId: string,
 ): Promise<DiskPackageValidateResult> {
 	const res = await fetch(
-		`/api/stories/${encodeURIComponent(packageId)}/validate`,
+		`/api/stories/${encodeURIComponent(packageId)}/chapters/${encodeURIComponent(chapterId)}/validate`,
 	);
 	return parseStudioApiJson<DiskPackageValidateResult>(res);
 }
 
-/** POST /api/stories/import 成功体 */
+/** @deprecated 包级 validate → 入口章 */
+export async function fetchDiskStoryPackageValidation(
+	packageId: string,
+): Promise<DiskPackageValidateResult> {
+	const list = await fetchDiskStoryPackagesList();
+	const pkg = list.packages.find(function (p) {
+		return p.packageId === packageId;
+	});
+	const chapterId = pkg?.entryChapterId ?? packageId;
+	return fetchDiskChapterValidation(packageId, chapterId);
+}
+
 export type ImportStoryPackageResult = {
 	packageId: string;
-	bundle: DiskStoryPackageBundle;
+	entryChapterId: string;
+	bundle: DiskChapterBundle;
 	validation: ValidationReport;
 };
 
-/**
-	* POST /api/stories/import：将交换文件整包写入 storis-packages。
-	* 同名冲突抛 CONFLICT；校验失败抛 PACKAGE_VALIDATION_FAILED。
-	*/
 export async function postImportDiskStoryPackage(body: {
 	packageId: string;
-	conf: DiskStoryPackageBundle["conf"];
-	cards: DiskStoryPackageBundle["cards"];
-	layout?: DiskStoryPackageBundle["layout"];
+	packageConf?: PackageConf;
+	chapters?: DiskChapterBundle[];
+	conf?: DiskChapterBundle["conf"];
+	cards?: DiskChapterBundle["cards"];
+	layout?: DiskChapterBundle["layout"];
 }): Promise<ImportStoryPackageResult> {
+	const payload =
+		body.chapters && body.packageConf
+			? {
+					packageId: body.packageId,
+					packageConf: body.packageConf,
+					chapters: body.chapters,
+				}
+			: {
+					packageId: body.packageId,
+					conf: body.conf,
+					cards: body.cards,
+					layout: body.layout,
+				};
 	const res = await fetch("/api/stories/import", {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify(body),
+		body: JSON.stringify(payload),
 	});
 	return parseStudioApiJson<ImportStoryPackageResult>(res);
 }

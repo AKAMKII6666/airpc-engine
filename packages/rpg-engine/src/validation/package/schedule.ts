@@ -2,7 +2,8 @@
  * 模块名称：validatePackage 调度 Effect 规则
  * 模块说明：从 validatePackage 拆出以降复杂度基线；读卡经 ContentPort。
  */
-import { FREE_PACKAGE_ID, SCHEDULE_PACKAGE_ID } from "../../constants.js";
+import { FREE_CHAPTER_ID, SCHEDULE_CHAPTER_ID } from "../../constants.js";
+import { resolveChapterId } from "../../chapter/resolveChapterId.js";
 import type { ContentPort } from "../../ports/contentPort.js";
 import type { CallCardDefinition } from "../../schema/callCard.js";
 import type { ValidationIssue } from "../types.js";
@@ -11,7 +12,7 @@ function push(list: ValidationIssue[], issue: ValidationIssue): void {
 	list.push(issue);
 }
 
-/** SCHEDULE_ONCE_CARD_REQUIRED：延迟外呼必须 agentId+packageId+cardId */
+/** SCHEDULE_ONCE_CARD_REQUIRED：延迟外呼必须 agentId+chapterId+cardId */
 export function validateScheduleOnceEffect(
 	effect: { id: string; effect: string; [key: string]: unknown },
 	issuePath: string,
@@ -19,15 +20,14 @@ export function validateScheduleOnceEffect(
 ): void {
 	const agentId = typeof effect.agentId === "string" ? effect.agentId : "";
 	const cardId = typeof effect.cardId === "string" ? effect.cardId : "";
-	const packageId =
-		typeof effect.packageId === "string" ? effect.packageId : "";
-	if (!agentId || !cardId || !packageId) {
+	const chapterId = resolveChapterId(effect);
+	if (!agentId || !cardId || !chapterId) {
 		push(errors, {
 			ruleId: "SCHEDULE_ONCE_CARD_REQUIRED",
 			level: "error",
 			path: issuePath,
 			message:
-				"schedule_call_card requires agentId + packageId + cardId（禁止仅 topicHint）",
+				"schedule_call_card requires agentId + chapterId + cardId（禁止仅 topicHint）",
 		});
 	}
 }
@@ -57,16 +57,15 @@ export async function validateScheduleRecurringEffect(
 	const scheduleCardId =
 		typeof effect.scheduleCardId === "string" ? effect.scheduleCardId : "";
 	const cardId = typeof effect.cardId === "string" ? effect.cardId : "";
-	const packageId =
-		typeof effect.packageId === "string" ? effect.packageId : "";
+	const chapterId = resolveChapterId(effect);
 
-	if (!scheduleCardId && !(cardId && packageId)) {
+	if (!scheduleCardId && !(cardId && chapterId)) {
 		push(errors, {
 			ruleId: "SCHEDULE_RECURRING_CARD_REQUIRED",
 			level: "error",
 			path: issuePath,
 			message:
-				"schedule_recurring_call requires scheduleCardId or cardId+packageId",
+				"schedule_recurring_call requires scheduleCardId or cardId+chapterId",
 		});
 		return;
 	}
@@ -83,19 +82,19 @@ export async function validateScheduleRecurringEffect(
 		return;
 	}
 
-	if (packageId === SCHEDULE_PACKAGE_ID) {
+	if (chapterId === SCHEDULE_CHAPTER_ID) {
 		await assertScheduleCardViaPort(
 			content,
 			workspaceKey,
 			cardId,
 			issuePath,
 			errors,
-			`cardId ${cardId} (packageId=__schedule__)`,
+			`cardId ${cardId} (chapterId=__schedule__)`,
 		);
 		return;
 	}
 
-	if (packageId === FREE_PACKAGE_ID) {
+	if (chapterId === FREE_CHAPTER_ID) {
 		await assertFreeOrScheduleFallback(
 			content,
 			workspaceKey,
@@ -109,7 +108,7 @@ export async function validateScheduleRecurringEffect(
 	await rejectStoryPackageRecurringTarget(
 		content,
 		workspaceKey,
-		packageId,
+		chapterId,
 		cardId,
 		issuePath,
 		errors,
@@ -126,12 +125,12 @@ async function assertFreeOrScheduleFallback(
 	const target =
 		(await content.readCard({
 			workspaceKey,
-			packageId: FREE_PACKAGE_ID,
+			chapterId: FREE_CHAPTER_ID,
 			cardId,
 		})) ??
 		(await content.readCard({
 			workspaceKey,
-			packageId: SCHEDULE_PACKAGE_ID,
+			chapterId: SCHEDULE_CHAPTER_ID,
 			cardId,
 		}));
 	if (!target) {
@@ -156,23 +155,23 @@ async function assertFreeOrScheduleFallback(
 async function rejectStoryPackageRecurringTarget(
 	content: ContentPort,
 	workspaceKey: string,
-	packageId: string,
+	chapterId: string,
 	cardId: string,
 	issuePath: string,
 	errors: ValidationIssue[],
 ): Promise<void> {
 	const storyCard = await content.readCard({
 		workspaceKey,
-		packageId,
+		chapterId,
 		cardId,
 	});
 	const kind = storyCard?.cardKind ?? null;
 	const message =
 		kind === "story"
-			? `recurring target ${packageId}/${cardId} is a StoryCard; must be characters/schedule-cards (scheduleCardId or packageId=__schedule__)`
+			? `recurring target ${chapterId}/${cardId} is a StoryCard; must be characters/schedule-cards (scheduleCardId or chapterId=__schedule__)`
 			: kind === "schedule"
-				? `recurring target ${packageId}/${cardId} is a package-local schedule node; daily ScheduleCard must live in characters/schedule-cards (use scheduleCardId or packageId=__schedule__)`
-				: `recurring target ${packageId}/${cardId} is not an allowed schedule/free fallback`;
+				? `recurring target ${chapterId}/${cardId} is a package-local schedule node; daily ScheduleCard must live in characters/schedule-cards (use scheduleCardId or chapterId=__schedule__)`
+				: `recurring target ${chapterId}/${cardId} is not an allowed schedule/free fallback`;
 	push(errors, {
 		ruleId: "SCHEDULE_CARD_KIND",
 		level: "error",
@@ -191,7 +190,7 @@ async function assertScheduleCardViaPort(
 ): Promise<void> {
 	const card = await content.readCard({
 		workspaceKey,
-		packageId: SCHEDULE_PACKAGE_ID,
+		chapterId: SCHEDULE_CHAPTER_ID,
 		cardId: scheduleCardId,
 	});
 	if (!card) {

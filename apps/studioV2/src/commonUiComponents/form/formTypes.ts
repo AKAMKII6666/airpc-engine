@@ -13,6 +13,16 @@ export type FormFieldMode = "add" | "edit" | "watch";
 export type FormSelectOption = {
 	label: string;
 	value: string;
+	/**
+		* 悬停「作用」；与 exampleScenario 成对进 Tooltip。
+		* 缺省表示该选项无需解释。
+		*/
+	purpose?: string;
+	/**
+		* 悬停「典型场景」；与 purpose 成对进 Tooltip。
+		* 缺省表示无需场景举例。
+		*/
+	exampleScenario?: string;
 };
 
 /** FormFieldShell / 各 Field 共用的外壳 props */

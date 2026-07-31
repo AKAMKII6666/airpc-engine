@@ -6,7 +6,7 @@ import type { CardKind } from "../schema/callCard.js";
 
 export function maybeActivateStoryOnBegin(input: {
   profile: PlayerProfile | undefined;
-  packageId: string;
+  chapterId: string;
   cardKind: CardKind | string | undefined;
   source: string;
   instanceId: string;
@@ -15,7 +15,7 @@ export function maybeActivateStoryOnBegin(input: {
   if (!input.profile) return;
   if (
     !classifyCall({
-      packageId: input.packageId,
+      chapterId: input.chapterId,
       cardKind: input.cardKind,
       source: input.source,
     }).isNarrative
@@ -23,14 +23,14 @@ export function maybeActivateStoryOnBegin(input: {
     return;
   }
   activateStoryOnBegin(input.profile, {
-    packageId: input.packageId,
+    chapterId: input.chapterId,
     instanceId: input.instanceId,
     nowIso: input.nowIso,
   });
 }
 
 export function sessionIsFreeLike(input: {
-  packageId: string;
+  chapterId: string;
   cardKind: CardKind | string | undefined;
   source: string;
 }): boolean {

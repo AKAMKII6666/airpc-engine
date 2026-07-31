@@ -1,8 +1,7 @@
 /**
-	* POST /api/stories/import — 导入 .storypack.json 整包落盘。
-	* body: { conf, cards, layout?, packageId? }；冲突时返回 CONFLICT（由客户端改 id 再试）。
+	* POST /api/stories/import — 导入 .storypack.json 整包（多章）落盘。
 	*/
-import { isEngineError } from "@airpc/rpg-engine";
+import { isEngineError, PackageConfSchema } from "@airpc/rpg-engine";
 import {
 	apiFail,
 	apiOk,
@@ -10,10 +9,12 @@ import {
 } from "@studio-v2/src/utils/server/http/apiResponse.server";
 import { reloadStudioV2WorkspaceIfBooted } from "@studio-v2/src/utils/server/host/engineHost.server";
 import {
+	deleteDiskStoryPackage,
 	packageExists,
-} from "@studio-v2/src/utils/server/packages/fs/packagesFs.server";
-import { writeValidatedDiskStoryPackage } from "@studio-v2/src/utils/server/packages/fs/writeValidatedPackage.server";
-import { isValidPackageId } from "@studio-v2/src/utils/server/packages/paths/packagesPaths.server";
+	writeDiskPackageContainer,
+} from "@studio-v2/src/utils/server/packages/fs/package/packagesFs.server";
+import { writeValidatedDiskChapterBundle } from "@studio-v2/src/utils/server/packages/fs/validate/writeValidatedPackage.server";
+import { parseImportBody } from "@studio-v2/src/utils/server/packages/import/importBodyParse.server";
 
 function failFromUnknown(err: unknown): Response {
 	if (isEngineError(err)) {
@@ -30,38 +31,23 @@ function failFromUnknown(err: unknown): Response {
 	);
 }
 
-/**
-	* 导入整包：校验 packageId → 冲突检测 → writeValidated。
-	*/
 export async function POST(req: Request): Promise<Response> {
 	try {
-		const body = (await req.json()) as {
-			packageId?: unknown;
-			conf?: unknown;
-			cards?: unknown;
-			layout?: unknown | null;
-		};
-		if (!body.conf || typeof body.conf !== "object") {
-			return apiFail("VALIDATION_FAILED", "conf object required");
-		}
-		if (!Array.isArray(body.cards)) {
-			return apiFail("VALIDATION_FAILED", "cards array required");
-		}
-		const confObj = body.conf as { packageId?: unknown };
-		const packageId =
-			typeof body.packageId === "string" && body.packageId.trim() !== ""
-				? body.packageId.trim()
-				: typeof confObj.packageId === "string"
-					? confObj.packageId.trim()
-					: "";
-		if (!isValidPackageId(packageId)) {
+		const body = (await req.json()) as Record<string, unknown>;
+		const parsed = parseImportBody(body);
+		if (!parsed) {
 			return apiFail(
 				"VALIDATION_FAILED",
-				"packageId 须为小写 snake_case（如 my_story_act1）",
+				"import body 须含 packageConf+chapters 或 legacy conf+cards",
 			);
 		}
-		if (confObj.packageId && confObj.packageId !== packageId) {
-			return apiFail("VALIDATION_FAILED", "conf.packageId mismatch");
+		const { packageId, packageConf, chapters } = parsed;
+		const confParsed = PackageConfSchema.safeParse({
+			...(packageConf as object),
+			packageId,
+		});
+		if (!confParsed.success) {
+			return apiFail("VALIDATION_FAILED", "packageConf invalid");
 		}
 		if (await packageExists(packageId)) {
 			return apiFail(
@@ -71,16 +57,33 @@ export async function POST(req: Request): Promise<Response> {
 				{ packageId },
 			);
 		}
-		const confForWrite = {
-			...(body.conf as Record<string, unknown>),
-			packageId,
-		};
-		const result = await writeValidatedDiskStoryPackage(packageId, {
-			conf: confForWrite,
-			cards: body.cards,
-			layout: body.layout ?? null,
+
+		await writeDiskPackageContainer(packageId, {
+			packageConf: confParsed.data,
+			chapters,
 		});
+
+		/** 逐章 validate 入口章 */
+		const entryId = confParsed.data.entryChapterId;
+		const entryChapter = chapters.find(function (ch) {
+			const c = ch.conf as { chapterId?: string };
+			return c.chapterId === entryId;
+		});
+		if (!entryChapter) {
+			await deleteDiskStoryPackage(packageId);
+			return apiFail(
+				"VALIDATION_FAILED",
+				"entryChapterId 不在导入章列表中",
+			);
+		}
+
+		const result = await writeValidatedDiskChapterBundle(
+			packageId,
+			entryId,
+			entryChapter,
+		);
 		if (!result.ok) {
+			await deleteDiskStoryPackage(packageId);
 			return apiFail(
 				"PACKAGE_VALIDATION_FAILED",
 				`导入校验未通过（${result.report.errors.length} 个错误）`,
@@ -88,9 +91,11 @@ export async function POST(req: Request): Promise<Response> {
 				{ report: result.report },
 			);
 		}
+
 		await reloadStudioV2WorkspaceIfBooted();
 		return apiOk({
-			packageId: result.bundle.conf.packageId,
+			packageId,
+			entryChapterId: entryId,
 			bundle: result.bundle,
 			validation: result.report,
 		});

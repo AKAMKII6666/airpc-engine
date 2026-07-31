@@ -9,7 +9,7 @@ import { useCallback, useMemo } from "react";
 import type { Edge, Node } from "@xyflow/react";
 import type { FactMeta, StoryPackageMeta } from "@studio-v2/typeFiles/story/callCard/engineCallCard";
 import type { ValidationReport } from "@studio-v2/typeFiles/story/validate/engineValidation";
-import { listChapterNextPackageOptions } from "@studio-v2/src/bis/pageBis/storyEditor/package/conf/packageConfProjection";
+import { listChapterNextChapterOptions } from "@studio-v2/src/bis/pageBis/storyEditor/package/conf/packageConfProjection";
 import type { EditorGraphSeed } from "@studio-v2/src/bis/pageBis/storyEditor/package/graph/diskBundleGraph";
 import {
 	usePackageSessionMutateBis,
@@ -27,6 +27,8 @@ export type EditorPackageSaveState = StoryEditorSavePhase;
 type PackageSessionBisArgs = {
 	/** 路由包键；须与 shell 当前灌账目标一致 */
 	packageId: string;
+	/** 路由章键；须与 shell 当前灌账目标一致 */
+	chapterId: string;
 	/** 同步 flush 画布→store；保存前必调 */
 	flushCanvasToStore: () => boolean;
 	/** 画布命令口；校验定位；可暂为 null */
@@ -42,16 +44,18 @@ type PackageSessionBisResult = {
 	bundle: DiskStoryPackageBundle | null;
 	/** 画布初始 seed；保存不重建；未打开为 null */
 	graphSeed: EditorGraphSeed | null;
-	/** 顶栏标题；优先 conf.title，否则 packageId */
+	/** 顶栏标题；优先 conf.title，否则 chapterId */
 	packageTitle: string;
-	/** 磁盘包列表摘要；chapter 下拉 */
+	/** 磁盘包列表摘要；只读投影 */
 	diskPackages: StoryPackageSummary[];
-	/** packageId → 卡摘要 */
+	/** chapterId → 卡摘要 */
 	cardIndex: Record<string, readonly { cardId: string; title?: string }[]>;
-	/** packageId → 默认入口卡 */
-	entryCardIdByPackage: Record<string, string>;
-	/** chapter_end 下一包选项投影 */
-	chapterPackageOptions: ReturnType<typeof listChapterNextPackageOptions>;
+	/** chapterId → 默认入口卡 */
+	entryCardIdByChapter: Record<string, string>;
+	/** 本包章摘要 */
+	chapterSummaries: readonly { chapterId: string; title: string }[];
+	/** chapter_end 下一章选项投影（本包内） */
+	chapterChapterOptions: ReturnType<typeof listChapterNextChapterOptions>;
 	/** 保存相位；映射 store.savePhase */
 	saveState: EditorPackageSaveState;
 	/** 保存失败人话 */
@@ -95,7 +99,7 @@ function asEditorGraphSeed(
 export function useStoryEditorPackageSessionBis(
 	args: PackageSessionBisArgs,
 ): PackageSessionBisResult {
-	const { packageId, flushCanvasToStore, getCanvasApi } = args;
+	const { packageId, chapterId, flushCanvasToStore, getCanvasApi } = args;
 
 	const loading = useStoryEditorStore(function (s) {
 		return s.loading;
@@ -112,8 +116,11 @@ export function useStoryEditorPackageSessionBis(
 	const cardIndex = useStoryEditorStore(function (s) {
 		return s.cardIndex;
 	});
-	const entryCardIdByPackage = useStoryEditorStore(function (s) {
-		return s.entryCardIdByPackage;
+	const entryCardIdByChapter = useStoryEditorStore(function (s) {
+		return s.entryCardIdByChapter;
+	});
+	const chapterSummaries = useStoryEditorStore(function (s) {
+		return s.chapterSummaries;
 	});
 	const saveState = useStoryEditorStore(function (s) {
 		return s.savePhase;
@@ -127,6 +134,7 @@ export function useStoryEditorPackageSessionBis(
 
 	const mutations = usePackageSessionMutateBis({
 		packageId,
+		chapterId,
 		flushCanvasToStore,
 	});
 
@@ -141,12 +149,12 @@ export function useStoryEditorPackageSessionBis(
 
 	const graphSeed = asEditorGraphSeed(graphSeedRaw);
 	const trimmedTitle = mutations.bundle?.conf.title?.trim();
-	const packageTitle = trimmedTitle ? trimmedTitle : packageId;
-	const chapterPackageOptions = useMemo(
+	const packageTitle = trimmedTitle ? trimmedTitle : chapterId;
+	const chapterChapterOptions = useMemo(
 		function () {
-			return listChapterNextPackageOptions(diskPackages);
+			return listChapterNextChapterOptions(chapterSummaries, chapterId);
 		},
-		[diskPackages],
+		[chapterSummaries, chapterId],
 	);
 
 	return {
@@ -157,8 +165,9 @@ export function useStoryEditorPackageSessionBis(
 		packageTitle,
 		diskPackages,
 		cardIndex,
-		entryCardIdByPackage,
-		chapterPackageOptions,
+		entryCardIdByChapter,
+		chapterSummaries,
+		chapterChapterOptions,
 		saveState,
 		saveError,
 		saveValidation,

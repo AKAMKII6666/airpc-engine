@@ -11,6 +11,7 @@ import type {
 } from "@studio-v2/typeFiles/story/editor/callCard/editorCallCardProjection";
 import type { EditorEffectParams } from "@studio-v2/typeFiles/story/editor/callCard/editorEffectParams";
 import { EFFECT_NAME_OPTIONS } from "@studio-v2/typeFiles/story/callCardLabels";
+import { createStudioId } from "@studio-v2/typeFiles/ids/createStudioId";
 import {
 	defaultExitCondition,
 	summarizeExitCondition,
@@ -47,30 +48,18 @@ export function coerceKnownEffectName(raw: string): KnownEffectName {
 	return "keep_card_pending";
 }
 
-/** 生成不与已有 id 冲突的 exitId */
-export function nextExitId(existing: readonly { exitId: string }[]): string {
-	const used = new Set(existing.map((row) => row.exitId));
-	let n = existing.length + 1;
-	let candidate = `exit_${n}`;
-	while (used.has(candidate)) {
-		n += 1;
-		candidate = `exit_${n}`;
-	}
-	return candidate;
+/** 生成全局唯一 exitId（UUID 体；existing 仅保留签名兼容） */
+export function nextExitId(
+	_existing?: readonly { exitId: string }[],
+): string {
+	return createStudioId("exit");
 }
 
-/** 生成不与已有 id 冲突的 effect id */
+/** 生成全局唯一 effect id（UUID 体；existing 仅保留签名兼容） */
 export function nextEffectId(
-	existing: readonly { id: string }[],
+	_existing?: readonly { id: string }[],
 ): string {
-	const used = new Set(existing.map((row) => row.id));
-	let n = existing.length + 1;
-	let candidate = `fx_${n}`;
-	while (used.has(candidate)) {
-		n += 1;
-		candidate = `fx_${n}`;
-	}
-	return candidate;
+	return createStudioId("effect");
 }
 
 /** 新建 Effect mock 行；完整参数编排不做；effect 默认 keep_card_pending */

@@ -7,7 +7,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import {
-  FREE_PACKAGE_ID,
+  FREE_CHAPTER_ID,
   isEngineError,
   listBuiltinTools,
 } from "../../src/index.js";
@@ -60,7 +60,7 @@ describe("free call + tools + memory", () => {
     });
     expect(isEngineError(resolved)).toBe(false);
     if (isEngineError(resolved)) return;
-    expect(resolved.packageId).toBe(FREE_PACKAGE_ID);
+    expect(resolved.chapterId).toBe(FREE_CHAPTER_ID);
     expect(resolved.source).toBe("free");
     expect(resolved.card.cardKind).toBe("free");
     const session = await host.beginCall("demo-user", resolved, {
@@ -68,7 +68,7 @@ describe("free call + tools + memory", () => {
     });
     expect(isEngineError(session)).toBe(false);
     if (isEngineError(session)) return;
-    expect(session.packageId).toBe(FREE_PACKAGE_ID);
+    expect(session.chapterId).toBe(FREE_CHAPTER_ID);
     const end = await host.endCall(session.sessionId, {
       flags: { answered_completed: true },
       completedBeats: [],
@@ -147,7 +147,7 @@ describe("free call + tools + memory", () => {
     await cp(dataSrc, dataRoot, { recursive: true });
     const host = createTestHostWithMemory({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);
-    const ok = await host.preloadCard(FREE_PACKAGE_ID, "lanxing_free");
+    const ok = await host.preloadCard(FREE_CHAPTER_ID, "lanxing_free");
     expect(isEngineError(ok)).toBe(false);
   });
 });

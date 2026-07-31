@@ -5,13 +5,14 @@
 "use client";
 
 import type { FC } from "react";
-import { FormControlLabel, MenuItem, Switch, TextField } from "@mui/material";
+import { FormControlLabel, MenuItem, Switch, TextField, Tooltip } from "@mui/material";
 import type {
 	EndStoryNext,
 } from "@studio-v2/typeFiles/story/editor/callCard/editorEffectParams";
 import type { EditorEntryMode } from "@studio-v2/typeFiles/story/editor/callCard/editorCallCardProjection";
 import { ENTRY_MODE_OPTIONS } from "@studio-v2/typeFiles/story/callCardLabels";
 import { parseBoundedInt } from "@studio-v2/src/bis/pageBis/storyEditor/form/exitList/effects/effectParams";
+import { formatSelectOptionTooltip } from "@studio-v2/src/commonUiComponents/form/formatSelectOptionTooltip";
 import styles from "./effectPanels.module.scss";
 
 export type EndStoryNextActivationPanelProps = {
@@ -78,12 +79,22 @@ export const EndStoryNextActivationPanel: FC<EndStoryNextActivationPanelProps> =
 				>
 					{/* 引用了MenuItem组件，用于不覆盖 entryMode */}
 					<MenuItem value="">（按激活方式推导）</MenuItem>
-					{ENTRY_MODE_OPTIONS.map((opt) => (
-						// 引用了MenuItem组件，用于单个 entryMode 选项
-						<MenuItem key={opt.value} value={opt.value}>
-							{opt.label}
-						</MenuItem>
-					))}
+					{ENTRY_MODE_OPTIONS.map((opt) => {
+						const tip = formatSelectOptionTooltip(opt);
+						return (
+							// 引用了MenuItem组件，用于单个 entryMode 选项
+							<MenuItem key={opt.value} value={opt.value}>
+								{tip != null ? (
+									// 引用了Tooltip组件，用于入口模式的作用与典型场景
+									<Tooltip title={tip} placement="right">
+										<span>{opt.label}</span>
+									</Tooltip>
+								) : (
+									opt.label
+								)}
+							</MenuItem>
+						);
+					})}
 				</TextField>
 				{/* 引用了TextField组件，用于 activationHint 覆盖 */}
 				<TextField

@@ -18,6 +18,7 @@ import type { Outcome } from "../schema/outcome.js";
 import { OutcomeSchema } from "../schema/outcome.js";
 import {
   getFreeCard,
+  getChapterConf,
   lookupCharacterSideCard,
   type WorkspaceState,
 } from "../workspace/loadWorkspace.js";
@@ -29,6 +30,7 @@ import {
 import { loadWorkspaceViaPort } from "./contentViaPort.js";
 import { buildComposeScene } from "../runtime/composeScene.js";
 import { composeRenderedPrompt } from "../runtime/composer.js";
+import { buildBeginCallSoftExtras } from "./buildBeginCallSoftExtras.js";
 import { selectExit } from "../runtime/exitSelector.js";
 import { executeEffects } from "../runtime/effectExecutor.js";
 import { runFreeCallPostPipeline } from "../runtime/freeCallPostPipeline.js";
@@ -45,7 +47,7 @@ import {
   maybeActivateStoryOnBegin,
   sessionIsFreeLike,
 } from "./callNarrativeGate.js";
-import { FREE_PACKAGE_ID } from "../constants.js";
+import { FREE_CHAPTER_ID } from "../constants.js";
 import type { MemoryPort } from "../memory/types.js";
 import {
   createHostPushLog,
@@ -84,11 +86,6 @@ import {
   type CallFlowSimEventKind,
 } from "../runtime/selectCallFlowPrompt.js";
 import { bootstrapLoreOntoProfile } from "../lore/bootstrapLore.js";
-import {
-  formatLoreSoftContext,
-  WorldLoreDocSchema,
-  type WorldLoreDoc,
-} from "../schema/worldLore.js";
 
 export type {
   CreateEngineHostOptions,
@@ -201,7 +198,7 @@ export function createEngineHost(
       instanceId: randomUUID(),
       cardId: cardOrErr.cardId,
       agentId,
-      packageId: FREE_PACKAGE_ID,
+      chapterId: FREE_CHAPTER_ID,
       intent,
       card: structuredClone(cardOrErr),
     };
@@ -233,7 +230,7 @@ export function createEngineHost(
 				type: "workspace.loaded",
 				payload: {
 					rootDir,
-					packageCount: workspace.packages.size,
+					packageCount: workspace.chapters.size,
 					resetRuntime,
 				},
 			});
@@ -292,24 +289,24 @@ export function createEngineHost(
 			const profile: PlayerProfile = profileOrMissing;
 
       if (intent.kind === "simulate_start") {
-        if (intent.packageId === FREE_PACKAGE_ID) {
+        if (intent.chapterId === FREE_CHAPTER_ID) {
           return engineError(
             "INVALID_PACKAGE_ID",
             "cannot simulate_start free sentinel as package",
           );
         }
-				const pkg = ws.packages.get(intent.packageId);
+				const pkg = ws.chapters.get(intent.chapterId);
 				if (!pkg) {
 					return engineError(
 						"NOT_FOUND",
-						`package not found: ${intent.packageId}`,
+						`package not found: ${intent.chapterId}`,
 					);
 				}
 				const card = pkg.cards.get(intent.cardId);
 				if (!card) {
 					return engineError(
 						"NOT_FOUND",
-						`card not loaded: ${intent.packageId}/${intent.cardId}; use resolveAsync`,
+						`card not loaded: ${intent.chapterId}/${intent.cardId}; use resolveAsync`,
 					);
 				}
 				const def = ws.characters.get(card.ownerAgentId);
@@ -325,7 +322,7 @@ export function createEngineHost(
 					instanceId: randomUUID(),
 					cardId: card.cardId,
 					agentId: card.ownerAgentId,
-					packageId: intent.packageId,
+					chapterId: intent.chapterId,
 					intent,
 					card: structuredClone(card),
 				};
@@ -365,7 +362,7 @@ export function createEngineHost(
           return {
             action: "reject",
             error: engineError(decision.code, decision.message, {
-              packageId: hit?.packageId,
+              chapterId: hit?.chapterId,
               lockLevel: hit?.lock.lockLevel,
             }),
           };
@@ -379,7 +376,7 @@ export function createEngineHost(
               agentId,
               warning: decision.warning,
               reason: decision.reason,
-              packageId: hit?.packageId,
+              chapterId: hit?.chapterId,
             },
           });
           return { action: "force_free" };
@@ -391,7 +388,7 @@ export function createEngineHost(
           payload: {
             agentId,
             reason: decision.reason,
-            packageId: hit?.packageId,
+            chapterId: hit?.chapterId,
           },
         });
         return { action: "continue" };
@@ -492,7 +489,7 @@ export function createEngineHost(
 			intent: CallIntent,
 		): Promise<ResolveResult | EngineError> {
 			if (intent.kind === "simulate_start") {
-				const pre = await host.preloadCard(intent.packageId, intent.cardId);
+				const pre = await host.preloadCard(intent.chapterId, intent.cardId);
 				if (pre && isEngineError(pre)) {
 					return pre;
 				}
@@ -505,9 +502,11 @@ export function createEngineHost(
 				const slot = profile.telephony?.voicemails?.find(function (item) {
 					return item.id === intent.voicemailId;
 				});
-				const packageId = slot?.packageId;
-				if (packageId) {
-					const pre = await host.preloadCard(packageId, intent.cardId);
+				const slotChapterId =
+					slot?.chapterId ??
+					(typeof slot?.packageId === "string" ? slot.packageId : undefined);
+				if (slotChapterId) {
+					const pre = await host.preloadCard(slotChapterId, intent.cardId);
 					if (pre && isEngineError(pre)) {
 						return pre;
 					}
@@ -529,18 +528,18 @@ export function createEngineHost(
 						return (
 							lookupCharacterSideCard(
 								ws,
-								instance.packageId,
+								instance.chapterId,
 								instance.cardId,
 							)?.entryMode ??
-							ws.packages
-								.get(instance.packageId)
+							ws.chapters
+								.get(instance.chapterId)
 								?.cards.get(instance.cardId)?.entryMode
 						);
 					},
 				});
 				if (pending) {
 					const pre = await host.preloadCard(
-						pending.packageId,
+						pending.chapterId,
 						pending.cardId,
 					);
 					if (pre && isEngineError(pre)) {
@@ -581,7 +580,7 @@ export function createEngineHost(
         const composeScene = buildComposeScene({
           entryMode: beginCard.entryMode,
           actualEntry,
-          packageId: result.packageId,
+          chapterId: result.chapterId,
           localNowIso: opts.localNowIso,
           timeZone: opts.timeZone,
           sceneOverride: opts.sceneOverride,
@@ -589,29 +588,14 @@ export function createEngineHost(
         const characterDef =
           requireWorkspace().characters.get(result.agentId) ?? null;
 
-        const softExtras: string[] = [];
-        if (memory) {
-          const projection = await memory.projectForCall({
-            userId,
-            agentId: result.agentId,
-            card: beginCard,
-            nowIso: now,
-          });
-          if (projection.softText) {
-            softExtras.push(`[memory]\n${projection.softText}`);
-          }
-        }
-        const profileForLore = profiles.get(userId);
-        const loreParsed = WorldLoreDocSchema.safeParse(
-          profileForLore?.world?.lore,
-        );
-        const loreSoft = formatLoreSoftContext(
-          loreParsed.success ? loreParsed.data : null,
-          result.agentId,
-        );
-        if (loreSoft) {
-          softExtras.push(loreSoft);
-        }
+        const softExtras = await buildBeginCallSoftExtras({
+          userId,
+          agentId: result.agentId,
+          card: beginCard,
+          nowIso: now,
+          memory,
+          profile: profiles.get(userId),
+        });
 
         const rendered = composeRenderedPrompt({
           card: beginCard,
@@ -653,7 +637,7 @@ export function createEngineHost(
           schemaVersion: 1,
           sessionId,
           userId,
-          packageId: result.packageId,
+          chapterId: result.chapterId,
           status: "in_call",
           startedAt: now,
           resolve: {
@@ -698,7 +682,7 @@ export function createEngineHost(
 
         maybeActivateStoryOnBegin({
           profile: profileForBegin,
-          packageId: result.packageId,
+          chapterId: result.chapterId,
           cardKind: beginCard.cardKind,
           source: result.source,
           instanceId: result.instanceId,
@@ -712,7 +696,7 @@ export function createEngineHost(
           type: "call.begun",
           userId,
           sessionId,
-          payload: { cardId: result.cardId, packageId: result.packageId },
+          payload: { cardId: result.cardId, packageId: result.chapterId },
         });
         return session;
       })();
@@ -893,7 +877,7 @@ export function createEngineHost(
       const endProfile = profile;
 
       const isFree = sessionIsFreeLike({
-        packageId: endSession.packageId,
+        chapterId: endSession.chapterId,
         cardKind: endSession.frozenCard.cardKind,
         source: endSession.resolve.source,
       });
@@ -1050,6 +1034,9 @@ export function createEngineHost(
         memory,
         effectSink,
         lookupCard,
+        getChapterConf(chapterId) {
+          return getChapterConf(requireWorkspace(), chapterId);
+        },
       });
       session.effectPlanResult = plan;
 
@@ -1165,14 +1152,14 @@ export function createEngineHost(
 
     getLoadedCardCount(packageId: string): number {
       const ws = requireWorkspace();
-      return ws.packages.get(packageId)?.cards.size ?? 0;
+      return ws.chapters.get(packageId)?.cards.size ?? 0;
     },
 
     ...createInjectedPortAccessorsFromOptions(options, function () {
       return memory;
     }),
 
-    async validatePackage(packageId: string): Promise<ValidationReport> {
+    async validatePackage(chapterId: string): Promise<ValidationReport> {
       const ws = requireWorkspace();
       if (!contentPort) {
         throw engineError(
@@ -1182,7 +1169,7 @@ export function createEngineHost(
       }
       const bundle = await contentPort.loadPackageForValidate({
         workspaceKey: ws.rootDir,
-        packageId,
+        chapterId,
       });
       return runValidatePackage({
         bundle,

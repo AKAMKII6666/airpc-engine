@@ -1,0 +1,39 @@
+{
+  "cardId": "card_5c5401b383564b09b4c4db3d1d818f95",
+  "cardKind": "story",
+  "title": "反馈关于算命的事情",
+  "ownerAgentId": "lanxing",
+  "entryMode": "either",
+  "interactionMode": "realtime_dialogue",
+  "context": {
+    "privateBrief": "白半仙给用户算了命",
+    "speakableBrief": "询问用户是否打电话给了白半仙，算出了什么呀？",
+    "background": "用户想算命，澜星姐姐介绍了白半仙给用户，用户已经打过电话给白半仙了，现在你主动打电话给用户询问情况怎么样，灵不灵？",
+    "premise": "用户想算命，澜星姐姐介绍了白半仙给用户，用户已经打过电话给白半仙了",
+    "emotion": "好奇",
+    "objective": "和用户聊起白半仙刚刚说用户打过电话给他的事情",
+    "forbidden": []
+  },
+  "objectives": {
+    "requiredBeats": []
+  },
+  "toolPolicy": {
+    "mode": "inherit_free"
+  },
+  "exits": [
+    {
+      "exitId": "exit_0ef5a27838f64ecfa6ab74530d79c8a9",
+      "title": "出口 1",
+      "priority": 0,
+      "condition": {
+        "op": "always"
+      },
+      "effects": [
+        {
+          "id": "fx_1fa3ea9e8637472ebc9e246bae8b044e",
+          "effect": "end_story"
+        }
+      ]
+    }
+  ]
+}

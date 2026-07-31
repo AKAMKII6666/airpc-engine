@@ -143,13 +143,14 @@ export function useStoryCanvasGraph(args: UseStoryCanvasGraphArgs) {
 		toolModeApi,
 	});
 
-	const { onConnect, onConnectStart } = useStoryCanvasConnect({
-		nodesRef,
-		selectedIdRef,
-		setNodes,
-		setEdges,
-		onSelectionChange,
-	});
+	const { onConnect, onConnectStart, isValidConnection } =
+		useStoryCanvasConnect({
+			nodesRef,
+			selectedIdRef,
+			setNodes,
+			setEdges,
+			onSelectionChange,
+		});
 
 	useRegisterStoryCanvasApi(canvasApi, onReady);
 
@@ -172,7 +173,13 @@ export function useStoryCanvasGraph(args: UseStoryCanvasGraphArgs) {
 		onCharacterAnchorSelect,
 	});
 
-	const { onEdgesChange } = useStoryCanvasEffectEdges({
+	const {
+		onEdgesChange,
+		pendingDeleteEdge,
+		requestDeleteEdge,
+		closeDeleteEdgeModal,
+		confirmDeleteEdge,
+	} = useStoryCanvasEffectEdges({
 		nodesRef,
 		edgesRef,
 		selectedIdRef,
@@ -188,6 +195,11 @@ export function useStoryCanvasGraph(args: UseStoryCanvasGraphArgs) {
 		onEdgesChange,
 		onConnect,
 		onConnectStart,
+		isValidConnection,
+		pendingDeleteEdge,
+		requestDeleteEdge,
+		closeDeleteEdgeModal,
+		confirmDeleteEdge,
 		handleSelectionChange,
 		addNodeAt: canvasApi.addNodeAt,
 		clearCanvasSelection: gestures.clearCanvasSelection,

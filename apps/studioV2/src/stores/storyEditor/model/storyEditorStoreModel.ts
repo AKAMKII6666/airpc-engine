@@ -16,8 +16,10 @@ import type {
 } from "@studio-v2/typeFiles/story/editor/store/storyEditorStoreState";
 
 export type StoryEditorStoreState = {
-	/** 当前路由包 id；空串表示未打开或已 reset */
+	/** 当前路由包 id */
 	packageId: string;
+	/** 当前路由章 id */
+	chapterId: string;
 	/** 打开 / refresh 进行中 */
 	loading: boolean;
 	/** 打开失败人话；成功时 undefined */
@@ -29,10 +31,12 @@ export type StoryEditorStoreState = {
 	refreshStamp: number;
 	/** 磁盘包列表摘要；chapter 下拉等只读投影 */
 	diskPackages: StoryPackageSummary[];
-	/** packageId → 卡摘要 */
+	/** chapterId → 卡摘要（章 id 全局唯一） */
 	cardIndex: Record<string, readonly StoryEditorCardIndexEntry[]>;
-	/** packageId → 默认入口卡 */
-	entryCardIdByPackage: Record<string, string>;
+	/** chapterId → 默认入口卡 */
+	entryCardIdByChapter: Record<string, string>;
+	/** 本包章摘要；chapter_end 续章下拉 */
+	chapterSummaries: readonly { chapterId: string; title: string }[];
 	/** 打开时画布 seed；保存不重建 */
 	graphSeed: StoryEditorGraphSeedSnapshot | null;
 	/** 会话整包工作副本（含 conf）；非磁盘真源 */
@@ -52,8 +56,8 @@ export type StoryEditorStoreState = {
 	/** 最近一次保存相关 ValidationReport；未保存或非校验失败时可为 null */
 	saveValidation: ValidationReport | null;
 
-	/** shell 开始拉包：清错误、置 loading，保留 stamp */
-	applyPackageLoadStarted: (packageId: string) => void;
+	/** shell 开始拉章：清错误、置 loading */
+	applyPackageLoadStarted: (packageId: string, chapterId: string) => void;
 	/** shell 拉包结果：成功灌会话；失败只记 loadError */
 	applyPackageLoadResult: (result: StoryEditorLoadResult) => void;
 	/**
@@ -89,11 +93,13 @@ const emptyEntryByPackage: Record<string, string> = {};
 export function createStoryEditorSessionSlice(): Pick<
 	StoryEditorStoreState,
 	| "packageId"
+	| "chapterId"
 	| "loading"
 	| "loadError"
 	| "diskPackages"
 	| "cardIndex"
-	| "entryCardIdByPackage"
+	| "entryCardIdByChapter"
+	| "chapterSummaries"
 	| "graphSeed"
 	| "bundle"
 	| "flushedGraph"
@@ -106,11 +112,13 @@ export function createStoryEditorSessionSlice(): Pick<
 > {
 	return {
 		packageId: "",
+		chapterId: "",
 		loading: false,
 		loadError: undefined,
 		diskPackages: [],
 		cardIndex: emptyCardIndex,
-		entryCardIdByPackage: emptyEntryByPackage,
+		entryCardIdByChapter: emptyEntryByPackage,
+		chapterSummaries: [],
 		graphSeed: null,
 		bundle: null,
 		flushedGraph: null,

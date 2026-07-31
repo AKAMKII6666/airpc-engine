@@ -11,6 +11,8 @@ export const ScheduledIntentOnceSchema = z.object({
   intentId: z.string().min(1),
   agentId: z.string().min(1),
   cardId: z.string().optional(),
+  /** 故事章 chapterId；迁移期可读 legacy packageId */
+  chapterId: z.string().optional(),
   packageId: z.string().optional(),
   topicHint: z.string().optional(),
   fireAtMs: z.number(),
@@ -30,6 +32,8 @@ export const ScheduledIntentRecurringSchema = z.object({
   scheduleCardId: z.string().min(1).optional(),
   /** 备选：显式 packageId+cardId（含 __free__ / 故事包卡） */
   cardId: z.string().optional(),
+  /** 故事章 chapterId；迁移期可读 legacy packageId */
+  chapterId: z.string().optional(),
   packageId: z.string().optional(),
   topicHint: z.string().optional(),
   hour: z.number().int().min(0).max(23),
@@ -53,16 +57,18 @@ export type ScheduledIntent = z.infer<typeof ScheduledIntentSchema>;
 export function hasRecurringCardRef(intent: {
   scheduleCardId?: string;
   cardId?: string;
+  chapterId?: string;
   packageId?: string;
 }): boolean {
   if (typeof intent.scheduleCardId === "string" && intent.scheduleCardId) {
     return true;
   }
+  const chapterId = intent.chapterId ?? intent.packageId;
   return Boolean(
     typeof intent.cardId === "string" &&
       intent.cardId &&
-      typeof intent.packageId === "string" &&
-      intent.packageId,
+      typeof chapterId === "string" &&
+      chapterId,
   );
 }
 

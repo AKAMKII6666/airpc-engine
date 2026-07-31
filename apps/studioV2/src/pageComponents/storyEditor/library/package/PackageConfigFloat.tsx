@@ -98,7 +98,7 @@ export const PackageConfigFloat: FC<PackageConfigFloatProps> =
 					helperText={
 						entryCardOptions.length === 0
 							? "本包暂无 CallCard，请先放置卡片"
-							: "章节起点；删入口卡时保存会改指向首张"
+							: "真源为章节开始节点连出的唯一通话卡；保存时会按画布连线覆盖"
 					}
 					onChange={(e) => {
 						onEntryCardIdChange(e.target.value);

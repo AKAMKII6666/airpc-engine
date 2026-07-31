@@ -18,7 +18,10 @@ import { useVoicemailModeLock } from "@studio-v2/src/pageComponents/storyEditor/
 export type NodePropertyFormDerived = {
 	formError: string | undefined;
 	exitCount: number;
+	/** 遗留包内 schedule 卡才展示调度折叠区 */
 	showSchedule: boolean;
+	/** 非 voicemail 才展示场景提示词 / 工具策略 */
+	showStoryExtras: boolean;
 	effectSources: EffectPanelSources;
 	basicItems: AutoFormItem[];
 	contextItems: AutoFormItem[];
@@ -47,7 +50,9 @@ export function useNodePropertyFormDerived(
 	useVoicemailModeLock(formik);
 	const formError = readFormError(formik.status);
 	const exitCount = exitCountFromProjection(nodeData);
-	const showSchedule = formik.values.cardKind === "schedule";
+	const cardKind = formik.values.cardKind;
+	const showSchedule = cardKind === "schedule";
+	const showStoryExtras = cardKind !== "voicemail";
 	// Effect 目标卡下拉排除本卡：attach/unmount/调度目标应指向其它卡
 	const effectSources = useMemo(
 		() => ({
@@ -59,17 +64,18 @@ export function useNodePropertyFormDerived(
 		[effectPanelSources, nodeData.cardId],
 	);
 	const contextItems = useMemo(
-		() => buildNodeContextItems(effectPanelSources.clips),
-		[effectPanelSources.clips],
+		() => buildNodeContextItems(effectPanelSources.clips, cardKind),
+		[effectPanelSources.clips, cardKind],
 	);
 	const basicItems = useMemo(
-		() => buildNodeBasicItems(formik.values.cardKind),
-		[formik.values.cardKind],
+		() => buildNodeBasicItems(cardKind, formik.values.interactionMode),
+		[cardKind, formik.values.interactionMode],
 	);
 	return {
 		formError,
 		exitCount,
 		showSchedule,
+		showStoryExtras,
 		effectSources,
 		basicItems,
 		contextItems,

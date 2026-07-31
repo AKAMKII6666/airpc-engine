@@ -131,7 +131,7 @@ describe("WET query filters", function () {
       schemaVersion: 1 as const,
       sessionId: "s1",
       userId: "u1",
-      packageId: "pkg",
+      chapterId: "pkg",
       status: "completed" as const,
       startedAt: "2026-01-01T10:00:00.000Z",
       endedAt: "2026-01-01T10:01:00.000Z",
@@ -142,7 +142,7 @@ describe("WET query filters", function () {
         agentId: "a1",
         intent: {
           kind: "simulate_start" as const,
-          packageId: "pkg",
+          chapterId: "pkg",
           cardId: "c1",
         },
       },

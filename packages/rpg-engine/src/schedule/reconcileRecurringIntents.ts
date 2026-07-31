@@ -13,7 +13,7 @@ function asRecurring(raw: unknown): {
   agentId: string;
   scheduleCardId?: string;
   cardId?: string;
-  packageId?: string;
+  chapterId?: string;
   status: string;
   [k: string]: unknown;
 } | null {
@@ -29,7 +29,7 @@ function asRecurring(raw: unknown): {
     agentId: string;
     scheduleCardId?: string;
     cardId?: string;
-    packageId?: string;
+    chapterId?: string;
     status: string;
   };
 }
@@ -67,7 +67,7 @@ export function reconcileRecurringIntents(
         scheduleCardId:
           typeof rec.scheduleCardId === "string" ? rec.scheduleCardId : undefined,
         cardId: typeof rec.cardId === "string" ? rec.cardId : undefined,
-        packageId: typeof rec.packageId === "string" ? rec.packageId : undefined,
+        chapterId: typeof rec.chapterId === "string" ? rec.chapterId : undefined,
       },
       lookup,
     );

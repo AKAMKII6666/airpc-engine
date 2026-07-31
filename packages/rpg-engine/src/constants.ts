@@ -1,13 +1,20 @@
 /**
  * 模块名称：Free／Schedule 哨兵与预算常量
  */
-export const FREE_PACKAGE_ID = "__free__" as const;
+/** 纯 Free 会话 chapterId 哨兵；禁止当真实章目录 */
+export const FREE_CHAPTER_ID = "__free__" as const;
 
 /**
  * ScheduleCard 存放于 characters/schedule-cards/，不进 storis-packages。
- * pending／once intent 用此 packageId 才能走 resolve → beginCall。
+ * pending／once intent 用此 chapterId 才能走 resolve → beginCall。
  */
-export const SCHEDULE_PACKAGE_ID = "__schedule__" as const;
+export const SCHEDULE_CHAPTER_ID = "__schedule__" as const;
+
+/** @deprecated 使用 FREE_CHAPTER_ID */
+export const FREE_PACKAGE_ID = FREE_CHAPTER_ID;
+
+/** @deprecated 使用 SCHEDULE_CHAPTER_ID */
+export const SCHEDULE_PACKAGE_ID = SCHEDULE_CHAPTER_ID;
 
 /** projectForCall 默认预算 */
 export const MEMORY_PROJECT_DEFAULTS = {

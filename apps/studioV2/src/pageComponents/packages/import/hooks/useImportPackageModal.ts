@@ -7,7 +7,10 @@
 import { useState } from "react";
 import { precheckImportFile } from "@studio-v2/src/bis/pageBis/packages/import/importPrecheck_bis";
 import { commitImportStoryPackage } from "@studio-v2/src/bis/pageBis/packages/importPackage_bis";
-import type { DiskStoryPackageBundle } from "@studio-v2/typeFiles/story/package/diskStoryPackage";
+import type {
+	DiskChapterBundle,
+	DiskPackageContainer,
+} from "@studio-v2/typeFiles/story/package/diskStoryPackage";
 import type { ImportPrecheckReport } from "@studio-v2/typeFiles/story/transfer/packageTransfer";
 import type { ImportFlowStep } from "../ImportStepPanels";
 
@@ -31,7 +34,9 @@ export function useImportPackageModal({
 	const [fileLabel, setFileLabel] = useState<string | null>(null);
 	const [report, setReport] = useState<ImportPrecheckReport | null>(null);
 	const [pendingBundle, setPendingBundle] =
-		useState<DiskStoryPackageBundle | null>(null);
+		useState<DiskChapterBundle | null>(null);
+	const [pendingContainer, setPendingContainer] =
+		useState<DiskPackageContainer | null>(null);
 	const [pendingPackageId, setPendingPackageId] = useState("");
 	const [pickBusy, setPickBusy] = useState(false);
 	const [pickError, setPickError] = useState<string | undefined>();
@@ -45,6 +50,7 @@ export function useImportPackageModal({
 		setFileLabel(null);
 		setReport(null);
 		setPendingBundle(null);
+		setPendingContainer(null);
 		setPendingPackageId("");
 		setPickBusy(false);
 		setPickError(undefined);
@@ -68,7 +74,8 @@ export function useImportPackageModal({
 			}
 			setFileLabel(file.name);
 			setReport(outcome.report);
-			setPendingBundle(outcome.bundle);
+			setPendingBundle(outcome.bundle ?? null);
+			setPendingContainer(outcome.container ?? null);
 			setPendingPackageId(outcome.packageId);
 			setStep("precheck");
 		} finally {
@@ -77,13 +84,14 @@ export function useImportPackageModal({
 	}
 
 	async function onConfirmImport(): Promise<void> {
-		if (!pendingBundle || pendingPackageId === "") return;
+		if ((!pendingBundle && !pendingContainer) || pendingPackageId === "") return;
 		setCommitBusy(true);
 		setCommitError(undefined);
 		try {
 			const { packageId } = await commitImportStoryPackage({
 				packageId: pendingPackageId,
-				bundle: pendingBundle,
+				bundle: pendingBundle ?? undefined,
+				container: pendingContainer ?? undefined,
 			});
 			resetFlow();
 			onImported(packageId);

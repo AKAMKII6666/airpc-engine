@@ -12,7 +12,7 @@ import {
   hasRecurringCardRef,
   isEngineError,
   isScheduleCard,
-  SCHEDULE_PACKAGE_ID,
+  SCHEDULE_CHAPTER_ID,
   resolveRecurringCardTarget,
 } from "../../src/index.js";
 import { expandRegisterExitEffects } from "../../src/tools/expandExitEffects.js";
@@ -55,7 +55,7 @@ describe("ScheduleCard + recurring (V1-E1–E3)", () => {
     const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);
     const pre = await host.preloadCard(
-      SCHEDULE_PACKAGE_ID,
+      SCHEDULE_CHAPTER_ID,
       "lanxing_morning_checkin",
     );
     expect(isEngineError(pre)).toBe(false);
@@ -89,7 +89,7 @@ describe("ScheduleCard + recurring (V1-E1–E3)", () => {
       }),
     ).toEqual({
       cardId: "lanxing_morning_checkin",
-      packageId: SCHEDULE_PACKAGE_ID,
+      chapterId: SCHEDULE_CHAPTER_ID,
     });
 
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-sched-val-"));
@@ -98,7 +98,7 @@ describe("ScheduleCard + recurring (V1-E1–E3)", () => {
 
     const cardPath = path.join(
       dataRoot,
-      "storis-packages/golden_handoff/cards/doubao_intro_outbound.s-card.json",
+      "storis-packages/golden_handoff/chapters/golden_handoff/cards/doubao_intro_outbound.s-card.json",
     );
     const cardRaw = JSON.parse(await readFile(cardPath, "utf8")) as {
       exits: Array<{ exitId: string; effects: unknown[] }>;
@@ -132,7 +132,7 @@ describe("ScheduleCard + recurring (V1-E1–E3)", () => {
 
     const confPath = path.join(
       dataRoot,
-      "storis-packages/golden_handoff/story.conf.json",
+      "storis-packages/golden_handoff/chapters/golden_handoff/story.conf.json",
     );
     const conf = JSON.parse(await readFile(confPath, "utf8")) as {
       cards: Array<{ cardId: string }>;
@@ -171,7 +171,7 @@ describe("ScheduleCard + recurring (V1-E1–E3)", () => {
               minute: 0,
               scheduleMode: "daily",
               cardId: "doubao_intro_outbound",
-              packageId: "golden_handoff",
+              chapterId: "golden_handoff",
             },
             {
               id: "ok_schedule_ref",
@@ -188,7 +188,7 @@ describe("ScheduleCard + recurring (V1-E1–E3)", () => {
               minute: 0,
               scheduleMode: "daily",
               cardId: "lanxing_free",
-              packageId: "__free__",
+              chapterId: "__free__",
             },
             {
               id: "ok_schedule_pkg",
@@ -197,7 +197,7 @@ describe("ScheduleCard + recurring (V1-E1–E3)", () => {
               minute: 0,
               scheduleMode: "daily",
               cardId: "lanxing_morning_checkin",
-              packageId: SCHEDULE_PACKAGE_ID,
+              chapterId: SCHEDULE_CHAPTER_ID,
             },
           ],
         },
@@ -206,7 +206,7 @@ describe("ScheduleCard + recurring (V1-E1–E3)", () => {
     await writeFile(
       path.join(
         dataRoot,
-        "storis-packages/golden_handoff/cards/host_free_recurring.s-card.json",
+        "storis-packages/golden_handoff/chapters/golden_handoff/cards/host_free_recurring.s-card.json",
       ),
       JSON.stringify(freeHostStoryTarget, null, 2) + "\n",
       "utf8",
@@ -268,7 +268,7 @@ describe("ScheduleCard + recurring (V1-E1–E3)", () => {
     expect(isEngineError(fired)).toBe(false);
     if (isEngineError(fired)) return;
     expect(fired[0]?.cardId).toBe("lanxing_morning_checkin");
-    expect(fired[0]?.packageId).toBe(SCHEDULE_PACKAGE_ID);
+    expect(fired[0]?.chapterId).toBe(SCHEDULE_CHAPTER_ID);
 
     const resolved = await host.resolveAsync("demo-user", {
       kind: "agent_outbound",
@@ -277,7 +277,7 @@ describe("ScheduleCard + recurring (V1-E1–E3)", () => {
     expect(isEngineError(resolved)).toBe(false);
     if (isEngineError(resolved)) return;
     expect(resolved.cardId).toBe("lanxing_morning_checkin");
-    expect(resolved.packageId).toBe(SCHEDULE_PACKAGE_ID);
+    expect(resolved.chapterId).toBe(SCHEDULE_CHAPTER_ID);
     expect(resolved.card.cardKind).toBe("schedule");
 
     const session = await host.beginCall("demo-user", resolved, {
@@ -287,6 +287,6 @@ describe("ScheduleCard + recurring (V1-E1–E3)", () => {
     if (isEngineError(session)) return;
     expect(session.frozenCard.cardKind).toBe("schedule");
     expect(session.frozenCard.cardId).toBe("lanxing_morning_checkin");
-    expect(session.packageId).toBe(SCHEDULE_PACKAGE_ID);
+    expect(session.chapterId).toBe(SCHEDULE_CHAPTER_ID);
   });
 });

@@ -10,7 +10,7 @@
 
 | 层 | 类型 | 说明 |
 |----|------|------|
-| 静态 | `CallCardDefinition` | 写在 StoryPackage 里；可版本化、可编辑 |
+| 静态 | `CallCardDefinition` | 写在 StoryPackage 的**章**（Chapter）里；可版本化、可编辑 |
 | 运行时 | `CallCardInstance` | 挂在某角色身上；带 status 与来源 |
 
 **禁止**把运行状态写回 Definition。同一张 Definition 可在不同 StoryInstance / 模拟中产生多个 Instance。
@@ -217,7 +217,7 @@ type ExitCondition =
 
 ## 4. Effect Registry（v1 白名单）
 
-所有 effect 必须带稳定 `id`（包内唯一），供幂等 key 使用。
+所有 effect 必须带稳定 `id`（**章内**唯一；幂等 key 仍按章实例），供幂等 key 使用。
 
 ```ts
 interface EffectBase {
@@ -245,7 +245,7 @@ interface EffectBase {
 | `create_research_commitment` | `question`, `notifyMode?`, `agentId?` | **唯一落点** `Profile.research.commitments`（见 [10](./10-用户与存档.md)） |
 | `update_variable` | `key`, `value` \| `delta` | 写 Profile.stories[].variables |
 | `play_system_prompt` | `clipId` | 播放系统提示/过场音（壳执行） |
-| `end_story` | `reason?` | 结束当前故事实例 |
+| `end_story` | `reason?`, `cleanup?`, `next?` | 结束当前**章**实例；`next.chapterId` 须为**同包内**已声明章；入口由目标章 `entryCardId` + 该卡 `ownerAgentId` **派生**（不写 agentId/cardId） |
 
 **不设**独立 `create_relay` / Relay 子系统。旧「带话」语义一律用 `attach_call_card`（或 `schedule_call_card`）+ 目标卡的 `privateBrief` / `speakableBrief` 表达；设计期是否允许引荐见角色 `social.canIntroduce`（[11](./11-角色与社交.md)）。
 
@@ -391,26 +391,67 @@ interface CallCardBoard {
 5. **禁止**从 transcript 隐式扫描「约定/介绍」写 Profile；推进须来自工具候选或故事卡 Exit。
 6. **固定出口能力** = Registry 中 `allowedCardKinds` 含 `free` 的工具清单；Studio 仅提供**开/关**（落盘 `toolPolicy`：全开=`inherit_free`，部分=`allowlist`，全关=`deny_all`），不可增删能力项。
 7. Free 通话上下文主要来自 [记忆](./12-记忆模型.md) + persona，而非强 beats。
-8. Free 会话 `packageId` 使用哨兵 `__free__`（见 [19](../技术设计文档/19-引擎宿主与会话模型.md)）。
+8. Free 会话 `chapterId` 使用哨兵 `__free__`（旧称 Session.`packageId`；见 [19](../技术设计文档/19-引擎宿主与会话模型.md)）。
 9. **主编辑入口在角色库**（「编辑自由通话卡」弹窗）；故事编辑器不编辑 Free 卡。
-## 8. StoryPackage（静态包）
+## 8. StoryPackage 与 Chapter（静态）
+
+**运行时单位 = 章（Chapter）**；**包（StoryPackage）= 磁盘 + Studio 容器**，内含多章。实机一次只载入一整包；包与包不串联。
+
+### 8.0 磁盘树（定稿）
+
+```text
+storis-packages/<packageId>/
+  package.conf.json          # 包容器：entryChapterId, chapters[]
+  chapters/<chapterId>/
+    story.conf.json          # 章运行单元：entryCardId, cards[]
+    canvas.layout.json
+    cards/*.s-card.json
+```
+
+**卡 id 全局唯一**：同一 `packageId` 下所有章的 `cardId` 不得重复（跨章亦唯一）。
+
+**旧扁平自动迁移**：历史上 `storis-packages/<packageId>/` 根目录即单章的包，迁移后 `chapterId = 旧 packageId`，章文件下沉至 `chapters/<chapterId>/`。
+
+### 8.1 PackageConf（包容器）
 
 ```ts
-interface StoryPackage {
+interface PackageConf {
   schemaVersion: 1
   packageId: string
   title: string
+  /** 实机载入本包时的首章；须存在于 chapters[] */
+  entryChapterId: string
+  /** 章索引；每项至少含 chapterId、title */
+  chapters: Array<{
+    chapterId: string
+    title: string
+  }>
+  meta?: Record<string, unknown>
+}
+```
+
+包级 **禁止**维护 `agents[]` 或内联卡定义；角色真源仅 `data/characters/<agentId>.json`。
+
+### 8.2 ChapterConf（章运行单元）
+
+原 StoryPackage 字段下沉至章；Host 组装后的逻辑视图称 `ChapterBundle`（非单文件真源）。
+
+```ts
+interface ChapterConf {
+  schemaVersion: 1
+  chapterId: string          // 运行键；Session / StorySave / schedule 均用此 id
+  title: string
   /**
    * 遗留可选字段；路径 B 下**不是**角色白名单。
-   * 新包可不写；保存推荐不写。校验按 cards/effects 派生引用集合，见 [08](./08-内容校验规则.md)。
+   * 新章可不写；保存推荐不写。校验按 cards/effects 派生引用集合，见 [08](./08-内容校验规则.md)。
    */
   participants?: string[]
   entryCardId: string
-  /** 逻辑组装视图；磁盘上 conf 仅索引，见 19 */
+  /** 逻辑组装视图；磁盘上 story.conf.json 仅索引 cards[] */
   cards: CallCardDefinition[]
   worldFacts?: FactMeta[]
   variables?: VariableMeta[]
-  /** 本包用到的 assetId 列表（可选，便于导出打包）；元数据真源在全局资产库 */
+  /** 本章用到的 assetId 列表（可选，便于导出打包）；元数据真源在全局资产库 */
   assetRefs?: string[]
   meta?: {
     conflictsWith?: string[]
@@ -420,26 +461,44 @@ interface StoryPackage {
 }
 ```
 
-**角色真源**仅 `data/characters/<agentId>.json`。「本包用到谁」由 `cards[].ownerAgentId`、effects 内 `agentId`、attach 目标归属等**派生**，**禁止**把 `participants` 当白名单或作者手维护清单。
+**角色引用**仅 `data/characters/<agentId>.json`。「本章用到谁」由 `cards[].ownerAgentId`、effects 内 `agentId`、attach 目标归属等**派生**，**禁止**把 `participants` 当白名单或作者手维护清单。显示名 / Free 卡一律读角色库。
 
-**禁止**在包内维护 `agents[]` 第二份角色定义（避免与 `data/characters/` 双真源）。显示名 / Free 卡一律读角色库。
-
-完整 JSON 字段见卡文件；包目录与分文件约定见 [07](../技术设计文档/07-壳嵌入与导出契约.md)、[19 §3](../技术设计文档/19-引擎宿主与会话模型.md)。  
+完整 JSON 字段见卡文件；分文件约定见 [07](../技术设计文档/07-壳嵌入与导出契约.md)、[19 §3](../技术设计文档/19-引擎宿主与会话模型.md)。  
 **磁盘真源**：`story.conf.json` 的 `cards[]` 仅为索引；上表 `cards: CallCardDefinition[]` 表示 Host **组装后的逻辑视图**，非单文件内联编辑真源。
 
-### 8.1 Schedule 落盘分工（钉死）
+### 8.3 `end_story.next`（章间切换）
 
-| 用途 | 落盘 | 运行 `packageId` | 谁维护 |
+```ts
+interface EndStoryNext {
+  /** 须为 package.conf.json chapters[] 内、且与当前章同包的 chapterId */
+  chapterId: string
+  activation?: "immediate" | "delay" | "wait_user_dial"
+  delayMs?: number
+  entryMode?: EntryMode
+  activationHint?: string
+  acquireLockEarly?: boolean
+}
+```
+
+- **禁止**在 `next` 写 `agentId` / `cardId`：下一章入口 = 目标章 `entryCardId` 对应 Definition，挂到该卡 `ownerAgentId`。
+- **禁止** `next.chapterId` 指向其它包或包外路径；跨包串联不在 v1 范围。
+- 无 `next`：章结束后清场，各角色无 story pending 时走 FreeCallCard。
+
+### 8.4 Schedule 落盘分工（钉死）
+
+| 用途 | 落盘 | 运行 `chapterId` | 谁维护 |
 |------|------|------------------|--------|
 | 角色日常 / 周期性外呼目标 | `data/characters/schedule-cards/<cardId>.s-card.json` | `__schedule__` | 角色库 / 专用路径（Studio `POST /api/schedule-cards`） |
-| 故事包内剧情调度节点 | `data/storis-packages/<pkg>/cards/<cardId>.s-card.json`（`cardKind=schedule`） | 真实故事包 id | 故事编辑器画布 |
+| 故事**章**内剧情调度节点 | `data/storis-packages/<pkg>/chapters/<chapterId>/cards/<cardId>.s-card.json`（`cardKind=schedule`） | 真实章 `chapterId` | 故事编辑器画布 |
 
 铁律：
 
-1. `schedule_recurring_call` 的目标**只**认 `scheduleCardId` → `characters/schedule-cards/`，或 `cardId` + `packageId=__schedule__`（同目录）；可选 `__free__` 下 free/schedule fallback。
-2. **禁止**把故事包内 `cardKind=schedule` 节点当作 recurring 目标（校验 `SCHEDULE_CARD_KIND`）。
+1. `schedule_recurring_call` 的目标**只**认 `scheduleCardId` → `characters/schedule-cards/`，或 `cardId` + `chapterId=__schedule__`（同目录）；可选 `__free__` 下 free/schedule fallback。
+2. **禁止**把故事章内 `cardKind=schedule` 节点当作 recurring 目标（校验 `SCHEDULE_CARD_KIND`）。
 3. StoryCard 上挂 `schedule_recurring_call` → `SCHEDULE_RECURRING_IN_STORY` error。
-4. 画布把卡改成 `cardKind=schedule` 仍写回**本包** `cards/`（剧情节点）；日常调度卡必须走 schedule-cards 专用创建口，不得只靠改 cardKind「伪装」。
+4. 画布把卡改成 `cardKind=schedule` 仍写回**本章** `chapters/<chapterId>/cards/`（剧情节点）；日常调度卡必须走 schedule-cards 专用创建口，不得只靠改 cardKind「伪装」。
+
+**Free / Schedule 会话哨兵**：纯 Free 会话 `Session.chapterId = __free__`；Schedule 卡会话 `Session.chapterId = __schedule__`（旧口径曾称 packageId 哨兵）。
 
 详见 [19 §3.4](../技术设计文档/19-引擎宿主与会话模型.md)、[08](./08-内容校验规则.md) SCHEDULE_*。
 

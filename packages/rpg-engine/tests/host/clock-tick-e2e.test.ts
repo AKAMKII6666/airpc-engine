@@ -74,7 +74,7 @@ function asOnce(row: unknown): {
         ? r.sourcedFromRecurringId
         : undefined,
     cardId: typeof r.cardId === "string" ? r.cardId : undefined,
-    packageId: typeof r.packageId === "string" ? r.packageId : undefined,
+    chapterId: typeof r.chapterId === "string" ? r.chapterId : undefined,
   };
 }
 
@@ -184,7 +184,7 @@ describe("E9 clock / daily tick simulator", () => {
     expect(isEngineError(jumped)).toBe(false);
     if (isEngineError(jumped)) return;
     expect(jumped.some((f) => f.cardId === "lanxing_morning_checkin")).toBe(true);
-    expect(jumped.some((f) => f.packageId === "__schedule__")).toBe(true);
+    expect(jumped.some((f) => f.chapterId === "__schedule__")).toBe(true);
 
     const after = await host.ensureProfile("demo-user");
     expect(after.schedule?.clockMs).toBe(fireAt);
@@ -195,7 +195,7 @@ describe("E9 clock / daily tick simulator", () => {
     expect(onceRow?.status).toBe("fired");
     expect(onceRow?.fireAtMs).toBe(fireAt);
     expect(onceRow?.cardId).toBe("lanxing_morning_checkin");
-    expect(onceRow?.packageId).toBe("__schedule__");
+    expect(onceRow?.chapterId).toBe("__schedule__");
 
     const recurring = (after.schedule?.intents ?? []).find(function (row) {
       return (
@@ -302,7 +302,7 @@ describe("E9 clock / daily tick simulator", () => {
           intentId: "a-once",
           agentId: "lanxing",
           cardId: "doubao_intro_outbound",
-          packageId: "golden_handoff",
+          chapterId: "golden_handoff",
           fireAtMs: 5_000,
           status: "pending",
         },

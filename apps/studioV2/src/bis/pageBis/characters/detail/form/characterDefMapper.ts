@@ -16,6 +16,7 @@ import type {
 } from "@studio-v2/typeFiles/library/characters/form/characterSummary";
 import { PERSONALITY_CODE_OPTIONS } from "@studio-v2/typeFiles/library/characters/persona/personalityCodeOptions";
 import { REALTIME_VOICE_OPTIONS } from "@studio-v2/typeFiles/library/characters/realtime/realtimeVoiceOptions";
+import { createStudioId } from "@studio-v2/typeFiles/ids/createStudioId";
 import type { CharacterDetailFormValues } from "./characterDetailFormValues";
 
 function asString(v: unknown, fallback = ""): string {
@@ -42,26 +43,19 @@ function mapEditGenderToDef(
 	return "non_binary";
 }
 
-function newVariantId(fallback: string): string {
-	if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-		return crypto.randomUUID();
-	}
-	return fallback;
-}
-
 function mapVariants(
 	raw: unknown,
-	fallbackPrefix: string,
+	_fallbackPrefix: string,
 ): PromptVariantForm[] {
 	if (!Array.isArray(raw) || raw.length === 0) {
-		return [{ variantId: newVariantId(`${fallbackPrefix}_1`), text: "" }];
+		return [{ variantId: createStudioId("variant"), text: "" }];
 	}
-	return raw.map(function (item, index) {
+	return raw.map(function (item) {
 		const row = item as { variantId?: unknown; text?: unknown };
 		const existing =
 			typeof row.variantId === "string" && row.variantId.trim() !== ""
 				? row.variantId.trim()
-				: newVariantId(`${fallbackPrefix}_${index + 1}`);
+				: createStudioId("variant");
 		return {
 			variantId: existing,
 			text: asString(row.text),
@@ -73,7 +67,7 @@ function mapScenes(raw: unknown): PromptSceneLayerForm[] {
 	if (!Array.isArray(raw) || raw.length === 0) {
 		return [
 			{
-				layerId: "scene_1",
+				layerId: createStudioId("scene"),
 				priority: 0,
 				match: {
 					callDirection: "either",
@@ -108,8 +102,9 @@ function mapScenes(raw: unknown): PromptSceneLayerForm[] {
 		const from = asNumberOrNull(layer.match?.localHourRange?.from) ?? 0;
 		const to = asNumberOrNull(layer.match?.localHourRange?.to) ?? 24;
 		const patch = layer.patch ?? {};
+		const existingLayerId = asString(layer.layerId).trim();
 		return {
-			layerId: asString(layer.layerId, `scene_${index + 1}`),
+			layerId: existingLayerId || createStudioId("scene"),
 			priority:
 				typeof layer.priority === "number" ? layer.priority : index * 10,
 			match: {
@@ -370,13 +365,13 @@ export function buildCreateCharacterDef(input: {
 			voiceNotes: "",
 		},
 		callFlowPrompts: {
-			longSilence: [{ variantId: "silence_1", text: "" }],
-			longCallNudge: [{ variantId: "nudge_1", text: "" }],
-			preHangupFarewell: [{ variantId: "farewell_1", text: "" }],
+			longSilence: [{ variantId: createStudioId("variant"), text: "" }],
+			longCallNudge: [{ variantId: createStudioId("variant"), text: "" }],
+			preHangupFarewell: [{ variantId: createStudioId("variant"), text: "" }],
 		},
 		defaultPromptScenes: [
 			{
-				layerId: "scene_1",
+				layerId: createStudioId("scene"),
 				priority: 0,
 				match: {
 					callDirection: "either",

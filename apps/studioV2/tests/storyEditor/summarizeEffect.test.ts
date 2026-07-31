@@ -16,6 +16,7 @@ const sources: EffectPanelSources = {
 	scheduleCards: [{ value: "morning", label: "晨间问候" }],
 	cardOwnerAgentId: { card_x: "yu", card_vm: "yu" },
 	cardKindById: { card_x: "story", card_vm: "voicemail" },
+	hasChapterEnd: true,
 };
 
 describe("summarizeEffect", () => {

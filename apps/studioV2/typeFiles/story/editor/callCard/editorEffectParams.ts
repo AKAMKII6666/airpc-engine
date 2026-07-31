@@ -261,6 +261,10 @@ export type EffectPanelSources = {
 		* 来自画布 CallCard 节点；缺省未入表时按普通卡摘要。
 		*/
 	cardKindById: Readonly<Record<string, string>>;
+	/**
+		* 画布是否已有章节结束节点；false 时禁止添加 end_story Effect。
+		*/
+	hasChapterEnd: boolean;
 };
 
 /** 空数据源常量；下拉无候选时复用，避免每处新建空数组 */
@@ -272,4 +276,5 @@ export const EMPTY_EFFECT_PANEL_SOURCES: EffectPanelSources = {
 	scheduleCards: [],
 	cardOwnerAgentId: {},
 	cardKindById: {},
+	hasChapterEnd: false,
 };

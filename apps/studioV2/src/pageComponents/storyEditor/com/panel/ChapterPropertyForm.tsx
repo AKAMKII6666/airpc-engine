@@ -9,7 +9,7 @@ import { Alert, Button, TextField, Typography } from "@mui/material";
 import type { FormikProps } from "formik";
 import type { EditorChapterNodeData } from "@studio-v2/typeFiles/story/editor/callCard/editorCallCardProjection";
 import type { CallCardLabelOption } from "@studio-v2/typeFiles/story/callCardLabels";
-import type { ChapterPackageDiskContext } from "@studio-v2/src/bis/pageBis/storyEditor/form/chapter/chapterPropertyForm";
+import type { ChapterChapterDiskContext } from "@studio-v2/src/bis/pageBis/storyEditor/form/chapter/chapterPropertyForm";
 import type { ChapterPropertyFormValues } from "@studio-v2/src/bis/pageBis/storyEditor/form/chapter/chapterPropertyForm";
 // 引用了ChapterEndNextFields组件，用于 chapter_end 下一包/起点卡
 import { ChapterEndNextFields } from "@studio-v2/src/pageComponents/storyEditor/com/panel/ChapterEndNextFields";
@@ -21,9 +21,9 @@ export type ChapterPropertyFormProps = {
 	/** 浮窗持有的 Formik 实例 */
 	formik: FormikProps<ChapterPropertyFormValues>;
 	/** chapter_end 下拉用的磁盘卡索引 */
-	chapterDiskCtx: ChapterPackageDiskContext;
+	chapterDiskCtx: ChapterChapterDiskContext;
 	/** 下一故事包 Select 选项 */
-	chapterPackageOptions: readonly CallCardLabelOption[];
+	chapterChapterOptions: readonly CallCardLabelOption[];
 };
 
 function readFormError(
@@ -48,8 +48,8 @@ export const ChapterPropertyForm: FC<ChapterPropertyFormProps> =
 		formik,
 		// chapterDiskCtx 是 chapter_end 磁盘卡索引，用于 entry 卡下拉
 		chapterDiskCtx,
-		// chapterPackageOptions 是下一故事包 Select 选项，用于 nextPackage 字段
-		chapterPackageOptions,
+		// chapterChapterOptions 是下一故事包 Select 选项，用于 nextPackage 字段
+		chapterChapterOptions,
 	}) {
 		const formError = readFormError(formik.status);
 		const isEnd = nodeData.kind === "chapter_end";
@@ -100,7 +100,7 @@ export const ChapterPropertyForm: FC<ChapterPropertyFormProps> =
 					<ChapterEndNextFields
 						formik={formik}
 						chapterDiskCtx={chapterDiskCtx}
-						chapterPackageOptions={chapterPackageOptions}
+						chapterChapterOptions={chapterChapterOptions}
 					/>
 				) : null}
 				{formError ? (

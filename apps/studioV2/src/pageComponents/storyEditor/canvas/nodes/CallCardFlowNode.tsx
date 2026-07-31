@@ -1,14 +1,20 @@
 /**
 * CallCard 蓝图节点：顶角色 / 左 parent / 右 exit 触点。
 * 静态展示；点击仅本地选中态，不写卡内容。
-* 出口 Handle 按 exits[] 动态渲染；悬停 Tooltip 显示名称+概要。
+* 出口 Handle 按 exits[] 动态渲染；变更后刷新 RF 内部几何，避免新出口无法连线。
 * 卡角 ❌ 请求删除（确认框在壳层）。
 */
 "use client";
 
 import type { FC, MouseEvent } from "react";
+import { useEffect } from "react";
 import { IconButton, Tooltip } from "@mui/material";
-import { Handle, Position, type NodeProps } from "@xyflow/react";
+import {
+	Handle,
+	Position,
+	useUpdateNodeInternals,
+	type NodeProps,
+} from "@xyflow/react";
 import type { EditorCallCardProjection } from "@studio-v2/typeFiles/story/editor/callCard/editorCallCardProjection";
 import { exitCountFromProjection } from "@studio-v2/typeFiles/story/editor/callCard/editorCallCardProjection";
 import {
@@ -30,6 +36,13 @@ export const CallCardFlowNode: FC<NodeProps> = function (props) {
 	const rootClass = selected ? styles.callCardSelected : styles.callCard;
 	const exitCount = exitCountFromProjection(data);
 	const canvasUi = useStoryCanvasUi();
+	const updateNodeInternals = useUpdateNodeInternals();
+	// 出口增删改后须刷新 Handle 注册，否则拖线/效果边对不准
+	const exitIdsKey = data.exits.map((exit) => exit.exitId).join(",");
+
+	useEffect(() => {
+		updateNodeInternals(props.id);
+	}, [props.id, exitIdsKey, exitCount, updateNodeInternals]);
 
 	function handleDeleteClick(event: MouseEvent): void {
 		event.stopPropagation();
@@ -96,6 +109,7 @@ export const CallCardFlowNode: FC<NodeProps> = function (props) {
 							type="source"
 							position={Position.Right}
 							className={styles.handleExit}
+							title="普通拖=剧情线；Alt/⌥ 或 ⌘ 拖=挂载效果边"
 						/>
 					</span>
 				</Tooltip>

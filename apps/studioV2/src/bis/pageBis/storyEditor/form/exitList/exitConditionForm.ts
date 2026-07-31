@@ -19,12 +19,37 @@ export const EXIT_CONDITION_V1_OPS = [
 export type ExitConditionV1Op = (typeof EXIT_CONDITION_V1_OPS)[number];
 
 /** OutcomeFlagSchema 枚举；UI Select 与引擎对齐 */
-export const OUTCOME_FLAG_OPTIONS = [
-	{ value: "answered_completed", label: "已接通并完成" },
-	{ value: "hangup_early", label: "提前挂断" },
-	{ value: "user_rejected", label: "用户拒绝" },
-	{ value: "timeout", label: "超时" },
-] as const;
+export const OUTCOME_FLAG_OPTIONS: ReadonlyArray<{
+	value: string;
+	label: string;
+	purpose: string;
+	exampleScenario: string;
+}> = [
+	{
+		value: "answered_completed",
+		label: "已接通并完成",
+		purpose: "本通正常接通并走到完成态",
+		exampleScenario: "打完主线对话再挂机",
+	},
+	{
+		value: "hangup_early",
+		label: "提前挂断",
+		purpose: "接通后未完成目标就挂断",
+		exampleScenario: "中途挂掉，走「未完成」分支",
+	},
+	{
+		value: "user_rejected",
+		label: "用户拒绝",
+		purpose: "用户拒接/明确拒绝本次通话",
+		exampleScenario: "外呼被拒接后的出口",
+	},
+	{
+		value: "timeout",
+		label: "超时",
+		purpose: "振铃或等待超时未接通",
+		exampleScenario: "无人接听后的兜底出口",
+	},
+];
 
 /**
 	* 条件 op Select 选项；仅含 v1 叶子，不含 and/or/not。
@@ -33,12 +58,39 @@ export const OUTCOME_FLAG_OPTIONS = [
 export const EXIT_CONDITION_OP_OPTIONS: ReadonlyArray<{
 	value: ExitConditionV1Op;
 	label: string;
+	purpose: string;
+	exampleScenario: string;
 }> = [
-	{ value: "always", label: "始终" },
-	{ value: "outcome_flag", label: "通话结果标记" },
-	{ value: "beat_completed", label: "节拍已完成" },
-	{ value: "beat_missing", label: "节拍缺失" },
-	{ value: "all_required_beats_completed", label: "全部必做节拍完成" },
+	{
+		value: "always",
+		label: "始终",
+		purpose: "不看 Outcome，条件恒为真",
+		exampleScenario: "过场卡唯一出口、无分支",
+	},
+	{
+		value: "outcome_flag",
+		label: "通话结果标记",
+		purpose: "按本通结束时的结果标记（接通完成/提前挂断等）分流",
+		exampleScenario: "成功走 A、提前挂断走 B",
+	},
+	{
+		value: "beat_completed",
+		label: "节拍已完成",
+		purpose: "某 requiredBeat 已完成才匹配",
+		exampleScenario: "「已拿到钥匙」才开下一幕",
+	},
+	{
+		value: "beat_missing",
+		label: "节拍缺失",
+		purpose: "某 beat 尚未完成时匹配",
+		exampleScenario: "还没完成任务就挂机，走补救出口",
+	},
+	{
+		value: "all_required_beats_completed",
+		label: "全部必做节拍完成",
+		purpose: "本卡全部必做节拍都完成后才匹配",
+		exampleScenario: "多目标卡全部打勾再进下一章",
+	},
 ];
 
 /** 新建出口默认 condition；仅用于空出口，禁止拿去覆盖磁盘已有 condition */

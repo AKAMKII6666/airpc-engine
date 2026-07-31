@@ -3,10 +3,11 @@
  * 从 effectExecutor 拆出以降基线行数。
  */
 import { randomUUID } from "node:crypto";
-import { FREE_PACKAGE_ID } from "../constants.js";
+import { FREE_CHAPTER_ID } from "../constants.js";
 import type { CallCardInstance, PlayerProfile } from "../schema/profile.js";
 import type { Effect } from "../schema/outcome.js";
 import type { CallSession } from "../host/types.js";
+import { resolveChapterId } from "../chapter/resolveChapterId.js";
 
 function ensureAgentBoard(
 	profile: PlayerProfile,
@@ -41,12 +42,11 @@ export function applyAttachCallCardToBoard(
 	board.pending.push({
 		instanceId: randomUUID(),
 		cardId,
-		packageId:
-			typeof effect.packageId === "string"
-				? effect.packageId
-				: session.packageId === FREE_PACKAGE_ID
-					? FREE_PACKAGE_ID
-					: session.packageId,
+		chapterId: (() => {
+			const fromEffect = resolveChapterId(effect as Record<string, unknown>);
+			if (fromEffect) return fromEffect;
+			return session.chapterId;
+		})(),
 		agentId,
 		status: "pending",
 		entryMode:

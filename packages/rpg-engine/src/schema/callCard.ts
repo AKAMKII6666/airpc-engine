@@ -183,27 +183,57 @@ export const StoryPackageMetaSchema = z
   })
   .passthrough();
 
-export const StoryPackageConfSchema = z.object({
+/**
+ * 章级 conf（原 story.conf.json / chapters/<id>/story.conf.json）。
+ * 兼容磁盘仍写 packageId 的旧包：parse 时归一化为 chapterId。
+ */
+export const ChapterConfSchema = z
+  .object({
+    schemaVersion: z.number().int(),
+    chapterId: z.string().optional(),
+    /** @deprecated 迁移期：读入后映射为 chapterId */
+    packageId: z.string().optional(),
+    title: z.string().optional(),
+    /** 遗留白名单；路径 B 下磁盘可省略，解析后缺省为 [] */
+    participants: z.array(z.string()).optional().default([]),
+    entryCardId: z.string().optional(),
+    /** 本章引用的全局 assetId（导出子集）；非第二真源 */
+    assetRefs: z.array(z.string()).optional(),
+    /** 本章声明的世界事实元数据；可选；Studio JSON 块可编 */
+    worldFacts: z.array(FactMetaSchema).optional(),
+    /** 章冲突 / imports|exports；可选；Studio JSON 块可编 */
+    meta: StoryPackageMetaSchema.optional(),
+    cards: z
+      .array(z.object({ cardId: z.string() }).passthrough())
+      .default([]),
+  })
+  .transform(function (raw) {
+    const chapterId = raw.chapterId ?? raw.packageId;
+    if (!chapterId) {
+      throw new Error("chapter conf requires chapterId or legacy packageId");
+    }
+    const { packageId: _legacy, ...rest } = raw;
+    return { ...rest, chapterId };
+  });
+
+/** 故事包容器 conf（package.conf.json） */
+export const PackageConfSchema = z.object({
   schemaVersion: z.number().int(),
   packageId: z.string(),
   title: z.string().optional(),
-  /** 遗留白名单；路径 B 下磁盘可省略，解析后缺省为 [] */
-  participants: z.array(z.string()).optional().default([]),
-  entryCardId: z.string().optional(),
-  /** 本包引用的全局 assetId（导出子集）；非第二真源 */
-  assetRefs: z.array(z.string()).optional(),
-  /** 本包声明的世界事实元数据；可选；Studio JSON 块可编 */
-  worldFacts: z.array(FactMetaSchema).optional(),
-  /** 包冲突 / imports|exports；可选；Studio JSON 块可编 */
-  meta: StoryPackageMetaSchema.optional(),
-  cards: z
-    .array(z.object({ cardId: z.string() }).passthrough())
-    .default([]),
+  entryChapterId: z.string(),
+  chapters: z.array(z.object({ chapterId: z.string() })).default([]),
 });
 
+/** @deprecated 使用 ChapterConf */
+export type StoryPackageConf = ChapterConf;
+/** @deprecated 使用 ChapterConfSchema */
+export const StoryPackageConfSchema = ChapterConfSchema;
+
+export type ChapterConf = z.infer<typeof ChapterConfSchema>;
+export type PackageConf = z.infer<typeof PackageConfSchema>;
 export type FactMeta = z.infer<typeof FactMetaSchema>;
 export type StoryPackageMeta = z.infer<typeof StoryPackageMetaSchema>;
-export type StoryPackageConf = z.infer<typeof StoryPackageConfSchema>;
 
 export function formatZodError(err: z.ZodError): string {
   return err.issues

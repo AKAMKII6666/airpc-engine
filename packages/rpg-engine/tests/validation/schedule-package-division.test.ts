@@ -67,7 +67,7 @@ function freeHostWithRecurringEffects() {
             minute: 0,
             scheduleMode: "daily",
             cardId: "plot_schedule_node",
-            packageId: "golden_handoff",
+            chapterId: "golden_handoff",
           },
           {
             id: "ok_schedule_cards_ref",
@@ -98,9 +98,12 @@ describe("schedule package division (S8-16)", () => {
     const dataRoot = path.join(tmpRoot, "data");
     await cp(dataSrc, dataRoot, { recursive: true });
 
+    const host = createEngineHost({ persist: false, content: createFsContentPort() });
+    await host.loadWorkspace(dataRoot);
+
     const confPath = path.join(
       dataRoot,
-      "storis-packages/golden_handoff/story.conf.json",
+      "storis-packages/golden_handoff/chapters/golden_handoff/story.conf.json",
     );
     const conf = JSON.parse(await readFile(confPath, "utf8")) as {
       cards: Array<{ cardId: string }>;
@@ -113,7 +116,7 @@ describe("schedule package division (S8-16)", () => {
 
     const cardsDir = path.join(
       dataRoot,
-      "storis-packages/golden_handoff/cards",
+      "storis-packages/golden_handoff/chapters/golden_handoff/cards",
     );
     await writeFile(
       path.join(cardsDir, "plot_schedule_node.s-card.json"),
@@ -126,7 +129,6 @@ describe("schedule package division (S8-16)", () => {
       "utf8",
     );
 
-    const host = createEngineHost({ persist: false, content: createFsContentPort() });
     await host.loadWorkspace(dataRoot);
     const report = await host.validatePackage("golden_handoff");
     const kindErrors = report.errors.filter(

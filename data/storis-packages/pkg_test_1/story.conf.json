@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "packageId": "pkg_test_1",
+  "title": "test",
+  "entryCardId": "card_pkg_test_1_start",
+  "cards": [
+    {
+      "cardId": "card_pkg_test_1_start"
+    },
+    {
+      "cardId": "card_7d4f611145e645e8a5b20603169e72c2"
+    },
+    {
+      "cardId": "card_5c5401b383564b09b4c4db3d1d818f95"
+    }
+  ]
+}

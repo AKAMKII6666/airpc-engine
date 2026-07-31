@@ -1,31 +1,58 @@
 /**
-	* 故事包磁盘 BFF 契约（data/storis-packages）。
-	* layout 仅 Studio 画布；引擎忽略 canvas.layout.json。
+	* 故事包磁盘 BFF 契约（data/storis-packages；包⊃章）。
+	* layout 仅 Studio 画布 per-chapter；引擎忽略 canvas.layout.json。
 	*/
 import type {
 	CallCardDefinition,
-	StoryPackageConf,
+	ChapterConf,
+	PackageConf,
 } from "@studio-v2/typeFiles/story/callCard/engineCallCard";
 
 /**
-	* 列表扫描摘要：来自 story.conf.json + 目录 mtime，非 UI mock 投影。
+	* 包列表扫描摘要：来自 package.conf.json + 章聚合。
 	*/
 export type DiskStoryPackageSummary = {
-	/** 目录名与 conf.packageId；路由键 */
+	/** 目录名与 package.conf.packageId；路由键 */
 	packageId: string;
 	/** 人类标题；缺省时回落 packageId */
 	title: string;
-	/** conf.schemaVersion */
+	/** package.conf.schemaVersion */
 	schemaVersion: number;
+	/** 包内章数 */
+	chapterCount: number;
+	/** 入口章 id；打开编辑器默认章 */
+	entryChapterId: string;
+	/** 全包卡总数（各章 conf.cards 之和） */
+	cardCount: number;
+	/** 入口章派生引用角色数 */
+	characterCount: number;
+	/** 入口章 assetRefs 数 */
+	assetCount: number;
+	/** 入口章 entryCardId；空串表示未指定 */
+	entryCardId: string;
+	/** 包目录 mtime ISO-8601 */
+	lastEditedAt: string;
+};
+
+/**
+	* 章列表摘要：单章 story.conf.json 投影。
+	*/
+export type DiskChapterSummary = {
+	/** 章 id；全局唯一；路由键 */
+	chapterId: string;
+	/** 所属包容器 id */
+	packageId: string;
+	/** 人类标题 */
+	title: string;
 	/** conf.cards.length */
 	cardCount: number;
-	/** 本包派生引用角色数（cards owner/effects）；非 participants.length */
+	/** 本章派生引用角色数 */
 	characterCount: number;
 	/** conf.assetRefs?.length ?? 0 */
 	assetCount: number;
 	/** 入口卡；空串表示未指定 */
 	entryCardId: string;
-	/** 包目录 mtime ISO-8601；探测失败时空串 */
+	/** 章目录 mtime ISO-8601 */
 	lastEditedAt: string;
 };
 
@@ -48,9 +75,11 @@ export type StudioCanvasLayoutNode = {
 	title?: string;
 	/** 章节节点摘要；画布壳展示用，非 cards 正文真源；可省略 */
 	summary?: string;
-	/** chapter_end 续章目标包 id；无续章时可省略 */
+	/** chapter_end 续章目标章 id（本包内）；无续章时可省略 */
+	nextChapterId?: string;
+	/** @deprecated 读入回落 nextChapterId */
 	nextPackageId?: string;
-	/** 续章包入口卡 id；与 nextPackageId 成对；引擎跳转键 */
+	/** 续章入口卡 id；与 nextChapterId 成对；引擎跳转键 */
 	nextEntryCardId?: string;
 };
 
@@ -80,12 +109,14 @@ export type StudioCanvasLayoutEdge = {
 	effectId?: string;
 };
 
-/** canvas.layout.json；与 golden_handoff / wrong_number_act1 并存兼容 */
+/** canvas.layout.json；per-chapter 落盘于 chapters/<id>/ */
 export type StudioCanvasLayout = {
 	/** layout 契约版本；迁移时递增；引擎忽略 */
 	schemaVersion: number;
-	/** 包目录名；须与 story.conf.json.packageId 一致 */
-	packageId: string;
+	/** 章 id；须与 story.conf.json.chapterId 一致 */
+	chapterId: string;
+	/** @deprecated 读入回落 chapterId */
+	packageId?: string;
 	/** 角色泳道序；由本包派生引用角色写入；可省略；引擎忽略 */
 	lanes?: Array<{ agentId: string; order: number }>;
 	/** 全量画布节点；坐标与章节壳；内容真源在 cards */
@@ -97,14 +128,29 @@ export type StudioCanvasLayout = {
 };
 
 /**
-	* 整包读写载荷：conf + 全量卡 + layout。
+	* 单章 bundle：chapters/<id>/ 读写载荷。
 	* cards 按 conf.cards 顺序；缺 layout 读路径由 BFF 填安全默认。
 	*/
-export type DiskStoryPackageBundle = {
+export type DiskChapterBundle = {
 	/** story.conf.json 真源；引擎内容入口 */
-	conf: StoryPackageConf;
+	conf: ChapterConf;
 	/** 全量 CallCard；顺序与 conf.cards 一致 */
 	cards: CallCardDefinition[];
 	/** canvas.layout.json；仅 Studio 画布持久化 */
 	layout: StudioCanvasLayout;
 };
+
+/**
+	* 整包容器：package.conf + 全章 bundle；storypack v2 交换格式。
+	*/
+export type DiskPackageContainer = {
+	/** package.conf.json 真源 */
+	packageConf: PackageConf;
+	/** 各章 bundle；顺序与 packageConf.chapters 对齐 */
+	chapters: DiskChapterBundle[];
+};
+
+/** 编辑器会话单章 bundle；别名保留兼容旧名 */
+export type DiskStoryPackageBundle = DiskChapterBundle;
+
+export type { ChapterConf, PackageConf };

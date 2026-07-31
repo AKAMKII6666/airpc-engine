@@ -94,7 +94,7 @@ describe("schedule_call_card linked pending + early dial (V1-E4/E5)", () => {
     };
     expect(once?.status).toBe("pending");
     expect(once?.agentId).toBe("xiaopi");
-    expect(once?.packageId).toBe("golden_handoff");
+    expect(once?.chapterId).toBe("golden_handoff");
     expect(once?.linkedInstanceId).toBe(pending?.instanceId);
   });
 

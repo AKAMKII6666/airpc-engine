@@ -44,7 +44,7 @@ export const MountEffectPanel: FC<EffectPanelSlotProps> = function MountEffectPa
 			</Typography>
 			{/* 引用了Typography组件，用于连线同步说明 */}
 			<Typography variant="caption" className={styles.notice}>
-				本行对应画布上一条{isAttach ? "「挂载」绿色" : "「卸载」橙色"}效果边（区别于流转线）；多条{isAttach ? "挂载" : "卸载"}请添加多个 Effect 行。
+				本行对应画布上一条{isAttach ? "「挂载」绿色" : "「卸载」橙色"}效果边（区别于流转线）；多条{isAttach ? "挂载" : "卸载"}请添加多个 Effect 行。配置后须点「应用到画布」。画布上按住 Alt/⌥ 或 ⌘ 从出口拖到目标卡也可建挂载边。
 			</Typography>
 			{/* 引用了Button组件，用于打开目标配置弹层 */}
 			<Button

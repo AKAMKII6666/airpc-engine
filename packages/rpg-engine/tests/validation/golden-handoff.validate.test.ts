@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   createEngineHost,
-  FREE_PACKAGE_ID,
+  FREE_CHAPTER_ID,
   hasBlockingErrors,
 } from "../../src/index.js";
 import { createFsContentPort } from "../helpers/fsContentPort.js";
@@ -47,7 +47,7 @@ describe("validatePackage", () => {
     await cp(dataSrc, dataRoot, { recursive: true });
     const host = createEngineHost({ persist: false, content: createFsContentPort() });
     await host.loadWorkspace(dataRoot);
-    const report = await host.validatePackage(FREE_PACKAGE_ID);
+    const report = await host.validatePackage(FREE_CHAPTER_ID);
     expect(report.errors.some((e) => e.ruleId === "FREE_PACKAGE_SENTINEL")).toBe(
       true,
     );
@@ -60,7 +60,7 @@ describe("validatePackage", () => {
     await rm(
       path.join(
         dataRoot,
-        "storis-packages/golden_handoff/cards/xiaopi_waiting_user.s-card.json",
+        "storis-packages/golden_handoff/chapters/golden_handoff/cards/xiaopi_waiting_user.s-card.json",
       ),
     );
     const host = createEngineHost({ persist: false, content: createFsContentPort() });
@@ -77,7 +77,7 @@ describe("validatePackage", () => {
     await cp(dataSrc, dataRoot, { recursive: true });
     const cardPath = path.join(
       dataRoot,
-      "storis-packages/golden_handoff/cards/doubao_intro_outbound.s-card.json",
+      "storis-packages/golden_handoff/chapters/golden_handoff/cards/doubao_intro_outbound.s-card.json",
     );
     const card = JSON.parse(await readFile(cardPath, "utf8")) as Record<
       string,
@@ -140,7 +140,7 @@ describe("validatePackage", () => {
     await cp(dataSrc, dataRoot, { recursive: true });
     const cardPath = path.join(
       dataRoot,
-      "storis-packages/golden_handoff/cards/doubao_intro_outbound.s-card.json",
+      "storis-packages/golden_handoff/chapters/golden_handoff/cards/doubao_intro_outbound.s-card.json",
     );
     const card = JSON.parse(await readFile(cardPath, "utf8")) as {
       toolPolicy?: Record<string, unknown>;
@@ -164,7 +164,7 @@ describe("validatePackage", () => {
     await cp(dataSrc, dataRoot, { recursive: true });
     const cardPath = path.join(
       dataRoot,
-      "storis-packages/golden_handoff/cards/doubao_intro_outbound.s-card.json",
+      "storis-packages/golden_handoff/chapters/golden_handoff/cards/doubao_intro_outbound.s-card.json",
     );
     const card = JSON.parse(await readFile(cardPath, "utf8")) as {
       interactionMode?: string;

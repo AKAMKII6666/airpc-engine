@@ -1,12 +1,14 @@
 /**
 	* 下拉选择字段；options 由配置注入；comProps.value/onChange 可覆盖自动绑。
+	* 选项若带 purpose/exampleScenario，MenuItem 悬停展示「作用 / 典型场景」。
 	*/
 "use client";
 
-import type { FC } from "react";
-import { MenuItem, TextField } from "@mui/material";
+import type { FC, ReactNode } from "react";
+import { MenuItem, TextField, Tooltip } from "@mui/material";
 import { FormFieldShell } from "../../FormFieldShell";
 import type { FormSelectOption } from "../../formTypes";
+import { formatSelectOptionTooltip } from "../../formatSelectOptionTooltip";
 import type { FormBoundFieldProps } from "../types/formBoundTypes";
 import {
 	readFormikFieldError,
@@ -17,6 +19,18 @@ import {
 type Props = FormBoundFieldProps<Record<string, unknown>> & {
 	options: FormSelectOption[];
 };
+
+/** 单选项：有 tooltip 字段时包 Tooltip，否则只渲染 label */
+function renderSelectOptionLabel(opt: FormSelectOption): ReactNode {
+	const tip = formatSelectOptionTooltip(opt);
+	if (tip == null) return opt.label;
+	return (
+		// 引用了Tooltip组件，用于选项作用与典型场景
+		<Tooltip title={tip} placement="right">
+			<span>{opt.label}</span>
+		</Tooltip>
+	);
+}
 
 export const FormSelectField: FC<Props> = function FormSelectField({
 	// name 是 Formik 路径，用于嵌套读写
@@ -90,7 +104,7 @@ export const FormSelectField: FC<Props> = function FormSelectField({
 				{options.map((opt) => (
 					// 引用了MenuItem组件，用于渲染下拉选项
 					<MenuItem key={opt.value} value={opt.value}>
-						{opt.label}
+						{renderSelectOptionLabel(opt)}
 					</MenuItem>
 				))}
 			</TextField>

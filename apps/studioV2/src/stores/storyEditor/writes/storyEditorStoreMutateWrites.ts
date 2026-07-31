@@ -12,16 +12,16 @@ import type { StoryEditorStoreState } from "@studio-v2/src/stores/storyEditor/mo
 
 type StoryEditorSet = StoreApi<StoryEditorStoreState>["setState"];
 
-/** 入口卡变更时同步 entryCardIdByPackage；空串不写 */
+/** 入口卡变更时同步 entryCardIdByChapter；空串不写 */
 function withEntryCardSync(
 	prev: StoryEditorStoreState,
 	bundle: DiskStoryPackageBundle,
 ): Record<string, string> {
 	const entry = bundle.conf.entryCardId?.trim() ?? "";
-	if (entry === "") return prev.entryCardIdByPackage;
+	if (entry === "") return prev.entryCardIdByChapter;
 	return {
-		...prev.entryCardIdByPackage,
-		[bundle.conf.packageId]: entry,
+		...prev.entryCardIdByChapter,
+		[bundle.conf.chapterId]: entry,
 	};
 }
 
@@ -71,7 +71,7 @@ export function createStoryEditorMutateActions(
 				return {
 					bundle,
 					confDirty: true,
-					entryCardIdByPackage: withEntryCardSync(prev, bundle),
+					entryCardIdByChapter: withEntryCardSync(prev, bundle),
 					savePhase:
 						prev.savePhase === "saved" ? "idle" : prev.savePhase,
 				};
@@ -109,7 +109,7 @@ export function createStoryEditorMutateActions(
 			set(function (prev) {
 				return {
 					bundle: payload.bundle,
-					entryCardIdByPackage: withEntryCardSync(prev, payload.bundle),
+					entryCardIdByChapter: withEntryCardSync(prev, payload.bundle),
 					saveValidation: payload.validation,
 					savePhase: "saved",
 					saveError: undefined,

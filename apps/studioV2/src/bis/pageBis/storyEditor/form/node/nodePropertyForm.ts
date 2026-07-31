@@ -30,6 +30,7 @@ export {
 	NODE_CONTEXT_ITEMS,
 	NODE_PROMPT_SCENE_ITEMS,
 	NODE_SCHEDULE_ITEMS,
+	NODE_TITLE_ITEMS,
 	NODE_TOOL_POLICY_ITEMS,
 } from "@studio-v2/src/bis/pageBis/storyEditor/form/node/nodePropertyFormItems";
 

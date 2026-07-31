@@ -21,6 +21,7 @@ function summary(packageId: string, title = packageId): StoryPackageSummary {
 		saveState: "saved",
 		lastExportedAt: null,
 		isStartup: false,
+		entryChapterId: packageId,
 	};
 }
 

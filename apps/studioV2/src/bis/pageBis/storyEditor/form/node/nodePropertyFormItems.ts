@@ -7,73 +7,102 @@ import type { FormSelectOption } from "@studio-v2/src/commonUiComponents/form/fo
 import type { CardKind } from "@studio-v2/typeFiles/story/callCard/engineCallCard";
 import {
 	BUILTIN_TOOL_OPTIONS,
-	CARD_KIND_OPTIONS,
-	ENTRY_MODE_OPTIONS,
-	INTERACTION_MODE_OPTIONS,
+	cardKindOptionsForStoryPackage,
+	entryModeOptionsForEditor,
+	interactionModeOptionsForEditor,
 	SCHEDULE_MODE_OPTIONS,
 	TOOL_POLICY_MODE_OPTIONS,
 } from "@studio-v2/typeFiles/story/callCardLabels";
 
+/** 标题单独一项：浮窗里排在归属角色之上 */
+export const NODE_TITLE_ITEMS: AutoFormItem[] = [
+	{
+		name: "title",
+		label: "标题",
+		comType: "TextField",
+		required: true,
+	},
+];
+
 /**
-	* 基本：卡片类型 + 标题 + 入口 / 交互枚举。
-	* voicemail 时锁定 entryMode / interactionMode（disable），与引擎校验一致。
+	* 基本：卡片类型 +（非留言时）入口 / 交互。
+	* voicemail：不展示入口/交互（由类型隐含 mailbox_open + playback_only）。
 	*/
-export function buildNodeBasicItems(cardKind: CardKind): AutoFormItem[] {
-	const voicemailLocked = cardKind === "voicemail";
-	return [
+export function buildNodeBasicItems(
+	cardKind: CardKind,
+	interactionMode?: string,
+): AutoFormItem[] {
+	const voicemail = cardKind === "voicemail";
+	const items: AutoFormItem[] = [
 		{
 			name: "cardKind",
 			label: "卡片类型",
 			comType: "Select",
 			required: true,
-			options: [...CARD_KIND_OPTIONS],
-			helperText: voicemailLocked
-				? "语音留言：入口固定「信箱打开」、交互固定「仅播放」。"
-				: "新建默认剧情通话；过场/自由/延迟外呼/留言在此切换。",
-		},
-		{
-			name: "title",
-			label: "标题",
-			comType: "TextField",
-			required: true,
-		},
-		{
-			name: "entryMode",
-			label: "入口模式",
-			comType: "Select",
-			options: [...ENTRY_MODE_OPTIONS],
-			disabled: voicemailLocked,
-			helperText: voicemailLocked
-				? "语音留言强制「信箱打开」，不可改。"
-				: undefined,
-		},
-		{
-			name: "interactionMode",
-			label: "交互模式",
-			comType: "Select",
-			options: [...INTERACTION_MODE_OPTIONS],
-			disabled: voicemailLocked,
-			helperText: voicemailLocked
-				? "语音留言强制「仅播放」，不可改。"
-				: undefined,
+			options: cardKindOptionsForStoryPackage(cardKind),
+			helperText: voicemail
+				? "语音留言：信箱打开 + 仅播放 + 禁用工具，由类型自动锁定。"
+				: "故事包仅新建「剧情通话」或「语音留言」；过场请用剧情卡 + 交互「仅播放」。",
 		},
 	];
+	if (!voicemail) {
+		items.push(
+			{
+				name: "entryMode",
+				label: "入口模式",
+				comType: "Select",
+				options: entryModeOptionsForEditor(),
+				helperText: "只控制呼入/外呼方向，不控制是否播放。",
+			},
+			{
+				name: "interactionMode",
+				label: "交互模式",
+				comType: "Select",
+				options: interactionModeOptionsForEditor(interactionMode),
+				helperText: "实时对话或仅播放；混合暂不对作者开放。",
+			},
+		);
+	}
+	return items;
 }
 
-/** 静态默认项（非 voicemail）；运行时请用 buildNodeBasicItems(cardKind) */
+/** 静态默认项（非 voicemail）；运行时请用 buildNodeBasicItems(cardKind, …) */
 export const NODE_BASIC_ITEMS: AutoFormItem[] = buildNodeBasicItems("story");
 
 /**
 	* context 标量与列表（不含 promptScenes）。
-	* playbackClipId 下拉来自 /api/assets；禁止手填未知 assetId。
+	* voicemail：只留本轮目标（留言按该提示词生成）；不选手动播放片段。
 	*/
 export function buildNodeContextItems(
 	clipOptions: readonly FormSelectOption[],
+	cardKind: CardKind = "story",
 ): AutoFormItem[] {
 	const playbackOptions: FormSelectOption[] = [
 		{ value: "", label: "（未设）" },
 		...clipOptions,
 	];
+	const playbackItem: AutoFormItem = {
+		name: "context.playbackClipId",
+		label: "播放片段",
+		comType: "Select",
+		options: playbackOptions,
+		helperText:
+			clipOptions.length === 0
+				? "资源库暂无资产；请先在资源浮窗或资源库新建。"
+				: "候选来自 /api/assets；空表示未设 playbackClipId。",
+	};
+	if (cardKind === "voicemail") {
+		return [
+			{
+				name: "context.objective",
+				label: "本轮目标",
+				comType: "AutoTextArea",
+				minRows: 2,
+				helperText:
+					"留言内容按此提示词生成；出口在下方「出口列表」配置。",
+			},
+		];
+	}
 	return [
 		{
 			name: "context.objective",
@@ -111,16 +140,7 @@ export function buildNodeContextItems(
 			label: "情绪",
 			comType: "TextField",
 		},
-		{
-			name: "context.playbackClipId",
-			label: "播放片段",
-			comType: "Select",
-			options: playbackOptions,
-			helperText:
-				clipOptions.length === 0
-					? "资源库暂无资产；请先在资源浮窗或资源库新建。"
-					: "候选来自 /api/assets；空表示未设 playbackClipId。",
-		},
+		playbackItem,
 		{
 			name: "context.forbidden",
 			label: "禁说项",
@@ -134,7 +154,7 @@ export function buildNodeContextItems(
 	];
 }
 
-/** 无资产候选时的静态兜底；运行时请用 buildNodeContextItems(clips) */
+/** 无资产候选时的静态兜底；运行时请用 buildNodeContextItems(clips, cardKind) */
 export const NODE_CONTEXT_ITEMS: AutoFormItem[] = buildNodeContextItems([]);
 
 /** 复用角色库 PromptSceneListEditor；会话 mock 不写盘 */
@@ -177,7 +197,7 @@ export function buildNodeToolPolicyItems(mode: string): AutoFormItem[] {
 export const NODE_TOOL_POLICY_ITEMS: AutoFormItem[] =
 	buildNodeToolPolicyItems("");
 
-/** schedule：仅 cardKind=schedule 时展示（包内剧情调度节点；非 schedule-cards） */
+/** schedule：仅遗留 cardKind=schedule 时展示（包内不再新建该类型） */
 export const NODE_SCHEDULE_ITEMS: AutoFormItem[] = [
 	{
 		name: "schedule.mode",
@@ -185,7 +205,7 @@ export const NODE_SCHEDULE_ITEMS: AutoFormItem[] = [
 		comType: "Select",
 		options: [...SCHEDULE_MODE_OPTIONS],
 		helperText:
-			"本卡仍落在故事包 cards/（剧情节点）。日常周期外呼目标请建 characters/schedule-cards。",
+			"遗留包内调度节点。日常周期外呼请建 characters/schedule-cards。",
 	},
 	{
 		name: "schedule.hour",

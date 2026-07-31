@@ -28,7 +28,7 @@ CallCard 把电话剧情收成：**数据驱动 + 可编辑 + 可模拟验证**�
 |----|------|
 | User / Profile | 按用户存档；记忆与剧情进度只在 Profile |
 | Character | 角色定义；社交一对多；可拨与否 |
-| StoryPackage | 可插拔剧情定义；进度在 Profile |
+| StoryPackage | 可插拔剧情**容器**；内含多 Chapter；进度在 Profile（chapterId） |
 | World（瘦） | Lore（含按地理位置生成背景）、Facts、WET；数据在 Profile |
 | Dialogue | Realtime / 文本 / Manual 适配器 |
 

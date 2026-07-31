@@ -12,7 +12,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   hasBlockingErrors,
   isEngineError,
-  SCHEDULE_PACKAGE_ID,
+  SCHEDULE_CHAPTER_ID,
 } from "../../src/index.js";
 import { expandRegisterExitEffects } from "../../src/tools/expandExitEffects.js";
 import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
@@ -49,7 +49,7 @@ describe("引擎 §7.1–7.3 回归 (V1-E9)", () => {
       await cp(dataSrc, dataRoot, { recursive: true });
       const cardPath = path.join(
         dataRoot,
-        "storis-packages/golden_handoff/cards/doubao_intro_outbound.s-card.json",
+        "storis-packages/golden_handoff/chapters/golden_handoff/cards/doubao_intro_outbound.s-card.json",
       );
       const cardRaw = JSON.parse(await readFile(cardPath, "utf8")) as {
         exits: Array<{ effects: unknown[] }>;
@@ -114,7 +114,7 @@ describe("引擎 §7.1–7.3 回归 (V1-E9)", () => {
       expect(isEngineError(outbound)).toBe(false);
       if (isEngineError(outbound)) return;
       expect(outbound.cardId).toBe("lanxing_morning_checkin");
-      expect(outbound.packageId).toBe(SCHEDULE_PACKAGE_ID);
+      expect(outbound.chapterId).toBe(SCHEDULE_CHAPTER_ID);
 
       const call = await host.beginCall("demo-user", outbound, {
         channel: "manual",

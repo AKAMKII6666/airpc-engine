@@ -25,7 +25,7 @@ describe("voicemail materialize pipeline (V2-VM-6)", () => {
 			id: "fx_ok",
 			agentId: "lanxing",
 			cardId: "lanxing_voicemail",
-			packageId: "pkg",
+			chapterId: "pkg",
 			source: "attach",
 			createdAt: "2026-07-23T00:00:00.000Z",
 		});
@@ -33,7 +33,7 @@ describe("voicemail materialize pipeline (V2-VM-6)", () => {
 			id: "fx_boom",
 			agentId: "lanxing",
 			cardId: "missing_card",
-			packageId: "pkg",
+			chapterId: "pkg",
 			source: "attach",
 			createdAt: "2026-07-23T00:00:01.000Z",
 		});
@@ -71,7 +71,7 @@ describe("voicemail materialize pipeline (V2-VM-6)", () => {
 			id: "fx_clip",
 			agentId: "lanxing",
 			cardId: "lanxing_voicemail_clip",
-			packageId: "pkg",
+			chapterId: "pkg",
 			source: "schedule",
 			createdAt: "2026-07-23T00:00:00.000Z",
 		});
@@ -98,7 +98,7 @@ describe("voicemail materialize pipeline (V2-VM-6)", () => {
 			id: "fx_no_port",
 			agentId: "lanxing",
 			cardId: "lanxing_voicemail",
-			packageId: "pkg",
+			chapterId: "pkg",
 			source: "attach",
 			createdAt: "2026-07-23T00:00:00.000Z",
 		});

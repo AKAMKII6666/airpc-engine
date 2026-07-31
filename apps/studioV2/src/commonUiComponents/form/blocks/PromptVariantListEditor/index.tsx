@@ -6,6 +6,7 @@
 import type { FC } from "react";
 import { Button, IconButton, TextField } from "@mui/material";
 import type { PromptVariantForm } from "@studio-v2/typeFiles/library/characters/form/characterFormShapes";
+import { createStudioId } from "@studio-v2/typeFiles/ids/createStudioId";
 import { FormFieldShell } from "../../FormFieldShell";
 import type { FormBoundFieldProps } from "../../fields/types/formBoundTypes";
 import {
@@ -16,10 +17,7 @@ import styles from "./index.module.scss";
 
 /** 新变体稳定键；隐藏字段，禁止作者手填 */
 function newVariantId(): string {
-	if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-		return crypto.randomUUID();
-	}
-	return `v_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+	return createStudioId("variant");
 }
 
 function asVariantList(raw: unknown): PromptVariantForm[] {

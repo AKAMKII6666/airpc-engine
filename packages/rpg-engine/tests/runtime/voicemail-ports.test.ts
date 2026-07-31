@@ -22,7 +22,7 @@ describe("voicemail ports (V2-VM-7)", () => {
 			await noop({
 				card: voicemailCard,
 				agentId: "lanxing",
-				packageId: "pkg",
+				chapterId: "pkg",
 				instanceId: "i1",
 			}),
 		).toEqual({});
@@ -33,7 +33,7 @@ describe("voicemail ports (V2-VM-7)", () => {
 		const out = await recording({
 			card: voicemailCard,
 			agentId: "lanxing",
-			packageId: "pkg",
+			chapterId: "pkg",
 			instanceId: "i1",
 			assembledPrompt: assembleVoicemailPrompt(voicemailCard),
 		});
@@ -47,7 +47,7 @@ describe("voicemail ports (V2-VM-7)", () => {
 			id: "fx_throw",
 			agentId: "lanxing",
 			cardId: "lanxing_voicemail",
-			packageId: "pkg",
+			chapterId: "pkg",
 			source: "attach",
 			createdAt: "2026-07-23T00:00:00.000Z",
 		});

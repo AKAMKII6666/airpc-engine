@@ -11,7 +11,7 @@ export interface ValidationIssue {
 }
 
 export interface ValidationReport {
-  packageId: string;
+  chapterId: string;
   errors: ValidationIssue[];
   warnings: ValidationIssue[];
 }

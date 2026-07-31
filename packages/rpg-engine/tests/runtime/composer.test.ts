@@ -70,7 +70,7 @@ describe("composeRenderedPrompt", () => {
     });
     const scene = buildComposeScene({
       entryMode: "outbound_auto",
-      packageId: "golden_handoff",
+      chapterId: "golden_handoff",
       localNowIso: "2026-07-13T16:00:00+08:00",
       timeZone: "Asia/Shanghai",
     });
@@ -197,7 +197,7 @@ describe("composeRenderedPrompt", () => {
 
   it("Free package uses allow_casual timeMentionPolicy", () => {
     const scene = buildComposeScene({
-      packageId: "__free__",
+      chapterId: "__free__",
       entryMode: "inbound",
       localNowIso: "2026-07-13T12:00:00+08:00",
     });

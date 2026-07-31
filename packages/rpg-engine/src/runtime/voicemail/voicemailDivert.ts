@@ -4,7 +4,7 @@
  * 需求：语音留言改造 §3.3；执行索引 V2-VM-4 / V2-VM-5
  */
 import { randomUUID } from "node:crypto";
-import { FREE_PACKAGE_ID } from "../../constants.js";
+import { FREE_CHAPTER_ID } from "../../constants.js";
 import type { CallSession } from "../../host/types.js";
 import type { Effect } from "../../schema/outcome.js";
 import type { PlayerProfile } from "../../schema/profile.js";
@@ -32,7 +32,7 @@ export type VoicemailOnceIntentRef = {
 	intentId: string;
 	agentId: string;
 	cardId: string;
-	packageId: string;
+	chapterId: string;
 	topicHint?: string;
 	delivery?: string;
 };
@@ -41,12 +41,12 @@ function resolveAttachPackageId(
 	effect: Effect,
 	session: CallSession,
 ): string {
-	if (typeof effect.packageId === "string" && effect.packageId) {
-		return effect.packageId;
+	if (typeof effect.chapterId === "string" && effect.chapterId) {
+		return effect.chapterId;
 	}
-	return session.packageId === FREE_PACKAGE_ID
-		? FREE_PACKAGE_ID
-		: session.packageId;
+	return session.chapterId === FREE_CHAPTER_ID
+		? FREE_CHAPTER_ID
+		: session.chapterId;
 }
 
 /**
@@ -61,15 +61,15 @@ export function tryAttachVoicemailCallCard(
 	if (!agentId || !cardId) {
 		return false;
 	}
-	const packageId = resolveAttachPackageId(effect, ctx.session);
-	if (!isLookupVoicemailCard(ctx.lookupCard, packageId, cardId)) {
+	const chapterId = resolveAttachPackageId(effect, ctx.session);
+	if (!isLookupVoicemailCard(ctx.lookupCard, chapterId, cardId)) {
 		return false;
 	}
 	pushVoicemailGenStack(ctx.profile, {
 		id: typeof effect.id === "string" && effect.id ? effect.id : randomUUID(),
 		agentId,
 		cardId,
-		packageId,
+		chapterId,
 		source: "attach",
 		createdAt: ctx.nowIso,
 		topicHint:
@@ -96,11 +96,11 @@ export function tryScheduleVoicemailCallCard(
 ): boolean {
 	const agentId = String(effect.agentId ?? "");
 	const cardId = String(effect.cardId ?? "");
-	const packageId = String(effect.packageId ?? "");
-	if (!agentId || !cardId || !packageId) {
+	const chapterId = String(effect.chapterId ?? "");
+	if (!agentId || !cardId || !chapterId) {
 		return false;
 	}
-	if (!isLookupVoicemailCard(ctx.lookupCard, packageId, cardId)) {
+	if (!isLookupVoicemailCard(ctx.lookupCard, chapterId, cardId)) {
 		return false;
 	}
 	const { profile, nowIso } = ctx;
@@ -113,7 +113,7 @@ export function tryScheduleVoicemailCallCard(
 		intentId: effect.id,
 		agentId,
 		cardId,
-		packageId,
+		chapterId,
 		topicHint:
 			typeof effect.topicHint === "string" ? effect.topicHint : undefined,
 		fireAtMs: clockMs + resolveScheduleDelayMs(effect),
@@ -145,7 +145,7 @@ export function isVoicemailMailboxOnce(
 	) {
 		return true;
 	}
-	return isLookupVoicemailCard(lookupCard, once.packageId, once.cardId);
+	return isLookupVoicemailCard(lookupCard, once.chapterId, once.cardId);
 }
 
 /** 留言 once 到点：入 GenStack（调用方标 fired，勿挂 Board） */
@@ -158,7 +158,7 @@ export function fireVoicemailMailboxOnce(
 		id: once.intentId,
 		agentId: once.agentId,
 		cardId: once.cardId,
-		packageId: once.packageId,
+		chapterId: once.chapterId,
 		source: "schedule",
 		createdAt: nowIso,
 		topicHint: once.topicHint,

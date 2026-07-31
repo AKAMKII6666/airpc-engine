@@ -5,9 +5,9 @@
  * - schedule_call_card：挂机时已挂 either pending + linkedInstanceId；tick 遇已消费 pending 则跳过
  * - recurring：跨过逻辑日时刻 → 物化为可 resolve 的 once（须有卡引用）；
  *   再经 tick 挂 pending → agent_outbound；真壁钟仍归壳 Sink
- * - 禁止裸 recurring：缺 scheduleCardId／cardId+packageId → disabled，不物化 once
+ * - 禁止裸 recurring：缺 scheduleCardId／cardId+chapterId → disabled，不物化 once
  */
-import { FREE_PACKAGE_ID, SCHEDULE_PACKAGE_ID } from "../constants.js";
+import { FREE_CHAPTER_ID, SCHEDULE_CHAPTER_ID } from "../constants.js";
 import { hasRecurringCardRef } from "../schema/schedule.js";
 import type { PlayerProfile } from "../schema/profile.js";
 import type { ScheduledCardLookup } from "../schedule/scheduleCardReferenceResolver.js";
@@ -29,7 +29,7 @@ export interface ScheduledRecurringIntent {
 	/** 推荐：characters/schedule-cards 下的 ScheduleCard id */
 	scheduleCardId?: string;
 	cardId?: string;
-	packageId?: string;
+	chapterId?: string;
 	topicHint?: string;
 	hour: number;
 	minute: number;
@@ -45,7 +45,7 @@ export interface FiredScheduleItem {
 	intentId: string;
 	agentId: string;
 	cardId: string;
-	packageId: string;
+	chapterId: string;
 	instanceId: string;
 }
 
@@ -58,28 +58,28 @@ export interface AdvanceToNextResult {
 }
 
 /**
- * 将 recurring 卡引用解析为可挂 pending 的 cardId+packageId。
- * scheduleCardId → (__schedule__, id)；否则使用显式 cardId+packageId。
+ * 将 recurring 卡引用解析为可挂 pending 的 cardId+chapterId。
+ * scheduleCardId → (__schedule__, id)；否则使用显式 cardId+chapterId。
  */
 export function resolveRecurringCardTarget(
 	rec: Pick<
 		ScheduledRecurringIntent,
-		"scheduleCardId" | "cardId" | "packageId"
+		"scheduleCardId" | "cardId" | "chapterId"
 	>,
-): { cardId: string; packageId: string } | null {
+): { cardId: string; chapterId: string } | null {
 	if (typeof rec.scheduleCardId === "string" && rec.scheduleCardId) {
 		return {
 			cardId: rec.scheduleCardId,
-			packageId: SCHEDULE_PACKAGE_ID,
+			chapterId: SCHEDULE_CHAPTER_ID,
 		};
 	}
 	if (
 		typeof rec.cardId === "string" &&
 		rec.cardId &&
-		typeof rec.packageId === "string" &&
-		rec.packageId
+		typeof rec.chapterId === "string" &&
+		rec.chapterId
 	) {
-		return { cardId: rec.cardId, packageId: rec.packageId };
+		return { cardId: rec.cardId, chapterId: rec.chapterId };
 	}
 	return null;
 }
@@ -131,9 +131,9 @@ function asRecurringIntent(raw: unknown): ScheduledRecurringIntent | null {
 				? row.scheduleCardId
 				: undefined,
 		cardId: typeof row.cardId === "string" && row.cardId ? row.cardId : undefined,
-		packageId:
-			typeof row.packageId === "string" && row.packageId
-				? row.packageId
+		chapterId:
+			typeof row.chapterId === "string" && row.chapterId
+				? row.chapterId
 				: undefined,
 		topicHint: typeof row.topicHint === "string" ? row.topicHint : undefined,
 		hour,
@@ -194,7 +194,7 @@ function serializeRecurring(rec: ScheduledRecurringIntent): Record<string, unkno
 	};
 	if (rec.scheduleCardId) out.scheduleCardId = rec.scheduleCardId;
 	if (rec.cardId) out.cardId = rec.cardId;
-	if (rec.packageId) out.packageId = rec.packageId;
+	if (rec.chapterId) out.chapterId = rec.chapterId;
 	if (rec.topicHint) out.topicHint = rec.topicHint;
 	if (rec.weekdays && rec.weekdays.length > 0) out.weekdays = rec.weekdays;
 	if (typeof rec.lastMaterializedAtMs === "number") {
@@ -206,7 +206,7 @@ function serializeRecurring(rec: ScheduledRecurringIntent): Record<string, unkno
 
 function buildOccurrenceOnce(
 	rec: ScheduledRecurringIntent,
-	target: { cardId: string; packageId: string },
+	target: { cardId: string; chapterId: string },
 	fireAtMs: number,
 	dayIndex: number,
 	nowIso: string,
@@ -216,7 +216,7 @@ function buildOccurrenceOnce(
 		intentId: `${rec.intentId}__d${dayIndex}`,
 		agentId: rec.agentId,
 		cardId: target.cardId,
-		packageId: target.packageId,
+		chapterId: target.chapterId,
 		fireAtMs,
 		status: "pending",
 		createdAt: nowIso,
@@ -421,8 +421,8 @@ export function clearStoryPendingCards(profile: PlayerProfile): number {
 		if (!board) continue;
 		const next = board.pending.filter(function (item) {
 			const keep =
-				item.packageId === FREE_PACKAGE_ID ||
-				item.packageId === SCHEDULE_PACKAGE_ID;
+				item.chapterId === FREE_CHAPTER_ID ||
+				item.chapterId === SCHEDULE_CHAPTER_ID;
 			if (!keep) removed += 1;
 			return keep;
 		});
@@ -447,8 +447,8 @@ export function cancelStoryOnceIntents(profile: PlayerProfile): number {
 			continue;
 		}
 		const isStoryOnce =
-			once.packageId !== FREE_PACKAGE_ID &&
-			once.packageId !== SCHEDULE_PACKAGE_ID;
+			once.chapterId !== FREE_CHAPTER_ID &&
+			once.chapterId !== SCHEDULE_CHAPTER_ID;
 		if (
 			isStoryOnce &&
 			(once.status === "pending" || once.status === "fired")

@@ -46,26 +46,32 @@ export type StoryEditorCardIndexEntry = {
 export type StoryEditorLoadOkPayload = {
 	/** 判别成功 */
 	ok: true;
-	/** 路由包 id；须与 bundle.conf.packageId 对齐 */
+	/** 路由包 id */
 	packageId: string;
+	/** 路由章 id；须与 bundle.conf.chapterId 对齐 */
+	chapterId: string;
 	/** 磁盘包列表；chapter 下拉等 */
 	diskPackages: readonly StoryPackageSummary[];
 	/** 会话整包工作副本 */
 	bundle: DiskStoryPackageBundle;
 	/** 画布 seed；保存路径不重建 */
 	graphSeed: StoryEditorGraphSeedSnapshot;
-	/** packageId → 卡摘要 */
+	/** chapterId → 卡摘要（章 id 全局唯一） */
 	cardIndex: Readonly<Record<string, readonly StoryEditorCardIndexEntry[]>>;
-	/** packageId → 默认入口卡 id */
-	entryCardIdByPackage: Readonly<Record<string, string>>;
+	/** chapterId → 默认入口卡 id */
+	entryCardIdByChapter: Readonly<Record<string, string>>;
+	/** 本包章摘要；chapter_end 续章下拉 */
+	chapterSummaries: readonly { chapterId: string; title: string }[];
 };
 
 /** 打开失败；message 已人话化 */
 export type StoryEditorLoadFailPayload = {
 	/** 判别失败 */
 	ok: false;
-	/** 目标包 id（便于顶栏展示） */
+	/** 目标包 id */
 	packageId: string;
+	/** 目标章 id（失败时可选） */
+	chapterId?: string;
 	/** 人话错误；空串不应出现 */
 	message: string;
 };

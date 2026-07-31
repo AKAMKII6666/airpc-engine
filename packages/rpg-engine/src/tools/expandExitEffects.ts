@@ -37,8 +37,8 @@ export function expandRegisterExitEffects(
         );
       }
       const cardId = String(args.card_id ?? "");
-      const packageId = String(args.package_id ?? "");
-      if (!cardId || !packageId) {
+      const chapterId = String(args.package_id ?? "");
+      if (!cardId || !chapterId) {
         return engineError(
           "VALIDATION_FAILED",
           "refer_to_expert requires card_id + package_id for schedule_call_card",
@@ -58,7 +58,7 @@ export function expandRegisterExitEffects(
           effect: "schedule_call_card",
           agentId: target,
           cardId,
-          packageId,
+          chapterId,
           topicHint: String(args.topic_hint ?? ""),
           delayMinutes: delayMin,
         },
@@ -66,8 +66,8 @@ export function expandRegisterExitEffects(
     }
     case "schedule_reminder_call": {
       const cardId = String(args.card_id ?? "");
-      const packageId = String(args.package_id ?? "");
-      if (!cardId || !packageId) {
+      const chapterId = String(args.package_id ?? "");
+      if (!cardId || !chapterId) {
         return engineError(
           "VALIDATION_FAILED",
           "schedule_reminder_call requires card_id + package_id",
@@ -81,11 +81,11 @@ export function expandRegisterExitEffects(
             : 60;
       return [
         {
-          id: `reminder_${randomUUID().slice(0, 8)}`,
+          id: `reminder_${randomUUID()}`,
           effect: "schedule_call_card",
           agentId: sessionAgentId,
           cardId,
-          packageId,
+          chapterId,
           topicHint: String(args.topic_hint ?? ""),
           delayMinutes,
         },
@@ -100,19 +100,18 @@ export function expandRegisterExitEffects(
         typeof args.card_id === "string" && args.card_id
           ? String(args.card_id)
           : undefined;
-      const packageId =
+      const chapterId =
         typeof args.package_id === "string" && args.package_id
           ? String(args.package_id)
           : undefined;
-      // 必须带 scheduleCardId，或显式 cardId+packageId；禁止裸 topicHint 任务
-      if (!scheduleCardId && !(cardId && packageId)) {
+      if (!scheduleCardId && !(cardId && chapterId)) {
         return engineError(
           "VALIDATION_FAILED",
           "schedule_recurring_call requires schedule_card_id or card_id+package_id",
         );
       }
       const row: Effect = {
-        id: `recurring_${randomUUID().slice(0, 8)}`,
+        id: `recurring_${randomUUID()}`,
         effect: "schedule_recurring_call",
         agentId: sessionAgentId,
         topicHint: String(args.topic_hint ?? ""),
@@ -124,7 +123,7 @@ export function expandRegisterExitEffects(
       };
       if (scheduleCardId) row.scheduleCardId = scheduleCardId;
       if (cardId) row.cardId = cardId;
-      if (packageId) row.packageId = packageId;
+      if (chapterId) row.chapterId = chapterId;
       return [row];
     }
     case "record_shared_secret": {
@@ -138,7 +137,7 @@ export function expandRegisterExitEffects(
       }
       return [
         {
-          id: `secret_${randomUUID().slice(0, 8)}`,
+          id: `secret_${randomUUID()}`,
           effect: "patch_memory",
           agentId: sessionAgentId,
           layer: "semantic",
@@ -157,7 +156,7 @@ export function expandRegisterExitEffects(
       }
       return [
         {
-          id: `research_${randomUUID().slice(0, 8)}`,
+          id: `research_${randomUUID()}`,
           effect: "create_research_commitment",
           question,
           notifyMode: String(args.notify_mode ?? "next_call"),
@@ -174,7 +173,7 @@ export function expandRegisterExitEffects(
       }
       return [
         {
-          id: `user_name_${randomUUID().slice(0, 8)}`,
+          id: `user_name_${randomUUID()}`,
           effect: "update_user_profile",
           nickname,
           fullName:

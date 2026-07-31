@@ -1,6 +1,6 @@
 /**
 	* 故事编辑器就绪态主舞台：顶栏/校验条 + 画布 + 底栏 + 弹层。
-	* UserGate 硬挂：未选玩家时不可操作画布。
+	* UserGate：session 水合后按需挂载；有用户直进画布，无用户才开门禁。
 	*/
 "use client";
 
@@ -26,6 +26,7 @@ type ShellController = ReturnType<typeof useStoryEditorShellController>;
 
 export type StoryEditorReadyStageProps = {
 	packageId: string;
+	chapterId: string;
 	bundle: DiskStoryPackageBundle;
 	graphSeed: EditorGraphSeed;
 	shell: ShellController;
@@ -34,6 +35,8 @@ export type StoryEditorReadyStageProps = {
 export const StoryEditorReadyStage: FC<StoryEditorReadyStageProps> = function ({
 	// packageId 表示路由包键，用于画布保存与预览
 	packageId,
+	// chapterId 表示路由章键，用于保存与顶栏
+	chapterId,
 	// bundle 表示当前会话整包，用于章节标题与画布
 	bundle,
 	// graphSeed 表示画布初始图，用于 RF 初始化
@@ -45,8 +48,10 @@ export const StoryEditorReadyStage: FC<StoryEditorReadyStageProps> = function ({
 	const session = useStudioSessionUserBis();
 	const [switchGateOpen, setSwitchGateOpen] = useState(false);
 
-	const needsUser = !session.hasUser;
-	const gateOpen = needsUser || switchGateOpen;
+	const needsUser = session.ready && !session.hasUser;
+	/** 仅水合后按需挂载，杜绝空用户首帧 Dialog 闪关 */
+	const mountUserGate =
+		session.ready && (needsUser || switchGateOpen);
 	const userLabel = formatStudioUserLabel(session.currentUser);
 
 	return (
@@ -65,10 +70,16 @@ export const StoryEditorReadyStage: FC<StoryEditorReadyStageProps> = function ({
 				dismissSaveValidation={packageSession.dismissSaveValidation}
 				currentUserLabel={userLabel}
 				onSwitchUser={function () {
+					if (!session.ready) return;
 					setSwitchGateOpen(true);
 				}}
 			>
-				{needsUser ? (
+				{!session.ready ? (
+					<div className={styles.gateBlock}>
+						{/* 引用了Typography组件，用于会话水合占位 */}
+						<Typography variant="body1">正在恢复玩家会话…</Typography>
+					</div>
+				) : needsUser ? (
 					<div className={styles.gateBlock}>
 						{/* 引用了Typography组件，用于未选玩家提示 */}
 						<Typography variant="body1">
@@ -79,6 +90,7 @@ export const StoryEditorReadyStage: FC<StoryEditorReadyStageProps> = function ({
 					// 引用了StoryEditorReadyCanvas组件，用于已选玩家后的画布舞台
 					<StoryEditorReadyCanvas
 						packageId={packageId}
+						chapterId={chapterId}
 						bundle={bundle}
 						graphSeed={graphSeed}
 						shell={shell}
@@ -86,21 +98,23 @@ export const StoryEditorReadyStage: FC<StoryEditorReadyStageProps> = function ({
 				)}
 			</StoryEditorChrome>
 
-			{/* 引用了UserGate组件，用于进画布硬门禁 / 切换玩家 */}
-			<UserGate
-				open={gateOpen}
-				currentUserId={session.currentUser.userId}
-				allowDismissWhenSelected={!needsUser}
-				onClose={function () {
-					setSwitchGateOpen(false);
-				}}
-				onSelected={function () {
-					setSwitchGateOpen(false);
-				}}
-				title={
-					needsUser ? "选择玩家后进入画布" : "切换当前玩家"
-				}
-			/>
+			{mountUserGate ? (
+				// 引用了UserGate组件，用于进画布硬门禁 / 切换玩家
+				<UserGate
+					open
+					currentUserId={session.currentUser.userId}
+					allowDismissWhenSelected={!needsUser}
+					onClose={function () {
+						setSwitchGateOpen(false);
+					}}
+					onSelected={function () {
+						setSwitchGateOpen(false);
+					}}
+					title={
+						needsUser ? "选择玩家后进入画布" : "切换当前玩家"
+					}
+				/>
+			) : null}
 		</div>
 	);
 };

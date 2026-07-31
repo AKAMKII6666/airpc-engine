@@ -244,7 +244,7 @@ export function buildWetReplayView(opts: {
       ? {
           status: session.status,
           userId: session.userId,
-          packageId: session.packageId,
+          packageId: session.chapterId,
           cardId: session.resolve.cardId,
           agentId: session.resolve.agentId,
           startedAt: session.startedAt,

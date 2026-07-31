@@ -3,6 +3,7 @@
 	* 从 mutate hook 抽出以降有效行数；禁 UI 直调。
 	*/
 import type { Edge, Node } from "@xyflow/react";
+import { checkChapterStartForSave } from "@studio-v2/src/bis/pageBis/storyEditor/chapterStart/chapterStartGraph";
 import { saveStoryPackageToDisk } from "@studio-v2/src/bis/pageBis/storyEditor/package/io/saveStoryPackage_bis";
 import { useStoryEditorStore } from "@studio-v2/src/stores/storyEditor/storyEditorStore";
 import { StudioApiError } from "@studio-v2/src/utils/ajaxHelper/studioApiClient";
@@ -39,6 +40,8 @@ function validationReportFromSaveError(
 export type CommitStoryEditorPackageSaveInput = {
 	/** 路由包键；PUT 目标 */
 	packageId: string;
+	/** 路由章键；PUT 目标 */
+	chapterId: string;
 	/** 当前会话 bundle；空则 no-op */
 	bundle: DiskStoryPackageBundle | null;
 	/** 同步 flush；失败则记 applySaveFailure */
@@ -52,7 +55,7 @@ export type CommitStoryEditorPackageSaveInput = {
 };
 
 /**
-	* 先 flush→读 flushedGraph→PUT；成功/失败写 store。
+	* 先 flush→读 flushedGraph→章节开始闸门→PUT；成功/失败写 store。
 	* 不以 canvasApi 为组 bundle 真源。
 	*/
 export async function commitStoryEditorPackageSave(
@@ -60,6 +63,7 @@ export async function commitStoryEditorPackageSave(
 ): Promise<void> {
 	const {
 		packageId,
+		chapterId,
 		bundle,
 		flushCanvasToStore,
 		applySaveStarted,
@@ -67,17 +71,15 @@ export async function commitStoryEditorPackageSave(
 		applySaveFailure,
 	} = input;
 	if (!bundle) return;
-	if (!flushCanvasToStore()) {
+	const graphOrError = readFlushedGraphOrFail(flushCanvasToStore, applySaveFailure);
+	if (!graphOrError) return;
+	const chapterCheck = checkChapterStartForSave(
+		graphOrError.nodes,
+		graphOrError.edges,
+	);
+	if (!chapterCheck.ok) {
 		applySaveFailure({
-			message: "画布未就绪，无法保存",
-			validation: null,
-		});
-		return;
-	}
-	const graph = useStoryEditorStore.getState().flushedGraph;
-	if (!graph) {
-		applySaveFailure({
-			message: "画布快照缺失，无法保存",
+			message: chapterCheck.message,
 			validation: null,
 		});
 		return;
@@ -86,9 +88,17 @@ export async function commitStoryEditorPackageSave(
 	try {
 		const saved = await saveStoryPackageToDisk({
 			packageId,
-			baseBundle: bundle,
-			nodes: graph.nodes as Node[],
-			edges: graph.edges as Edge[],
+			chapterId,
+			baseBundle: {
+				...bundle,
+				conf: {
+					...bundle.conf,
+					// 保存前把画布章节开始连线同步进入口卡，避免与包配置浮窗两套真源打架
+					entryCardId: chapterCheck.entryCardId,
+				},
+			},
+			nodes: graphOrError.nodes,
+			edges: graphOrError.edges,
 		});
 		applySaveSuccess({
 			bundle: saved.bundle,
@@ -100,4 +110,30 @@ export async function commitStoryEditorPackageSave(
 			validation: validationReportFromSaveError(error),
 		});
 	}
+}
+
+/** flush 后取图；失败已写 store，返回 null */
+function readFlushedGraphOrFail(
+	flushCanvasToStore: () => boolean,
+	applySaveFailure: (payload: StoryEditorSaveFailurePayload) => void,
+): { nodes: readonly Node[]; edges: readonly Edge[] } | null {
+	if (!flushCanvasToStore()) {
+		applySaveFailure({
+			message: "画布未就绪，无法保存",
+			validation: null,
+		});
+		return null;
+	}
+	const graph = useStoryEditorStore.getState().flushedGraph;
+	if (!graph) {
+		applySaveFailure({
+			message: "画布快照缺失，无法保存",
+			validation: null,
+		});
+		return null;
+	}
+	return {
+		nodes: graph.nodes as readonly Node[],
+		edges: graph.edges as readonly Edge[],
+	};
 }

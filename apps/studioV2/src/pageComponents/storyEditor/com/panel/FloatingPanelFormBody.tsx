@@ -11,7 +11,7 @@ import type {
 	EditorChapterNodeData,
 	StoryEditorSelection,
 } from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
-import type { ChapterPackageDiskContext } from "@studio-v2/src/bis/pageBis/storyEditor/form/chapter/chapterPropertyForm";
+import type { ChapterChapterDiskContext } from "@studio-v2/src/bis/pageBis/storyEditor/form/chapter/chapterPropertyForm";
 import type { CallCardLabelOption } from "@studio-v2/typeFiles/story/callCardLabels";
 import type { EffectPanelSources } from "@studio-v2/typeFiles/story/editor/callCard/editorEffectParams";
 import {
@@ -41,8 +41,8 @@ export type FloatingPanelFormBodyProps = {
 	) => void;
 	characterAnchors: readonly CharacterAnchorNodeData[];
 	effectPanelSources: EffectPanelSources;
-	chapterDiskCtx: ChapterPackageDiskContext;
-	chapterPackageOptions: readonly CallCardLabelOption[];
+	chapterDiskCtx: ChapterChapterDiskContext;
+	chapterChapterOptions: readonly CallCardLabelOption[];
 	onAssignOwner: (
 		nodeId: string,
 		agentId: string,
@@ -66,8 +66,8 @@ export const FloatingPanelFormBody: FC<FloatingPanelFormBodyProps> =
 		effectPanelSources,
 		// chapterDiskCtx 是章节磁盘索引，用于下一包配置
 		chapterDiskCtx,
-		// chapterPackageOptions 是下一故事包 Select，用于章节结束
-		chapterPackageOptions,
+		// chapterChapterOptions 是下一故事包 Select，用于章节结束
+		chapterChapterOptions,
 		// onAssignOwner 是归属即时写回，用于 role 边同步
 		onAssignOwner,
 	}) {
@@ -96,7 +96,7 @@ export const FloatingPanelFormBody: FC<FloatingPanelFormBodyProps> =
 								nodeData={selection.data}
 								formik={formik}
 								chapterDiskCtx={chapterDiskCtx}
-								chapterPackageOptions={chapterPackageOptions}
+								chapterChapterOptions={chapterChapterOptions}
 							/>
 						);
 					}}

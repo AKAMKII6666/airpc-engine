@@ -1,7 +1,5 @@
 /**
-	* GET/PUT/DELETE /api/stories/[packageId] — 整包读 / 写 / 删 data/storis-packages。
-	* PUT：写盘后 validatePackage；error 回滚并阻断（PACKAGE_VALIDATION_FAILED）。
-	* DELETE：拒删首故事与最后一个包。
+	* GET/PUT/DELETE /api/stories/[packageId] — 包容器元数据 / 整包 / 删包。
 	*/
 import { isEngineError } from "@airpc/rpg-engine";
 import {
@@ -12,9 +10,10 @@ import {
 import { reloadStudioV2WorkspaceIfBooted } from "@studio-v2/src/utils/server/host/engineHost.server";
 import {
 	deleteDiskStoryPackage,
-	readDiskStoryPackage,
-} from "@studio-v2/src/utils/server/packages/fs/packagesFs.server";
-import { writeValidatedDiskStoryPackage } from "@studio-v2/src/utils/server/packages/fs/writeValidatedPackage.server";
+	readDiskPackageConf,
+	readDiskPackageContainer,
+	writeDiskPackageContainer,
+} from "@studio-v2/src/utils/server/packages/fs/package/packagesFs.server";
 
 function failFromUnknown(err: unknown): Response {
 	if (isEngineError(err)) {
@@ -31,22 +30,26 @@ function failFromUnknown(err: unknown): Response {
 	);
 }
 
+/** GET ?view=container 返回整包；默认返回 packageConf */
 export async function GET(
-	_req: Request,
+	req: Request,
 	ctx: { params: Promise<{ packageId: string }> },
 ): Promise<Response> {
 	try {
 		const { packageId } = await ctx.params;
-		const bundle = await readDiskStoryPackage(packageId);
-		return apiOk(bundle);
+		const url = new URL(req.url);
+		if (url.searchParams.get("view") === "container") {
+			const container = await readDiskPackageContainer(packageId);
+			return apiOk(container);
+		}
+		const packageConf = await readDiskPackageConf(packageId);
+		return apiOk({ packageConf });
 	} catch (err) {
 		return failFromUnknown(err);
 	}
 }
 
-/**
-	* 整包保存：body = { conf, cards, layout? }；写后 validate；error 回滚不保留坏盘。
-	*/
+/** PUT 整包容器（导入覆盖） */
 export async function PUT(
 	req: Request,
 	ctx: { params: Promise<{ packageId: string }> },
@@ -54,46 +57,30 @@ export async function PUT(
 	try {
 		const { packageId } = await ctx.params;
 		const body = (await req.json()) as {
-			conf?: unknown;
-			cards?: unknown;
-			layout?: unknown | null;
+			packageConf?: unknown;
+			chapters?: unknown[];
 		};
-		if (!body.conf || typeof body.conf !== "object") {
-			return apiFail("VALIDATION_FAILED", "conf object required");
+		if (!body.packageConf || typeof body.packageConf !== "object") {
+			return apiFail("VALIDATION_FAILED", "packageConf object required");
 		}
-		if (!Array.isArray(body.cards)) {
-			return apiFail("VALIDATION_FAILED", "cards array required");
+		if (!Array.isArray(body.chapters)) {
+			return apiFail("VALIDATION_FAILED", "chapters array required");
 		}
-		const confObj = body.conf as { packageId?: string };
-		if (confObj.packageId && confObj.packageId !== packageId) {
-			return apiFail("VALIDATION_FAILED", "conf.packageId mismatch");
-		}
-		const result = await writeValidatedDiskStoryPackage(packageId, {
-			conf: body.conf,
-			cards: body.cards,
-			layout: body.layout,
+		const container = await writeDiskPackageContainer(packageId, {
+			packageConf: body.packageConf,
+			chapters: body.chapters as Array<{
+				conf: unknown;
+				cards: unknown[];
+				layout?: unknown | null;
+			}>,
 		});
-		if (!result.ok) {
-			return apiFail(
-				"PACKAGE_VALIDATION_FAILED",
-				`故事包校验未通过（${result.report.errors.length} 个错误）`,
-				422,
-				{ report: result.report },
-			);
-		}
 		await reloadStudioV2WorkspaceIfBooted();
-		return apiOk({
-			bundle: result.bundle,
-			validation: result.report,
-		});
+		return apiOk(container);
 	} catch (err) {
 		return failFromUnknown(err);
 	}
 }
 
-/**
-	* 删除故事包目录；首故事与最后一个包由 deleteDiskStoryPackage 拒删。
-	*/
 export async function DELETE(
 	_req: Request,
 	ctx: { params: Promise<{ packageId: string }> },

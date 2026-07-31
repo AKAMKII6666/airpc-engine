@@ -13,6 +13,7 @@ import type {
 } from "@studio-v2/typeFiles/library/characters/form/characterSummary";
 import { PERSONALITY_CODE_OPTIONS } from "@studio-v2/typeFiles/library/characters/persona/personalityCodeOptions";
 import { REALTIME_VOICE_OPTIONS } from "@studio-v2/typeFiles/library/characters/realtime/realtimeVoiceOptions";
+import { createStudioId } from "@studio-v2/typeFiles/ids/createStudioId";
 import type { CharacterDetailFormValues } from "./characterDetailFormValues";
 
 export type { CharacterDetailFormValues } from "./characterDetailFormValues";
@@ -34,14 +35,10 @@ function mapEditGenderToStore(gender: CharacterEditGender): CharacterGender {
 	return "non_binary";
 }
 
-/** 变体 id 系统生成；UI 隐藏，prefix 仅兼容旧调用签名 */
+/** 变体 id 系统 UUID；UI 隐藏，prefix 仅兼容旧调用签名 */
 function emptyVariant(_prefix: string): PromptVariantForm {
-	const id =
-		typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-			? crypto.randomUUID()
-			: `v_${Date.now().toString(36)}`;
 	void _prefix;
-	return { variantId: id, text: "" };
+	return { variantId: createStudioId("variant"), text: "" };
 }
 
 /**
@@ -210,7 +207,7 @@ export function createEmptyCharacterDetailSlots(): Pick<
 		},
 		defaultPromptScenes: [
 			{
-				layerId: "scene_1",
+				layerId: createStudioId("scene"),
 				priority: 0,
 				match: {
 					callDirection: "either",

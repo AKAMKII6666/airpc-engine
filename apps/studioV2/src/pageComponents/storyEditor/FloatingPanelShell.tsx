@@ -12,7 +12,7 @@ import type {
 	EditorChapterNodeData,
 	StoryEditorSelection,
 } from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
-import type { ChapterPackageDiskContext } from "@studio-v2/src/bis/pageBis/storyEditor/form/chapter/chapterPropertyForm";
+import type { ChapterChapterDiskContext } from "@studio-v2/src/bis/pageBis/storyEditor/form/chapter/chapterPropertyForm";
 import type { CallCardLabelOption } from "@studio-v2/typeFiles/story/callCardLabels";
 import type { EffectPanelSources } from "@studio-v2/typeFiles/story/editor/callCard/editorEffectParams";
 // 引用了FloatingPanelFormBody组件，用于属性表单主体
@@ -44,9 +44,9 @@ export type FloatingPanelShellProps = {
 	/** Effect 面板 id 下拉候选源；下传 CallCard 属性表单出口列表 */
 	effectPanelSources: EffectPanelSources;
 	/** chapter_end 下一包/卡下拉用的磁盘索引 */
-	chapterDiskCtx: ChapterPackageDiskContext;
+	chapterDiskCtx: ChapterChapterDiskContext;
 	/** 下一故事包 Select 选项（磁盘列表） */
-	chapterPackageOptions: readonly CallCardLabelOption[];
+	chapterChapterOptions: readonly CallCardLabelOption[];
 	/**
 		* 归属即时写回；与 role 边双向同步。
 		*/
@@ -74,8 +74,8 @@ export const FloatingPanelShell: FC<FloatingPanelShellProps> = function ({
 	effectPanelSources,
 	// chapterDiskCtx 是 chapter_end 磁盘卡索引
 	chapterDiskCtx,
-	// chapterPackageOptions 是下一故事包 Select 选项
-	chapterPackageOptions,
+	// chapterChapterOptions 是下一故事包 Select 选项
+	chapterChapterOptions,
 	// onAssignOwner 即时写归属
 	onAssignOwner,
 }) {
@@ -124,7 +124,7 @@ export const FloatingPanelShell: FC<FloatingPanelShellProps> = function ({
 					characterAnchors={characterAnchors}
 					effectPanelSources={effectPanelSources}
 					chapterDiskCtx={chapterDiskCtx}
-					chapterPackageOptions={chapterPackageOptions}
+					chapterChapterOptions={chapterChapterOptions}
 					onAssignOwner={onAssignOwner}
 				/>
 			</div>

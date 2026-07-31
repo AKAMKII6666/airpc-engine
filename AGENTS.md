@@ -40,9 +40,11 @@ docs/AI和人类/里程碑/
 docs/AI/
 .cursor/rules/
 ```
-## 磁盘与 Registry 口径（S0 定稿）
+## 磁盘与 Registry 口径（S0 定稿 · 包⊃章升档）
 
 - **故事包根目录正式名** = `data/storis-packages/`（拼写保持现状；全仓重命名另立项，不做本步强制迁移）
+- **布局**：`<packageId>/package.conf.json` + `chapters/<chapterId>/{story.conf.json,canvas.layout.json,cards/}`；旧扁平目录读盘自动迁
+- **运行时单位** = 章（`chapterId`）；故事包为容器；实机一次只载一包
 - **ToolRegistry v1 真源** = 引擎代码内置 `builtinRegistry`；`data/tools/registry.json` = **非真源／预留导出副本**（运行时无读路径）
 
 ## 铁律摘要

@@ -25,6 +25,7 @@ function samplePkg(
 		saveState: "saved",
 		lastExportedAt: null,
 		isStartup: false,
+		entryChapterId: packageId,
 	};
 }
 

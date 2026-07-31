@@ -31,7 +31,7 @@ describe("validatePackage promptScene timeBuckets", () => {
     await cp(dataSrc, dataRoot, { recursive: true });
     const cardPath = path.join(
       dataRoot,
-      "storis-packages/golden_handoff/cards/doubao_intro_outbound.s-card.json",
+      "storis-packages/golden_handoff/chapters/golden_handoff/cards/doubao_intro_outbound.s-card.json",
     );
     const card = JSON.parse(await readFile(cardPath, "utf8")) as Record<
       string,

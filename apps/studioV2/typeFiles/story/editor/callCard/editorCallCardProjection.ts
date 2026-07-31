@@ -189,7 +189,7 @@ export type EditorChapterKind = "chapter_start" | "chapter_end";
 /**
 	* 章节起止节点 data。
 	* 禁止与 CallCard 共用 validation / exitCount 等 debug 字段。
-	* chapter_end 可配 nextPackageId / nextEntryCardId（会话 mock，不写盘）。
+	* chapter_end 可配 nextChapterId / nextEntryCardId（会话 mock，不写盘）。
 	*/
 export type EditorChapterNodeData = {
 	/** 章节起止种类；驱动节点左右 Handle 布局 */
@@ -199,13 +199,15 @@ export type EditorChapterNodeData = {
 	/** 轻量摘要；非 context.objective，不进 CallCard 表单 */
 	summary: string;
 	/**
-		* 下一故事包 id；仅 kind=chapter_end 有意义。
+		* 下一章 id；仅 kind=chapter_end 有意义。
 		* 缺省表示尚未配置；由 Select 写入，禁止自由文本。
 		*/
+	nextChapterId?: string;
+	/** @deprecated 读入回落 nextChapterId */
 	nextPackageId?: string;
 	/**
-		* 下一章节起点卡 id；依赖 nextPackageId 的可选卡集合。
-		* 包变更后若不在新集合内须置空或回退默认起点卡。
+		* 下一章节起点卡 id；依赖 nextChapterId 的可选卡集合。
+		* 章变更后若不在新集合内须置空或回退默认起点卡。
 		*/
 	nextEntryCardId?: string;
 };

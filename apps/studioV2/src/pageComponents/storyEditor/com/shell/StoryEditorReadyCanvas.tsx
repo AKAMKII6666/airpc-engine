@@ -18,6 +18,7 @@ type ShellController = ReturnType<typeof useStoryEditorShellController>;
 
 export type StoryEditorReadyCanvasProps = {
 	packageId: string;
+	chapterId: string;
 	bundle: DiskStoryPackageBundle;
 	graphSeed: EditorGraphSeed;
 	shell: ShellController;
@@ -27,6 +28,8 @@ export const StoryEditorReadyCanvas: FC<StoryEditorReadyCanvasProps> =
 	function ({
 		// packageId 表示路由包键，用于画布与包配置
 		packageId,
+		// chapterId 表示路由章键（保存由 shell 经 bis 处理）
+		chapterId: _chapterId,
 		// bundle 表示当前会话整包，用于包配置浮窗
 		bundle,
 		// graphSeed 表示画布初始图，用于 RF 初始化
@@ -52,7 +55,7 @@ export const StoryEditorReadyCanvas: FC<StoryEditorReadyCanvasProps> =
 						characterAnchors={shell.characterAnchors}
 						effectPanelSources={shell.effectPanelSources}
 						chapterDiskCtx={shell.chapterDiskCtx}
-						chapterPackageOptions={shell.chapterPackageOptions}
+						chapterChapterOptions={shell.chapterChapterOptions}
 						onSelectionChange={shell.onSelectionChange}
 						onOpenPropertyPanel={shell.openPropertyPanel}
 						onCharacterAnchorSelect={shell.onCharacterAnchorSelect}

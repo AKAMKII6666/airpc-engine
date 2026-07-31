@@ -7,7 +7,7 @@
 import type { FC } from "react";
 import type { FactMeta, StoryPackageMeta } from "@studio-v2/typeFiles/story/callCard/engineCallCard";
 import type { EditorGraphSeed } from "@studio-v2/src/bis/pageBis/storyEditor/package/graph/diskBundleGraph";
-import type { ChapterPackageDiskContext } from "@studio-v2/src/bis/pageBis/storyEditor/form/chapter/chapterPropertyForm";
+import type { ChapterChapterDiskContext } from "@studio-v2/src/bis/pageBis/storyEditor/form/chapter/chapterPropertyForm";
 import { FloatingPanelShell } from "@studio-v2/src/pageComponents/storyEditor/FloatingPanelShell";
 import { AssetPickerFloat } from "@studio-v2/src/pageComponents/storyEditor/library/AssetPickerFloat";
 import { PackageConfigFloat } from "@studio-v2/src/pageComponents/storyEditor/library/package/PackageConfigFloat";
@@ -41,8 +41,8 @@ export type StoryEditorCanvasLayerProps = {
 	assets: AssetSummary[];
 	characterAnchors: readonly CharacterAnchorNodeData[];
 	effectPanelSources: EffectPanelSources;
-	chapterDiskCtx: ChapterPackageDiskContext;
-	chapterPackageOptions: readonly CallCardLabelOption[];
+	chapterDiskCtx: ChapterChapterDiskContext;
+	chapterChapterOptions: readonly CallCardLabelOption[];
 	onSelectionChange: (next: StoryEditorSelection | null) => void;
 	onOpenPropertyPanel: (next: StoryEditorSelection | null) => void;
 	onCharacterAnchorSelect: (anchor: CharacterAnchorNodeData | null) => void;
@@ -106,8 +106,8 @@ export const StoryEditorCanvasLayer: FC<StoryEditorCanvasLayerProps> = function 
 	effectPanelSources,
 	// chapterDiskCtx 是 chapter_end 下一包/卡下拉的磁盘索引
 	chapterDiskCtx,
-	// chapterPackageOptions 是下一故事包 Select 选项
-	chapterPackageOptions,
+	// chapterChapterOptions 是下一故事包 Select 选项
+	chapterChapterOptions,
 	// onSelectionChange 同步单击选中态
 	onSelectionChange,
 	// onOpenPropertyPanel 是双击回调，用于打开属性浮窗
@@ -182,7 +182,7 @@ export const StoryEditorCanvasLayer: FC<StoryEditorCanvasLayerProps> = function 
 				characterAnchors={characterAnchors}
 				effectPanelSources={effectPanelSources}
 				chapterDiskCtx={chapterDiskCtx}
-				chapterPackageOptions={chapterPackageOptions}
+				chapterChapterOptions={chapterChapterOptions}
 				onAssignOwner={onAssignOwner}
 			/>
 			{/* 引用了AssetPickerFloat组件，用于资源引用浮窗与 playbackClipId 回填 */}

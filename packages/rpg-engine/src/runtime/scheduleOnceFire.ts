@@ -19,7 +19,7 @@ export type DueOnceIntent = {
 	intentId: string;
 	agentId: string;
 	cardId: string;
-	packageId: string;
+	chapterId: string;
 	topicHint?: string;
 	fireAtMs: number;
 	status: "pending" | "fired" | "cancelled" | "consumed";
@@ -33,7 +33,7 @@ export type OutboundFiredItem = {
 	intentId: string;
 	agentId: string;
 	cardId: string;
-	packageId: string;
+	chapterId: string;
 	instanceId: string;
 };
 
@@ -79,7 +79,7 @@ export function fireDueOnceIntent(
 			intentId: once.intentId,
 			agentId: once.agentId,
 			cardId: once.cardId,
-			packageId: once.packageId,
+			chapterId: once.chapterId,
 			instanceId: instance.instanceId,
 		},
 	};

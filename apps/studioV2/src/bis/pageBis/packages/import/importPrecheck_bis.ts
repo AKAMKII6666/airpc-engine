@@ -1,24 +1,31 @@
 /**
-	* 导入预检：解析 .storypack.json + 扫描工作区冲突；禁静态假报告。
+	* 导入预检：解析 .storypack.json（v2 多章 / legacy 单章）+ 冲突检测。
 	*/
 import { fetchDiskStoryPackages } from "@studio-v2/src/utils/ajaxProxy/packages/api/storiesApi";
-import type { DiskStoryPackageBundle } from "@studio-v2/typeFiles/story/package/diskStoryPackage";
+import type {
+	DiskChapterBundle,
+	DiskPackageContainer,
+} from "@studio-v2/typeFiles/story/package/diskStoryPackage";
 import type { ImportPrecheckReport } from "@studio-v2/typeFiles/story/transfer/packageTransfer";
 import {
 	STORYPACK_FORMAT_ID,
 	type StorypackFileV1,
 } from "@studio-v2/typeFiles/story/transfer/storypackFile";
 
-/** 预检成功时携带待导入 bundle，供确认步提交 */
+/** 预检成功时携带待导入载荷，供确认步提交 */
 export type ImportPrecheckOk = {
 	/** 判别成功 */
 	ok: true;
 	/** 给人话预检面板的投影 */
 	report: ImportPrecheckReport;
-	/** 待写盘整包；确认前仅内存持有 */
-	bundle: DiskStoryPackageBundle;
-	/** 目标 packageId；与 conf.packageId 对齐 */
+	/** legacy 单章导入体；与 container 互斥 */
+	bundle?: DiskChapterBundle;
+	/** v2 多章导入体；与 bundle 互斥 */
+	container?: DiskPackageContainer;
+	/** 目标 packageId；与 packageConf.packageId 对齐 */
 	packageId: string;
+	/** 入口章 id；导入后默认打开章 */
+	entryChapterId: string;
 };
 
 /** 文件无法解析或预检前失败 */
@@ -36,8 +43,104 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 	return value !== null && typeof value === "object";
 }
 
+type ParsedStorypack =
+	| { kind: "container"; container: DiskPackageContainer }
+	| { kind: "legacy"; bundle: DiskChapterBundle; packageId: string };
+
+type PrecheckStats = {
+	packageId: string;
+	entryChapterId: string;
+	packageTitle: string;
+	cardCount: number;
+	characterCount: number;
+	assetCount: number;
+};
+
+function collectContainerPrecheckStats(
+	container: DiskPackageContainer,
+): PrecheckStats {
+	const packageId = container.packageConf.packageId;
+	const entryChapterId = container.packageConf.entryChapterId;
+	let cardCount = 0;
+	let assetCount = 0;
+	for (const ch of container.chapters) {
+		cardCount += ch.cards.length;
+		assetCount += ch.conf.assetRefs?.length ?? 0;
+	}
+	const entry = container.chapters.find(function (ch) {
+		return ch.conf.chapterId === entryChapterId;
+	});
+	return {
+		packageId,
+		entryChapterId,
+		packageTitle: container.packageConf.title ?? packageId,
+		cardCount,
+		characterCount: entry?.conf.participants?.length ?? 0,
+		assetCount,
+	};
+}
+
+function collectLegacyPrecheckStats(bundle: DiskChapterBundle): PrecheckStats {
+	const chapterId = bundle.conf.chapterId;
+	return {
+		packageId: chapterId,
+		entryChapterId: chapterId,
+		packageTitle: bundle.conf.title ?? chapterId,
+		cardCount: bundle.cards.length,
+		characterCount: bundle.conf.participants?.length ?? 0,
+		assetCount: bundle.conf.assetRefs?.length ?? 0,
+	};
+}
+
+function resolvePrecheckStats(file: StorypackFileV1): PrecheckStats {
+	if ("container" in file && file.container) {
+		return collectContainerPrecheckStats(file.container);
+	}
+	if ("bundle" in file && file.bundle) {
+		return collectLegacyPrecheckStats(file.bundle);
+	}
+	throw new Error("交换文件缺少有效载荷");
+}
+
+function parseStorypackRaw(raw: Record<string, unknown>): ParsedStorypack {
+	if (isRecord(raw.container)) {
+		const container = raw.container as DiskPackageContainer;
+		const packageId = container.packageConf?.packageId;
+		if (typeof packageId !== "string" || packageId.trim() === "") {
+			throw new Error("container.packageConf.packageId 缺失");
+		}
+		if (!Array.isArray(container.chapters) || container.chapters.length === 0) {
+			throw new Error("container.chapters 须为非空数组");
+		}
+		return { kind: "container", container };
+	}
+
+	if (!isRecord(raw.bundle)) {
+		throw new Error("交换文件缺少 container 或 bundle");
+	}
+	const bundle = raw.bundle as DiskChapterBundle;
+	const conf = bundle.conf;
+	const chapterId =
+		typeof conf.chapterId === "string" && conf.chapterId.trim() !== ""
+			? conf.chapterId.trim()
+			: typeof conf.packageId === "string" && conf.packageId.trim() !== ""
+				? conf.packageId.trim()
+				: "";
+	if (chapterId === "") {
+		throw new Error("bundle.conf.chapterId 缺失");
+	}
+	if (!Array.isArray(bundle.cards)) {
+		throw new Error("bundle.cards 须为数组");
+	}
+	const packageId =
+		typeof raw.packageId === "string" && raw.packageId.trim() !== ""
+			? raw.packageId.trim()
+			: chapterId;
+	return { kind: "legacy", bundle, packageId };
+}
+
 /**
-	* 从用户选择的文本解析交换文件；格式不对抛错。
+	* 从用户选择的文本解析交换文件；支持 v2 container 或 legacy bundle。
 	*/
 export function parseStorypackJsonText(text: string): StorypackFileV1 {
 	let raw: unknown;
@@ -54,15 +157,22 @@ export function parseStorypackJsonText(text: string): StorypackFileV1 {
 			`不支持的交换格式（期望 ${STORYPACK_FORMAT_ID}）`,
 		);
 	}
-	if (!isRecord(raw.bundle)) {
-		throw new Error("交换文件缺少 bundle");
-	}
-	const bundle = raw.bundle as DiskStoryPackageBundle;
-	if (!isRecord(bundle.conf) || typeof bundle.conf.packageId !== "string") {
-		throw new Error("bundle.conf.packageId 缺失");
-	}
-	if (!Array.isArray(bundle.cards)) {
-		throw new Error("bundle.cards 须为数组");
+	const parsed = parseStorypackRaw(raw);
+	if (parsed.kind === "container") {
+		return {
+			format: STORYPACK_FORMAT_ID,
+			exportedAt:
+				typeof raw.exportedAt === "string"
+					? raw.exportedAt
+					: new Date().toISOString(),
+			kind:
+				raw.kind === "formal" ||
+				raw.kind === "debug" ||
+				raw.kind === "source"
+					? raw.kind
+					: "source",
+			container: parsed.container,
+		};
 	}
 	return {
 		format: STORYPACK_FORMAT_ID,
@@ -74,7 +184,7 @@ export function parseStorypackJsonText(text: string): StorypackFileV1 {
 			raw.kind === "formal" || raw.kind === "debug" || raw.kind === "source"
 				? raw.kind
 				: "source",
-		bundle,
+		bundle: parsed.bundle,
 	};
 }
 
@@ -84,18 +194,20 @@ export function parseStorypackJsonText(text: string): StorypackFileV1 {
 export async function precheckStorypackImport(
 	file: StorypackFileV1,
 ): Promise<ImportPrecheckOk> {
-	const packageId = file.bundle.conf.packageId;
+	const stats = resolvePrecheckStats(file);
+	const {
+		packageId,
+		entryChapterId,
+		packageTitle,
+		cardCount,
+		characterCount,
+		assetCount,
+	} = stats;
+
 	const existing = await fetchDiskStoryPackages();
 	const idConflict = existing.some(function (p) {
 		return p.packageId === packageId;
 	});
-	const cardCount = file.bundle.cards.length;
-	const characterCount = Array.isArray(file.bundle.conf.participants)
-		? file.bundle.conf.participants.length
-		: 0;
-	const assetCount = Array.isArray(file.bundle.conf.assetRefs)
-		? file.bundle.conf.assetRefs.length
-		: 0;
 	const messages: string[] = [
 		`将导入为 packageId「${packageId}」。`,
 		"导入会写入 data/storis-packages；同名冲突时需先改 id 或删除旧包。",
@@ -104,17 +216,13 @@ export async function precheckStorypackImport(
 		messages.unshift(`工作区已存在「${packageId}」，确认导入将被拒绝。`);
 	}
 	const verdict = idConflict ? "blocked" : "ready";
-	return {
+	const base: ImportPrecheckOk = {
 		ok: true,
 		packageId,
-		bundle: file.bundle,
+		entryChapterId,
 		report: {
-			packageTitle:
-				typeof file.bundle.conf.title === "string" &&
-				file.bundle.conf.title.trim() !== ""
-					? file.bundle.conf.title
-					: packageId,
-			schemaVersion: String(file.bundle.conf.schemaVersion ?? 1),
+			packageTitle,
+			schemaVersion: "1",
 			cardCount,
 			characterCount,
 			assetCount,
@@ -127,6 +235,13 @@ export async function precheckStorypackImport(
 			messages,
 		},
 	};
+	if ("container" in file && file.container) {
+		return { ...base, container: file.container };
+	}
+	if ("bundle" in file && file.bundle) {
+		return { ...base, bundle: file.bundle };
+	}
+	return base;
 }
 
 /**

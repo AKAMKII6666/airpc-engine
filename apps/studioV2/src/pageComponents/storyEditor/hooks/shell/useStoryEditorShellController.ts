@@ -17,15 +17,17 @@ import { useStoryEditorDerivedPanels } from "@studio-v2/src/pageComponents/story
 import { usePlaybackClipApply } from "@studio-v2/src/pageComponents/storyEditor/hooks/forms/usePlaybackClipApply";
 import { useStoryEditorFloatState } from "@studio-v2/src/pageComponents/storyEditor/hooks/float/useStoryEditorFloatState";
 import { useStoryEditorPackageSessionBis } from "@studio-v2/src/bis/pageBis/storyEditor/package/session/packageSession.bis";
-import type { CharacterAnchorNodeData } from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
-import type { StoryEditorSelection } from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
+import { useStoryEditorShellSelectionHandlers } from "@studio-v2/src/pageComponents/storyEditor/hooks/shell/useStoryEditorShellSelectionHandlers";
 
 export type { PendingDeleteNode } from "@studio-v2/src/pageComponents/storyEditor/hooks/shell/useStoryEditorNodeDelete";
 
 /**
 	* 壳层瞬时编排：顶栏标题取自 session bis；画布选择/浮窗仍本层自管。
 	*/
-export function useStoryEditorShellController(packageId: string) {
+export function useStoryEditorShellController(
+	packageId: string,
+	chapterId: string,
+) {
 	const floatState = useStoryEditorFloatState();
 	const canvasApiRef = useRef<StoryCanvasStageApi | null>(null);
 	const getCanvasApi = useCallback(function () {
@@ -45,6 +47,7 @@ export function useStoryEditorShellController(packageId: string) {
 
 	const packageSession = useStoryEditorPackageSessionBis({
 		packageId,
+		chapterId,
 		flushCanvasToStore: canvasFlush.flushNow,
 		getCanvasApi,
 	});
@@ -64,31 +67,22 @@ export function useStoryEditorShellController(packageId: string) {
 	});
 	const derived = useStoryEditorDerivedPanels({
 		packageId,
+		chapterId,
 		characterAnchors: canvasBind.characterAnchors,
 		callCards: canvasBind.callCards,
 		diskPackages: packageSession.diskPackages,
 		assets: assetForms.assets,
 		scheduleCards,
 		cardIndex: packageSession.cardIndex,
-		entryCardIdByPackage: packageSession.entryCardIdByPackage,
+		entryCardIdByChapter: packageSession.entryCardIdByChapter,
+		hasChapterEnd: canvasBind.hasChapterEnd,
 	});
 
-	const onCharacterAnchorSelect = useCallback(
-		function (anchor: CharacterAnchorNodeData | null) {
-			if (!anchor) return;
-			void characterForms.openEditForAnchor(anchor);
-		},
-		[characterForms.openEditForAnchor],
-	);
-
-	/** 切选中先 flush，避免未同步画布丢失进 dirty/保存 */
-	const onSelectionChange = useCallback(
-		function (next: StoryEditorSelection | null) {
-			canvasFlush.flushNow();
-			floatState.onSelectionChange(next);
-		},
-		[canvasFlush.flushNow, floatState.onSelectionChange],
-	);
+	const selectionHandlers = useStoryEditorShellSelectionHandlers({
+		flushNow: canvasFlush.flushNow,
+		onSelectionChangeBase: floatState.onSelectionChange,
+		openEditForAnchor: characterForms.openEditForAnchor,
+	});
 
 	return {
 		packageSession,
@@ -102,14 +96,14 @@ export function useStoryEditorShellController(packageId: string) {
 		effectPanelSources: derived.effectPanelSources,
 		entryCardOptions: derived.entryCardOptions,
 		chapterDiskCtx: derived.chapterDiskCtx,
-		chapterPackageOptions: packageSession.chapterPackageOptions,
+		chapterChapterOptions: packageSession.chapterChapterOptions,
 		pendingDelete: nodeDelete.pendingDelete,
 		activeToolId: dockTools.activeToolId,
 		characterForms,
 		assetForms,
 		canUseAsPlaybackClip: playbackClip.canUseAsPlaybackClip,
 		onUseAsPlaybackClip: playbackClip.onUseAsPlaybackClip,
-		onSelectionChange,
+		onSelectionChange: selectionHandlers.onSelectionChange,
 		openPropertyPanel: floatState.openPropertyPanel,
 		onCanvasReady: canvasBind.onCanvasReady,
 		onGraphMetaChange: canvasBind.onGraphMetaChange,
@@ -121,7 +115,7 @@ export function useStoryEditorShellController(packageId: string) {
 		onRequestDeleteNode: nodeDelete.onRequestDeleteNode,
 		closeDeleteNodeModal: nodeDelete.closeDeleteNodeModal,
 		onConfirmDeleteNode: nodeDelete.onConfirmDeleteNode,
-		onCharacterAnchorSelect,
+		onCharacterAnchorSelect: selectionHandlers.onCharacterAnchorSelect,
 		openAssetsFloat: dockTools.openAssetsFloat,
 		openPackageFloat: dockTools.openPackageFloat,
 		closeSelection: floatState.closeSelection,

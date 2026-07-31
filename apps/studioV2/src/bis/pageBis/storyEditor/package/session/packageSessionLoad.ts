@@ -7,6 +7,7 @@ import {
 } from "@studio-v2/src/bis/pageBis/storyEditor/package/conf/packageConfProjection";
 import { loadStoryPackageForEditor } from "@studio-v2/src/bis/pageBis/storyEditor/package/io/loadStoryPackage_bis";
 import { listStoryPackagesFromDisk } from "@studio-v2/src/bis/pageBis/packages/list/listStoryPackages_bis";
+import { fetchDiskChapterSummaries } from "@studio-v2/src/utils/ajaxProxy/packages/api/storiesApi";
 import type { EditorGraphSeed } from "@studio-v2/src/bis/pageBis/storyEditor/package/graph/diskBundleGraph";
 import type { DiskStoryPackageBundle } from "@studio-v2/typeFiles/story/package/diskStoryPackage";
 import type { StoryPackageSummary } from "@studio-v2/typeFiles/story/summary/storyPackageSummary";
@@ -17,16 +18,21 @@ import type { StoryPackageSummary } from "@studio-v2/typeFiles/story/summary/sto
 export type PackageSessionLoadOk = {
 	/** 判别成功分支；恒为 true */
 	ok: true;
-	/** 磁盘包列表摘要；用于 chapter_end 下一包下拉 */
+	/** 磁盘包列表摘要；EndStory 等只读投影 */
 	packages: StoryPackageSummary[];
-	/** 当前打开整包；会话内可改 entryCardId，顶栏保存写回 */
+	/** 当前打开章 bundle；会话内可改 entryCardId，顶栏保存写回 */
 	bundle: DiskStoryPackageBundle;
 	/** 画布初始图；仅打开时生成，保存不重建 */
 	graphSeed: EditorGraphSeed;
-	/** packageId → 包内卡摘要；chapter / 入口 Select 共享 */
+	/** chapterId → 章内卡摘要；chapter_end / 入口 Select 共享 */
 	cardIndex: Record<string, readonly { cardId: string; title?: string }[]>;
-	/** packageId → 默认入口卡；包变更后解析 nextEntryCardId */
-	entryCardIdByPackage: Record<string, string>;
+	/** chapterId → 默认入口卡；章变更后解析 nextEntryCardId */
+	entryCardIdByChapter: Record<string, string>;
+	/** 本包章摘要；chapter_end 续章下拉 */
+	chapterSummaries: readonly {
+		chapterId: string;
+		title: string;
+	}[];
 };
 
 /**
@@ -39,45 +45,56 @@ export type PackageSessionLoadFail = {
 	message: string;
 };
 
-/** 打开当前包并尽量补齐其它包 cardIndex（失败不阻断） */
+/** 打开当前章并尽量补齐同包其它章 cardIndex（失败不阻断） */
 export async function loadPackageEditorSession(
 	packageId: string,
+	chapterId: string,
 	errorMessage: (error: unknown, fallback: string) => string,
 ): Promise<PackageSessionLoadOk | PackageSessionLoadFail> {
 	try {
-		const [packages, session] = await Promise.all([
+		const [packages, session, chaptersData] = await Promise.all([
 			listStoryPackagesFromDisk(),
-			loadStoryPackageForEditor(packageId),
+			loadStoryPackageForEditor(packageId, chapterId),
+			fetchDiskChapterSummaries(packageId),
 		]);
 		const indexParts = buildPackageCardIndex([session.bundle]);
 		let cardIndex = { ...indexParts.cardIndex };
-		let entryCardIdByPackage = { ...indexParts.entryCardIdByPackage };
-		for (const pkg of packages) {
-			if (cardIndex[pkg.packageId]) continue;
+		let entryCardIdByChapter = { ...indexParts.entryCardIdByChapter };
+
+		for (const ch of chaptersData.chapters) {
+			if (cardIndex[ch.chapterId]) continue;
+			if (ch.chapterId === chapterId) continue;
 			try {
-				const other = await loadStoryPackageForEditor(pkg.packageId);
+				const other = await loadStoryPackageForEditor(
+					packageId,
+					ch.chapterId,
+				);
 				const extra = buildPackageCardIndex([other.bundle]);
 				cardIndex = { ...cardIndex, ...extra.cardIndex };
-				entryCardIdByPackage = {
-					...entryCardIdByPackage,
-					...extra.entryCardIdByPackage,
+				entryCardIdByChapter = {
+					...entryCardIdByChapter,
+					...extra.entryCardIdByChapter,
 				};
 			} catch {
-				// 其它包读失败不阻断当前包打开
+				// 其它章读失败不阻断当前章打开
 			}
 		}
+
 		return {
 			ok: true,
 			packages,
 			bundle: session.bundle,
 			graphSeed: session.graphSeed,
 			cardIndex,
-			entryCardIdByPackage,
+			entryCardIdByChapter,
+			chapterSummaries: chaptersData.chapters.map(function (ch) {
+				return { chapterId: ch.chapterId, title: ch.title };
+			}),
 		};
 	} catch (error) {
 		return {
 			ok: false,
-			message: errorMessage(error, "无法从磁盘加载故事包"),
+			message: errorMessage(error, "无法从磁盘加载故事章"),
 		};
 	}
 }

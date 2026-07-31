@@ -43,7 +43,7 @@ export type User = z.infer<typeof UserSchema>;
 export const CallCardInstanceSchema = z.object({
   instanceId: z.string(),
   cardId: z.string(),
-  packageId: z.string(),
+  chapterId: z.string(),
   agentId: z.string(),
   status: z.enum(["pending", "active", "completed", "cancelled"]),
   entryMode: z.string().optional(),
@@ -72,7 +72,7 @@ export const CharacterRuntimeSchema = z
 /** ActiveStoryLock（需求 10 §3.2 / 技术设计 19 §8.4） */
 export const ActiveStoryLockSchema = z.object({
   activeStoryInstanceId: z.string(),
-  packageId: z.string(),
+  chapterId: z.string(),
   lockLevel: z.enum(["soft", "hard"]),
   allowedAgentIds: z.array(z.string()),
   blockedPolicy: z.enum([
@@ -88,7 +88,7 @@ export type ActiveStoryLock = z.infer<typeof ActiveStoryLockSchema>;
 
 export const StorySaveSchema = z
   .object({
-    packageId: z.string(),
+    chapterId: z.string(),
     status: z.enum(["inactive", "active", "completed", "aborted"]),
     instanceId: z.string().optional(),
     variables: z.record(z.string(), z.unknown()).default({}),
@@ -128,6 +128,8 @@ export const VoicemailSlotSchema = z
     id: z.string(),
     agentId: z.string(),
     cardId: z.string().optional(),
+    chapterId: z.string().optional(),
+    /** @deprecated 迁移期读 legacy packageId */
     packageId: z.string().optional(),
     /** 物化入栈时的 instance 关联（可选） */
     instanceId: z.string().optional(),
@@ -221,7 +223,9 @@ export const PlayerProfileSchema = z
                 id: z.string(),
                 agentId: z.string(),
                 cardId: z.string(),
-                packageId: z.string(),
+                chapterId: z.string(),
+                /** @deprecated 迁移期 */
+                packageId: z.string().optional(),
                 source: z.enum(["attach", "schedule"]),
                 createdAt: z.string(),
                 instanceId: z.string().optional(),

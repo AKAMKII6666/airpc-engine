@@ -36,7 +36,7 @@ describe("E4b A→B knowledge／memory", () => {
 
     const resolved = await host.resolveAsync("demo-user", {
       kind: "simulate_start",
-      packageId: "golden_handoff",
+      chapterId: "golden_handoff",
       cardId: "doubao_a_writes_b",
     });
     if (isEngineError(resolved)) throw resolved;

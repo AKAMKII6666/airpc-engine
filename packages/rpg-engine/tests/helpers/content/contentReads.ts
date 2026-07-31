@@ -7,18 +7,17 @@ import {
 	AssetMetaSchema,
 	CallCardDefinitionSchema,
 	CharacterDefSchema,
-	FREE_PACKAGE_ID,
-	SCHEDULE_PACKAGE_ID,
-	StoryPackageConfSchema,
+	ChapterConfSchema,
+	FREE_CHAPTER_ID,
+	SCHEDULE_CHAPTER_ID,
 	engineError,
 	type AssetMeta,
 	type CallCardDefinition,
 	type CharacterDef,
+	type ChapterConf,
 	type PackageValidateBundle,
-	type StoryPackageConf,
 } from "../../../src/index.js";
-// 引用了包目录解析，用于按 packageId 定位磁盘路径
-import { findPackageDir } from "./workspaceSnapshot.js";
+import { findChapterDir } from "./workspaceSnapshot.js";
 
 async function readJsonFile(filePath: string): Promise<unknown> {
 	const text = await readFile(filePath, "utf8");
@@ -34,29 +33,29 @@ function parseCardOrThrow(raw: unknown, label: string): CallCardDefinition {
 }
 
 /**
-	* 按需读单卡。__free__/__schedule__ 从角色侧目录读；故事包从 cards/。
-	* 不存在 → null；损坏 → VALIDATION_FAILED。
-	*/
+ * 按需读单卡。__free__/__schedule__ 从角色侧目录读；故事章从 chapters/<id>/cards/。
+ * 不存在 → null；损坏 → VALIDATION_FAILED。
+ */
 export async function readCardFromFs(input: {
 	workspaceKey: string;
-	packageId: string;
+	chapterId: string;
 	cardId: string;
 }): Promise<CallCardDefinition | null> {
-	const { workspaceKey, packageId, cardId } = input;
-	if (packageId === FREE_PACKAGE_ID) {
+	const { workspaceKey, chapterId, cardId } = input;
+	if (chapterId === FREE_CHAPTER_ID) {
 		return readSideCard(workspaceKey, "free-cards", cardId);
 	}
-	if (packageId === SCHEDULE_PACKAGE_ID) {
+	if (chapterId === SCHEDULE_CHAPTER_ID) {
 		return readSideCard(workspaceKey, "schedule-cards", cardId);
 	}
-	const found = await findPackageDir(workspaceKey, packageId);
+	const found = await findChapterDir(workspaceKey, chapterId);
 	if (!found) {
 		return null;
 	}
 	const cardPath = path.join(found.dir, "cards", `${cardId}.s-card.json`);
 	try {
 		const raw = await readJsonFile(cardPath);
-		return parseCardOrThrow(raw, `card ${packageId}/${cardId}`);
+		return parseCardOrThrow(raw, `card ${chapterId}/${cardId}`);
 	} catch (err) {
 		if (
 			typeof err === "object" &&
@@ -93,18 +92,28 @@ async function readSideCard(
 			) {
 				throw err;
 			}
-			// 试下一候选路径
 		}
 	}
 	return null;
 }
 
+export async function readChapterConfFromFs(input: {
+	workspaceKey: string;
+	chapterId: string;
+}): Promise<ChapterConf | null> {
+	const found = await findChapterDir(input.workspaceKey, input.chapterId);
+	return found?.conf ?? null;
+}
+
+/** @deprecated 使用 readChapterConfFromFs */
 export async function readPackageConfFromFs(input: {
 	workspaceKey: string;
-	packageId: string;
-}): Promise<StoryPackageConf | null> {
-	const found = await findPackageDir(input.workspaceKey, input.packageId);
-	return found?.conf ?? null;
+	chapterId: string;
+}): Promise<ChapterConf | null> {
+	return readChapterConfFromFs({
+		workspaceKey: input.workspaceKey,
+		chapterId: input.chapterId,
+	});
 }
 
 function assetMetaPath(workspaceKey: string, assetId: string): string {
@@ -138,9 +147,6 @@ export async function readAssetMetaFromFs(input: {
 	}
 }
 
-/**
-	* 可选：探测 assets 下 uri 是否在位（对应 ASSET_URI_MISSING）。
-	*/
 export async function assetUriExistsFromFs(input: {
 	workspaceKey: string;
 	uri: string;
@@ -178,31 +184,26 @@ async function loadAllCharacters(
 			const raw = await readJsonFile(path.join(charactersRoot, name));
 			out.push(CharacterDefSchema.parse(raw));
 		} catch {
-			// validate 规则侧再报；此处跳过坏文件
+			// validate 规则侧再报
 		}
 	}
 	return out;
 }
 
 /**
-	* 校验装包：一次取出 confRaw/conf + 声明卡(含 cardRaw) + diskCardIds + 角色表。
-	* 故意不走 findPackageDir：validate 要对坏 conf 返回结构而非抛 SCHEMA（规则在引擎）。
-	*/
+ * 校验装章：一次取出 confRaw/conf + 声明卡(含 cardRaw) + diskCardIds + 角色表。
+ */
 export async function loadPackageForValidateFromFs(input: {
 	workspaceKey: string;
-	packageId: string;
+	chapterId: string;
 }): Promise<PackageValidateBundle> {
-	const { workspaceKey, packageId } = input;
+	const { workspaceKey, chapterId } = input;
 	const characters = await loadAllCharacters(workspaceKey);
-	const pkgDir = path.join(workspaceKey, "storis-packages", packageId);
-	const confPath = path.join(pkgDir, "story.conf.json");
+	const found = await findChapterDir(workspaceKey, chapterId);
 
-	let confRaw: unknown | null = null;
-	try {
-		confRaw = await readJsonFile(confPath);
-	} catch {
+	if (!found) {
 		return {
-			packageId,
+			chapterId,
 			conf: null,
 			confRaw: null,
 			cards: [],
@@ -211,12 +212,28 @@ export async function loadPackageForValidateFromFs(input: {
 		};
 	}
 
-	const confParsed = StoryPackageConfSchema.safeParse(confRaw);
+	const confPath = path.join(found.dir, "story.conf.json");
+	let confRaw: unknown | null = null;
+	try {
+		confRaw = await readJsonFile(confPath);
+	} catch {
+		return {
+			chapterId,
+			containerPackageId: found.containerPackageId,
+			conf: null,
+			confRaw: null,
+			cards: [],
+			diskCardIds: [],
+			characters,
+		};
+	}
+
+	const confParsed = ChapterConfSchema.safeParse(confRaw);
 	const conf = confParsed.success ? confParsed.data : null;
 
 	let diskCardIds: string[] = [];
 	try {
-		const diskFiles = await readdir(path.join(pkgDir, "cards"));
+		const diskFiles = await readdir(path.join(found.dir, "cards"));
 		diskCardIds = diskFiles
 			.filter((f) => f.endsWith(".s-card.json"))
 			.map((f) => f.replace(/\.s-card\.json$/, ""));
@@ -227,7 +244,7 @@ export async function loadPackageForValidateFromFs(input: {
 	const cards: PackageValidateBundle["cards"] = [];
 	const indexedIds = conf?.cards.map((c) => c.cardId) ?? [];
 	for (const cardId of indexedIds) {
-		const cardPath = path.join(pkgDir, "cards", `${cardId}.s-card.json`);
+		const cardPath = path.join(found.dir, "cards", `${cardId}.s-card.json`);
 		try {
 			const cardRaw = await readJsonFile(cardPath);
 			const parsed = CallCardDefinitionSchema.safeParse(cardRaw);
@@ -242,7 +259,8 @@ export async function loadPackageForValidateFromFs(input: {
 	}
 
 	return {
-		packageId,
+		chapterId,
+		containerPackageId: found.containerPackageId,
 		conf,
 		confRaw,
 		cards,

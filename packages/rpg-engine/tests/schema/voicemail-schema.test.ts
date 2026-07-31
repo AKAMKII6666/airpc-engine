@@ -44,7 +44,7 @@ describe("voicemail schema (V2-VM-2)", () => {
       id: "vm1",
       agentId: "lanxing",
       cardId: "lanxing_voicemail",
-      packageId: "wrong_number_act1",
+      chapterId: "wrong_number_act1",
       text: "你好，我是蓝星…",
       audioRef: "assets/vm/lanxing_01.wav",
       status: "unread",

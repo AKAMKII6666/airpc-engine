@@ -3,7 +3,7 @@
  */
 import type { CallCardDefinition } from "../schema/callCard.js";
 import { BUILTIN_TOOL_DEFINITIONS } from "./builtinRegistry.js";
-import type { ToolPolicyResolved } from "./types.js";
+import type { ToolDefinition, ToolPolicyResolved } from "./types.js";
 
 export function resolveToolPolicy(
   card: CallCardDefinition,
@@ -73,4 +73,18 @@ export function isToolAllowedOnCard(
     return toolId === "search_memory" || toolId === "get_memory_by_id";
   }
   return resolved.allowedToolIds.includes(toolId);
+}
+
+/**
+ * 本通实际开放的 ToolDefinition 列表（与 Adapter / 预览 / 剧本块同一过滤口径）。
+ * unknown 策略仅记忆两支；deny_all 为空。
+ */
+export function listToolsForCard(card: CallCardDefinition): ToolDefinition[] {
+  const policy = resolveToolPolicy(card);
+  return BUILTIN_TOOL_DEFINITIONS.filter(function (t) {
+    if (policy.allowedToolIds === null) {
+      return t.toolId === "search_memory" || t.toolId === "get_memory_by_id";
+    }
+    return policy.allowedToolIds.includes(t.toolId);
+  });
 }

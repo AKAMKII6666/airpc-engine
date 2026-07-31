@@ -9,6 +9,16 @@ export type ToolBehavior = "register_exit" | "session_local";
 export interface ToolDefinition {
   toolId: string;
   displayName: string;
+  /**
+   * 面向模型的短触发说明：何时调用、与兄弟工具分流一句、通话中只登记等。
+   * Adapter / 预览挂到 session.tools；细则剧本块见 buildToolInstructionBlocks → softContext。
+   */
+  description: string;
+  /**
+   * 中性 JSON Schema（由 Zod 导出）；供 Adapter 投影为厂商 tools。
+   * 引擎不写 OpenAI/DashScope 嵌套格式。
+   */
+  inputSchema: unknown;
   /** voicemail 强制 deny_all，一般不列入；类型与 CardKind 对齐避免漏枚举 */
   allowedCardKinds: CardKind[];
   allowedInPlayback: boolean;

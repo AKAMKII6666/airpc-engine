@@ -213,4 +213,41 @@ describe("reverse sync helpers", () => {
 		expect(effectId).toBeNull();
 		expect(card).toBe(sourceCard);
 	});
+
+	it("blocks appendMount when exit already has end_story", () => {
+		const cardWithEnd = callCard("card_src3", "S3", "a", [
+			{
+				exitId: "exit_a",
+				priority: 0,
+				condition: { op: "always" },
+				conditionSummary: "",
+				effects: [
+					{
+						id: "fx_end",
+						effect: "end_story",
+						params: { effect: "end_story" },
+					},
+				],
+			},
+		]);
+		const { card, effectId } = appendMountEffectRow({
+			card: cardWithEnd,
+			exitId: "exit_a",
+			targetCardId: "card_x",
+			effectKind: "attach",
+		});
+		expect(effectId).toBeNull();
+		expect(card).toBe(cardWithEnd);
+	});
+
+	it("buildEffectEdge uses effect type for deletable edge", () => {
+		const edge = buildEffectEdge({
+			sourceNodeId: "n_src",
+			exitId: "exit_a",
+			effectId: "fx_1",
+			targetNodeId: "n_target",
+			effectKind: "attach",
+		});
+		expect(edge.type).toBe("effect");
+	});
 });

@@ -25,19 +25,24 @@ import {
 } from "@studio-v2/src/bis/pageBis/storyEditor/form/exitList/exitListForm";
 import {
 	applyChapterPropertyForm,
-	syncEntryAfterPackageChange,
+	syncEntryAfterChapterChange,
 	toChapterPropertyFormValues,
 	validateChapterPropertyForm,
 } from "@studio-v2/src/bis/pageBis/storyEditor/form/chapter/chapterPropertyForm";
 import type { EditorCallCardProjection } from "@studio-v2/typeFiles/story/editor/callCard/editorCallCardProjection";
 import {
 	BUILTIN_TOOL_OPTIONS,
+	CARD_KIND_OPTIONS,
 	cardKindLabel,
 	EFFECT_NAME_OPTIONS,
 	effectNameLabel,
+	ENTRY_MODE_OPTIONS,
 	entryModeLabel,
+	entryModeOptionsForEditor,
 	exitHandleTooltipTitle,
+	INTERACTION_MODE_OPTIONS,
 } from "@studio-v2/typeFiles/story/callCardLabels";
+import { buildNodeContextItems } from "@studio-v2/src/bis/pageBis/storyEditor/form/node/nodePropertyFormItems";
 import {
 	CHARACTER_BASIC_ITEMS,
 	CHARACTER_PROMPT_ITEMS,
@@ -181,7 +186,7 @@ describe("nodePropertyForm", () => {
 		expect(storyNext.schedule).toBeUndefined();
 	});
 
-	it("voicemail 强制 mailbox_open + playback_only + deny_all，并锁定表单项", () => {
+	it("voicemail 强制 mailbox_open + playback_only + deny_all，并隐藏入口/交互表单项", () => {
 		const values = toNodePropertyFormValues(sampleCard);
 		values.cardKind = "voicemail";
 		values.entryMode = "inbound_user_dial";
@@ -195,10 +200,11 @@ describe("nodePropertyForm", () => {
 		expect(next.schedule).toBeUndefined();
 
 		const items = buildNodeBasicItems("voicemail");
-		const entry = items.find((item) => item.name === "entryMode");
-		const interaction = items.find((item) => item.name === "interactionMode");
-		expect(entry?.disabled).toBe(true);
-		expect(interaction?.disabled).toBe(true);
+		expect(items.some((item) => item.name === "entryMode")).toBe(false);
+		expect(items.some((item) => item.name === "interactionMode")).toBe(
+			false,
+		);
+		expect(items.some((item) => item.name === "cardKind")).toBe(true);
 	});
 });
 
@@ -229,9 +235,10 @@ describe("exitHandleLayout and tooltip", () => {
 
 	it("allocates unique exit ids", () => {
 		const first = emptyExitRow([]);
-		expect(first.exitId).toBe("exit_1");
+		expect(first.exitId).toMatch(/^exit_[a-f0-9]{32}$/);
 		const second = emptyExitRow([first]);
-		expect(second.exitId).toBe("exit_2");
+		expect(second.exitId).toMatch(/^exit_[a-f0-9]{32}$/);
+		expect(second.exitId).not.toBe(first.exitId);
 		expect(normalizeExitList([{ ...first, exitId: "  " }])).toHaveLength(0);
 	});
 });
@@ -244,7 +251,7 @@ describe("callCardLabels", () => {
 		expect(cardKindLabel("voicemail")).toBe("语音留言");
 	});
 
-	it("exposes EFFECT_NAME_OPTIONS without create_voicemail", () => {
+	it("exposes EFFECT_NAME_OPTIONS without create_voicemail and cold effects", () => {
 		expect(effectNameLabel("keep_card_pending")).toBe("保持卡待处理");
 		expect(
 			EFFECT_NAME_OPTIONS.some((o) => o.value === "keep_card_pending"),
@@ -252,6 +259,54 @@ describe("callCardLabels", () => {
 		expect(
 			EFFECT_NAME_OPTIONS.some((o) => o.value === "create_voicemail"),
 		).toBe(false);
+		expect(
+			EFFECT_NAME_OPTIONS.some((o) => o.value === "schedule_recurring_call"),
+		).toBe(false);
+		expect(
+			EFFECT_NAME_OPTIONS.some(
+				(o) => o.value === "create_research_commitment",
+			),
+		).toBe(false);
+		expect(
+			EFFECT_NAME_OPTIONS.some((o) => o.value === "play_system_prompt"),
+		).toBe(false);
+		// labels 仍保留冷门项，旧盘摘要不致失语
+		expect(effectNameLabel("play_system_prompt")).toBe("播放系统提示");
+	});
+
+	it("exposes CARD_KIND_OPTIONS as story + voicemail only", () => {
+		expect(CARD_KIND_OPTIONS.map((o) => o.value).sort()).toEqual(
+			["story", "voicemail"].sort(),
+		);
+		expect(CARD_KIND_OPTIONS.some((o) => o.value === "system")).toBe(false);
+		expect(CARD_KIND_OPTIONS.some((o) => o.value === "schedule")).toBe(
+			false,
+		);
+		expect(cardKindLabel("free")).toBe("自由通话");
+		expect(cardKindLabel("system")).toBe("系统卡");
+	});
+
+	it("hides hybrid / playback / mailbox_open from author selects", () => {
+		expect(ENTRY_MODE_OPTIONS.some((o) => o.value === "playback")).toBe(
+			false,
+		);
+		expect(
+			ENTRY_MODE_OPTIONS.some((o) => o.value === "mailbox_open"),
+		).toBe(false);
+		expect(entryModeOptionsForEditor().map((o) => o.value)).toEqual(
+			ENTRY_MODE_OPTIONS.map((o) => o.value),
+		);
+		expect(INTERACTION_MODE_OPTIONS.some((o) => o.value === "hybrid")).toBe(
+			false,
+		);
+	});
+
+	it("voicemail context items only keep objective", () => {
+		const items = buildNodeContextItems(
+			[{ value: "clip_a", label: "A" }],
+			"voicemail",
+		);
+		expect(items.map((i) => i.name)).toEqual(["context.objective"]);
 	});
 
 	it("exposes BUILTIN_TOOL_OPTIONS for allowlist multi-select", () => {
@@ -336,39 +391,39 @@ describe("effect enum coerce", () => {
 });
 
 describe("chapterPropertyForm", () => {
-	it("rejects empty title and syncs entry after package change", () => {
+	it("rejects empty title and syncs entry after chapter change", () => {
 		const diskCtx = {
 			cardIndex: {
-				pkg_night_shift_2: [
+				ch_night_shift_2: [
 					{ cardId: "night_shift_open", title: "夜班开场" },
 					{ cardId: "night_handoff_check", title: "交接核对" },
 				],
-				pkg_quiet_prologue: [
+				ch_quiet_prologue: [
 					{ cardId: "quiet_free_open", title: "静音序章 Free" },
 				],
 			},
-			entryCardIdByPackage: {
-				pkg_night_shift_2: "night_shift_open",
-				pkg_quiet_prologue: "quiet_free_open",
+			entryCardIdByChapter: {
+				ch_night_shift_2: "night_shift_open",
+				ch_quiet_prologue: "quiet_free_open",
 			},
 		};
 		const data = {
 			kind: "chapter_end" as const,
 			title: "结束",
 			summary: "安排下一章",
-			nextPackageId: "pkg_memory_bar_1",
+			nextChapterId: "ch_memory_bar_1",
 			nextEntryCardId: "lanxing_wrong_number",
 		};
 		const values = toChapterPropertyFormValues(data);
 		values.title = "  ";
 		expect(validateChapterPropertyForm(values).title).toBe("请填写标题");
 
-		const synced = syncEntryAfterPackageChange(
-			"pkg_night_shift_2",
+		const synced = syncEntryAfterChapterChange(
+			"ch_night_shift_2",
 			"lanxing_wrong_number",
 			diskCtx,
 		);
-		expect(synced.nextPackageId).toBe("pkg_night_shift_2");
+		expect(synced.nextChapterId).toBe("ch_night_shift_2");
 		expect(synced.nextEntryCardId).toBe("night_shift_open");
 
 		const applied = applyChapterPropertyForm(
@@ -376,16 +431,16 @@ describe("chapterPropertyForm", () => {
 			{
 				title: "章节结束",
 				summary: "清理 pending",
-				nextPackageId: "pkg_quiet_prologue",
+				nextChapterId: "ch_quiet_prologue",
 				nextEntryCardId: "quiet_free_open",
 			},
 			diskCtx,
 		);
-		expect(applied.nextPackageId).toBe("pkg_quiet_prologue");
+		expect(applied.nextChapterId).toBe("ch_quiet_prologue");
 		expect(applied.nextEntryCardId).toBe("quiet_free_open");
 	});
 
-	it("omits next-package fields for chapter_start", () => {
+	it("omits next-chapter fields for chapter_start", () => {
 		const start = {
 			kind: "chapter_start" as const,
 			title: "开始",
@@ -394,11 +449,11 @@ describe("chapterPropertyForm", () => {
 		const next = applyChapterPropertyForm(start, {
 			title: "章节开始",
 			summary: "入口点",
-			nextPackageId: "pkg_memory_bar_1",
+			nextChapterId: "ch_memory_bar_1",
 			nextEntryCardId: "lanxing_wrong_number",
 		});
 		expect(next.kind).toBe("chapter_start");
-		expect(next.nextPackageId).toBeUndefined();
+		expect(next.nextChapterId).toBeUndefined();
 		expect(next.nextEntryCardId).toBeUndefined();
 	});
 });

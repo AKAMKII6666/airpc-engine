@@ -3,9 +3,8 @@
  * 模块说明：Composer 结果 + LLM；Key 仅 server。无 Key 时 mock 回执便于本地／测。
  */
 import {
-  BUILTIN_TOOL_DEFINITIONS,
   isEngineError,
-  resolveToolPolicy,
+  listToolsForCard,
   type CallSession,
   type ChatTurn,
   type DialogueAdapter,
@@ -117,13 +116,7 @@ export function buildDialogueSessionSpec(
   session: CallSession,
 ): DialogueSessionSpec | null {
   if (!session.renderedPrompt) return null;
-  const policy = resolveToolPolicy(session.frozenCard);
-  const tools = BUILTIN_TOOL_DEFINITIONS.filter(function (t) {
-    if (policy.allowedToolIds === null) {
-      return t.toolId === "search_memory" || t.toolId === "get_memory_by_id";
-    }
-    return policy.allowedToolIds.includes(t.toolId);
-  });
+  const tools = listToolsForCard(session.frozenCard);
   return {
     sessionId: session.sessionId,
     channel: "text_turn",

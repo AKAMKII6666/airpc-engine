@@ -13,7 +13,7 @@ import {
 export type OutboundOnceIntentRef = {
 	agentId: string;
 	cardId: string;
-	packageId: string;
+	chapterId: string;
 	linkedInstanceId?: string;
 };
 
@@ -81,7 +81,7 @@ export function ensureOutboundPending(
 	const existing = board.pending.find(function (item) {
 		return (
 			item.cardId === intent.cardId &&
-			item.packageId === intent.packageId &&
+			item.chapterId === intent.chapterId &&
 			item.status === "pending"
 		);
 	});
@@ -94,7 +94,7 @@ export function ensureOutboundPending(
 	const created: CallCardInstance = {
 		instanceId: randomUUID(),
 		cardId: intent.cardId,
-		packageId: intent.packageId,
+		chapterId: intent.chapterId,
 		agentId: intent.agentId,
 		status: "pending",
 		entryMode: "outbound_auto",

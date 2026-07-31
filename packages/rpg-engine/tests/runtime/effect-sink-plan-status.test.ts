@@ -30,7 +30,7 @@ function baseSession(): CallSession {
     schemaVersion: 1,
     sessionId: "s1",
     userId: "u1",
-    packageId: "pkg",
+    chapterId: "pkg",
     status: "executing_effects",
     startedAt: "2026-01-01T00:00:00.000Z",
     resolve: {
@@ -40,7 +40,7 @@ function baseSession(): CallSession {
       agentId: "agent_a",
       intent: {
         kind: "simulate_start",
-        packageId: "pkg",
+        chapterId: "pkg",
         cardId: "card_a",
       },
     },

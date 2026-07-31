@@ -11,7 +11,7 @@ import type { CallCardDefinition } from "../../schema/callCard.js";
 export type GenerateVoicemailInput = {
 	card: CallCardDefinition;
 	agentId: string;
-	packageId: string;
+	chapterId: string;
 	instanceId: string;
 	assembledPrompt?: string;
 };

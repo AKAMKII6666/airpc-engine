@@ -37,10 +37,12 @@ export type StoryPackageSummary = {
 	/** 最近导出时间 ISO-8601；null 表示从未导出 */
 	lastExportedAt: string | null;
 	/**
-		* 是否为工作区首故事（startupPackageId）。
-		* 真源在 workspace.json；列表置顶 + 金色描边用。
+		* 是否为工作区默认打开/调试选包（可选偏好；非实机冷启动真源）。
+		* 实机/首入口真源 = 包内 entryChapterId。
 		*/
 	isStartup: boolean;
+	/** 入口章 id；打开编辑器路由用 */
+	entryChapterId: string;
 };
 
 /** 工程状态条条目：影响创作/导出的关键提示，不做监控大屏 */

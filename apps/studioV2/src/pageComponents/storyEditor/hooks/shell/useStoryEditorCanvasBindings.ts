@@ -25,6 +25,7 @@ export function useStoryEditorCanvasBindings(
 	flush: CanvasFlushFns,
 ) {
 	const [chapterEndDisabled, setChapterEndDisabled] = useState(true);
+	const [hasChapterEnd, setHasChapterEnd] = useState(false);
 	const [characterAnchors, setCharacterAnchors] = useState<
 		CharacterAnchorNodeData[]
 	>([]);
@@ -34,7 +35,9 @@ export function useStoryEditorCanvasBindings(
 	const onCanvasReady = useCallback(
 		function (api: StoryCanvasStageApi) {
 			canvasApiRef.current = api;
-			setChapterEndDisabled(api.hasChapterEnd());
+			const hasEnd = api.hasChapterEnd();
+			setHasChapterEnd(hasEnd);
+			setChapterEndDisabled(hasEnd);
 			setCharacterAnchors(api.listCharacterAnchors());
 			// 首屏灌 flushedGraph；相对 seed 无变更则不抬 dirty
 			flush.flushNow();
@@ -44,6 +47,7 @@ export function useStoryEditorCanvasBindings(
 
 	const onGraphMetaChange = useCallback(
 		function (meta: StoryCanvasGraphMeta) {
+			setHasChapterEnd(meta.hasChapterEnd);
 			setChapterEndDisabled(meta.hasChapterEnd);
 			setCharacterAnchors(meta.characterAnchors);
 			setCallCards(meta.callCards);
@@ -82,6 +86,7 @@ export function useStoryEditorCanvasBindings(
 
 	return {
 		chapterEndDisabled,
+		hasChapterEnd,
 		characterAnchors,
 		callCards,
 		onCanvasReady,

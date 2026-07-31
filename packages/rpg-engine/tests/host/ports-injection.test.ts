@@ -36,7 +36,7 @@ function createFakeContentPort(): ContentPort {
 		scheduleCards: [],
 	};
 	const emptyBundle: PackageValidateBundle = {
-		packageId: "x",
+		chapterId: "x",
 		conf: null,
 		cards: [],
 		characters: [],
@@ -48,11 +48,11 @@ function createFakeContentPort(): ContentPort {
 		async readCard() {
 			return null;
 		},
-		async readPackageConf() {
+		async readChapterConf() {
 			return null;
 		},
 		async loadPackageForValidate(input) {
-			return { ...emptyBundle, packageId: input.packageId };
+			return { ...emptyBundle, chapterId: input.chapterId };
 		},
 		async assetMetaExists() {
 			return false;
@@ -143,9 +143,9 @@ describe("createEngineHost Port injection required ports", function () {
 		expect(snap.packages).toEqual([]);
 		const bundle = await content.loadPackageForValidate({
 			workspaceKey: "/tmp",
-			packageId: "demo",
+			chapterId: "demo",
 		});
-		expect(bundle.packageId).toBe("demo");
+		expect(bundle.chapterId).toBe("demo");
 		expect(bundle.conf).toBeNull();
 		const profile = createFakeProfilePort();
 		expect(await profile.readProfile({ userId: "u1" })).toBeNull();

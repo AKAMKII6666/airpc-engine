@@ -15,6 +15,11 @@ import type {
 	* 首通预览弹层会话投影：方向/小时/结果；网络只经本 bis。
 	*/
 export type FirstConnectPromptPreviewBis = {
+	/**
+		* studioSession 是否已客户端水合；false 时不得挂 UserGate。
+		* 与 useStudioSessionUserBis.ready 同源。
+		*/
+	sessionReady: boolean;
 	/** 当前 studioSession.userId；空串表示未选 */
 	userId: string;
 	/** 顶栏展示名；未选为空串 */
@@ -100,6 +105,7 @@ export function useFirstConnectPromptPreviewBis(): FirstConnectPromptPreviewBis 
 				session.currentUser.userId;
 
 	return {
+		sessionReady: session.ready,
 		userId: session.currentUser.userId,
 		userLabel,
 		hasUser: session.hasUser,

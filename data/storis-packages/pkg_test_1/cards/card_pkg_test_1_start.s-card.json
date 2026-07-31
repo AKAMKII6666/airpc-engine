@@ -1,0 +1,55 @@
+{
+  "cardId": "card_pkg_test_1_start",
+  "cardKind": "story",
+  "title": "第一张通话卡",
+  "ownerAgentId": "lanxing",
+  "entryMode": "inbound_user_dial",
+  "interactionMode": "realtime_dialogue",
+  "context": {
+    "privateBrief": "test",
+    "forbidden": []
+  },
+  "objectives": {
+    "requiredBeats": [
+      "用户并没有提起白半仙和算命的事情",
+      "用户提起了白半仙和算命的事情，并且澜星姐姐给了白半仙的电话号码"
+    ]
+  },
+  "toolPolicy": {
+    "mode": "inherit_free"
+  },
+  "exits": [
+    {
+      "exitId": "exit_9af9a9bd9099477692dcb363b79b6ee1",
+      "title": "出口 1",
+      "priority": 0,
+      "condition": {
+        "op": "beat_completed",
+        "beatId": "用户并没有提起白半仙和算命的事情"
+      },
+      "effects": [
+        {
+          "id": "fx_6a8a2f742ece46c28c32a28699363a97",
+          "effect": "end_story"
+        }
+      ]
+    },
+    {
+      "exitId": "exit_f1da7e3719d643cfaf36b059b78c5f94",
+      "title": "出口 2",
+      "priority": 0,
+      "condition": {
+        "op": "beat_completed",
+        "beatId": "用户提起了白半仙和算命的事情，并且澜星姐姐给了白半仙的电话号码"
+      },
+      "effects": [
+        {
+          "id": "fx_43c07efc706e4d52948fb8a81f2629b5",
+          "effect": "attach_call_card",
+          "cardId": "card_7d4f611145e645e8a5b20603169e72c2",
+          "agentId": "bai-bansian"
+        }
+      ]
+    }
+  ]
+}

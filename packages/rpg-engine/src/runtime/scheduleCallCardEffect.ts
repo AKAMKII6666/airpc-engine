@@ -5,6 +5,7 @@
 import { randomUUID } from "node:crypto";
 import type { CallCardInstance, PlayerProfile } from "../schema/profile.js";
 import type { Effect } from "../schema/outcome.js";
+import { resolveChapterId } from "../chapter/resolveChapterId.js";
 
 function ensureAgentBoard(
 	profile: PlayerProfile,
@@ -31,7 +32,7 @@ function upsertEitherPending(
 	args: {
 		instanceId: string;
 		cardId: string;
-		packageId: string;
+		chapterId: string;
 		agentId: string;
 		effectId: string;
 		nowIso: string;
@@ -42,7 +43,7 @@ function upsertEitherPending(
 		board.pending.push({
 			instanceId: args.instanceId,
 			cardId: args.cardId,
-			packageId: args.packageId,
+			chapterId: args.chapterId,
 			agentId: args.agentId,
 			status: "pending",
 			entryMode: "either",
@@ -71,10 +72,10 @@ export function applyScheduleCallCardToBoard(
 ): void {
 	const agentId = String(effect.agentId ?? "");
 	const cardId = String(effect.cardId ?? "");
-	const packageId = String(effect.packageId ?? "");
-	if (!agentId || !cardId || !packageId) {
+	const chapterId = resolveChapterId(effect as Record<string, unknown>);
+	if (!agentId || !cardId || !chapterId) {
 		throw new Error(
-			"schedule_call_card requires agentId + packageId + cardId（禁止仅 topicHint 推进）",
+			"schedule_call_card requires agentId + chapterId + cardId（禁止仅 topicHint 推进）",
 		);
 	}
 	const minMs = resolveScheduleDelayMs(effect);
@@ -86,7 +87,7 @@ export function applyScheduleCallCardToBoard(
 	const existing = board.pending.find(function (item) {
 		return (
 			item.cardId === cardId &&
-			item.packageId === packageId &&
+			item.chapterId === chapterId &&
 			item.status === "pending"
 		);
 	});
@@ -94,7 +95,7 @@ export function applyScheduleCallCardToBoard(
 	upsertEitherPending(board, {
 		instanceId,
 		cardId,
-		packageId,
+		chapterId,
 		agentId,
 		effectId: effect.id,
 		nowIso,
@@ -105,7 +106,7 @@ export function applyScheduleCallCardToBoard(
 		intentId: effect.id,
 		agentId,
 		cardId,
-		packageId,
+		chapterId,
 		topicHint:
 			typeof effect.topicHint === "string" ? effect.topicHint : undefined,
 		fireAtMs: clockMs + minMs,

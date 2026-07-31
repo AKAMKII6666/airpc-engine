@@ -8,6 +8,7 @@ import {
   type PlayerProfile,
   type StorySave,
 } from "../schema/profile.js";
+import { resolveChapterId } from "../chapter/resolveChapterId.js";
 
 export type StoryLockIntentKind =
   | "user_dial"
@@ -21,11 +22,11 @@ export type StoryLockGateDecision =
   | { kind: "allow_with_warning"; reason: string };
 
 export interface ActiveLockHit {
-  packageId: string;
+  chapterId: string;
   lock: ActiveStoryLock;
 }
 
-function asStorySave(raw: unknown, packageId: string): StorySave | null {
+function asStorySave(raw: unknown, storyKey: string): StorySave | null {
   if (!raw || typeof raw !== "object") return null;
   const o = raw as Record<string, unknown>;
   const status = o.status;
@@ -37,9 +38,9 @@ function asStorySave(raw: unknown, packageId: string): StorySave | null {
   ) {
     return null;
   }
+  const chapterId = resolveChapterId(o, storyKey);
   return {
-    packageId:
-      typeof o.packageId === "string" ? o.packageId : packageId,
+    chapterId,
     status,
     instanceId: typeof o.instanceId === "string" ? o.instanceId : undefined,
     variables:
@@ -63,8 +64,8 @@ export function findActiveStoryLock(
   profile: PlayerProfile,
 ): ActiveLockHit | null {
   let soft: ActiveLockHit | null = null;
-  for (const [packageId, raw] of Object.entries(profile.stories ?? {})) {
-    const save = asStorySave(raw, packageId);
+  for (const [storyKey, raw] of Object.entries(profile.stories ?? {})) {
+    const save = asStorySave(raw, storyKey);
     if (!save || save.status !== "active") continue;
     const lockRaw =
       raw && typeof raw === "object"
@@ -73,7 +74,7 @@ export function findActiveStoryLock(
     if (lockRaw == null) continue;
     const parsed = ActiveStoryLockSchema.safeParse(lockRaw);
     if (!parsed.success) continue;
-    const hit: ActiveLockHit = { packageId, lock: parsed.data };
+    const hit: ActiveLockHit = { chapterId: save.chapterId, lock: parsed.data };
     if (parsed.data.lockLevel === "hard") {
       return hit;
     }
@@ -95,7 +96,6 @@ export function evaluateStoryLockGate(input: {
     return { kind: "allow" };
   }
 
-  // 外呼：表内 soft 允许打标；hard 拒绝（不走 blockedPolicy 分支）
   if (intentKind === "agent_outbound") {
     if (lock.lockLevel === "hard") {
       return {
@@ -110,7 +110,6 @@ export function evaluateStoryLockGate(input: {
     };
   }
 
-  // 拨号／Free：按 soft|hard × blockedPolicy
   switch (lock.blockedPolicy) {
     case "reject_call": {
       if (lock.lockLevel === "hard") {
@@ -153,17 +152,16 @@ export function evaluateStoryLockGate(input: {
 export function activateStoryOnBegin(
   profile: PlayerProfile,
   input: {
-    packageId: string;
+    chapterId: string;
     instanceId: string;
     nowIso: string;
-    /** 若尚未有锁且传入，则写入（测／作者预置） */
-    acquireLock?: Omit<ActiveStoryLock, "startedAt" | "packageId"> & {
-      packageId?: string;
+    acquireLock?: Omit<ActiveStoryLock, "startedAt" | "chapterId"> & {
+      chapterId?: string;
       startedAt?: string;
     };
   },
 ): void {
-  const prevRaw = profile.stories[input.packageId];
+  const prevRaw = profile.stories[input.chapterId];
   const prev =
     prevRaw && typeof prevRaw === "object"
       ? (prevRaw as Record<string, unknown>)
@@ -177,13 +175,13 @@ export function activateStoryOnBegin(
   if (!lock && input.acquireLock) {
     lock = ActiveStoryLockSchema.parse({
       ...input.acquireLock,
-      packageId: input.acquireLock.packageId ?? input.packageId,
+      chapterId: input.acquireLock.chapterId ?? input.chapterId,
       startedAt: input.acquireLock.startedAt ?? input.nowIso,
     });
   }
   const next: Record<string, unknown> = {
     ...prev,
-    packageId: input.packageId,
+    chapterId: input.chapterId,
     status: "active",
     instanceId: input.instanceId,
     variables:
@@ -196,21 +194,20 @@ export function activateStoryOnBegin(
   } else if (prev.lock === null) {
     next.lock = null;
   }
-  profile.stories[input.packageId] = next;
+  profile.stories[input.chapterId] = next;
 }
 
-/** 挂机／end_story：清除该包 lock（释放读闸） */
+/** 挂机／end_story：清除该章 lock（释放读闸） */
 export function releaseStoryLock(
   profile: PlayerProfile,
-  packageId: string,
+  chapterId: string,
 ): void {
-  const prevRaw = profile.stories[packageId];
+  const prevRaw = profile.stories[chapterId];
   if (!prevRaw || typeof prevRaw !== "object") return;
   const prev = prevRaw as Record<string, unknown>;
-  profile.stories[packageId] = {
+  profile.stories[chapterId] = {
     ...prev,
-    packageId:
-      typeof prev.packageId === "string" ? prev.packageId : packageId,
+    chapterId: resolveChapterId(prev, chapterId),
     lock: null,
   };
 }

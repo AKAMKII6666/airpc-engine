@@ -24,7 +24,7 @@ function card(
 describe("collectReferencedAgentIds ownerAgentId (S8-1)", () => {
   it("collects ownerAgentId from cards", () => {
     const ids = collectReferencedAgentIds({
-      conf: { schemaVersion: 1, packageId: "pkg", cards: [] },
+      conf: { schemaVersion: 1, chapterId: "pkg", cards: [] },
       cards: [
         card({ cardId: "c1", ownerAgentId: "lanxing" }),
         card({ cardId: "c2", ownerAgentId: "xiaopi" }),
@@ -37,7 +37,7 @@ describe("collectReferencedAgentIds ownerAgentId (S8-1)", () => {
 describe("collectReferencedAgentIds effects (S8-1)", () => {
   it("collects agentId from attach_call_card effect", () => {
     const ids = collectReferencedAgentIds({
-      conf: { schemaVersion: 1, packageId: "pkg", cards: [] },
+      conf: { schemaVersion: 1, chapterId: "pkg", cards: [] },
       cards: [
         card({
           cardId: "c1",
@@ -64,7 +64,7 @@ describe("collectReferencedAgentIds effects (S8-1)", () => {
 
   it("collects end_story.next.agentId", () => {
     const ids = collectReferencedAgentIds({
-      conf: { schemaVersion: 1, packageId: "pkg", cards: [] },
+      conf: { schemaVersion: 1, chapterId: "pkg", cards: [] },
       cards: [
         card({
           cardId: "c1",
@@ -78,7 +78,7 @@ describe("collectReferencedAgentIds effects (S8-1)", () => {
                   id: "e_end",
                   effect: "end_story",
                   next: {
-                    packageId: "ch2",
+                    chapterId: "ch2",
                     agentId: "entry_agent",
                     cardId: "ch2_start",
                   },
@@ -94,7 +94,7 @@ describe("collectReferencedAgentIds effects (S8-1)", () => {
 
   it("deduplicates repeated agentId", () => {
     const ids = collectReferencedAgentIds({
-      conf: { schemaVersion: 1, packageId: "pkg", cards: [] },
+      conf: { schemaVersion: 1, chapterId: "pkg", cards: [] },
       cards: [
         card({
           cardId: "c1",
@@ -124,7 +124,7 @@ describe("StoryPackageConfSchema participants (S8-1)", () => {
   it("accepts missing participants and defaults to []", () => {
     const parsed = StoryPackageConfSchema.safeParse({
       schemaVersion: 1,
-      packageId: "new_pkg",
+      chapterId: "new_pkg",
       cards: [],
     });
     expect(parsed.success).toBe(true);

@@ -1,17 +1,17 @@
 /**
-	* 编辑器打开：读盘整包 + 角色库全量 displayName + 画布 seed。
+	* 编辑器打开：读章 bundle + 角色库全量 displayName + 画布 seed。
 	* 锚点真源 = fetchCharacterDefs()（路径 B）；不再按 conf.participants 裁剪。
 	*/
 import { bundleToEditorGraph } from "@studio-v2/src/bis/pageBis/storyEditor/package/graph/diskBundleGraph";
 import { fetchCharacterDefs } from "@studio-v2/src/utils/ajaxProxy/library/api/charactersApi";
-import { fetchDiskStoryPackage } from "@studio-v2/src/utils/ajaxProxy/packages/api/storiesApi";
+import { fetchDiskChapterBundle } from "@studio-v2/src/utils/ajaxProxy/packages/api/storiesApi";
 import type { CharacterDisplayLookup } from "@studio-v2/src/bis/pageBis/storyEditor/package/graph/diskBundleGraph";
 import type { EditorGraphSeed } from "@studio-v2/src/bis/pageBis/storyEditor/package/graph/diskBundleGraph";
 import type { DiskStoryPackageBundle } from "@studio-v2/typeFiles/story/package/diskStoryPackage";
 
-/** 编辑器打开故事包后的会话载荷；bundle 为磁盘真源，graphSeed 为画布初始投影 */
+/** 编辑器打开章后的会话载荷；bundle 为磁盘真源，graphSeed 为画布初始投影 */
 export type LoadedStoryPackageSession = {
-	/** 当前打开的磁盘整包；保存时作为 baseBundle */
+	/** 当前打开的章 bundle；保存时作为 baseBundle */
 	bundle: DiskStoryPackageBundle;
 	/** 由 bundle 投影的 React Flow 初始图；会话内可编辑 */
 	graphSeed: EditorGraphSeed;
@@ -47,11 +47,12 @@ async function buildCharacterLibraryLookup(): Promise<CharacterDisplayLookup> {
 	return lookup;
 }
 
-/** GET /api/stories/:id 并投影画布初始图（锚点 = 角色库全量） */
+/** GET /api/stories/:pkg/chapters/:id 并投影画布初始图（锚点 = 角色库全量） */
 export async function loadStoryPackageForEditor(
 	packageId: string,
+	chapterId: string,
 ): Promise<LoadedStoryPackageSession> {
-	const bundle = await fetchDiskStoryPackage(packageId);
+	const bundle = await fetchDiskChapterBundle(packageId, chapterId);
 	const names = await buildCharacterLibraryLookup();
 	const graphSeed = bundleToEditorGraph(bundle, names);
 	return { bundle, graphSeed };

@@ -23,6 +23,8 @@ export async function GET(req: Request): Promise<Response> {
       return {
         toolId: t.toolId,
         displayName: t.displayName,
+        description: t.description,
+        inputSchema: t.inputSchema,
         behavior: t.behavior,
         allowedInPlayback: t.allowedInPlayback,
         allowedCardKinds: t.allowedCardKinds,
@@ -64,6 +66,8 @@ export async function GET(req: Request): Promise<Response> {
               return {
                 toolId: t!.toolId,
                 displayName: t!.displayName,
+                description: t!.description,
+                inputSchema: t!.inputSchema,
                 behavior: t!.behavior,
                 allowedInPlayback: t!.allowedInPlayback,
                 allowedCardKinds: t!.allowedCardKinds,

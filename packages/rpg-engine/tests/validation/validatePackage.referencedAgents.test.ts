@@ -28,7 +28,7 @@ afterEach(async () => {
   }
 });
 
-async function hostWithPackage(packageId: string): Promise<{
+async function hostWithPackage(chapterId: string): Promise<{
   host: EngineHost;
   dataRoot: string;
 }> {
@@ -45,7 +45,7 @@ describe("validatePackage REFERENCED_AGENT_UNKNOWN (S8-2)", () => {
     const { host, dataRoot } = await hostWithPackage("wrong_number_act1");
     const cardPath = path.join(
       dataRoot,
-      "storis-packages/wrong_number_act1/cards/lanxing_wrong_number.s-card.json",
+      "storis-packages/wrong_number_act1/chapters/wrong_number_act1/cards/lanxing_wrong_number.s-card.json",
     );
     const card = JSON.parse(await readFile(cardPath, "utf8")) as {
       ownerAgentId: string;
@@ -65,7 +65,7 @@ describe("validatePackage legacy participant warning (S8-2)", () => {
     const { host, dataRoot } = await hostWithPackage("wrong_number_act1");
     const confPath = path.join(
       dataRoot,
-      "storis-packages/wrong_number_act1/story.conf.json",
+      "storis-packages/wrong_number_act1/chapters/wrong_number_act1/story.conf.json",
     );
     const conf = JSON.parse(await readFile(confPath, "utf8")) as {
       participants: string[];
@@ -88,7 +88,7 @@ describe("validatePackage empty participants (S8-2)", () => {
     const { host, dataRoot } = await hostWithPackage("wrong_number_act1");
     const confPath = path.join(
       dataRoot,
-      "storis-packages/wrong_number_act1/story.conf.json",
+      "storis-packages/wrong_number_act1/chapters/wrong_number_act1/story.conf.json",
     );
     const conf = JSON.parse(await readFile(confPath, "utf8")) as Record<
       string,
@@ -109,7 +109,7 @@ describe("validatePackage path B owner (S8-2)", () => {
     const { host, dataRoot } = await hostWithPackage("golden_handoff");
     const confPath = path.join(
       dataRoot,
-      "storis-packages/golden_handoff/story.conf.json",
+      "storis-packages/golden_handoff/chapters/golden_handoff/story.conf.json",
     );
     const conf = JSON.parse(await readFile(confPath, "utf8")) as Record<
       string,

@@ -109,7 +109,7 @@ export const PackageValidatePanel: FC<PackageValidatePanelProps> = function ({
 					{/* 引用了Button组件，用于跳转编辑器改 Content */}
 					<Button
 						component={Link}
-						href={`/stories/${encodeURIComponent(packageId)}`}
+						href={`/packages/${encodeURIComponent(packageId)}`}
 						size="small"
 						variant="outlined"
 						disabled={!packageId}

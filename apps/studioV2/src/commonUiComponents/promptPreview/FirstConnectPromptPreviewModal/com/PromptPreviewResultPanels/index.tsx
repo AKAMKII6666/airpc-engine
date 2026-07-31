@@ -42,11 +42,11 @@ export const PromptPreviewResultPanels: FC<PromptPreviewResultPanelsProps> =
 					jsonValue={result.renderedPrompt}
 					height={280}
 				/>
-				{/* 引用了ReadonlyPreviewPane组件，用于 tools JSON */}
+				{/* 引用了ReadonlyPreviewPane组件，用于 tools JSON（含 description / inputSchema） */}
 				<ReadonlyPreviewPane
-					title="Tools（policy ∩ Registry）"
+					title="Tools（含 description / inputSchema）"
 					jsonValue={result.tools}
-					height={200}
+					height={280}
 				/>
 				{/* 引用了ReadonlyPreviewPane组件，用于 composeScene */}
 				<ReadonlyPreviewPane

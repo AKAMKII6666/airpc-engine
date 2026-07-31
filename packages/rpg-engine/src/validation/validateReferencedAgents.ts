@@ -4,7 +4,7 @@
  * 按 collectReferencedAgentIds 派生集合校验角色库；遗留 participants 未知 id 仅 warning。
  * free 卡存在性经 ContentPort.readCard（禁止本文件 node:fs）。
  */
-import { FREE_PACKAGE_ID } from "../constants.js";
+import { FREE_CHAPTER_ID } from "../constants.js";
 import type { ContentPort } from "../ports/contentPort.js";
 import type {
 	CallCardDefinition,
@@ -129,7 +129,7 @@ async function validateCharacterFreeCard(
 	try {
 		freeCard = await content.readCard({
 			workspaceKey,
-			packageId: FREE_PACKAGE_ID,
+			chapterId: FREE_CHAPTER_ID,
 			cardId: def.freeCardId,
 		});
 	} catch {

@@ -49,7 +49,7 @@ export const clipCard: CallCardDefinition = {
 
 export function lookupFromMap(
 	cards: Record<string, CallCardDefinition>,
-): (packageId: string, cardId: string) => CallCardDefinition | undefined {
+): (chapterId: string, cardId: string) => CallCardDefinition | undefined {
 	return function (_packageId, cardId) {
 		return cards[cardId];
 	};

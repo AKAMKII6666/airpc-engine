@@ -4,7 +4,7 @@
  * 不再推导 TimeBucket；场景层只按 localHour + localHourRange 匹配。
  */
 import type { ComposeScene } from "../host/types.js";
-import { FREE_PACKAGE_ID, SCHEDULE_PACKAGE_ID } from "../constants.js";
+import { FREE_CHAPTER_ID, SCHEDULE_CHAPTER_ID } from "../constants.js";
 
 function resolveLocalParts(input: {
   localNowIso?: string;
@@ -64,7 +64,7 @@ export function buildComposeScene(input: {
   entryMode?: string;
   /** 本通真实入口；有则覆盖 entryMode 推断方向 */
   actualEntry?: "inbound_user_dial" | "outbound_auto";
-  packageId?: string;
+  chapterId?: string;
   localNowIso?: string;
   timeZone?: string;
   sceneOverride?: Partial<ComposeScene>;
@@ -74,8 +74,8 @@ export function buildComposeScene(input: {
     timeZone: input.timeZone,
   });
   const isFree =
-    input.packageId === FREE_PACKAGE_ID ||
-    input.packageId === SCHEDULE_PACKAGE_ID;
+    input.chapterId === FREE_CHAPTER_ID ||
+    input.chapterId === SCHEDULE_CHAPTER_ID;
   const base: ComposeScene = {
     callDirection: callDirectionFromActualEntry(
       input.actualEntry,

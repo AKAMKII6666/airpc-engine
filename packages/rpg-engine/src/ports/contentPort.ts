@@ -5,7 +5,8 @@
 import type { AssetMeta } from "../schema/asset.js";
 import type {
 	CallCardDefinition,
-	StoryPackageConf,
+	ChapterConf,
+	PackageConf,
 } from "../schema/callCard.js";
 import type { CharacterDef } from "../schema/character.js";
 
@@ -15,12 +16,19 @@ import type { CharacterDef } from "../schema/character.js";
 export interface WorkspaceSnapshot {
 	/** 逻辑工作区键；本机即 dataRoot 绝对/相对路径字符串 */
 	workspaceKey: string;
-	/** packageId → conf；cards 映射可为空，按需 loadCard 再填 */
+	/**
+	 * 故事包容器；每容器含若干章 conf。
+	 * 章 id 在工作区内全局唯一（迁移规则 chapterId=旧 packageId）。
+	 */
 	packages: Array<{
 		packageId: string;
-		conf: StoryPackageConf;
-		/** 实现私有定位提示（本机可为目录绝对路径）；引擎不当作公共 API 依赖 */
-		packageLocator?: string;
+		packageConf?: PackageConf;
+		chapters: Array<{
+			chapterId: string;
+			conf: ChapterConf;
+			/** 实现私有定位提示（本机可为章目录绝对路径） */
+			chapterLocator?: string;
+		}>;
 	}>;
 	/** agentId 唯一 */
 	characters: CharacterDef[];
@@ -31,14 +39,17 @@ export interface WorkspaceSnapshot {
 }
 
 /**
- * 校验装包：一次取出 validate 规则所需的全部可读内容（避免引擎 readFile）。
+ * 校验装章：一次取出 validate 规则所需的全部可读内容（避免引擎 readFile）。
  * confRaw / cardRaw / diskCardIds：供 parse 前规则与孤儿卡 warning（规则仍在引擎）。
  */
 export interface PackageValidateBundle {
-	packageId: string;
-	conf: StoryPackageConf | null;
+	/** 被校验章 id（全局唯一） */
+	chapterId: string;
+	/** 所属故事包容器 id（可选；纯章路径时可为 chapterId 同值） */
+	containerPackageId?: string;
+	conf: ChapterConf | null;
 	/**
-	 * story.conf.json 原始 JSON；缺文件为 null。
+	 * 章 story.conf.json 原始 JSON；缺文件为 null。
 	 * 用于 ASSET_PACKAGE_INLINE 等 schema 会剥掉的字段检查。
 	 */
 	confRaw?: unknown | null;
@@ -79,30 +90,31 @@ export interface ContentPort {
 
 	/**
 	 * 按需读单卡。
-	 * packageId 为故事包 id，或哨兵 __free__ / __schedule__。
+	 * chapterId 为故事章 id，或哨兵 __free__ / __schedule__。
 	 * 不存在：null；损坏：throw VALIDATION_FAILED。
 	 */
 	readCard(input: {
 		workspaceKey: string;
-		packageId: string;
+		chapterId: string;
 		cardId: string;
 	}): Promise<CallCardDefinition | null>;
 
 	/**
-	 * 读故事包 conf（不强制带齐所有卡）。不存在：null。
+	 * 读章 conf（不强制带齐所有卡）。chapterId 在工作区内全局唯一。不存在：null。
 	 */
-	readPackageConf(input: {
+	readChapterConf(input: {
 		workspaceKey: string;
-		packageId: string;
-	}): Promise<StoryPackageConf | null>;
+		chapterId: string;
+	}): Promise<ChapterConf | null>;
 
 	/**
-	 * 校验装包：一次取出 validate 规则所需内容。
+	 * 校验装章：一次取出 validate 规则所需内容（单章粒度）。
 	 * 缺 conf：仍返回结构，由引擎规则报错（或 Port 在 conf 位给 null）。
 	 */
 	loadPackageForValidate(input: {
 		workspaceKey: string;
-		packageId: string;
+		/** 被校验章 id */
+		chapterId: string;
 	}): Promise<PackageValidateBundle>;
 
 	/** 资产 meta 是否存在（校验 ASSET_*） */

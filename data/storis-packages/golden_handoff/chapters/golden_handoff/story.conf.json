@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "chapterId": "golden_handoff",
+  "title": "黄金样例：转介",
+  "participants": [
+    "lanxing",
+    "xiaopi"
+  ],
+  "entryCardId": "doubao_intro_outbound",
+  "assetRefs": [
+    "clip_hello"
+  ],
+  "cards": [
+    {
+      "cardId": "doubao_intro_outbound"
+    },
+    {
+      "cardId": "xiaopi_waiting_user"
+    },
+    {
+      "cardId": "demo_playback_hello"
+    },
+    {
+      "cardId": "doubao_a_writes_b"
+    }
+  ]
+}

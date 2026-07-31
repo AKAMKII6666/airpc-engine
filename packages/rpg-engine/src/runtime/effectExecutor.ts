@@ -7,8 +7,10 @@ import type { PlayerProfile, CallCardInstance } from "../schema/profile.js";
 import type { Effect } from "../schema/outcome.js";
 import type { CallSession, EffectPlanResult, EffectPlanStatus } from "../host/types.js";
 import type { MemoryPort } from "../memory/types.js";
-import { FREE_PACKAGE_ID } from "../constants.js";
+import { FREE_CHAPTER_ID } from "../constants.js";
 import { releaseStoryLock } from "./activeStoryLock.js";
+import { resolveChapterId } from "../chapter/resolveChapterId.js";
+import type { ChapterConf } from "../schema/callCard.js";
 import {
   isMediaEffect,
   type EffectSink,
@@ -37,6 +39,8 @@ export interface EffectExecutorContext {
    * Host / FreePostPipeline 必须注入；缺失时 recurring effect 必须失败且不得落库。
    */
   lookupCard?: ScheduledCardLookup | null;
+  /** 读章 conf（end_story.next 解析 entryCardId） */
+  getChapterConf?: ((chapterId: string) => ChapterConf | undefined) | null;
 }
 
 /** end_story.next.activation */
@@ -217,7 +221,7 @@ function applyOneEffect(effect: Effect, ctx: EffectExecutorContext): void {
         board.pending.push({
           instanceId: session.resolve.instanceId,
           cardId: session.resolve.cardId,
-          packageId: session.packageId,
+          chapterId: session.chapterId,
           agentId,
           status: "pending",
           createdAt: nowIso,
@@ -361,23 +365,23 @@ function applyOneEffect(effect: Effect, ctx: EffectExecutorContext): void {
       return;
     }
     case "end_story": {
-      if (session.packageId === FREE_PACKAGE_ID) {
+      if (session.chapterId === FREE_CHAPTER_ID) {
         return;
       }
-      const prev = profile.stories[session.packageId];
+      const prev = profile.stories[session.chapterId];
       const base =
         prev && typeof prev === "object"
           ? (prev as Record<string, unknown>)
           : {};
-      profile.stories[session.packageId] = {
+      profile.stories[session.chapterId] = {
         ...base,
         status: "completed",
         reason:
           typeof effect.reason === "string" ? effect.reason : undefined,
         endedAt: nowIso,
-        packageId: session.packageId,
+        chapterId: session.chapterId,
       };
-      releaseStoryLock(profile, session.packageId);
+      releaseStoryLock(profile, session.chapterId);
 
       // cleanup 缺省 = 清全体 story pending；preserveFreeCards 由清场白名单实现
       const cleanup =
@@ -432,14 +436,35 @@ function arrangeChapterNext(
   effect: Effect,
   ctx: EffectExecutorContext,
 ): void {
-  const { profile, nowIso } = ctx;
+  const { profile, nowIso, lookupCard, getChapterConf } = ctx;
   const raw = effect.next as Record<string, unknown>;
-  const packageId = String(raw.packageId ?? "");
-  const agentId = String(raw.agentId ?? "");
-  const cardId = String(raw.cardId ?? "");
-  if (!packageId || !agentId || !cardId) {
+  const chapterId = resolveChapterId(raw);
+  if (!chapterId) {
+    throw new Error("end_story.next requires chapterId (or legacy packageId)");
+  }
+
+  let cardId = typeof raw.cardId === "string" ? raw.cardId : "";
+  let agentId = typeof raw.agentId === "string" ? raw.agentId : "";
+
+  const conf = getChapterConf?.(chapterId);
+  if (conf?.entryCardId) {
+    cardId = conf.entryCardId;
+    const entryCard = lookupCard?.(chapterId, cardId);
+    if (
+      entryCard &&
+      typeof entryCard === "object" &&
+      "ownerAgentId" in entryCard &&
+      typeof entryCard.ownerAgentId === "string"
+    ) {
+      agentId = entryCard.ownerAgentId;
+    }
+  }
+
+  if (!cardId) cardId = typeof raw.cardId === "string" ? raw.cardId : "";
+  if (!agentId) agentId = typeof raw.agentId === "string" ? raw.agentId : "";
+  if (!cardId || !agentId) {
     throw new Error(
-      "end_story.next requires packageId + agentId + cardId",
+      "end_story.next requires resolvable chapterId + entry card + agentId",
     );
   }
 
@@ -463,18 +488,16 @@ function arrangeChapterNext(
     typeof raw.entryMode === "string" ? raw.entryMode : undefined;
   const activationHint =
     typeof raw.activationHint === "string" ? raw.activationHint : undefined;
-  // 仅当配置显式要求时才提前加锁；默认等待 beginCall
   const acquireLockEarly = raw.acquireLockEarly === true;
 
-  const prevStory = profile.stories[packageId];
+  const prevStory = profile.stories[chapterId];
   const prevBase =
     prevStory && typeof prevStory === "object"
       ? (prevStory as Record<string, unknown>)
       : {};
-  profile.stories[packageId] = {
+  profile.stories[chapterId] = {
     ...prevBase,
-    packageId,
-    // 入口已安排、尚未 beginCall：用 inactive + plannedEntry 表达等待态
+    chapterId,
     status: "inactive",
     plannedEntry: {
       agentId,
@@ -496,7 +519,6 @@ function arrangeChapterNext(
   let scheduledIntentId: string | undefined;
 
   if (activation === "immediate") {
-    // 壳/调试器可立即 agent_outbound；默认 either
     entryMode = entryModeConfig ?? "either";
   } else if (activation === "delay") {
     entryMode = entryModeConfig ?? "either";
@@ -510,7 +532,7 @@ function arrangeChapterNext(
   const already = board.pending.some(function (item) {
     return (
       item.cardId === cardId &&
-      item.packageId === packageId &&
+      item.chapterId === chapterId &&
       item.status === "pending"
     );
   });
@@ -518,7 +540,7 @@ function arrangeChapterNext(
     ? board.pending.find(function (item) {
         return (
           item.cardId === cardId &&
-          item.packageId === packageId &&
+          item.chapterId === chapterId &&
           item.status === "pending"
         );
       })!.instanceId
@@ -528,7 +550,7 @@ function arrangeChapterNext(
     board.pending.push({
       instanceId,
       cardId,
-      packageId,
+      chapterId,
       agentId,
       status: "pending",
       entryMode,
@@ -558,7 +580,7 @@ function arrangeChapterNext(
       intentId,
       agentId,
       cardId,
-      packageId,
+      chapterId,
       fireAtMs: clockMs + delayMs,
       status: "pending",
       linkedInstanceId: instanceId,

@@ -11,14 +11,14 @@ import type { StoryPackageSummary } from "@studio-v2/typeFiles/story/summary/sto
 import type { ValidationReport } from "@studio-v2/typeFiles/story/validate/engineValidation";
 
 function minimalBundle(
-	packageId: string,
+	chapterId: string,
 	entryCardId?: string,
 ): DiskStoryPackageBundle {
 	return {
 		conf: {
 			schemaVersion: 1,
-			packageId,
-			title: packageId,
+			chapterId,
+			title: chapterId,
 			participants: [],
 			cards: entryCardId
 				? [{ cardId: entryCardId, title: entryCardId }]
@@ -28,7 +28,7 @@ function minimalBundle(
 		cards: [],
 		layout: {
 			schemaVersion: 1,
-			packageId,
+			chapterId,
 			nodes: [],
 			edges: [],
 		},
@@ -48,6 +48,7 @@ function summary(packageId: string): StoryPackageSummary {
 		saveState: "saved",
 		lastExportedAt: null,
 		isStartup: false,
+		entryChapterId: packageId,
 	};
 }
 
@@ -58,13 +59,14 @@ describe("storyEditorStore", () => {
 	});
 
 	it("applyPackageLoadResult 成功灌会话并清 dirty", function () {
-		const bundle = minimalBundle("pkg_a", "card_1");
-		useStoryEditorStore.getState().applyPackageLoadStarted("pkg_a");
+		const bundle = minimalBundle("ch_a", "card_1");
+		useStoryEditorStore.getState().applyPackageLoadStarted("pkg_a", "ch_a");
 		expect(useStoryEditorStore.getState().loading).toBe(true);
 
 		useStoryEditorStore.getState().applyPackageLoadResult({
 			ok: true,
 			packageId: "pkg_a",
+			chapterId: "ch_a",
 			diskPackages: [summary("pkg_a")],
 			bundle,
 			graphSeed: {
@@ -73,16 +75,18 @@ describe("storyEditorStore", () => {
 				initialSelectionNodeId: "n1",
 			},
 			cardIndex: {
-				pkg_a: [{ cardId: "card_1", title: "一" }],
+				ch_a: [{ cardId: "card_1", title: "一" }],
 			},
-			entryCardIdByPackage: { pkg_a: "card_1" },
+			entryCardIdByChapter: { ch_a: "card_1" },
+			chapterSummaries: [{ chapterId: "ch_a", title: "章 A" }],
 		});
 
 		const state = useStoryEditorStore.getState();
 		expect(state.loading).toBe(false);
-		expect(state.bundle?.conf.packageId).toBe("pkg_a");
+		expect(state.chapterId).toBe("ch_a");
+		expect(state.bundle?.conf.chapterId).toBe("ch_a");
 		expect(state.graphSeed?.initialSelectionNodeId).toBe("n1");
-		expect(state.entryCardIdByPackage.pkg_a).toBe("card_1");
+		expect(state.entryCardIdByChapter.ch_a).toBe("card_1");
 		expect(selectStoryEditorIsDirty(state)).toBe(false);
 	});
 
@@ -90,6 +94,7 @@ describe("storyEditorStore", () => {
 		useStoryEditorStore.getState().applyPackageLoadResult({
 			ok: false,
 			packageId: "missing",
+			chapterId: "ch_missing",
 			message: "无法从磁盘加载故事包",
 		});
 		const state = useStoryEditorStore.getState();
@@ -99,15 +104,17 @@ describe("storyEditorStore", () => {
 	});
 
 	it("conf 写回与 canvas pending/flush 组成 dirty", function () {
-		const bundle = minimalBundle("pkg_a", "card_1");
+		const bundle = minimalBundle("ch_a", "card_1");
 		useStoryEditorStore.getState().applyPackageLoadResult({
 			ok: true,
 			packageId: "pkg_a",
+			chapterId: "ch_a",
 			diskPackages: [],
 			bundle,
 			graphSeed: { nodes: [], edges: [], initialSelectionNodeId: null },
 			cardIndex: {},
-			entryCardIdByPackage: {},
+			entryCardIdByChapter: {},
+			chapterSummaries: [],
 		});
 
 		useStoryEditorStore.getState().markCanvasPendingFlush();
@@ -124,11 +131,11 @@ describe("storyEditorStore", () => {
 		expect(state.graphDirty).toBe(true);
 		expect(state.flushedGraph?.nodes).toHaveLength(1);
 
-		const nextBundle = minimalBundle("pkg_a", "card_2");
+		const nextBundle = minimalBundle("ch_a", "card_2");
 		useStoryEditorStore.getState().applyBundleWriteResult(nextBundle);
 		state = useStoryEditorStore.getState();
 		expect(state.confDirty).toBe(true);
-		expect(state.entryCardIdByPackage.pkg_a).toBe("card_2");
+		expect(state.entryCardIdByChapter.ch_a).toBe("card_2");
 		expect(selectStoryEditorIsDirty(state)).toBe(true);
 	});
 
@@ -137,15 +144,17 @@ describe("storyEditorStore", () => {
 		useStoryEditorStore.getState().applyPackageLoadResult({
 			ok: true,
 			packageId: "pkg_a",
+			chapterId: "ch_a",
 			diskPackages: [],
-			bundle: minimalBundle("pkg_a"),
+			bundle: minimalBundle("ch_a"),
 			graphSeed: {
 				nodes: seedNodes,
 				edges: [],
 				initialSelectionNodeId: null,
 			},
 			cardIndex: {},
-			entryCardIdByPackage: {},
+			entryCardIdByChapter: {},
+			chapterSummaries: [],
 		});
 
 		useStoryEditorStore.getState().applyCanvasFlushResult({
@@ -165,17 +174,18 @@ describe("storyEditorStore", () => {
 	});
 
 	it("保存成功清 dirty；失败保留 dirty 并记 validation", function () {
-		const bundle = minimalBundle("pkg_a", "card_1");
+		const bundle = minimalBundle("ch_a", "card_1");
 		useStoryEditorStore.getState().applyPackageLoadResult({
 			ok: true,
 			packageId: "pkg_a",
+			chapterId: "ch_a",
 			diskPackages: [],
 			bundle,
 			graphSeed: { nodes: [], edges: [], initialSelectionNodeId: null },
 			cardIndex: {},
-			entryCardIdByPackage: { pkg_a: "card_1" },
+			entryCardIdByChapter: { ch_a: "card_1" },
+			chapterSummaries: [],
 		});
-		// 模拟保存前 flush：组 bundle 以 flushedGraph 为准
 		useStoryEditorStore.getState().applyCanvasFlushResult({
 			nodes: [{ id: "n_save" }],
 			edges: [],
@@ -184,7 +194,7 @@ describe("storyEditorStore", () => {
 			1,
 		);
 		useStoryEditorStore.getState().applyBundleWriteResult(
-			minimalBundle("pkg_a", "card_2"),
+			minimalBundle("ch_a", "card_2"),
 		);
 		useStoryEditorStore.getState().applySaveStarted();
 		expect(useStoryEditorStore.getState().savePhase).toBe("saving");
@@ -214,7 +224,7 @@ describe("storyEditorStore", () => {
 
 		useStoryEditorStore.getState().applySaveStarted();
 		useStoryEditorStore.getState().applySaveSuccess({
-			bundle: minimalBundle("pkg_a", "card_2"),
+			bundle: minimalBundle("ch_a", "card_2"),
 			validation: {
 				packageId: "pkg_a",
 				errors: [],
@@ -224,14 +234,14 @@ describe("storyEditorStore", () => {
 		const state = useStoryEditorStore.getState();
 		expect(state.savePhase).toBe("saved");
 		expect(selectStoryEditorIsDirty(state)).toBe(false);
-		expect(state.entryCardIdByPackage.pkg_a).toBe("card_2");
+		expect(state.entryCardIdByChapter.ch_a).toBe("card_2");
 	});
 
 	it("bumpStoryEditorRefreshStamp 递增且 reset 保留 stamp", function () {
 		useStoryEditorStore.getState().bumpStoryEditorRefreshStamp();
 		useStoryEditorStore.getState().bumpStoryEditorRefreshStamp();
 		expect(useStoryEditorStore.getState().refreshStamp).toBe(2);
-		useStoryEditorStore.getState().applyPackageLoadStarted("pkg_x");
+		useStoryEditorStore.getState().applyPackageLoadStarted("pkg_x", "ch_x");
 		useStoryEditorStore.getState().resetStoryEditorSession();
 		const state = useStoryEditorStore.getState();
 		expect(state.packageId).toBe("");

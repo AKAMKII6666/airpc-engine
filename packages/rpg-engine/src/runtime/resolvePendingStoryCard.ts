@@ -28,10 +28,10 @@ export function resolvePendingStoryCard(input: {
 			return (
 				lookupCharacterSideCard(
 					ws,
-					instance.packageId,
+					instance.chapterId,
 					instance.cardId,
 				)?.entryMode ??
-				ws.packages.get(instance.packageId)?.cards.get(instance.cardId)
+				ws.chapters.get(instance.chapterId)?.cards.get(instance.cardId)
 					?.entryMode
 			);
 		},
@@ -40,12 +40,12 @@ export function resolvePendingStoryCard(input: {
 		return null;
 	}
 	const card =
-		lookupCharacterSideCard(ws, pending.packageId, pending.cardId) ??
-		ws.packages.get(pending.packageId)?.cards.get(pending.cardId);
+		lookupCharacterSideCard(ws, pending.chapterId, pending.cardId) ??
+		ws.chapters.get(pending.chapterId)?.cards.get(pending.cardId);
 	if (!card) {
 		return engineError(
 			"NOT_FOUND",
-			`card not loaded: ${pending.packageId}/${pending.cardId}; use resolveAsync`,
+			`card not loaded: ${pending.chapterId}/${pending.cardId}; use resolveAsync`,
 		);
 	}
 	const voicemailReject = rejectVoicemailAsDialCard(card);
@@ -58,7 +58,7 @@ export function resolvePendingStoryCard(input: {
 		instanceId: pending.instanceId,
 		cardId: pending.cardId,
 		agentId: pending.agentId,
-		packageId: pending.packageId,
+		chapterId: pending.chapterId,
 		intent,
 		card: structuredClone(card),
 	};

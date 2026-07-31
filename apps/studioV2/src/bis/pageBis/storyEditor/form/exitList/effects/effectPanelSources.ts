@@ -27,6 +27,8 @@ export type BuildEffectPanelSourcesArgs = {
 		* 与画布包内 cardKind=schedule 剧情节点分离。
 		*/
 	scheduleCards?: readonly ScheduleCardSummary[];
+	/** 画布是否已有章节结束；false 时面板禁止选 end_story */
+	hasChapterEnd?: boolean;
 };
 
 /**
@@ -42,6 +44,7 @@ export function buildEffectPanelSources(
 		packages,
 		assets,
 		scheduleCards = [],
+		hasChapterEnd = false,
 	} = args;
 	const characters: CallCardLabelOption[] = characterAnchors.map((anchor) => ({
 		value: anchor.agentId,
@@ -85,5 +88,6 @@ export function buildEffectPanelSources(
 		scheduleCards: scheduleCardOptions,
 		cardOwnerAgentId,
 		cardKindById,
+		hasChapterEnd,
 	};
 }

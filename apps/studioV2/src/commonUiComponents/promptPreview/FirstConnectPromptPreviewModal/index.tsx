@@ -34,7 +34,7 @@ export const FirstConnectPromptPreviewModal: FC<
 	const { onClose } = props;
 	// card 表示草稿卡 JSON，用于渲染请求
 	const { card } = props;
-	// packageId 表示故事包键，用于渲染请求
+	// packageId 表示故事章 chapterId（Free 可省略），用于渲染请求
 	const { packageId } = props;
 	// title 表示弹层标题，用于展示
 	const { title = "首通提示词预览" } = props;
@@ -105,19 +105,21 @@ export const FirstConnectPromptPreviewModal: FC<
 				<PromptPreviewResultPanels result={preview.result} />
 			</AppModal>
 
-			{/* 引用了UserGate组件，用于无玩家时硬门禁 */}
-			<UserGate
-				open={gateOpen}
-				currentUserId={preview.userId}
-				allowDismissWhenSelected
-				onClose={function () {
-					setGateOpen(false);
-				}}
-				onSelected={function () {
-					setGateOpen(false);
-				}}
-				title="选择玩家（提示词预览需要 Memory 上下文）"
-			/>
+			{preview.sessionReady && gateOpen ? (
+				// 引用了UserGate组件，用于无玩家时硬门禁（水合后按需挂载）
+				<UserGate
+					open
+					currentUserId={preview.userId}
+					allowDismissWhenSelected
+					onClose={function () {
+						setGateOpen(false);
+					}}
+					onSelected={function () {
+						setGateOpen(false);
+					}}
+					title="选择玩家（提示词预览需要 Memory 上下文）"
+				/>
+			) : null}
 		</>
 	);
 };

@@ -13,17 +13,16 @@ import { StoryEditorReadyStage } from "@studio-v2/src/pageComponents/storyEditor
 import { useStoryEditorShellController } from "@studio-v2/src/pageComponents/storyEditor/hooks/shell/useStoryEditorShellController";
 
 export type StoryEditorShellProps = {
-	/** 路由包键；打开与保存均针对 data/storis-packages 下该目录 */
 	packageId: string;
+	chapterId: string;
 };
 
 export const StoryEditorShell: FC<StoryEditorShellProps> = function ({
-	// packageId 是路由包键，用于磁盘整包读写
 	packageId,
+	chapterId,
 }) {
-	// 页级唯一 shell：打开包灌 stores/storyEditor；听 refreshStamp
-	useStoryEditorShellBis(packageId);
-	const shell = useStoryEditorShellController(packageId);
+	useStoryEditorShellBis(packageId, chapterId);
+	const shell = useStoryEditorShellController(packageId, chapterId);
 	const { loading, loadError, graphSeed, bundle } = shell.packageSession;
 
 	if (loading) {
@@ -46,6 +45,7 @@ export const StoryEditorShell: FC<StoryEditorShellProps> = function ({
 		// 引用了StoryEditorReadyStage组件，用于就绪态主舞台
 		<StoryEditorReadyStage
 			packageId={packageId}
+			chapterId={chapterId}
 			bundle={bundle}
 			graphSeed={graphSeed}
 			shell={shell}

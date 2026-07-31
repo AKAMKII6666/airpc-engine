@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   isEngineError,
-  SCHEDULE_PACKAGE_ID,
+  SCHEDULE_CHAPTER_ID,
 } from "../../src/index.js";
 import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
@@ -66,7 +66,7 @@ describe("ScheduleCard StorySave gate (REST-E6/E7)", () => {
     });
     expect(isEngineError(session)).toBe(false);
     if (isEngineError(session)) return;
-    expect(session.packageId).toBe(SCHEDULE_PACKAGE_ID);
+    expect(session.chapterId).toBe(SCHEDULE_CHAPTER_ID);
 
     const after = await host.ensureProfile("demo-user");
     expect(after.stories?.["__schedule__"]).toBeUndefined();

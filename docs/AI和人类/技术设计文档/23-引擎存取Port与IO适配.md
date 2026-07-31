@@ -181,22 +181,30 @@ interface ProfilePort {
 interface WorkspaceSnapshot {
   /** 逻辑工作区键；本机即 dataRoot 绝对/相对路径字符串 */
   workspaceKey: string;
-  /** packageId → conf；cards 映射可为空，按需 loadCard 再填 */
+  /**
+   * packageId → 包级 conf + 章索引。
+   * 运行时 Story 装包一次载入单个 packageId 下全部 chapters[] conf；卡正文按需 readCard。
+   */
   packages: Array<{
     packageId: string;
-    conf: StoryPackageConf;
-    /** 实现私有定位提示（本机可为目录绝对路径）；引擎不当作公共 API 依赖 */
+    conf: PackageConf;           // package.conf.json
+    chapters: Array<{
+      chapterId: string;
+      conf: StoryChapterConf;    // chapters/<chapterId>/story.conf.json（可 lazy：索引阶段仅 id+title）
+      chapterLocator?: string;   // 实现私有；引擎不依赖
+    }>;
     packageLocator?: string;
   }>;
-  characters: CharacterDef[];           // agentId 唯一
-  freeCards: CallCardDefinition[];      // cardKind free|schedule
-  scheduleCards: CallCardDefinition[];  // cardKind schedule
+  characters: CharacterDef[];
+  freeCards: CallCardDefinition[];
+  scheduleCards: CallCardDefinition[];
 }
 
 interface ContentPort {
   /**
-   * 加载工作区索引。schemaVersion 不支持：throw SCHEMA_UNSUPPORTED。
-   * 无 storis-packages 目录：packages=[]，不抛。
+   * 加载工作区索引（可列出全部包及其章列表）。
+   * 扁平旧包经 IO 自动迁移为嵌套 layout（见 [19 §3.5](./19-引擎宿主与会话模型.md)）。
+   * schemaVersion 不支持：throw SCHEMA_UNSUPPORTED。
    */
   loadWorkspaceSnapshot(input: {
     workspaceKey: string;
@@ -204,27 +212,33 @@ interface ContentPort {
 
   /**
    * 按需读单卡。
-   * packageId 为故事包 id，或哨兵 __free__ / __schedule__（与引擎常量一致）。
-   * 不存在：返回 null（Host 转 NOT_FOUND）；损坏：throw VALIDATION_FAILED。
+   * packageId：故事包 id，或哨兵 __free__ / __schedule__（与引擎常量一致）。
+   * chapterId：包内章 id；哨兵通话与 packageId 哨兵成对（__free__ / __schedule__）。
+   * 不存在：null；损坏：throw VALIDATION_FAILED。
    */
   readCard(input: {
     workspaceKey: string;
     packageId: string;
+    chapterId: string;
     cardId: string;
   }): Promise<CallCardDefinition | null>;
 
-  /**
-   * 读故事包 conf（不强制带齐所有卡）。
-   * 不存在：null。
-   */
+  /** 读包级 package.conf.json；不存在：null */
   readPackageConf(input: {
     workspaceKey: string;
     packageId: string;
-  }): Promise<StoryPackageConf | null>;
+  }): Promise<PackageConf | null>;
+
+  /** 读章级 story.conf.json；不存在：null */
+  readChapterConf(input: {
+    workspaceKey: string;
+    packageId: string;
+    chapterId: string;
+  }): Promise<StoryChapterConf | null>;
 
   /**
-   * 校验装包：一次取出 validate 规则所需的全部可读内容（避免引擎 readFile）。
-   * 缺 conf：仍返回结构，由引擎规则报 SCHEMA / missing（或 Port 直接在 conf 位给 null）。
+   * 校验装包：**一次载入单个 packageId**（全部章 conf + conf 声明的卡正文）。
+   * 缺 conf：仍返回结构，由引擎规则报 SCHEMA / missing。
    */
   loadPackageForValidate(input: {
     workspaceKey: string;
@@ -256,12 +270,14 @@ interface ContentPort {
 
 interface PackageValidateBundle {
   packageId: string;
-  conf: StoryPackageConf | null;
-  /** conf.cards 声明的每张卡；缺文件则该 cardId 对应 null 或不出现（引擎按规则报） */
-  cards: Array<{ cardId: string; card: CallCardDefinition | null }>;
-  /** 全局角色表（引用校验）；可与 snapshot.characters 同源 */
+  packageConf: PackageConf | null;
+  chapters: Array<{
+    chapterId: string;
+    conf: StoryChapterConf | null;
+    /** conf.cards 声明的每张卡；缺文件则 card 为 null（引擎按规则报） */
+    cards: Array<{ cardId: string; card: CallCardDefinition | null }>;
+  }>;
   characters: CharacterDef[];
-  /** 可选：已解析的 AssetMeta 缓存，减少校验时往返 */
   assetsById?: Record<string, AssetMeta>;
 }
 ```
@@ -269,17 +285,20 @@ interface PackageValidateBundle {
 | 方法 | 入参 | 出参 |
 |------|------|------|
 | `loadWorkspaceSnapshot` | `{ workspaceKey }` | `WorkspaceSnapshot` |
-| `readCard` | `{ workspaceKey, packageId, cardId }` | `CallCardDefinition \| null` |
-| `readPackageConf` | `{ workspaceKey, packageId }` | `StoryPackageConf \| null` |
-| `loadPackageForValidate` | `{ workspaceKey, packageId }` | `PackageValidateBundle` |
+| `readCard` | `{ workspaceKey, packageId, chapterId, cardId }` | `CallCardDefinition \| null` |
+| `readPackageConf` | `{ workspaceKey, packageId }` | `PackageConf \| null` |
+| `readChapterConf` | `{ workspaceKey, packageId, chapterId }` | `StoryChapterConf \| null` |
+| `loadPackageForValidate` | `{ workspaceKey, packageId }` | `PackageValidateBundle`（**整包**） |
 | `assetMetaExists` | `{ workspaceKey, assetId }` | `boolean` |
 | `readAssetMeta` | `{ workspaceKey, assetId }` | `AssetMeta \| null` |
 | `assetUriExists?` | `{ workspaceKey, uri }` | `boolean` |
 
 **实现注意：**
 
-- `loadWorkspaceSnapshot` **不要**预读全部 `cards/*.s-card.json`（与现 `loadWorkspaceState` 一致）；正文按需 `readCard`。  
-- `__free__` / `__schedule__` 卡从 `characters/free-cards`、`characters/schedule-cards` 解析，不进 `storis-packages/`。  
+- `loadWorkspaceSnapshot` **不要**预读全部 `chapters/*/cards/*.s-card.json`；章 conf 可只读索引字段，正文按需 `readCard(packageId, chapterId, cardId)`。  
+- **一次载一包**：`loadPackageForValidate` 只接受单个 `packageId`，返回该包下全部章节；禁止跨包合并 validate bundle。  
+- 扁平旧布局（包根 `story.conf.json`）在 snapshot 前自动迁移（[17 §7.1](./17-版本迁移与兼容策略.md)）。  
+- `__free__` / `__schedule__` 卡从 `characters/free-cards`、`characters/schedule-cards` 解析；`readCard` 哨兵路径忽略 `chapterId` 或要求与 package 哨兵一致（实现注释钉死）。  
 - Zod/schema **解析可在 IO 模块完成**（返回已是引擎类型）；引擎 validate 规则吃结构化对象，不再 `readFile`。
 
 ---

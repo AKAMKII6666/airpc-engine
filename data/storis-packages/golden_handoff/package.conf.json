@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "packageId": "golden_handoff",
+  "title": "黄金样例：转介",
+  "entryChapterId": "golden_handoff",
+  "chapters": [
+    {
+      "chapterId": "golden_handoff"
+    }
+  ]
+}

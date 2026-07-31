@@ -38,7 +38,7 @@ export type CallSessionStatus =
 	| "aborted";
 
 export type CallIntent =
-  | { kind: "simulate_start"; packageId: string; cardId: string }
+  | { kind: "simulate_start"; chapterId: string; cardId: string }
   | { kind: "user_dial"; agentId: string }
   | { kind: "agent_outbound"; agentId: string }
   | { kind: "free_call"; agentId: string }
@@ -59,7 +59,7 @@ export interface ResolveResult {
 	instanceId: string;
 	cardId: string;
 	agentId: string;
-	packageId: string;
+	chapterId: string;
 	intent: CallIntent;
 	card: CallCardDefinition;
 }
@@ -104,7 +104,7 @@ export interface CallSession {
 	schemaVersion: 1;
 	sessionId: string;
 	userId: string;
-	packageId: string;
+	chapterId: string;
 	status: CallSessionStatus;
 	startedAt: string;
 	endedAt?: string;

@@ -20,12 +20,12 @@ function baseProfile() {
   });
 }
 
-function baseSession(packageId = "pkg_demo"): CallSession {
+function baseSession(chapterId = "pkg_demo"): CallSession {
   return {
     schemaVersion: 1,
     sessionId: "s1",
     userId: "u1",
-    packageId,
+    chapterId,
     status: "executing_effects",
     startedAt: "2026-01-01T00:00:00.000Z",
     resolve: {
@@ -33,7 +33,7 @@ function baseSession(packageId = "pkg_demo"): CallSession {
       instanceId: "inst1",
       cardId: "card_a",
       agentId: "agent_a",
-      intent: { kind: "simulate_start", packageId, cardId: "card_a" },
+      intent: { kind: "simulate_start", chapterId, cardId: "card_a" },
     },
     frozenCard: {
       cardId: "card_a",

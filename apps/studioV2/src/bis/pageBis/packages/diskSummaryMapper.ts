@@ -24,6 +24,7 @@ export function diskSummaryToPackageSummary(
 		lastExportedAt: null,
 		isStartup:
 			startupPackageId.length > 0 && disk.packageId === startupPackageId,
+		entryChapterId: disk.entryChapterId,
 	};
 }
 

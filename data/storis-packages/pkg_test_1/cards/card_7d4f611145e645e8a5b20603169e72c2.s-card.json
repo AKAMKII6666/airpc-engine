@@ -1,0 +1,52 @@
+{
+  "cardId": "card_7d4f611145e645e8a5b20603169e72c2",
+  "cardKind": "story",
+  "title": "打给白半仙算命",
+  "ownerAgentId": "bai-bansian",
+  "entryMode": "inbound_user_dial",
+  "interactionMode": "realtime_dialogue",
+  "context": {
+    "forbidden": []
+  },
+  "objectives": {
+    "requiredBeats": [
+      "白半仙给用户算了一次命，并分析了命理",
+      "用户没有和白半仙聊起算命的事情"
+    ]
+  },
+  "toolPolicy": {
+    "mode": "inherit_free"
+  },
+  "exits": [
+    {
+      "exitId": "exit_2bdcc4135575440a9371456c3add9cd9",
+      "title": "出口 1",
+      "priority": 0,
+      "condition": {
+        "op": "beat_completed",
+        "beatId": "白半仙给用户算了一次命，并分析了命理"
+      },
+      "effects": [
+        {
+          "id": "fx_8938b0bdaf9d44bab962cf2ffe5f7f55",
+          "effect": "attach_call_card"
+        }
+      ]
+    },
+    {
+      "exitId": "exit_f986abc6a36b4f59ad3af1050b358b4c",
+      "title": "出口 2",
+      "priority": 0,
+      "condition": {
+        "op": "beat_completed",
+        "beatId": "用户没有和白半仙聊起算命的事情"
+      },
+      "effects": [
+        {
+          "id": "fx_1b0dff0a3ee342bcbb6567935ed13eb4",
+          "effect": "end_story"
+        }
+      ]
+    }
+  ]
+}

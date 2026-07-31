@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "packageId": "pkg_test_1",
+  "lanes": [
+    {
+      "agentId": "lanxing",
+      "order": 0
+    },
+    {
+      "agentId": "bai-bansian",
+      "order": 1
+    }
+  ],
+  "nodes": [
+    {
+      "nodeId": "chapter_start",
+      "kind": "chapter_start",
+      "x": 122.57276084771397,
+      "y": 405.18251587103066,
+      "title": "test",
+      "summary": ""
+    },
+    {
+      "nodeId": "card_card_pkg_test_1_start",
+      "cardId": "card_pkg_test_1_start",
+      "x": 318.78577878077095,
+      "y": 382.02839396337856
+    },
+    {
+      "nodeId": "chapter_end",
+      "kind": "chapter_end",
+      "x": 1478.8722304618407,
+      "y": 244.99603941309027,
+      "title": "章节结束",
+      "summary": ""
+    },
+    {
+      "nodeId": "card_7d4f611145e645e8a5b20603169e72c2",
+      "cardId": "card_7d4f611145e645e8a5b20603169e72c2",
+      "x": 687.2005351511503,
+      "y": 508.59195549583853
+    },
+    {
+      "nodeId": "card_5c5401b383564b09b4c4db3d1d818f95",
+      "cardId": "card_5c5401b383564b09b4c4db3d1d818f95",
+      "x": 1103.633204257846,
+      "y": 452.7890801366857
+    }
+  ],
+  "edges": [
+    {
+      "edgeId": "role_card_7d4f611145e645e8a5b20603169e72c2_anchor_bai-bansian",
+      "edgeKind": "role",
+      "source": "card_7d4f611145e645e8a5b20603169e72c2",
+      "target": "bai-bansian",
+      "sourceHandle": "role",
+      "targetHandle": "role"
+    },
+    {
+      "edgeId": "story_chapter_start_card_card_pkg_test_1_start",
+      "edgeKind": "story",
+      "source": "chapter_start",
+      "target": "card_card_pkg_test_1_start",
+      "sourceHandle": "exit",
+      "targetHandle": "parent",
+      "label": "起点"
+    },
+    {
+      "edgeId": "role_card_card_pkg_test_1_start_anchor_lanxing",
+      "edgeKind": "role",
+      "source": "card_card_pkg_test_1_start",
+      "target": "lanxing",
+      "sourceHandle": "role",
+      "targetHandle": "role"
+    },
+    {
+      "edgeId": "effect_card_card_pkg_test_1_start_exit_f1da7e3719d643cfaf36b059b78c5f94_fx_43c07efc706e4d52948fb8a81f2629b5",
+      "edgeKind": "effect",
+      "source": "card_card_pkg_test_1_start",
+      "target": "card_7d4f611145e645e8a5b20603169e72c2",
+      "sourceHandle": "exit_f1da7e3719d643cfaf36b059b78c5f94",
+      "targetHandle": "parent",
+      "label": "挂载",
+      "effectKind": "attach",
+      "exitId": "exit_f1da7e3719d643cfaf36b059b78c5f94",
+      "effectId": "fx_43c07efc706e4d52948fb8a81f2629b5"
+    },
+    {
+      "edgeId": "story_end_card_card_pkg_test_1_start_exit_9af9a9bd9099477692dcb363b79b6ee1",
+      "edgeKind": "story",
+      "source": "card_card_pkg_test_1_start",
+      "target": "chapter_end",
+      "sourceHandle": "exit_9af9a9bd9099477692dcb363b79b6ee1",
+      "targetHandle": "parent",
+      "label": "结束"
+    },
+    {
+      "edgeId": "story_end_card_5c5401b383564b09b4c4db3d1d818f95_exit_0ef5a27838f64ecfa6ab74530d79c8a9",
+      "edgeKind": "story",
+      "source": "card_5c5401b383564b09b4c4db3d1d818f95",
+      "target": "chapter_end",
+      "sourceHandle": "exit_0ef5a27838f64ecfa6ab74530d79c8a9",
+      "targetHandle": "parent",
+      "label": "结束"
+    },
+    {
+      "edgeId": "xy-edge__card_7d4f611145e645e8a5b20603169e72c2exit_2bdcc4135575440a9371456c3add9cd9-card_5c5401b383564b09b4c4db3d1d818f95parent",
+      "edgeKind": "story",
+      "source": "card_7d4f611145e645e8a5b20603169e72c2",
+      "target": "card_5c5401b383564b09b4c4db3d1d818f95",
+      "sourceHandle": "exit_2bdcc4135575440a9371456c3add9cd9",
+      "targetHandle": "parent"
+    },
+    {
+      "edgeId": "story_end_card_7d4f611145e645e8a5b20603169e72c2_exit_f986abc6a36b4f59ad3af1050b358b4c",
+      "edgeKind": "story",
+      "source": "card_7d4f611145e645e8a5b20603169e72c2",
+      "target": "chapter_end",
+      "sourceHandle": "exit_f986abc6a36b4f59ad3af1050b358b4c",
+      "targetHandle": "parent",
+      "label": "结束"
+    },
+    {
+      "edgeId": "role_card_5c5401b383564b09b4c4db3d1d818f95_anchor_lanxing",
+      "edgeKind": "role",
+      "source": "card_5c5401b383564b09b4c4db3d1d818f95",
+      "target": "lanxing",
+      "sourceHandle": "role",
+      "targetHandle": "role"
+    }
+  ],
+  "note": "新建包种子：chapter_start 必有；引擎忽略本文件"
+}

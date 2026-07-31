@@ -4,11 +4,11 @@
 import { describe, expect, it } from "vitest";
 import {
   classifyCall,
-  FREE_PACKAGE_ID,
+  FREE_CHAPTER_ID,
   materializeRecurringOccurrences,
   reconcileRecurringIntents,
   resolveScheduledCardReference,
-  SCHEDULE_PACKAGE_ID,
+  SCHEDULE_CHAPTER_ID,
   type CallCardDefinition,
 } from "../../src/index.js";
 import type { PlayerProfile } from "../../src/schema/profile.js";
@@ -47,11 +47,11 @@ describe("resolveScheduledCardReference", () => {
     ownerAgentId: "agent_b",
   });
 
-  const lookup = (packageId: string, cardId: string) => {
-    if (packageId === SCHEDULE_PACKAGE_ID && cardId === "morning") return schedule;
-    if (packageId === SCHEDULE_PACKAGE_ID && cardId === "morning_b") return otherOwner;
-    if (packageId === FREE_PACKAGE_ID && cardId === "free_chat") return free;
-    if (packageId === "pkg_story" && cardId === "ch1") return story;
+  const lookup = (chapterId: string, cardId: string) => {
+    if (chapterId === SCHEDULE_CHAPTER_ID && cardId === "morning") return schedule;
+    if (chapterId === SCHEDULE_CHAPTER_ID && cardId === "morning_b") return otherOwner;
+    if (chapterId === FREE_CHAPTER_ID && cardId === "free_chat") return free;
+    if (chapterId === "pkg_story" && cardId === "ch1") return story;
     return undefined;
   };
 
@@ -75,7 +75,7 @@ describe("resolveScheduledCardReference", () => {
 
   it("显式指向 StoryCard → STORY_CARD_FORBIDDEN", () => {
     const r = resolveScheduledCardReference(
-      { agentId: "agent_a", packageId: "pkg_story", cardId: "ch1" },
+      { agentId: "agent_a", chapterId: "pkg_story", cardId: "ch1" },
       lookup,
     );
     expect(r.ok).toBe(false);
@@ -89,7 +89,7 @@ describe("resolveScheduledCardReference", () => {
     );
     expect(r.ok).toBe(true);
     if (r.ok) {
-      expect(r.packageId).toBe(SCHEDULE_PACKAGE_ID);
+      expect(r.chapterId).toBe(SCHEDULE_CHAPTER_ID);
       expect(r.cardKind).toBe("schedule");
     }
   });
@@ -103,7 +103,7 @@ describe("resolveScheduledCardReference", () => {
     const r = resolveScheduledCardReference(
       {
         agentId: "agent_a",
-        packageId: "pkg_non_schedule",
+        chapterId: "pkg_non_schedule",
         cardId: "misplaced_schedule",
       },
       () => explicitSchedule,
@@ -191,7 +191,7 @@ describe("reconcile + materialize 失效引用", () => {
 describe("classifyCall", () => {
   it("ScheduleCard / __schedule__ 非 narrative，free-like", () => {
     const c = classifyCall({
-      packageId: SCHEDULE_PACKAGE_ID,
+      chapterId: SCHEDULE_CHAPTER_ID,
       cardKind: "schedule",
       source: "story_pending",
     });
@@ -202,7 +202,7 @@ describe("classifyCall", () => {
 
   it("StoryCard 为 narrative", () => {
     const c = classifyCall({
-      packageId: "pkg",
+      chapterId: "pkg",
       cardKind: "story",
       source: "story_pending",
     });

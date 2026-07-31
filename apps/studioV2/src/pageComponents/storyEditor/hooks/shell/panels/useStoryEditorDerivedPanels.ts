@@ -7,7 +7,7 @@
 import { useMemo } from "react";
 import { buildEffectPanelSources } from "@studio-v2/src/bis/pageBis/storyEditor/form/exitList/effects/effectPanelSources";
 import { buildEntryCardSelectOptions } from "@studio-v2/src/bis/pageBis/storyEditor/package/conf/entryCardOptions";
-import type { ChapterPackageDiskContext } from "@studio-v2/src/bis/pageBis/storyEditor/form/chapter/chapterPropertyForm";
+import type { ChapterChapterDiskContext } from "@studio-v2/src/bis/pageBis/storyEditor/form/chapter/chapterPropertyForm";
 import type { EffectPanelSources } from "@studio-v2/typeFiles/story/editor/callCard/editorEffectParams";
 import type {
 	CharacterAnchorNodeData,
@@ -20,19 +20,22 @@ import type { CallCardLabelOption } from "@studio-v2/typeFiles/story/callCardLab
 
 export type UseStoryEditorDerivedPanelArgs = {
 	packageId: string;
+	chapterId: string;
 	characterAnchors: readonly CharacterAnchorNodeData[];
 	callCards: readonly EditorCallCardProjection[];
 	diskPackages: readonly StoryPackageSummary[];
 	assets: readonly AssetSummary[];
 	scheduleCards: readonly ScheduleCardSummary[];
-	cardIndex: ChapterPackageDiskContext["cardIndex"];
-	entryCardIdByPackage: ChapterPackageDiskContext["entryCardIdByPackage"];
+	cardIndex: ChapterChapterDiskContext["cardIndex"];
+	entryCardIdByChapter: ChapterChapterDiskContext["entryCardIdByChapter"];
+	/** 画布是否已有章节结束；与底栏 chapterEndDisabled 同源 */
+	hasChapterEnd: boolean;
 };
 
 export type StoryEditorDerivedPanels = {
 	effectPanelSources: EffectPanelSources;
 	entryCardOptions: CallCardLabelOption[];
-	chapterDiskCtx: ChapterPackageDiskContext;
+	chapterDiskCtx: ChapterChapterDiskContext;
 };
 
 /**
@@ -42,21 +45,22 @@ export function useStoryEditorDerivedPanels(
 	args: UseStoryEditorDerivedPanelArgs,
 ): StoryEditorDerivedPanels {
 	const {
-		packageId,
+		chapterId,
 		characterAnchors,
 		callCards,
 		diskPackages,
 		assets,
 		scheduleCards,
 		cardIndex,
-		entryCardIdByPackage,
+		entryCardIdByChapter,
+		hasChapterEnd,
 	} = args;
 
-	const chapterDiskCtx = useMemo<ChapterPackageDiskContext>(
+	const chapterDiskCtx = useMemo<ChapterChapterDiskContext>(
 		function () {
-			return { cardIndex, entryCardIdByPackage };
+			return { cardIndex, entryCardIdByChapter };
 		},
-		[cardIndex, entryCardIdByPackage],
+		[cardIndex, entryCardIdByChapter],
 	);
 
 	const effectPanelSources = useMemo(
@@ -67,16 +71,24 @@ export function useStoryEditorDerivedPanels(
 				packages: diskPackages,
 				assets,
 				scheduleCards,
+				hasChapterEnd,
 			});
 		},
-		[characterAnchors, callCards, diskPackages, assets, scheduleCards],
+		[
+			characterAnchors,
+			callCards,
+			diskPackages,
+			assets,
+			scheduleCards,
+			hasChapterEnd,
+		],
 	);
 
 	const entryCardOptions = useMemo(
 		function () {
-			return buildEntryCardSelectOptions(callCards, packageId, cardIndex);
+			return buildEntryCardSelectOptions(callCards, chapterId, cardIndex);
 		},
-		[callCards, packageId, cardIndex],
+		[callCards, chapterId, cardIndex],
 	);
 
 	return { effectPanelSources, entryCardOptions, chapterDiskCtx };

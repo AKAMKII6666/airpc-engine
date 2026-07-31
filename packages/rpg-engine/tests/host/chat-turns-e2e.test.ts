@@ -37,7 +37,7 @@ describe("E7 chat turns → endCall", () => {
 
     const resolved = await host.resolveAsync("demo-user", {
       kind: "simulate_start",
-      packageId: "golden_handoff",
+      chapterId: "golden_handoff",
       cardId: "doubao_intro_outbound",
     });
     if (isEngineError(resolved)) throw resolved;
@@ -95,7 +95,7 @@ describe("E7 chat turns → endCall", () => {
       channel: "text_turn",
     });
     if (isEngineError(session)) throw session;
-    expect(session.packageId).toBe("__free__");
+    expect(session.chapterId).toBe("__free__");
 
     const u1 = host.recordChatTurn(session.sessionId, {
       role: "user",

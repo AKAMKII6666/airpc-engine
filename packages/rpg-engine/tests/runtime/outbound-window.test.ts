@@ -77,7 +77,7 @@ function minimalProfile(
 					intentId: "i1",
 					agentId: "npc_a",
 					cardId: "c1",
-					packageId: "__free__",
+					chapterId: "__free__",
 					fireAtMs: 500,
 					status: "pending",
 				},

@@ -3,7 +3,7 @@
  * - 7.4 章节清场 + next（含无 next / delay 提前呼入）
  * - 7.5 EffectSink 成功/失败/critical/延迟 resolve/reject；endCall 等待 sink
  */
-import { cp, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { cp, mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -21,6 +21,7 @@ import {
 } from "../../src/index.js";
 import { executeEffects } from "../../src/runtime/effectExecutor.js";
 import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
+import { cloneChapter02 } from "../helpers/chapterTestFixtures.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -65,7 +66,7 @@ function baseSession(): CallSession {
     schemaVersion: 1,
     sessionId: "s1",
     userId: "u1",
-    packageId: "pkg",
+    chapterId: "pkg",
     status: "executing_effects",
     startedAt: "2026-01-01T00:00:00.000Z",
     resolve: {
@@ -75,7 +76,7 @@ function baseSession(): CallSession {
       agentId: "agent_a",
       intent: {
         kind: "simulate_start",
-        packageId: "pkg",
+        chapterId: "pkg",
         cardId: "card_a",
       },
     },
@@ -103,18 +104,12 @@ function baseSession(): CallSession {
   };
 }
 
-async function cloneChapter02(dataRoot: string): Promise<void> {
-  const srcPkg = path.join(dataRoot, "storis-packages/golden_handoff");
-  const dstPkg = path.join(dataRoot, "storis-packages/chapter_02");
-  await cp(srcPkg, dstPkg, { recursive: true });
-  const confPath = path.join(dstPkg, "story.conf.json");
-  const conf = JSON.parse(await readFile(confPath, "utf8")) as {
-    packageId?: string;
-    title?: string;
-  };
-  conf.packageId = "chapter_02";
-  conf.title = "Chapter 02";
-  await writeFile(confPath, JSON.stringify(conf, null, 2) + "\n", "utf8");
+async function cloneChapter02AfterLoad(
+	dataRoot: string,
+	host: ReturnType<typeof createTestHost>,
+): Promise<void> {
+	await cloneChapter02(dataRoot);
+	await host.loadWorkspace(dataRoot);
 }
 
 describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
@@ -132,19 +127,19 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
       tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-7.4-next-"));
       const dataRoot = path.join(tmpRoot, "data");
       await cp(dataSrc, dataRoot, { recursive: true });
-      await cloneChapter02(dataRoot);
 
       const host = createTestHost({ persist: false, dataRoot });
       await host.loadWorkspace(dataRoot);
+      await cloneChapter02AfterLoad(dataRoot, host);
       const profile = await host.ensureProfile("demo-user");
       profile.characters.xiaopi = { agentId: "xiaopi", unlocked: true };
       profile.stories.golden_handoff = {
-        packageId: "golden_handoff",
+        chapterId: "golden_handoff",
         status: "active",
         variables: {},
         lock: {
           activeStoryInstanceId: "inst-7.4",
-          packageId: "golden_handoff",
+          chapterId: "golden_handoff",
           lockLevel: "soft",
           allowedAgentIds: ["lanxing", "xiaopi"],
           blockedPolicy: "allow_with_warning",
@@ -157,7 +152,7 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
           {
             instanceId: "old-pending",
             cardId: "xiaopi_waiting_user",
-            packageId: "golden_handoff",
+            chapterId: "golden_handoff",
             agentId: "xiaopi",
             status: "pending",
             entryMode: "inbound_user_dial",
@@ -173,7 +168,7 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
             intentId: "once-old-ch1",
             agentId: "xiaopi",
             cardId: "xiaopi_waiting_user",
-            packageId: "golden_handoff",
+            chapterId: "golden_handoff",
             fireAtMs: 60_000,
             status: "pending",
             linkedInstanceId: "old-pending",
@@ -183,7 +178,7 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
 
       const resolved = await host.resolveAsync("demo-user", {
         kind: "simulate_start",
-        packageId: "golden_handoff",
+        chapterId: "golden_handoff",
         cardId: "doubao_intro_outbound",
       });
       if (isEngineError(resolved)) throw resolved;
@@ -206,7 +201,7 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
               reason: "to_chapter_02",
               cleanup: { clearStoryCards: "all", preserveFreeCards: true },
               next: {
-                packageId: "chapter_02",
+                chapterId: "chapter_02",
                 agentId: "xiaopi",
                 cardId: "xiaopi_waiting_user",
                 activation: "wait_user_dial",
@@ -244,7 +239,7 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
 
       const entry = after.callCards.board.byAgent.xiaopi?.pending.find(
         (p) =>
-          p.packageId === "chapter_02" &&
+          p.chapterId === "chapter_02" &&
           p.cardId === "xiaopi_waiting_user" &&
           p.status === "pending",
       );
@@ -265,12 +260,12 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
       const profile = await host.ensureProfile("demo-user");
       profile.characters.xiaopi = { agentId: "xiaopi", unlocked: true };
       profile.stories.golden_handoff = {
-        packageId: "golden_handoff",
+        chapterId: "golden_handoff",
         status: "active",
         variables: {},
         lock: {
           activeStoryInstanceId: "inst-7.4-free",
-          packageId: "golden_handoff",
+          chapterId: "golden_handoff",
           lockLevel: "soft",
           allowedAgentIds: ["lanxing", "xiaopi"],
           blockedPolicy: "allow_with_warning",
@@ -283,7 +278,7 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
           {
             instanceId: "old-story-pending",
             cardId: "xiaopi_waiting_user",
-            packageId: "golden_handoff",
+            chapterId: "golden_handoff",
             agentId: "xiaopi",
             status: "pending",
             entryMode: "inbound_user_dial",
@@ -294,7 +289,7 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
 
       const resolved = await host.resolveAsync("demo-user", {
         kind: "simulate_start",
-        packageId: "golden_handoff",
+        chapterId: "golden_handoff",
         cardId: "doubao_intro_outbound",
       });
       if (isEngineError(resolved)) throw resolved;
@@ -344,19 +339,19 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
       tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-7.4-delay-"));
       const dataRoot = path.join(tmpRoot, "data");
       await cp(dataSrc, dataRoot, { recursive: true });
-      await cloneChapter02(dataRoot);
 
       const host = createTestHost({ persist: false, dataRoot });
       await host.loadWorkspace(dataRoot);
+      await cloneChapter02AfterLoad(dataRoot, host);
       const profile = await host.ensureProfile("demo-user");
       profile.characters.xiaopi = { agentId: "xiaopi", unlocked: true };
       profile.stories.golden_handoff = {
-        packageId: "golden_handoff",
+        chapterId: "golden_handoff",
         status: "active",
         variables: {},
         lock: {
           activeStoryInstanceId: "inst-7.4-delay",
-          packageId: "golden_handoff",
+          chapterId: "golden_handoff",
           lockLevel: "soft",
           allowedAgentIds: ["lanxing", "xiaopi"],
           blockedPolicy: "allow_with_warning",
@@ -369,7 +364,7 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
 
       const resolved = await host.resolveAsync("demo-user", {
         kind: "simulate_start",
-        packageId: "golden_handoff",
+        chapterId: "golden_handoff",
         cardId: "doubao_intro_outbound",
       });
       if (isEngineError(resolved)) throw resolved;
@@ -391,7 +386,7 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
               effect: "end_story",
               cleanup: { clearStoryCards: "all", preserveFreeCards: true },
               next: {
-                packageId: "chapter_02",
+                chapterId: "chapter_02",
                 agentId: "xiaopi",
                 cardId: "xiaopi_waiting_user",
                 activation: "delay",
@@ -415,7 +410,7 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
       const mid = await host.ensureProfile("demo-user");
       const entry = mid.callCards.board.byAgent.xiaopi?.pending.find(
         (p) =>
-          p.packageId === "chapter_02" &&
+          p.chapterId === "chapter_02" &&
           p.cardId === "xiaopi_waiting_user" &&
           p.status === "pending",
       );
@@ -438,7 +433,7 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
       if (isEngineError(dial)) return;
       expect(dial.source).toBe("story_pending");
       expect(dial.cardId).toBe("xiaopi_waiting_user");
-      expect(dial.packageId).toBe("chapter_02");
+      expect(dial.chapterId).toBe("chapter_02");
 
       const call = await host.beginCall("demo-user", dial, {
         channel: "manual",
@@ -597,7 +592,7 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
 
       const resolved = await host.resolveAsync("demo-user", {
         kind: "simulate_start",
-        packageId: "golden_handoff",
+        chapterId: "golden_handoff",
         cardId: "doubao_intro_outbound",
       });
       if (isEngineError(resolved)) throw resolved;

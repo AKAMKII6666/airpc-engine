@@ -15,13 +15,13 @@ const STEP_Y = 200;
 	* 调用方：读包发现无 canvas.layout.json 时回落；禁止静默空 nodes。
 	*/
 export function buildDefaultCanvasLayout(
-	packageId: string,
+	chapterId: string,
 	cardIds: readonly string[],
 	laneAgentIds: readonly string[],
 ): StudioCanvasLayout {
 	return {
 		schemaVersion: 1,
-		packageId,
+		chapterId,
 		lanes: laneAgentIds.map(function (agentId, order) {
 			return { agentId, order };
 		}),

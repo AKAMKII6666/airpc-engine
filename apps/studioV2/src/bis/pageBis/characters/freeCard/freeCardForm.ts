@@ -8,6 +8,7 @@ import {
 	type FreeCapabilityToolId,
 	type ShellHangupCapabilityId,
 } from "@studio-v2/typeFiles/library/characters/freeCard/freeCapabilityOptions";
+import { createStudioId } from "@studio-v2/typeFiles/ids/createStudioId";
 
 /** Free 卡弹窗 Formik 值；落盘经 applyFreeCardForm → free-cards JSON */
 export type FreeCardFormValues = {
@@ -119,7 +120,10 @@ function mapScenesFromCard(
 				? dir
 				: "either";
 		return {
-			layerId: typeof l.layerId === "string" ? l.layerId : `scene_${index + 1}`,
+			layerId:
+				typeof l.layerId === "string" && l.layerId.trim() !== ""
+					? l.layerId
+					: createStudioId("scene"),
 			priority: index * 10,
 			match: {
 				callDirection,
@@ -162,7 +166,7 @@ export function toFreeCardFormValues(card: CallCardDefinition): FreeCardFormValu
 function scenesToDisk(scenes: PromptSceneLayerForm[]) {
 	return scenes.map(function (scene, index) {
 		return {
-			layerId: scene.layerId.trim() || `scene_${index + 1}`,
+			layerId: scene.layerId.trim() || createStudioId("scene"),
 			priority: index * 10,
 			match: {
 				callDirection: scene.match.callDirection,

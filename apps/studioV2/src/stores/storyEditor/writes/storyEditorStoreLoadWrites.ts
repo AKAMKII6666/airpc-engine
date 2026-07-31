@@ -10,8 +10,7 @@ import {
 
 type StoryEditorSet = StoreApi<StoryEditorStoreState>["setState"];
 
-const emptyCardIndex = createStoryEditorSessionSlice().cardIndex;
-const emptyEntryByPackage = createStoryEditorSessionSlice().entryCardIdByPackage;
+const emptySlice = createStoryEditorSessionSlice();
 
 /** 打开包开始 / 结果 / stamp / reset */
 export function createStoryEditorLoadActions(
@@ -24,9 +23,10 @@ export function createStoryEditorLoadActions(
 	| "resetStoryEditorSession"
 > {
 	return {
-		applyPackageLoadStarted(packageId) {
+		applyPackageLoadStarted(packageId, chapterId) {
 			set({
 				packageId: packageId.trim(),
+				chapterId: chapterId.trim(),
 				loading: true,
 				loadError: undefined,
 				savePhase: "idle",
@@ -39,6 +39,7 @@ export function createStoryEditorLoadActions(
 			if (!result.ok) {
 				set({
 					packageId: result.packageId.trim(),
+					chapterId: result.chapterId?.trim() ?? "",
 					loading: false,
 					loadError: result.message,
 					bundle: null,
@@ -48,20 +49,23 @@ export function createStoryEditorLoadActions(
 					confDirty: false,
 					graphDirty: false,
 					diskPackages: [],
-					cardIndex: emptyCardIndex,
-					entryCardIdByPackage: emptyEntryByPackage,
+					cardIndex: emptySlice.cardIndex,
+					entryCardIdByChapter: emptySlice.entryCardIdByChapter,
+					chapterSummaries: [],
 				});
 				return;
 			}
 			set({
 				packageId: result.packageId.trim(),
+				chapterId: result.chapterId.trim(),
 				loading: false,
 				loadError: undefined,
 				diskPackages: [...result.diskPackages],
 				bundle: result.bundle,
 				graphSeed: result.graphSeed,
 				cardIndex: { ...result.cardIndex },
-				entryCardIdByPackage: { ...result.entryCardIdByPackage },
+				entryCardIdByChapter: { ...result.entryCardIdByChapter },
+				chapterSummaries: [...result.chapterSummaries],
 				flushedGraph: null,
 				canvasPendingFlush: false,
 				confDirty: false,

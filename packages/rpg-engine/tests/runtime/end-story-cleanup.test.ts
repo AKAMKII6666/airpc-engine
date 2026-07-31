@@ -23,12 +23,12 @@ function baseProfile() {
     },
     stories: {
       golden_handoff: {
-        packageId: "golden_handoff",
+        chapterId: "golden_handoff",
         status: "active",
         variables: {},
         lock: {
           activeStoryInstanceId: "inst1",
-          packageId: "golden_handoff",
+          chapterId: "golden_handoff",
           lockLevel: "soft",
           allowedAgentIds: ["agent_a"],
           blockedPolicy: "allow_with_warning",
@@ -45,7 +45,7 @@ function baseProfile() {
               {
                 instanceId: "p1",
                 cardId: "story_card",
-                packageId: "golden_handoff",
+                chapterId: "golden_handoff",
                 agentId: "agent_a",
                 status: "pending",
                 entryMode: "either",
@@ -58,7 +58,7 @@ function baseProfile() {
               {
                 instanceId: "p2",
                 cardId: "other_story",
-                packageId: "other_pkg",
+                chapterId: "other_pkg",
                 agentId: "agent_b",
                 status: "pending",
                 createdAt: "2026-01-01T00:00:00.000Z",
@@ -66,7 +66,7 @@ function baseProfile() {
               {
                 instanceId: "p-sched",
                 cardId: "morning",
-                packageId: "__schedule__",
+                chapterId: "__schedule__",
                 agentId: "agent_b",
                 status: "pending",
                 entryMode: "outbound_auto",
@@ -85,7 +85,7 @@ function baseProfile() {
           intentId: "once1",
           agentId: "agent_a",
           cardId: "story_card",
-          packageId: "golden_handoff",
+          chapterId: "golden_handoff",
           fireAtMs: 60_000,
           status: "pending",
           linkedInstanceId: "p1",
@@ -105,12 +105,12 @@ function baseProfile() {
   });
 }
 
-function baseSession(packageId = "golden_handoff"): CallSession {
+function baseSession(chapterId = "golden_handoff"): CallSession {
   return {
     schemaVersion: 1,
     sessionId: "s1",
     userId: "u1",
-    packageId,
+    chapterId,
     status: "executing_effects",
     startedAt: "2026-01-01T00:00:00.000Z",
     resolve: {
@@ -118,7 +118,7 @@ function baseSession(packageId = "golden_handoff"): CallSession {
       instanceId: "inst1",
       cardId: "card_a",
       agentId: "agent_a",
-      intent: { kind: "simulate_start", packageId, cardId: "card_a" },
+      intent: { kind: "simulate_start", chapterId, cardId: "card_a" },
     },
     frozenCard: {
       cardId: "card_a",
@@ -147,7 +147,7 @@ function baseSession(packageId = "golden_handoff"): CallSession {
 describe("end_story cleanup (V1-E6)", () => {
   it("标记 completed、释放 lock、清 story pending、取消 once；保留 schedule/recurring", async () => {
     const profile = baseProfile();
-    expect(findActiveStoryLock(profile)?.packageId).toBe("golden_handoff");
+    expect(findActiveStoryLock(profile)?.chapterId).toBe("golden_handoff");
 
     const effects: Effect[] = [
       {
@@ -232,7 +232,7 @@ describe("end_story next (V1-E7)", () => {
           effect: "end_story",
           reason: "to_ch2",
           next: {
-            packageId: "chapter_02",
+            chapterId: "chapter_02",
             agentId: "agent_a",
             cardId: "ch2_entry",
             activation: "wait_user_dial",
@@ -264,12 +264,12 @@ describe("end_story next (V1-E7)", () => {
     const pending = profile.callCards.board.byAgent.agent_a?.pending ?? [];
     expect(pending).toHaveLength(1);
     expect(pending[0]?.cardId).toBe("ch2_entry");
-    expect(pending[0]?.packageId).toBe("chapter_02");
+    expect(pending[0]?.chapterId).toBe("chapter_02");
     expect(pending[0]?.entryMode).toBe("inbound_user_dial");
     // 非入口角色无 story pending
     expect(
       profile.callCards.board.byAgent.agent_b?.pending.every(
-        (p) => p.packageId === "__schedule__",
+        (p) => p.chapterId === "__schedule__",
       ),
     ).toBe(true);
   });
@@ -282,7 +282,7 @@ describe("end_story next (V1-E7)", () => {
           id: "e-imm",
           effect: "end_story",
           next: {
-            packageId: "chapter_02",
+            chapterId: "chapter_02",
             agentId: "agent_a",
             cardId: "ch2_entry",
             activation: "immediate",
@@ -316,7 +316,7 @@ describe("end_story next (V1-E7)", () => {
           id: "e-delay",
           effect: "end_story",
           next: {
-            packageId: "chapter_02",
+            chapterId: "chapter_02",
             agentId: "agent_a",
             cardId: "ch2_entry",
             activation: "delay",
@@ -351,6 +351,6 @@ describe("end_story next (V1-E7)", () => {
     expect(once?.status).toBe("pending");
     expect(once?.fireAtMs).toBe(300_000);
     expect(once?.linkedInstanceId).toBe(pending?.instanceId);
-    expect(once?.packageId).toBe("chapter_02");
+    expect(once?.chapterId).toBe("chapter_02");
   });
 });

@@ -22,7 +22,7 @@ const dataSrc = path.join(repoRoot, "data");
 function hardRejectLock(overrides?: Partial<ActiveStoryLock>): ActiveStoryLock {
   return {
     activeStoryInstanceId: "story-inst-1",
-    packageId: "golden_handoff",
+    chapterId: "golden_handoff",
     lockLevel: "hard",
     allowedAgentIds: ["lanxing"],
     blockedPolicy: "reject_call",
@@ -52,7 +52,7 @@ describe("ActiveStoryLock resolver gate", () => {
     const profile = await host.ensureProfile("demo-user");
     profile.characters.xiaopi = { agentId: "xiaopi", unlocked: true };
     profile.stories.golden_handoff = {
-      packageId: "golden_handoff",
+      chapterId: "golden_handoff",
       status: "active",
       variables: {},
       lock: hardRejectLock(),
@@ -80,7 +80,7 @@ describe("ActiveStoryLock resolver gate", () => {
     // 清 pending，避免未预载卡干扰读闸断言
     profile.callCards.board.byAgent = {};
     profile.stories.golden_handoff = {
-      packageId: "golden_handoff",
+      chapterId: "golden_handoff",
       status: "active",
       variables: {},
       lock: hardRejectLock(),
@@ -115,18 +115,18 @@ describe("ActiveStoryLock resolver gate", () => {
     await host.loadWorkspace(dataRoot);
     const profile = await host.ensureProfile("demo-user");
     profile.stories.other_pkg = {
-      packageId: "other_pkg",
+      chapterId: "other_pkg",
       status: "active",
       variables: {},
       lock: hardRejectLock({
-        packageId: "other_pkg",
+        chapterId: "other_pkg",
         allowedAgentIds: ["nobody"],
       }),
     };
 
     const sim = await host.resolveAsync("demo-user", {
       kind: "simulate_start",
-      packageId: "golden_handoff",
+      chapterId: "golden_handoff",
       cardId: "doubao_intro_outbound",
     });
     expect(isEngineError(sim)).toBe(false);
@@ -143,6 +143,6 @@ describe("ActiveStoryLock resolver gate", () => {
       packageId?: string;
     };
     expect(story?.status).toBe("active");
-    expect(story?.packageId).toBe("golden_handoff");
+    expect(story?.chapterId).toBe("golden_handoff");
   });
 });

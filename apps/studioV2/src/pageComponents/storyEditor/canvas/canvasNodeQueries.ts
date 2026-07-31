@@ -3,6 +3,7 @@
 	*/
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import type { Edge, Node } from "@xyflow/react";
+import { isProtectedChapterStartNode } from "@studio-v2/src/bis/pageBis/storyEditor/chapterStart/chapterStartGraph";
 import {
 	graphHasChapterEnd,
 	removeNodeAndIncidentEdges,
@@ -13,7 +14,7 @@ import type {
 	StoryEditorSelection,
 } from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
 
-/** 构造 removeNode：删节点+边，清选中 */
+/** 构造 removeNode：删节点+边，清选中；chapter_start 禁删 */
 export function createRemoveNodeCommand(args: {
 	nodesRef: MutableRefObject<Node[]>;
 	edgesRef: MutableRefObject<Edge[]>;
@@ -31,11 +32,16 @@ export function createRemoveNodeCommand(args: {
 		onSelectionChange,
 	} = args;
 	return (nodeId: string) => {
+		const target = nodesRef.current.find((n) => n.id === nodeId);
+		// 章节开始节点为编辑器硬约束，禁止删除
+		if (isProtectedChapterStartNode(target)) return;
 		const next = removeNodeAndIncidentEdges(
 			nodesRef.current,
 			edgesRef.current,
 			nodeId,
 		);
+		nodesRef.current = next.nodes;
+		edgesRef.current = next.edges;
 		setNodes(next.nodes);
 		setEdges(next.edges);
 		if (selectedIdRef.current === nodeId) {

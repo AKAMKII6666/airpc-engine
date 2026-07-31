@@ -21,8 +21,10 @@ import styles from "./NodePropertyForm.module.scss";
 
 export type NodePropertySubModulesProps = {
 	formik: FormikProps<NodePropertyFormValues>;
-	/** 仅 schedule 卡展示调度折叠区 */
+	/** 仅遗留 schedule 卡展示调度折叠区 */
 	showSchedule: boolean;
+	/** 非 voicemail：展示场景提示词与工具策略 */
+	showStoryExtras: boolean;
 	/** Effect 面板 id 下拉候选源；下传出口列表 */
 	effectPanelSources: EffectPanelSources;
 };
@@ -31,8 +33,10 @@ export const NodePropertySubModules: FC<NodePropertySubModulesProps> =
 	function NodePropertySubModules({
 		// formik 是属性浮窗 Formik，用于子模块自动绑
 		formik,
-		// showSchedule 表示是否展示 ScheduleMeta 折叠区
+		// showSchedule 是是否展示 ScheduleMeta 折叠区，用于遗留调度卡
 		showSchedule,
+		// showStoryExtras 是是否展示场景提示词与工具策略，用于非语音留言卡
+		showStoryExtras,
 		// effectPanelSources 是 Effect id 下拉候选源，用于出口列表
 		effectPanelSources,
 	}) {
@@ -43,16 +47,18 @@ export const NodePropertySubModules: FC<NodePropertySubModulesProps> =
 
 		return (
 			<>
-				<details className={styles.fold} open>
-					<summary>场景提示词</summary>
-					{/* 引用了AutoForm组件，用于 PromptSceneListEditor */}
-					<AutoForm
-						formik={formik}
-						mode="edit"
-						enabled
-						items={NODE_PROMPT_SCENE_ITEMS}
-					/>
-				</details>
+				{showStoryExtras ? (
+					<details className={styles.fold} open>
+						<summary>场景提示词</summary>
+						{/* 引用了AutoForm组件，用于 PromptSceneListEditor */}
+						<AutoForm
+							formik={formik}
+							mode="edit"
+							enabled
+							items={NODE_PROMPT_SCENE_ITEMS}
+						/>
+					</details>
+				) : null}
 
 				<details className={styles.fold} open>
 					<summary>出口列表</summary>
@@ -63,20 +69,22 @@ export const NodePropertySubModules: FC<NodePropertySubModulesProps> =
 					/>
 				</details>
 
-				<details className={styles.fold}>
-					<summary>工具策略</summary>
-					{/* 引用了AutoForm组件，用于 toolPolicy 模式与内置工具多选 */}
-					<AutoForm
-						formik={formik}
-						mode="edit"
-						enabled
-						items={toolPolicyItems}
-					/>
-				</details>
+				{showStoryExtras ? (
+					<details className={styles.fold}>
+						<summary>工具策略</summary>
+						{/* 引用了AutoForm组件，用于 toolPolicy 模式与内置工具多选 */}
+						<AutoForm
+							formik={formik}
+							mode="edit"
+							enabled
+							items={toolPolicyItems}
+						/>
+					</details>
+				) : null}
 
 				{showSchedule ? (
 					<details className={styles.fold} open>
-						<summary>调度条件</summary>
+						<summary>调度条件（遗留）</summary>
 						{/* 引用了AutoForm组件，用于 ScheduleMeta 字段 */}
 						<AutoForm
 							formik={formik}

@@ -44,6 +44,10 @@ export const EndStoryEffectPanel: FC<EffectPanelSlotProps> =
 		}
 		return (
 			<div className={styles.panel}>
+				{/* 引用了Typography组件，用于画布结束边说明 */}
+				<Typography variant="caption" className={styles.notice}>
+					应用到画布后，本出口会自动连到「章节结束」节点；也可从出口拖到章节结束（缺省会自动补本 Effect）。
+				</Typography>
 				{/* 引用了TextField组件，用于结束原因备注 */}
 				<TextField
 					size="small"

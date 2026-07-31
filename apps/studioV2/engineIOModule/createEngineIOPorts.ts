@@ -18,7 +18,7 @@ import { createSqliteMemoryPort } from "./memory/sqliteMemoryPort";
 // 引用了 Fs Profile 工厂，用于本机 profile.save.json 读写
 import { createFsProfilePort } from "./profile/fsProfilePort";
 // 引用了 Fs Content 工厂，用于本机 Workspace / 包 / 角色读
-import { createFsContentPort } from "./content/fsContentPort";
+import { createFsContentPort } from "./content/port/fsContentPort";
 // 引用了 Fs EngineLog 工厂，用于本机 jsonl 旁路日志
 import { createFsEngineLogPort } from "./log/fsEngineLogPort";
 
@@ -32,7 +32,7 @@ export type EngineIOPorts = {
 
 export { createSqliteMemoryPort } from "./memory/sqliteMemoryPort";
 export { createFsProfilePort } from "./profile/fsProfilePort";
-export { createFsContentPort } from "./content/fsContentPort";
+export { createFsContentPort } from "./content/port/fsContentPort";
 export { createFsEngineLogPort } from "./log/fsEngineLogPort";
 
 /**

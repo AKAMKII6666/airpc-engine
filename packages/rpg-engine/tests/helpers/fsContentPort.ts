@@ -13,7 +13,7 @@ import {
 	loadPackageForValidateFromFs,
 	readAssetMetaFromFs,
 	readCardFromFs,
-	readPackageConfFromFs,
+	readChapterConfFromFs,
 } from "./content/contentReads.js";
 
 /** 指向 workspaceKey=dataRoot 的 ContentPort；供 host 集成测注入。 */
@@ -25,8 +25,8 @@ export function createFsContentPort(): ContentPort {
 		readCard(input) {
 			return readCardFromFs(input);
 		},
-		readPackageConf(input) {
-			return readPackageConfFromFs(input);
+		readChapterConf(input) {
+			return readChapterConfFromFs(input);
 		},
 		loadPackageForValidate(input) {
 			return loadPackageForValidateFromFs(input);

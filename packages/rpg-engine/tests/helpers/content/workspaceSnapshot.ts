@@ -6,14 +6,20 @@ import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import {
 	CallCardDefinitionSchema,
+	ChapterConfSchema,
 	CharacterDefSchema,
-	StoryPackageConfSchema,
+	PackageConfSchema,
 	engineError,
 	type CallCardDefinition,
 	type CharacterDef,
-	type StoryPackageConf,
+	type ChapterConf,
+	type PackageConf,
 	type WorkspaceSnapshot,
 } from "../../../src/index.js";
+import {
+	ensureFlatPackageMigrated,
+	listChapterIds,
+} from "./packageMigrate.js";
 
 const SUPPORTED_SCHEMA = 1;
 
@@ -33,6 +39,73 @@ function parseOrValidationFailed<T>(
 	}
 }
 
+async function loadChapterEntry(
+	pkgDir: string,
+	chapterId: string,
+): Promise<WorkspaceSnapshot["packages"][0]["chapters"][0] | null> {
+	const chapterDir = path.join(pkgDir, "chapters", chapterId);
+	const confPath = path.join(chapterDir, "story.conf.json");
+	let confRaw: unknown;
+	try {
+		confRaw = await readJsonFile(confPath);
+	} catch {
+		return null;
+	}
+	const conf = parseOrValidationFailed(`chapter ${chapterId}`, () =>
+		ChapterConfSchema.parse(confRaw),
+	);
+	if (conf.schemaVersion !== SUPPORTED_SCHEMA) {
+		throw engineError(
+			"SCHEMA_UNSUPPORTED",
+			`chapter ${conf.chapterId} schemaVersion unsupported`,
+		);
+	}
+	return {
+		chapterId: conf.chapterId,
+		conf,
+		chapterLocator: chapterDir,
+	};
+}
+
+async function loadPackageContainer(
+	pkgDir: string,
+	dirName: string,
+): Promise<WorkspaceSnapshot["packages"][0] | null> {
+	await ensureFlatPackageMigrated(pkgDir, dirName);
+
+	let packageConf: PackageConf | undefined;
+	const packageConfPath = path.join(pkgDir, "package.conf.json");
+	try {
+		const raw = await readJsonFile(packageConfPath);
+		packageConf = parseOrValidationFailed("package.conf", () =>
+			PackageConfSchema.parse(raw),
+		);
+	} catch {
+		packageConf = undefined;
+	}
+
+	const chapterIds = packageConf
+		? packageConf.chapters.map((c) => c.chapterId)
+		: await listChapterIds(pkgDir);
+
+	const chapters: WorkspaceSnapshot["packages"][0]["chapters"] = [];
+	for (const chapterId of chapterIds) {
+		const entry = await loadChapterEntry(pkgDir, chapterId);
+		if (entry) {
+			chapters.push(entry);
+		}
+	}
+	if (chapters.length === 0) {
+		return null;
+	}
+
+	return {
+		chapterId: packageConf?.chapterId ?? dirName,
+		packageConf,
+		chapters,
+	};
+}
+
 async function loadPackages(
 	rootDir: string,
 ): Promise<WorkspaceSnapshot["packages"]> {
@@ -46,27 +119,10 @@ async function loadPackages(
 	const packages: WorkspaceSnapshot["packages"] = [];
 	for (const name of entries) {
 		const dir = path.join(packagesRoot, name);
-		const confPath = path.join(dir, "story.conf.json");
-		let confRaw: unknown;
-		try {
-			confRaw = await readJsonFile(confPath);
-		} catch {
-			continue;
+		const container = await loadPackageContainer(dir, name);
+		if (container) {
+			packages.push(container);
 		}
-		const conf = parseOrValidationFailed("story.conf", () =>
-			StoryPackageConfSchema.parse(confRaw),
-		);
-		if (conf.schemaVersion !== SUPPORTED_SCHEMA) {
-			throw engineError(
-				"SCHEMA_UNSUPPORTED",
-				`package ${conf.packageId} schemaVersion unsupported`,
-			);
-		}
-		packages.push({
-			packageId: conf.packageId,
-			conf,
-			packageLocator: dir,
-		});
 	}
 	return packages;
 }
@@ -115,8 +171,8 @@ async function loadSideCards(
 }
 
 /**
-	* 加载工作区索引（packages conf + 角色 + free/schedule 卡；不含故事卡正文）。
-	*/
+ * 加载工作区索引（packages conf + 角色 + free/schedule 卡；不含故事卡正文）。
+ */
 export async function loadWorkspaceSnapshotFromFs(
 	workspaceKey: string,
 ): Promise<WorkspaceSnapshot> {
@@ -158,15 +214,31 @@ export async function loadWorkspaceSnapshotFromFs(
 	};
 }
 
-/** 供 readPackageConf / validate 复用：按 packageId 找包目录。 */
+/** 供 readChapterConf / validate 复用：按 chapterId 全局找章目录。 */
+export async function findChapterDir(
+	workspaceKey: string,
+	chapterId: string,
+): Promise<{ dir: string; conf: ChapterConf; containerPackageId: string } | null> {
+	const packages = await loadPackages(workspaceKey);
+	for (const pkg of packages) {
+		const hit = pkg.chapters.find((c) => c.chapterId === chapterId);
+		if (hit?.chapterLocator) {
+			return {
+				dir: hit.chapterLocator,
+				conf: hit.conf,
+				containerPackageId: pkg.chapterId,
+			};
+		}
+	}
+	return null;
+}
+
+/** @deprecated 使用 findChapterDir */
 export async function findPackageDir(
 	workspaceKey: string,
-	packageId: string,
-): Promise<{ dir: string; conf: StoryPackageConf } | null> {
-	const packages = await loadPackages(workspaceKey);
-	const hit = packages.find((p) => p.packageId === packageId);
-	if (!hit?.packageLocator) {
-		return null;
-	}
-	return { dir: hit.packageLocator, conf: hit.conf };
+	chapterId: string,
+): Promise<{ dir: string; conf: ChapterConf } | null> {
+	const hit = await findChapterDir(workspaceKey, chapterId);
+	if (!hit) return null;
+	return { dir: hit.dir, conf: hit.conf };
 }

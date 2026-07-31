@@ -1,6 +1,5 @@
 /**
-	* 故事编辑器页级 shell：打开包 / refreshStamp → 灌 `stores/storyEditor`。
-	* 一类页只挂一次；不处理保存/属性按钮（feature bis）。
+	* 故事编辑器页级 shell：打开章 / refreshStamp → 灌 store。
 	*/
 "use client";
 
@@ -18,22 +17,24 @@ function errorMessage(error: unknown, fallback: string): string {
 
 /**
 	* 将磁盘打开结果映射为 store 结果型载荷。
-	* shell 只灌账；不在此写 dirty / save。
 	*/
 export function toStoryEditorLoadResult(
 	packageId: string,
+	chapterId: string,
 	result: Awaited<ReturnType<typeof loadPackageEditorSession>>,
 ): StoryEditorLoadResult {
 	if (!result.ok) {
 		return {
 			ok: false,
 			packageId,
+			chapterId,
 			message: result.message,
 		};
 	}
 	return {
 		ok: true,
 		packageId,
+		chapterId,
 		diskPackages: result.packages,
 		bundle: result.bundle,
 		graphSeed: {
@@ -42,15 +43,18 @@ export function toStoryEditorLoadResult(
 			initialSelectionNodeId: result.graphSeed.initialSelectionNodeId,
 		},
 		cardIndex: result.cardIndex,
-		entryCardIdByPackage: result.entryCardIdByPackage,
+		entryCardIdByChapter: result.entryCardIdByChapter,
+		chapterSummaries: result.chapterSummaries,
 	};
 }
 
 /**
-	* 挂载于故事编辑器页：按 packageId + refreshStamp 有界拉盘并灌 store。
-	* layout 阶段先 applyPackageLoadStarted，避免首屏误显失败态；离页 reset。
+	* 挂载于章编辑器页：按 packageId + chapterId + refreshStamp 拉盘灌 store。
 	*/
-export function useStoryEditorShellBis(packageId: string): void {
+export function useStoryEditorShellBis(
+	packageId: string,
+	chapterId: string,
+): void {
 	const refreshStamp = useStoryEditorStore(function (s) {
 		return s.refreshStamp;
 	});
@@ -75,18 +79,19 @@ export function useStoryEditorShellBis(packageId: string): void {
 
 	useLayoutEffect(
 		function () {
-			const trimmed = packageId.trim();
-			if (trimmed === "") {
+			const pkg = packageId.trim();
+			const ch = chapterId.trim();
+			if (pkg === "" || ch === "") {
 				resetStoryEditorSession();
 				return;
 			}
 
 			let cancelled = false;
-			applyPackageLoadStarted(trimmed);
+			applyPackageLoadStarted(pkg, ch);
 			void (async function () {
-				const raw = await loadPackageEditorSession(trimmed, errorMessage);
+				const raw = await loadPackageEditorSession(pkg, ch, errorMessage);
 				if (cancelled) return;
-				applyPackageLoadResult(toStoryEditorLoadResult(trimmed, raw));
+				applyPackageLoadResult(toStoryEditorLoadResult(pkg, ch, raw));
 			})();
 
 			return function () {
@@ -95,6 +100,7 @@ export function useStoryEditorShellBis(packageId: string): void {
 		},
 		[
 			packageId,
+			chapterId,
 			refreshStamp,
 			applyPackageLoadStarted,
 			applyPackageLoadResult,

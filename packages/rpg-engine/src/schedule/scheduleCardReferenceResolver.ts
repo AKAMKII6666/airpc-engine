@@ -1,11 +1,11 @@
 /**
  * 统一 Schedule/Free 卡引用解析（休整 REST-E1）。
  */
-import { FREE_PACKAGE_ID, SCHEDULE_PACKAGE_ID } from "../constants.js";
+import { FREE_CHAPTER_ID, SCHEDULE_CHAPTER_ID } from "../constants.js";
 import type { CallCardDefinition, CardKind } from "../schema/callCard.js";
 
 export type ScheduledCardLookup = (
-  packageId: string,
+  chapterId: string,
   cardId: string,
 ) => CallCardDefinition | undefined;
 
@@ -13,12 +13,12 @@ export type ScheduledCardRefInput = {
   agentId: string;
   scheduleCardId?: string;
   cardId?: string;
-  packageId?: string;
+  chapterId?: string;
 };
 
 export type ScheduledCardResolveOk = {
   ok: true;
-  packageId: string;
+  chapterId: string;
   cardId: string;
   cardKind: CardKind;
   ownerAgentId: string;
@@ -48,27 +48,27 @@ function fail(
 
 function resolveTargetIds(
   input: ScheduledCardRefInput,
-): { packageId: string; cardId: string } | ScheduledCardResolveFail {
+): { chapterId: string; cardId: string } | ScheduledCardResolveFail {
   if (typeof input.scheduleCardId === "string" && input.scheduleCardId) {
-    return { packageId: SCHEDULE_PACKAGE_ID, cardId: input.scheduleCardId };
+    return { chapterId: SCHEDULE_CHAPTER_ID, cardId: input.scheduleCardId };
   }
   if (
     typeof input.cardId === "string" &&
     input.cardId &&
-    typeof input.packageId === "string" &&
-    input.packageId
+    typeof input.chapterId === "string" &&
+    input.chapterId
   ) {
-    return { packageId: input.packageId, cardId: input.cardId };
+    return { chapterId: input.chapterId, cardId: input.cardId };
   }
-  return fail("MISSING_REF", "requires scheduleCardId or cardId+packageId");
+  return fail("MISSING_REF", "requires scheduleCardId or cardId+chapterId");
 }
 
 function assertKindAllowed(
-  packageId: string,
+  chapterId: string,
   kind: CardKind,
   viaScheduleCardId: boolean,
 ): ScheduledCardResolveFail | null {
-  if (viaScheduleCardId || packageId === SCHEDULE_PACKAGE_ID) {
+  if (viaScheduleCardId || chapterId === SCHEDULE_CHAPTER_ID) {
     if (kind !== "schedule") {
       return fail(
         "CARD_KIND",
@@ -95,7 +95,7 @@ function assertKindAllowed(
 /**
  * 解析 recurring / 调度意图的目标卡。
  * scheduleCardId → (__schedule__, id) 且 cardKind=schedule；
- * 显式 packageId+cardId → 允许 free/schedule，禁止 story。
+ * 显式 chapterId+cardId → 允许 free/schedule，禁止 story。
  */
 export function resolveScheduledCardReference(
   input: ScheduledCardRefInput,
@@ -107,18 +107,18 @@ export function resolveScheduledCardReference(
   const target = resolveTargetIds(input);
   if ("ok" in target && target.ok === false) return target;
 
-  const { packageId, cardId } = target as {
-    packageId: string;
+  const { chapterId, cardId } = target as {
+    chapterId: string;
     cardId: string;
   };
-  const card = lookup(packageId, cardId);
+  const card = lookup(chapterId, cardId);
   if (!card) {
-    return fail("CARD_NOT_FOUND", `card not found: ${packageId}/${cardId}`);
+    return fail("CARD_NOT_FOUND", `card not found: ${chapterId}/${cardId}`);
   }
 
   const kind = (card.cardKind ?? "story") as CardKind;
   const kindErr = assertKindAllowed(
-    packageId,
+    chapterId,
     kind,
     Boolean(input.scheduleCardId),
   );
@@ -133,7 +133,7 @@ export function resolveScheduledCardReference(
 
   return {
     ok: true,
-    packageId,
+    chapterId,
     cardId,
     cardKind: kind,
     ownerAgentId: card.ownerAgentId,

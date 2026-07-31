@@ -39,7 +39,7 @@ async function seedUnreadVoicemail(
 			id: "vm_lanxing_1",
 			agentId: "lanxing",
 			cardId: "lanxing_voicemail",
-			packageId: "wrong_number_act1",
+			chapterId: "wrong_number_act1",
 			text: "喂？是我，澜星。",
 			status: "unread",
 			createdAt: new Date().toISOString(),
@@ -129,7 +129,7 @@ describe("voicemail mailbox_open listen path", () => {
 			pending: [
 				{
 					instanceId: "inst_vm_corrupt",
-					packageId: "wrong_number_act1",
+					chapterId: "wrong_number_act1",
 					cardId: "lanxing_voicemail",
 					agentId: "lanxing",
 					status: "pending",

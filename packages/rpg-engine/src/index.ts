@@ -6,6 +6,8 @@
 export { ENGINE_PACKAGE_NAME, getEnginePackageName } from "./packageMeta.js";
 
 export {
+  FREE_CHAPTER_ID,
+  SCHEDULE_CHAPTER_ID,
   FREE_PACKAGE_ID,
   SCHEDULE_PACKAGE_ID,
   MEMORY_PROJECT_DEFAULTS,
@@ -213,7 +215,14 @@ export {
   getBuiltinTool,
   BUILTIN_TOOL_DEFINITIONS,
 } from "./tools/builtinRegistry.js";
-export { resolveToolPolicy, isToolAllowedOnCard } from "./tools/resolveToolPolicy.js";
+export { resolveToolPolicy, isToolAllowedOnCard, listToolsForCard } from "./tools/resolveToolPolicy.js";
+export { buildToolInstructionBlocks } from "./tools/instructions/buildToolInstructionBlocks.js";
+export {
+  getToolInputSchema,
+  TOOL_INPUT_SCHEMAS,
+} from "./tools/schemas/toolInputSchemas.js";
+export { parseToolArgs } from "./tools/schemas/parseToolArgs.js";
+export { toToolJsonSchema } from "./tools/schemas/toToolJsonSchema.js";
 export type {
   ToolDefinition,
   ToolInvokeResult,
@@ -245,6 +254,8 @@ export {
 
 export {
   CallCardDefinitionSchema,
+  ChapterConfSchema,
+  PackageConfSchema,
   StoryPackageConfSchema,
   FactMetaSchema,
   StoryPackageMetaSchema,
@@ -257,6 +268,8 @@ export {
   isScheduleCard,
   isVoicemailCard,
   type CallCardDefinition,
+  type ChapterConf,
+  type PackageConf,
   type StoryPackageConf,
   type FactMeta,
   type StoryPackageMeta,

@@ -10,10 +10,12 @@ import { createStudioId } from "@studio-v2/typeFiles/ids/createStudioId";
 export type CreatePackageResult = {
 	/** 落盘成功后的故事包目录键 */
 	packageId: string;
+	/** 首章 id；与 bundle.conf.chapterId 对齐 */
+	chapterId: string;
 };
 
 /**
-	* 由表单提交新建磁盘故事包；成功返回 packageId 供跳转编辑器。
+	* 由表单提交新建磁盘故事包；成功返回 packageId / chapterId 供跳转。
 	*/
 export async function commitCreatePackage(
 	values: CreatePackageFormValues,
@@ -26,5 +28,8 @@ export async function commitCreatePackage(
 		description: values.description.trim(),
 		withStartCard: values.withStartCard !== false,
 	});
-	return { packageId: bundle.conf.packageId };
+	return {
+		packageId,
+		chapterId: bundle.conf.chapterId,
+	};
 }

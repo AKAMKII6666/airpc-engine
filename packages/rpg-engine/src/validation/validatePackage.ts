@@ -3,7 +3,7 @@
  * 模块说明：校验规则留引擎；读盘只经 ContentPort（技术设计 23 §7）。
  * 卡片 / 资产 / 调度子规则已拆到同目录模块，避免触碰基线净增。
  */
-import { FREE_PACKAGE_ID } from "../constants.js";
+import { FREE_CHAPTER_ID } from "../constants.js";
 import type { ContentPort, PackageValidateBundle } from "../ports/contentPort.js";
 import type { CharacterDef } from "../schema/character.js";
 import type { ValidationIssue, ValidationReport } from "./types.js";
@@ -49,23 +49,24 @@ export async function validatePackage(
 	const errors: ValidationIssue[] = [];
 	const warnings: ValidationIssue[] = [];
 	const { bundle, workspaceKey, content } = input;
-	const packageId = bundle.packageId;
+	const chapterId = bundle.chapterId;
 	const characters =
 		input.characters ?? charactersMapFromBundle(bundle);
-	const confPath = `storis-packages/${packageId}/story.conf.json`;
+	const pkgSegment = bundle.containerPackageId ?? chapterId;
+	const confPath = `storis-packages/${pkgSegment}/chapters/${chapterId}/story.conf.json`;
 
-	if (packageId === FREE_PACKAGE_ID) {
+	if (chapterId === FREE_CHAPTER_ID) {
 		push(errors, {
 			ruleId: "FREE_PACKAGE_SENTINEL",
 			level: "error",
-			path: `storis-packages/${packageId}`,
-			message: "cannot validate __free__ sentinel as story package",
+			path: `storis-packages/${chapterId}`,
+			message: "cannot validate __free__ sentinel as story chapter",
 		});
-		return { packageId, errors, warnings };
+		return { chapterId, errors, warnings };
 	}
 
 	if (!validateConfOrReturn(bundle, confPath, errors, warnings)) {
-		return { packageId, errors, warnings };
+		return { chapterId, errors, warnings };
 	}
 	const conf = bundle.conf!;
 
@@ -130,7 +131,7 @@ export async function validatePackage(
 		warnings,
 	});
 
-	return { packageId, errors, warnings };
+	return { chapterId, errors, warnings };
 }
 
 /**

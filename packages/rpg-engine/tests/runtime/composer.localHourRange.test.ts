@@ -168,7 +168,7 @@ describe("composeRenderedPrompt localHourRange match", () => {
     });
     const nightScene = buildComposeScene({
       entryMode: "outbound_auto",
-      packageId: "golden_handoff",
+      chapterId: "golden_handoff",
       localNowIso: "2026-07-13T22:30:00+08:00",
       timeZone: "Asia/Shanghai",
     });
@@ -208,7 +208,7 @@ describe("composeRenderedPrompt localHourRange match", () => {
     });
     const lateScene = buildComposeScene({
       entryMode: "outbound_auto",
-      packageId: "golden_handoff",
+      chapterId: "golden_handoff",
       localNowIso: "2026-07-14T02:15:00+08:00",
       timeZone: "Asia/Shanghai",
     });

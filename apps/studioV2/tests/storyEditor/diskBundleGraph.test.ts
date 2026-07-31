@@ -1,7 +1,7 @@
 /**
 	* 磁盘整包 ↔ 画布图 roundtrip + 编辑接线落盘（wrong_number_act1 真包）。
 	*/
-import { access, mkdir, rm } from "node:fs/promises";
+import { access, rm } from "node:fs/promises";
 import path from "node:path";
 import type { Node } from "@xyflow/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -26,11 +26,22 @@ import { readCallCardData } from "@studio-v2/src/bis/pageBis/storyEditor/role/ro
 import {
 	readDiskStoryPackage,
 	writeDiskStoryPackage,
-} from "@studio-v2/src/utils/server/packages/fs/packagesFs.server";
+} from "@studio-v2/src/utils/server/packages/fs/package/packagesFs.server";
 import { resetStudioIdSeq } from "@studio-v2/typeFiles/ids/createStudioId";
 
 const REPO_ROOT = path.join(__dirname, "../../../..");
 const DATA_ROOT = path.join(REPO_ROOT, "data");
+
+function probeChapterCardsDir(probeId: string): string {
+	return path.join(
+		DATA_ROOT,
+		"storis-packages",
+		probeId,
+		"chapters",
+		probeId,
+		"cards",
+	);
+}
 
 function patchNodeData<T extends Record<string, unknown>>(
 	nodes: readonly Node[],
@@ -70,7 +81,7 @@ describe("diskBundleGraph", () => {
 		expect(seed.initialSelectionNodeId).toBe("card_wrong_number");
 
 		const roundtrip = editorGraphToBundle(bundle, seed.nodes, seed.edges);
-		expect(roundtrip.conf.packageId).toBe("wrong_number_act1");
+		expect(roundtrip.conf.chapterId).toBe("wrong_number_act1");
 		expect(roundtrip.conf.participants).toEqual([]);
 		expect(roundtrip.layout.lanes).toEqual([
 			{ agentId: "lanxing", order: 0 },
@@ -270,10 +281,6 @@ describe("diskBundleGraph", () => {
 	it("whole-package write persists edited session graph to disk", async () => {
 		const probeId = "studio_v2_edit_wiring_probe";
 		probeIds.push(probeId);
-		await mkdir(
-			path.join(DATA_ROOT, "storis-packages", probeId, "cards"),
-			{ recursive: true },
-		);
 
 		const source = await readDiskStoryPackage("wrong_number_act1");
 		const seed = bundleToEditorGraph(source, {
@@ -292,10 +299,10 @@ describe("diskBundleGraph", () => {
 		const bundle = editorGraphToBundle(source, nodes, seed.edges);
 		bundle.conf = {
 			...bundle.conf,
-			packageId: probeId,
+			chapterId: probeId,
 			title: "编辑接线探针包",
 		};
-		bundle.layout = { ...bundle.layout, packageId: probeId };
+		bundle.layout = { ...bundle.layout, chapterId: probeId };
 
 		await writeDiskStoryPackage(probeId, bundle);
 		const reread = await readDiskStoryPackage(probeId);
@@ -309,10 +316,6 @@ describe("diskBundleGraph", () => {
 	it("dock-placed CallCard appends conf.cards and writes s-card on save (V2-S8-4)", async () => {
 		const probeId = "studio_v2_new_card_probe";
 		probeIds.push(probeId);
-		await mkdir(
-			path.join(DATA_ROOT, "storis-packages", probeId, "cards"),
-			{ recursive: true },
-		);
 
 		const source = await readDiskStoryPackage("wrong_number_act1");
 		const seed = bundleToEditorGraph(source, {
@@ -340,17 +343,14 @@ describe("diskBundleGraph", () => {
 
 		bundle.conf = {
 			...bundle.conf,
-			packageId: probeId,
+			chapterId: probeId,
 			title: "新建卡探针包",
 		};
-		bundle.layout = { ...bundle.layout, packageId: probeId };
+		bundle.layout = { ...bundle.layout, chapterId: probeId };
 		await writeDiskStoryPackage(probeId, bundle);
 
 		const cardPath = path.join(
-			DATA_ROOT,
-			"storis-packages",
-			probeId,
-			"cards",
+			probeChapterCardsDir(probeId),
 			`${newCardId}.s-card.json`,
 		);
 		await access(cardPath);
@@ -408,26 +408,23 @@ describe("diskBundleGraph", () => {
 
 		bundle.conf = {
 			...bundle.conf,
-			packageId: probeId,
+			chapterId: probeId,
 			title: "删卡探针包",
 		};
-		bundle.layout = { ...bundle.layout, packageId: probeId };
+		bundle.layout = { ...bundle.layout, chapterId: probeId };
 		await writeDiskStoryPackage(probeId, {
 			conf: {
 				...source.conf,
-				packageId: probeId,
+				chapterId: probeId,
 				title: "删卡探针包",
 				cards: source.conf.cards,
 				entryCardId: source.conf.entryCardId,
 			},
 			cards: source.cards,
-			layout: { ...source.layout, packageId: probeId },
+			layout: { ...source.layout, chapterId: probeId },
 		});
 		const preDeletePath = path.join(
-			DATA_ROOT,
-			"storis-packages",
-			probeId,
-			"cards",
+			probeChapterCardsDir(probeId),
 			`${removedCardId}.s-card.json`,
 		);
 		await access(preDeletePath);
@@ -473,7 +470,7 @@ describe("diskBundleGraph", () => {
 		expect(bundle.conf.entryCardId).toBe("lanxing_callback_intro");
 	});
 
-	it("preserves edited entryCardId when card still on canvas (V2-S8-6)", async () => {
+	it("entryCardId follows chapter_start story edge over conf edit (V2-S8-6)", async () => {
 		const source = await readDiskStoryPackage("wrong_number_act1");
 		expect(source.conf.entryCardId).toBe("lanxing_wrong_number");
 		const seed = bundleToEditorGraph(source, {
@@ -491,7 +488,8 @@ describe("diskBundleGraph", () => {
 			seed.nodes,
 			seed.edges,
 		);
-		expect(bundle.conf.entryCardId).toBe("lanxing_callback_intro");
+		// 画布 chapter_start → lanxing_wrong_number 仍是真源，覆盖包配置浮窗手改
+		expect(bundle.conf.entryCardId).toBe("lanxing_wrong_number");
 	});
 
 	it("effect.critical survives projection roundtrip (V2-S8-6)", async () => {

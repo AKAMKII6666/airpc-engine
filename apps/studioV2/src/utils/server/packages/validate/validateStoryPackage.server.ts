@@ -1,31 +1,39 @@
 /**
-	* 故事包磁盘 validate：经 ContentPort 装包后调引擎纯规则 validatePackage。
-	* 仅 Next API / server FS 调用；禁止 client 直引。
+	* 故事章磁盘 validate：经 ContentPort 装章后调引擎 validatePackage。
 	*/
 import {
 	validatePackage,
 	type ValidationReport,
 } from "@airpc/rpg-engine";
-// 引用了本机 ContentPort，用于 loadPackageForValidate（禁止引擎直 fs）
-import { createFsContentPort } from "@studio-v2/engineIOModule/content/fsContentPort";
+import { createFsContentPort } from "@studio-v2/engineIOModule/content/port/fsContentPort";
 import { getStudioV2DataRoot } from "../../data/dataRoot.server";
+import { readDiskPackageConf } from "../fs/package/packagesFs.server";
 
 /**
-	* 对已落盘的 packageId 跑引擎校验（读 data/storis-packages）。
-	* 保存闸门须在写盘后调用；失败时由写盘层回滚。
+	* 对已落盘 chapterId 跑引擎校验。
 	*/
-export async function validateStoryPackageOnDisk(
-	packageId: string,
+export async function validateStoryChapterOnDisk(
+	chapterId: string,
 ): Promise<ValidationReport> {
 	const workspaceKey = getStudioV2DataRoot();
 	const content = createFsContentPort();
 	const bundle = await content.loadPackageForValidate({
 		workspaceKey,
-		packageId,
+		chapterId,
 	});
 	return validatePackage({
 		bundle,
 		workspaceKey,
 		content,
 	});
+}
+
+/**
+	* 校验包入口章（兼容旧调用）。
+	*/
+export async function validateStoryPackageOnDisk(
+	packageId: string,
+): Promise<ValidationReport> {
+	const packageConf = await readDiskPackageConf(packageId);
+	return validateStoryChapterOnDisk(packageConf.entryChapterId);
 }

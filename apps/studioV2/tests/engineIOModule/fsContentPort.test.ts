@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { isEngineError } from "@airpc/rpg-engine";
 // 引用了本机 Fs Content 工厂，用于验收迁出后的 Workspace/读卡行为等价
-import { createFsContentPort } from "../../engineIOModule/content/fsContentPort";
+import { createFsContentPort } from "../../engineIOModule/content/port/fsContentPort";
 
 const repoRoot = path.resolve(
 	path.dirname(fileURLToPath(import.meta.url)),
@@ -66,7 +66,9 @@ describe("FsContentPort", () => {
 		expect(snap.freeCards.length).toBeGreaterThan(0);
 		// 不预读故事卡正文：packages 无 cards 字段
 		expect(
-			snap.packages.every((p) => p.conf.packageId === p.packageId),
+			snap.packages.every(function (p) {
+				return p.packageConf?.packageId === p.packageId;
+			}),
 		).toBe(true);
 	});
 
@@ -74,13 +76,13 @@ describe("FsContentPort", () => {
 		const { port, dataRoot } = await setupDataRoot();
 		const card = await port.readCard({
 			workspaceKey: dataRoot,
-			packageId: "golden_handoff",
+			chapterId: "golden_handoff",
 			cardId: "demo_playback_hello",
 		});
 		expect(card?.cardId).toBe("demo_playback_hello");
 		const missing = await port.readCard({
 			workspaceKey: dataRoot,
-			packageId: "golden_handoff",
+			chapterId: "golden_handoff",
 			cardId: "no_such_card",
 		});
 		expect(missing).toBeNull();
@@ -104,9 +106,9 @@ describe("FsContentPort", () => {
 		const { port, dataRoot } = await setupDataRoot();
 		const bundle = await port.loadPackageForValidate({
 			workspaceKey: dataRoot,
-			packageId: "golden_handoff",
+			chapterId: "golden_handoff",
 		});
-		expect(bundle.conf?.packageId).toBe("golden_handoff");
+		expect(bundle.conf?.chapterId).toBe("golden_handoff");
 		expect(bundle.cards.length).toBeGreaterThan(0);
 		expect(bundle.characters.length).toBeGreaterThan(0);
 	});

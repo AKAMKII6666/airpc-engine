@@ -5,7 +5,7 @@
 "use client";
 
 import type { FC } from "react";
-import { MenuItem, TextField, Typography } from "@mui/material";
+import { MenuItem, TextField, Tooltip, Typography } from "@mui/material";
 import type { ExitCondition } from "@studio-v2/typeFiles/story/callCard/engineOutcome";
 import {
 	buildExitConditionForOp,
@@ -14,6 +14,7 @@ import {
 	summarizeExitCondition,
 	type ExitConditionV1Op,
 } from "@studio-v2/src/bis/pageBis/storyEditor/form/exitList/exitConditionForm";
+import { formatSelectOptionTooltip } from "@studio-v2/src/commonUiComponents/form/formatSelectOptionTooltip";
 // 引用了OutcomeFlagConditionFields组件，用于 outcome_flag 字段
 import { OutcomeFlagConditionFields } from "@studio-v2/src/pageComponents/storyEditor/com/panel/ExitListEditor/com/condition/OutcomeFlagConditionFields";
 // 引用了BeatIdConditionFields组件，用于 beat_* 字段
@@ -90,12 +91,22 @@ export const ExitConditionEditor: FC<ExitConditionEditorProps> =
 						);
 					}}
 				>
-					{EXIT_CONDITION_OP_OPTIONS.map((opt) => (
-						// 引用了MenuItem组件，用于条件 op 选项
-						<MenuItem key={opt.value} value={opt.value}>
-							{opt.label}
-						</MenuItem>
-					))}
+					{EXIT_CONDITION_OP_OPTIONS.map((opt) => {
+						const tip = formatSelectOptionTooltip(opt);
+						return (
+							// 引用了MenuItem组件，用于条件 op 选项
+							<MenuItem key={opt.value} value={opt.value}>
+								{tip != null ? (
+									// 引用了Tooltip组件，用于条件 op 的作用与典型场景
+									<Tooltip title={tip} placement="right">
+										<span>{opt.label}</span>
+									</Tooltip>
+								) : (
+									opt.label
+								)}
+							</MenuItem>
+						);
+					})}
 				</TextField>
 
 				{condition.op === "outcome_flag" ? (

@@ -20,7 +20,7 @@ export type VoicemailGenStackEntry = {
 	id: string;
 	agentId: string;
 	cardId: string;
-	packageId: string;
+	chapterId: string;
 	source: VoicemailGenStackSource;
 	createdAt: string;
 	instanceId?: string;
@@ -51,7 +51,7 @@ export function listVoicemailGenStack(
 }
 
 /**
- * 入栈：同一 cardId+packageId+agentId 且仍待物化时幂等跳过，
+ * 入栈：同一 cardId+chapterId+agentId 且仍待物化时幂等跳过，
  * 避免 attach 重复挂卡刷爆栈。
  */
 export function pushVoicemailGenStack(
@@ -65,7 +65,7 @@ export function pushVoicemailGenStack(
 	const already = tel.voicemailGenStack.some(function (item) {
 		return (
 			item.cardId === entry.cardId &&
-			item.packageId === entry.packageId &&
+			item.chapterId === entry.chapterId &&
 			item.agentId === entry.agentId
 		);
 	});
@@ -94,15 +94,15 @@ export function takeVoicemailGenStack(
 /** 目标卡是否为 voicemail（lookup 缺失或未找到 → false，走普通 Board 路径） */
 export function isLookupVoicemailCard(
 	lookupCard:
-		| ((packageId: string, cardId: string) => { cardKind?: string } | undefined)
+		| ((chapterId: string, cardId: string) => { cardKind?: string } | undefined)
 		| null
 		| undefined,
-	packageId: string,
+	chapterId: string,
 	cardId: string,
 ): boolean {
-	if (!lookupCard || !packageId || !cardId) {
+	if (!lookupCard || !chapterId || !cardId) {
 		return false;
 	}
-	const card = lookupCard(packageId, cardId);
+	const card = lookupCard(chapterId, cardId);
 	return card?.cardKind === "voicemail";
 }

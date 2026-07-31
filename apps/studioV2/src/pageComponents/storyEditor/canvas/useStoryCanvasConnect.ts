@@ -1,5 +1,5 @@
 /**
-	* 画布 onConnect / onConnectStart；从 useStoryCanvasGraph 拆出以降有效行数。
+	* 画布 onConnect / onConnectStart / isValidConnection；从 useStoryCanvasGraph 拆出。
 	*/
 "use client";
 
@@ -12,7 +12,10 @@ import {
 	type SetStateAction,
 } from "react";
 import type { Edge, Node } from "@xyflow/react";
-import { createCanvasOnConnect } from "@studio-v2/src/pageComponents/storyEditor/canvas/canvasConnectHandlers";
+import {
+	createCanvasOnConnect,
+	createIsValidCanvasConnection,
+} from "@studio-v2/src/pageComponents/storyEditor/canvas/canvasConnectHandlers";
 import type { StoryEditorSelection } from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
 
 export function useStoryCanvasConnect(args: {
@@ -44,11 +47,16 @@ export function useStoryCanvasConnect(args: {
 		[nodesRef, onSelectionChange, selectedIdRef, setEdges, setNodes],
 	);
 
+	const isValidConnection = useMemo(
+		() => createIsValidCanvasConnection({ nodesRef }),
+		[nodesRef],
+	);
+
 	const onConnectStart = useCallback((event: MouseEvent | TouchEvent) => {
 		// Alt/Meta 拖 = 效果边；普通拖 = 剧情流转/归属线
 		effectConnectArmedRef.current =
 			"altKey" in event && Boolean(event.altKey || event.metaKey);
 	}, []);
 
-	return { onConnect, onConnectStart };
+	return { onConnect, onConnectStart, isValidConnection };
 }

@@ -21,7 +21,7 @@ import {
 } from "@studio-v2/src/bis/pageBis/storyEditor/package/session/packageSessionLoad";
 import { buildNodeContextItems } from "@studio-v2/src/bis/pageBis/storyEditor/form/node/nodePropertyFormItems";
 import { diskSummaryToPackageSummary } from "@studio-v2/src/bis/pageBis/packages/diskSummaryMapper";
-import { readDiskStoryPackage } from "@studio-v2/src/utils/server/packages/fs/packagesFs.server";
+import { readDiskStoryPackage } from "@studio-v2/src/utils/server/packages/fs/package/packagesFs.server";
 import {
 	CREATE_ASSET_FORM_ITEMS,
 	CREATE_ASSET_INITIAL_VALUES,
@@ -50,15 +50,17 @@ describe("projectEditorPackageConfFromBundle", () => {
 	it("lists chapter next-package and entry-card Select options from disk index", async () => {
 		const act1 = await readDiskStoryPackage("wrong_number_act1");
 		const golden = await readDiskStoryPackage("golden_handoff");
-		const { cardIndex, entryCardIdByPackage } = buildPackageCardIndex([
+		const { cardIndex, entryCardIdByChapter } = buildPackageCardIndex([
 			act1,
 			golden,
 		]);
 		const summaries = [act1, golden].map(function (b) {
 			return diskSummaryToPackageSummary({
-				packageId: b.conf.packageId,
-				title: b.conf.title ?? b.conf.packageId,
+				packageId: b.conf.chapterId,
+				title: b.conf.title ?? b.conf.chapterId,
 				schemaVersion: b.conf.schemaVersion,
+				chapterCount: 1,
+				entryChapterId: b.conf.chapterId,
 				cardCount: b.conf.cards.length,
 				characterCount: projectEditorPackageConfFromBundle(b)
 					.participants.length,
@@ -82,9 +84,9 @@ describe("projectEditorPackageConfFromBundle", () => {
 				"golden_handoff",
 				"missing",
 				cardIndex,
-				entryCardIdByPackage,
+				entryCardIdByChapter,
 			),
-		).toBe(entryCardIdByPackage.golden_handoff);
+		).toBe(entryCardIdByChapter.golden_handoff);
 	});
 });
 

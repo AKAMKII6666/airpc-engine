@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "packageId": "wrong_number_act1",
+  "title": "第一幕：打错电话",
+  "entryChapterId": "wrong_number_act1",
+  "chapters": [
+    {
+      "chapterId": "wrong_number_act1"
+    }
+  ]
+}

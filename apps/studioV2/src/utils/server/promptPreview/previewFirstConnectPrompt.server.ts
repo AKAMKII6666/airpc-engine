@@ -3,12 +3,11 @@
 	* 仅 Server；Client 经 POST /api/prompt-preview。
 	*/
 import {
-	BUILTIN_TOOL_DEFINITIONS,
 	buildComposeScene,
+	buildToolInstructionBlocks,
 	composeRenderedPrompt,
 	isEngineError,
-	resolveToolPolicy,
-	type CallCardDefinition,
+	listToolsForCard,
 	type ComposeScene,
 	type RenderedPrompt,
 	type ToolDefinition,
@@ -55,18 +54,6 @@ function promptToSystemMessages(prompt: RenderedPrompt): string[] {
 	return parts;
 }
 
-function filterToolsForCard(card: CallCardDefinition): ToolDefinition[] {
-	const policy = resolveToolPolicy(card);
-	return BUILTIN_TOOL_DEFINITIONS.filter(function (t) {
-		if (policy.allowedToolIds === null) {
-			return (
-				t.toolId === "search_memory" || t.toolId === "get_memory_by_id"
-			);
-		}
-		return policy.allowedToolIds.includes(t.toolId);
-	});
-}
-
 /**
 	* 编辑期观测：按当前卡草稿 + 玩家 Profile/Memory 渲染首通 LLM 载荷。
 	* 不调用 beginCall，不写 Session。
@@ -84,6 +71,14 @@ export async function previewFirstConnectPrompt(
 		profile,
 		memory: host.getMemoryPort(),
 	});
+	const toolsForCard = listToolsForCard(v.card);
+	softExtras.push(
+		...buildToolInstructionBlocks(
+			toolsForCard.map(function (t) {
+				return t.toolId;
+			}),
+		),
+	);
 
 	const actualEntry =
 		v.callDirection === "outbound" ? "outbound_auto" : "inbound_user_dial";
@@ -92,7 +87,7 @@ export async function previewFirstConnectPrompt(
 	const composeScene = buildComposeScene({
 		entryMode: v.card.entryMode,
 		actualEntry,
-		packageId: v.packageId,
+		chapterId: v.packageId,
 		localNowIso,
 		timeZone: "Asia/Shanghai",
 		sceneOverride: {
@@ -124,7 +119,18 @@ export async function previewFirstConnectPrompt(
 		composeScene,
 		renderedPrompt: rendered,
 		matchedLayerIds: rendered.matchedLayerIds,
-		tools: filterToolsForCard(v.card),
+		/** 显式带上 description / inputSchema，避免观测窗只见冷元数据 */
+		tools: toolsForCard.map(function (t) {
+			return {
+				toolId: t.toolId,
+				displayName: t.displayName,
+				description: t.description,
+				inputSchema: t.inputSchema,
+				allowedCardKinds: t.allowedCardKinds,
+				allowedInPlayback: t.allowedInPlayback,
+				behavior: t.behavior,
+			};
+		}),
 		systemMessages,
 		systemJoined: systemMessages.join("\n\n"),
 		softExtras,

@@ -285,7 +285,7 @@ describe("E4c isolation + recurring", () => {
       afterTick.callCards.board.byAgent["lanxing"]?.pending?.some(
         (p) =>
           p.cardId === "lanxing_morning_checkin" &&
-          p.packageId === "__schedule__",
+          p.chapterId === "__schedule__",
       ),
     ).toBe(true);
   });

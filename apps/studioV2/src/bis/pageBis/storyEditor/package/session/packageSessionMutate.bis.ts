@@ -24,6 +24,8 @@ export type PackageSessionCanvasApi = {
 type PackageSessionMutateBisArgs = {
 	/** 路由包键；PUT 目标 */
 	packageId: string;
+	/** 路由章键；PUT 目标 */
+	chapterId: string;
 	/**
 		* 同步 flush 画布→store。
 		* 保存必须先成功；失败则中止（画布未挂载）。
@@ -37,7 +39,7 @@ type PackageSessionMutateBisArgs = {
 export function usePackageSessionMutateBis(
 	args: PackageSessionMutateBisArgs,
 ) {
-	const { packageId, flushCanvasToStore } = args;
+	const { packageId, chapterId, flushCanvasToStore } = args;
 	const bundle = useStoryEditorStore(function (s) {
 		return s.bundle;
 	});
@@ -61,6 +63,7 @@ export function usePackageSessionMutateBis(
 		async function () {
 			await commitStoryEditorPackageSave({
 				packageId,
+				chapterId,
 				bundle,
 				flushCanvasToStore,
 				applySaveStarted,
@@ -73,6 +76,7 @@ export function usePackageSessionMutateBis(
 			applySaveStarted,
 			applySaveSuccess,
 			bundle,
+			chapterId,
 			flushCanvasToStore,
 			packageId,
 		],

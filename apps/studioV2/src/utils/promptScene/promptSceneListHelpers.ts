@@ -3,10 +3,11 @@
 	* 供 bis 与 PromptSceneListEditor 共用；禁放 commonUiComponents（STRUCT-024）。
 	*/
 import type { PromptSceneLayerForm } from "@studio-v2/typeFiles/library/characters/form/characterFormShapes";
+import { createStudioId } from "@studio-v2/typeFiles/ids/createStudioId";
 
 export function emptyPromptScene(index: number): PromptSceneLayerForm {
 	return {
-		layerId: `scene_${index + 1}`,
+		layerId: createStudioId("scene"),
 		priority: index * 10,
 		match: {
 			callDirection: "either",

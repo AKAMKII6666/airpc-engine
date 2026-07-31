@@ -39,7 +39,7 @@ describe("manual story loop", () => {
 
     const resolved = await host.resolveAsync("demo-user", {
       kind: "simulate_start",
-      packageId: "golden_handoff",
+      chapterId: "golden_handoff",
       cardId: "doubao_intro_outbound",
     });
     expect(isEngineError(resolved)).toBe(false);
@@ -102,7 +102,7 @@ describe("manual story loop", () => {
 
     const resolved = await host.resolveAsync("demo-user", {
       kind: "simulate_start",
-      packageId: "golden_handoff",
+      chapterId: "golden_handoff",
       cardId: "doubao_intro_outbound",
     });
     if (isEngineError(resolved)) throw resolved;

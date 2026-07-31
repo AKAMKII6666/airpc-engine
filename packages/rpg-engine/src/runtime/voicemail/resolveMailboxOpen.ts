@@ -15,6 +15,7 @@ import {
 	lookupCharacterSideCard,
 	type WorkspaceState,
 } from "../../workspace/loadWorkspace.js";
+import { resolveChapterId } from "../../chapter/resolveChapterId.js";
 
 export type MailboxOpenIntent = Extract<CallIntent, { kind: "mailbox_open" }>;
 
@@ -33,25 +34,26 @@ function resolvePackageAndCard(
 	ws: WorkspaceState,
 	slot: VoicemailSlot,
 	cardId: string,
-): { packageId: string; card: CallCardDefinition } | EngineError {
-	if (slot.packageId) {
+): { chapterId: string; card: CallCardDefinition } | EngineError {
+	const slotChapterId = resolveChapterId(slot as Record<string, unknown>);
+	if (slotChapterId) {
 		const card =
-			lookupCharacterSideCard(ws, slot.packageId, cardId) ??
-			ws.packages.get(slot.packageId)?.cards.get(cardId);
+			lookupCharacterSideCard(ws, slotChapterId, cardId) ??
+			ws.chapters.get(slotChapterId)?.cards.get(cardId);
 		if (!card) {
 			return engineError(
 				"NOT_FOUND",
-				`voicemail card not loaded: ${slot.packageId}/${cardId}; use resolveAsync`,
+				`voicemail card not loaded: ${slotChapterId}/${cardId}; use resolveAsync`,
 			);
 		}
-		return { packageId: slot.packageId, card };
+		return { chapterId: slotChapterId, card };
 	}
-	for (const [packageId, pkg] of ws.packages) {
+	for (const [chapterId, pkg] of ws.chapters) {
 		const card =
-			lookupCharacterSideCard(ws, packageId, cardId) ??
+			lookupCharacterSideCard(ws, chapterId, cardId) ??
 			pkg.cards.get(cardId);
 		if (card) {
-			return { packageId, card };
+			return { chapterId, card };
 		}
 	}
 	return engineError(
@@ -121,7 +123,7 @@ export function resolveMailboxOpenIntent(input: {
 		instanceId: slot.instanceId ?? randomUUID(),
 		cardId: card.cardId,
 		agentId: intent.agentId,
-		packageId: located.packageId,
+		chapterId: located.chapterId,
 		intent,
 		card,
 	};

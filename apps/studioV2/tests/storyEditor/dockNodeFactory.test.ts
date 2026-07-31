@@ -41,7 +41,7 @@ describe("dockNodeFactory", () => {
 		expect(node).not.toBeNull();
 		expect(node?.type).toBe("chapter");
 		expect(node?.position).toEqual({ x: 10, y: 20 });
-		expect(node?.id).toMatch(/^card_chapter_end_/);
+		expect(node?.id).toMatch(/^card_[a-f0-9]{32}$/);
 		expect(node?.selected).toBe(true);
 		expect(node?.data).toEqual(data);
 	});

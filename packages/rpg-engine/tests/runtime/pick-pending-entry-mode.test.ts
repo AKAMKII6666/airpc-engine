@@ -41,7 +41,7 @@ describe("entryMode pending pick (S2)", () => {
       {
         instanceId: "i-out",
         cardId: "out_card",
-        packageId: "pkg",
+        chapterId: "pkg",
         agentId: "xiaopi",
         status: "pending",
         entryMode: "outbound_auto",
@@ -50,7 +50,7 @@ describe("entryMode pending pick (S2)", () => {
       {
         instanceId: "i-in",
         cardId: "in_card",
-        packageId: "pkg",
+        chapterId: "pkg",
         agentId: "xiaopi",
         status: "pending",
         entryMode: "inbound_user_dial",
@@ -66,7 +66,7 @@ describe("entryMode pending pick (S2)", () => {
       {
         instanceId: "i-in",
         cardId: "in_card",
-        packageId: "pkg",
+        chapterId: "pkg",
         agentId: "xiaopi",
         status: "pending",
         entryMode: "inbound_user_dial",
@@ -75,7 +75,7 @@ describe("entryMode pending pick (S2)", () => {
       {
         instanceId: "i-out",
         cardId: "out_card",
-        packageId: "pkg",
+        chapterId: "pkg",
         agentId: "xiaopi",
         status: "pending",
         entryMode: "outbound_auto",
@@ -92,7 +92,7 @@ describe("entryMode pending pick (S2)", () => {
         {
           instanceId: "i-out",
           cardId: "out_card",
-          packageId: "pkg",
+          chapterId: "pkg",
           agentId: "xiaopi",
           status: "pending",
           entryMode: "outbound_auto",
@@ -101,7 +101,7 @@ describe("entryMode pending pick (S2)", () => {
         {
           instanceId: "i-in",
           cardId: "in_card",
-          packageId: "pkg",
+          chapterId: "pkg",
           agentId: "xiaopi",
           status: "pending",
           entryMode: "inbound_user_dial",

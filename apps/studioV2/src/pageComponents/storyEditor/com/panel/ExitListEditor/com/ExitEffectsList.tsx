@@ -50,6 +50,12 @@ export const ExitEffectsList: FC<ExitEffectsListProps> =
 
 		function changeEffect(index: number, rawEffect: string): void {
 			const effect = coerceKnownEffectName(rawEffect);
+			if (effect === "end_story" && !sources.hasChapterEnd) {
+				window.alert(
+					"画布尚无「章节结束」节点，无法添加「结束故事」效果。请先在底栏放置章节结束节点。",
+				);
+				return;
+			}
 			// 切换 effect 同时复位 params 并重派生摘要，保证判别键一致且摘要不残留旧 effect 文案
 			const params = defaultEffectParams(effect);
 			patchRow(index, {

@@ -29,6 +29,10 @@ import {
 	type EditorEdgeKind,
 } from "@studio-v2/src/bis/pageBis/storyEditor/role/roleConnection";
 import { withoutLightweightDockNodes } from "@studio-v2/src/bis/pageBis/storyEditor/dock/dockNodeFactory";
+import {
+	ensureChapterStartNode,
+	resolveEntryCardIdFromChapterStart,
+} from "@studio-v2/src/bis/pageBis/storyEditor/chapterStart/chapterStartGraph";
 import type { EditorChapterNodeData } from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
 import type {
 	DiskStoryPackageBundle,
@@ -75,11 +79,13 @@ function layoutNodeToRfNode(
 	names: CharacterDisplayLookup,
 ): Node | null {
 	if (layoutNode.kind === "chapter_start" || layoutNode.kind === "chapter_end") {
+		const nextChapterId =
+			layoutNode.nextChapterId ?? layoutNode.nextPackageId ?? undefined;
 		const data: EditorChapterNodeData = {
 			kind: layoutNode.kind,
 			title: layoutNode.title ?? (layoutNode.kind === "chapter_start" ? "章节开始" : "章节结束"),
 			summary: layoutNode.summary ?? "",
-			nextPackageId: layoutNode.nextPackageId,
+			nextChapterId,
 			nextEntryCardId: layoutNode.nextEntryCardId,
 		};
 		return {
@@ -114,6 +120,47 @@ function storyEdgeStyle(): Record<string, unknown> {
 	return { stroke: "#7e8da4" };
 }
 
+function layoutEffectEdgeToRf(layoutEdge: StudioCanvasLayoutEdge): Edge {
+	const effectKind = layoutEdge.effectKind === "unmount" ? "unmount" : "attach";
+	const data: EffectEdgeData = {
+		edgeKind: "effect",
+		effectKind,
+		exitId: layoutEdge.exitId ?? "",
+		effectId: layoutEdge.effectId ?? "",
+	};
+	return {
+		id: layoutEdge.edgeId,
+		source: layoutEdge.source,
+		target: layoutEdge.target,
+		sourceHandle: layoutEdge.sourceHandle,
+		targetHandle: layoutEdge.targetHandle ?? "parent",
+		type: "effect",
+		label: layoutEdge.label ?? (effectKind === "attach" ? "挂载" : "卸载"),
+		style:
+			effectKind === "attach"
+				? { ...ATTACH_EFFECT_EDGE_STYLE }
+				: { ...UNMOUNT_EFFECT_EDGE_STYLE },
+		data,
+	};
+}
+
+function layoutStoryEdgeToRf(layoutEdge: StudioCanvasLayoutEdge): Edge {
+	const isEndStory =
+		layoutEdge.edgeId.startsWith("story_end_") ||
+		layoutEdge.label === "结束";
+	return {
+		id: layoutEdge.edgeId,
+		source: layoutEdge.source,
+		target: layoutEdge.target,
+		sourceHandle: layoutEdge.sourceHandle,
+		targetHandle: layoutEdge.targetHandle ?? "parent",
+		type: isEndStory ? "endStory" : undefined,
+		label: layoutEdge.label,
+		style: storyEdgeStyle(),
+		data: { edgeKind: "story", endStory: isEndStory || undefined },
+	};
+}
+
 function layoutEdgeToRfEdge(
 	layoutEdge: StudioCanvasLayoutEdge,
 ): Edge {
@@ -130,37 +177,9 @@ function layoutEdgeToRfEdge(
 		};
 	}
 	if (kind === "effect") {
-		const effectKind = layoutEdge.effectKind === "unmount" ? "unmount" : "attach";
-		const data: EffectEdgeData = {
-			edgeKind: "effect",
-			effectKind,
-			exitId: layoutEdge.exitId ?? "",
-			effectId: layoutEdge.effectId ?? "",
-		};
-		return {
-			id: layoutEdge.edgeId,
-			source: layoutEdge.source,
-			target: layoutEdge.target,
-			sourceHandle: layoutEdge.sourceHandle,
-			targetHandle: layoutEdge.targetHandle ?? "parent",
-			label: layoutEdge.label ?? (effectKind === "attach" ? "挂载" : "卸载"),
-			style:
-				effectKind === "attach"
-					? { ...ATTACH_EFFECT_EDGE_STYLE }
-					: { ...UNMOUNT_EFFECT_EDGE_STYLE },
-			data,
-		};
+		return layoutEffectEdgeToRf(layoutEdge);
 	}
-	return {
-		id: layoutEdge.edgeId,
-		source: layoutEdge.source,
-		target: layoutEdge.target,
-		sourceHandle: layoutEdge.sourceHandle,
-		targetHandle: layoutEdge.targetHandle ?? "parent",
-		label: layoutEdge.label,
-		style: storyEdgeStyle(),
-		data: { edgeKind: "story" },
-	};
+	return layoutStoryEdgeToRf(layoutEdge);
 }
 
 function findEntryNodeId(
@@ -189,12 +208,17 @@ export function bundleToEditorGraph(
 		.filter(function (n): n is Node {
 			return n != null;
 		});
-	const nodes = withoutLightweightDockNodes([
-		...anchorNodes,
-		...contentNodes,
-	] as Node[]);
+	const nodes = ensureChapterStartNode(
+		withoutLightweightDockNodes([
+			...anchorNodes,
+			...contentNodes,
+		] as Node[]),
+		bundle.conf.title ?? bundle.conf.chapterId,
+	);
 	const edges = (bundle.layout.edges ?? []).map(layoutEdgeToRfEdge);
-	const entryCardId = bundle.conf.entryCardId;
+	const entryCardId =
+		resolveEntryCardIdFromChapterStart(nodes, edges) ??
+		bundle.conf.entryCardId;
 	const initialSelectionNodeId =
 		(entryCardId ? findEntryNodeId(nodes, entryCardId) : null) ??
 		(nodes.find(function (n) {
@@ -214,7 +238,7 @@ function rfNodeToLayoutNode(node: Node): StudioCanvasLayoutNode | null {
 			y: node.position.y,
 			title: chapter.title,
 			summary: chapter.summary,
-			nextPackageId: chapter.nextPackageId,
+			nextChapterId: chapter.nextChapterId ?? chapter.nextPackageId,
 			nextEntryCardId: chapter.nextEntryCardId,
 		};
 	}
@@ -361,16 +385,16 @@ export function editorGraphToBundle(
 	}
 	const layout: StudioCanvasLayout = {
 		schemaVersion: base.layout.schemaVersion ?? 1,
-		packageId: base.conf.packageId,
+		chapterId: base.conf.chapterId,
 		lanes: deriveLayoutLanes({ conf: base.conf, cards }),
 		nodes: layoutNodes,
 		edges: layoutEdges,
 		note: base.layout.note,
 	};
-	const entryCardId = resolveEntryCardIdAfterCardSync(
-		base.conf.entryCardId,
-		confCardIds,
-	);
+	const entryFromChapter = resolveEntryCardIdFromChapterStart(nodes, edges);
+	const entryCardId =
+		entryFromChapter ??
+		resolveEntryCardIdAfterCardSync(base.conf.entryCardId, confCardIds);
 	return {
 		conf: {
 			...base.conf,

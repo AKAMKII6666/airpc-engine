@@ -8,7 +8,7 @@ import {
 	httpStatusForCode,
 } from "@studio-v2/src/utils/server/http/apiResponse.server";
 import { reloadStudioV2WorkspaceIfBooted } from "@studio-v2/src/utils/server/host/engineHost.server";
-import { createDiskStoryPackage } from "@studio-v2/src/utils/server/packages/fs/packagesFs.server";
+import { createDiskStoryPackage } from "@studio-v2/src/utils/server/packages/fs/package/packagesFs.server";
 import { listDiskStoryPackages } from "@studio-v2/src/utils/server/packages/list/packagesList.server";
 import { isValidPackageId } from "@studio-v2/src/utils/server/packages/paths/packagesPaths.server";
 import {

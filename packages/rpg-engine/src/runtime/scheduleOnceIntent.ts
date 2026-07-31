@@ -2,12 +2,14 @@
  * 模块名称：schedule once intent 解析／序列化
  * 从 scheduleTick 拆出：降低基线 maxFnLines／complexity。
  */
+import { resolveChapterId } from "../chapter/resolveChapterId.js";
+
 export type ScheduledOnceIntent = {
 	kind: "once";
 	intentId: string;
 	agentId: string;
 	cardId: string;
-	packageId: string;
+	chapterId: string;
 	topicHint?: string;
 	fireAtMs: number;
 	status: "pending" | "fired" | "cancelled" | "consumed";
@@ -35,7 +37,7 @@ function parseModernOnce(
 	row: Record<string, unknown>,
 ): ScheduledOnceIntent | null {
 	const cardId = typeof row.cardId === "string" ? row.cardId : "";
-	const packageId = typeof row.packageId === "string" ? row.packageId : "";
+	const chapterId = resolveChapterId(row);
 	const agentId = typeof row.agentId === "string" ? row.agentId : "";
 	const intentId =
 		typeof row.intentId === "string"
@@ -49,7 +51,7 @@ function parseModernOnce(
 			: typeof row.triggerAtMs === "number"
 				? row.triggerAtMs
 				: NaN;
-	if (!cardId || !packageId || !agentId || !intentId || !Number.isFinite(fireAtMs)) {
+	if (!cardId || !chapterId || !agentId || !intentId || !Number.isFinite(fireAtMs)) {
 		return null;
 	}
 	return {
@@ -57,7 +59,7 @@ function parseModernOnce(
 		intentId,
 		agentId,
 		cardId,
-		packageId,
+		chapterId,
 		topicHint: optionalString(row.topicHint),
 		fireAtMs,
 		status: parseOnceStatus(row.status),
@@ -72,8 +74,8 @@ function parseLegacyScheduleCallCard(
 	row: Record<string, unknown>,
 ): ScheduledOnceIntent | null {
 	const cardId = typeof row.cardId === "string" ? row.cardId : "";
-	const packageId = typeof row.packageId === "string" ? row.packageId : "";
-	if (!cardId || !packageId) {
+	const chapterId = resolveChapterId(row);
+	if (!cardId || !chapterId) {
 		return null;
 	}
 	const agentId = typeof row.agentId === "string" ? row.agentId : "";
@@ -88,7 +90,7 @@ function parseLegacyScheduleCallCard(
 		intentId,
 		agentId,
 		cardId,
-		packageId,
+		chapterId,
 		topicHint: optionalString(row.topicHint),
 		fireAtMs,
 		status: "pending",
@@ -119,7 +121,7 @@ export function serializeOnce(
 		intentId: once.intentId,
 		agentId: once.agentId,
 		cardId: once.cardId,
-		packageId: once.packageId,
+		chapterId: once.chapterId,
 		fireAtMs: once.fireAtMs,
 		status: once.status,
 	};

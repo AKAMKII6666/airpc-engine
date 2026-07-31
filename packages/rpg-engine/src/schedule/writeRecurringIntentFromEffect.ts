@@ -7,6 +7,7 @@ import {
   resolveScheduledCardReference,
   type ScheduledCardLookup,
 } from "./scheduleCardReferenceResolver.js";
+import { resolveChapterId } from "../chapter/resolveChapterId.js";
 
 function clampHour(v: unknown): number {
   return typeof v === "number" && Number.isFinite(v)
@@ -23,7 +24,7 @@ function clampMinute(v: unknown): number {
 function pickRef(effect: Effect): {
   scheduleCardId?: string;
   cardId?: string;
-  packageId?: string;
+  chapterId?: string;
 } {
   return {
     scheduleCardId:
@@ -34,10 +35,10 @@ function pickRef(effect: Effect): {
       typeof effect.cardId === "string" && effect.cardId
         ? effect.cardId
         : undefined,
-    packageId:
-      typeof effect.packageId === "string" && effect.packageId
-        ? effect.packageId
-        : undefined,
+    chapterId: (() => {
+      const id = resolveChapterId(effect as Record<string, unknown>);
+      return id || undefined;
+    })(),
   };
 }
 
@@ -56,9 +57,9 @@ export function writeRecurringIntentFromEffect(input: {
     profile.schedule = { clockMs: 0, intents: [] };
   }
   const ref = pickRef(effect);
-  if (!ref.scheduleCardId && !(ref.cardId && ref.packageId)) {
+  if (!ref.scheduleCardId && !(ref.cardId && ref.chapterId)) {
     throw new Error(
-      "schedule_recurring_call requires scheduleCardId or cardId+packageId",
+      "schedule_recurring_call requires scheduleCardId or cardId+chapterId",
     );
   }
   if (!lookupCard) {

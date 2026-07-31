@@ -30,12 +30,12 @@ function baseProfile() {
 	return profile;
 }
 
-function baseSession(packageId = "pkg_demo"): CallSession {
+function baseSession(chapterId = "pkg_demo"): CallSession {
 	return {
 		schemaVersion: 1,
 		sessionId: "s1",
 		userId: "u1",
-		packageId,
+		chapterId,
 		status: "executing_effects",
 		startedAt: "2026-01-01T00:00:00.000Z",
 		resolve: {
@@ -43,7 +43,7 @@ function baseSession(packageId = "pkg_demo"): CallSession {
 			instanceId: "inst1",
 			cardId: "card_a",
 			agentId: "agent_a",
-			intent: { kind: "simulate_start", packageId, cardId: "card_a" },
+			intent: { kind: "simulate_start", chapterId, cardId: "card_a" },
 		},
 		frozenCard: {
 			cardId: "card_a",
@@ -76,8 +76,8 @@ const storyCard: CallCardDefinition = {
 
 function lookupFromMap(
 	cards: Record<string, CallCardDefinition>,
-): (packageId: string, cardId: string) => CallCardDefinition | undefined {
-	return function (_packageId, cardId) {
+): (chapterId: string, cardId: string) => CallCardDefinition | undefined {
+	return function (_chapterId, cardId) {
 		return cards[cardId];
 	};
 }
@@ -93,7 +93,7 @@ describe("schedule_call_card voicemail divert (V2-VM-5)", () => {
 				effect: "schedule_call_card",
 				agentId: "lanxing",
 				cardId: "lanxing_voicemail",
-				packageId: "wrong_number_act1",
+				chapterId: "wrong_number_act1",
 				delayMinutes: 5,
 			},
 		];
@@ -150,7 +150,7 @@ describe("schedule_call_card voicemail divert (V2-VM-5)", () => {
 					effect: "schedule_call_card",
 					agentId: "lanxing",
 					cardId: "story_callback",
-					packageId: "wrong_number_act1",
+					chapterId: "wrong_number_act1",
 					delayMinutes: 5,
 				},
 			],

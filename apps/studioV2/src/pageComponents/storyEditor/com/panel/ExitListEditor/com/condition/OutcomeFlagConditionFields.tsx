@@ -4,9 +4,10 @@
 "use client";
 
 import type { FC } from "react";
-import { MenuItem, TextField } from "@mui/material";
+import { MenuItem, TextField, Tooltip } from "@mui/material";
 import type { ExitCondition } from "@studio-v2/typeFiles/story/callCard/engineOutcome";
 import { OUTCOME_FLAG_OPTIONS } from "@studio-v2/src/bis/pageBis/storyEditor/form/exitList/exitConditionForm";
+import { formatSelectOptionTooltip } from "@studio-v2/src/commonUiComponents/form/formatSelectOptionTooltip";
 
 export type OutcomeFlagConditionFieldsProps = {
 	condition: Extract<ExitCondition, { op: "outcome_flag" }>;
@@ -37,12 +38,22 @@ export const OutcomeFlagConditionFields: FC<OutcomeFlagConditionFieldsProps> =
 						});
 					}}
 				>
-					{OUTCOME_FLAG_OPTIONS.map((opt) => (
-						// 引用了MenuItem组件，用于 OutcomeFlag 选项
-						<MenuItem key={opt.value} value={opt.value}>
-							{opt.label}
-						</MenuItem>
-					))}
+					{OUTCOME_FLAG_OPTIONS.map((opt) => {
+						const tip = formatSelectOptionTooltip(opt);
+						return (
+							// 引用了MenuItem组件，用于 OutcomeFlag 选项
+							<MenuItem key={opt.value} value={opt.value}>
+								{tip != null ? (
+									// 引用了Tooltip组件，用于结果标记的作用与典型场景
+									<Tooltip title={tip} placement="right">
+										<span>{opt.label}</span>
+									</Tooltip>
+								) : (
+									opt.label
+								)}
+							</MenuItem>
+						);
+					})}
 				</TextField>
 				{/* 引用了TextField组件，用于 equals 布尔 */}
 				<TextField

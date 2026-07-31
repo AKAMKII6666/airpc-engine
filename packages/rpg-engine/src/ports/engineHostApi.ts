@@ -55,7 +55,7 @@ export interface EngineHost {
 	/** 显式踢会话／清 Profile 缓存；不重读 Content。禁与普通 Content 保存绑定。 */
 	resetRuntime(): void;
 	preloadCard(
-		packageId: string,
+		chapterId: string,
 		cardId: string,
 	): Promise<void | EngineError>;
 	ensureProfile(userId: string): Promise<PlayerProfile>;
@@ -125,7 +125,7 @@ export interface EngineHost {
 	appendWet(input: WetAppendInput): LogRecord | EngineError;
 	/** 重放视图：session 相关事件 + exit／effect plan 摘要（只读） */
 	getWetReplay(sessionId: string): Promise<WetReplayView | EngineError>;
-	getLoadedCardCount(packageId: string): number;
+	getLoadedCardCount(chapterId: string): number;
 	getMemoryPort(): MemoryPort | null;
 	/** 已注入的 ProfilePort；未注入为 null（须宿主注入后方可 ensure/save） */
 	getProfilePort(): ProfilePort | null;
@@ -133,7 +133,7 @@ export interface EngineHost {
 	getContentPort(): ContentPort | null;
 	/** 已注入的 EngineLogPort；未注入为 null（无则仅内存 ring，不落盘） */
 	getEngineLogPort(): EngineLogPort | null;
-	validatePackage(packageId: string): Promise<ValidationReport>;
+	validatePackage(chapterId: string): Promise<ValidationReport>;
 	/**
 	 * 推进 Profile.schedule.clockMs：物化到期 recurring→once，再 tick once → outbound pending。
 	 * 返回本拍 fired 列表，供调试台再 resolve(agent_outbound)。

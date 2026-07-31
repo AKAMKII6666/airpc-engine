@@ -105,7 +105,7 @@ describe("E4a refer_to_expert E2E", () => {
         row.cardId === "xiaopi_waiting_user",
     );
     expect(once).toBeTruthy();
-    expect(once?.packageId).toBe("golden_handoff");
+    expect(once?.chapterId).toBe("golden_handoff");
     expect(once?.status).toBe("pending");
     expect(typeof once?.fireAtMs).toBe("number");
 

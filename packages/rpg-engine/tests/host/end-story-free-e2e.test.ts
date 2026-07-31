@@ -39,12 +39,12 @@ describe("end_story no-next → Free (V1-E6 host)", () => {
     const profile = await host.ensureProfile("demo-user");
     profile.characters.xiaopi = { agentId: "xiaopi", unlocked: true };
     profile.stories.golden_handoff = {
-      packageId: "golden_handoff",
+      chapterId: "golden_handoff",
       status: "active",
       variables: {},
       lock: {
         activeStoryInstanceId: "inst-e6",
-        packageId: "golden_handoff",
+        chapterId: "golden_handoff",
         lockLevel: "soft",
         allowedAgentIds: ["lanxing", "xiaopi"],
         blockedPolicy: "allow_with_warning",
@@ -57,7 +57,7 @@ describe("end_story no-next → Free (V1-E6 host)", () => {
         {
           instanceId: "old-story-pending",
           cardId: "xiaopi_waiting_user",
-          packageId: "golden_handoff",
+          chapterId: "golden_handoff",
           agentId: "xiaopi",
           status: "pending",
           entryMode: "inbound_user_dial",
@@ -73,7 +73,7 @@ describe("end_story no-next → Free (V1-E6 host)", () => {
           intentId: "once-e6-old",
           agentId: "xiaopi",
           cardId: "xiaopi_waiting_user",
-          packageId: "golden_handoff",
+          chapterId: "golden_handoff",
           fireAtMs: 60_000,
           status: "pending",
           linkedInstanceId: "old-story-pending",
@@ -91,7 +91,7 @@ describe("end_story no-next → Free (V1-E6 host)", () => {
 
     const resolved = await host.resolveAsync("demo-user", {
       kind: "simulate_start",
-      packageId: "golden_handoff",
+      chapterId: "golden_handoff",
       cardId: "doubao_intro_outbound",
     });
     if (isEngineError(resolved)) throw resolved;

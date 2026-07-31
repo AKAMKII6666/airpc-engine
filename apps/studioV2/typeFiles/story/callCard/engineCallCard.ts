@@ -194,30 +194,46 @@ export type StoryPackageMeta = {
 	[key: string]: unknown;
 };
 
-/** 对齐引擎 StoryPackageConfSchema */
-export type StoryPackageConf = {
-	/** 内容版本 */
+/** 对齐引擎 ChapterConfSchema（章级 story.conf.json） */
+export type ChapterConf = {
+	/** 内容 schema 版本；当前仅 1 */
 	schemaVersion: number;
-	/** 包目录名，即 packageId */
-	packageId: string;
-	/** 包展示标题；可空；非 packageId */
+	/** 章 id；全局唯一；路由键 */
+	chapterId: string;
+	/** @deprecated 读入回落 chapterId */
+	packageId?: string;
+	/** 章展示标题；可空 */
 	title?: string;
-	/**
-		* 遗留白名单；路径 B 下磁盘可省略，但引擎解析（optional+default([])）后
-		* 运行期始终有值（可能为空数组），故此处收紧为必填而非 optional。
-		*/
+	/** 遗留白名单；磁盘可省略，运行期可能为空数组 */
 	participants: string[];
 	/** 入口卡 cardId；可空表示未钉入口 */
 	entryCardId?: string;
-	/** 本包引用的全局 assetId（导出子集）；非第二真源 */
+	/** 本章引用的全局 assetId；非第二真源 */
 	assetRefs?: string[];
-	/** 本包声明的世界事实元数据；可选；Studio JSON 块可编 */
+	/** 本章声明的世界事实元数据；可选 */
 	worldFacts?: FactMeta[];
-	/** 包冲突 / imports|exports；可选；Studio JSON 块可编 */
+	/** 包冲突 / imports|exports；可选 */
 	meta?: StoryPackageMeta;
-	/** 包内卡索引；至少含 cardId；完整卡体另存 cards/*.s-card.json */
+	/** 章内卡索引；至少含 cardId */
 	cards: Array<{ cardId: string; [key: string]: unknown }>;
 };
+
+/** 对齐引擎 PackageConfSchema（package.conf.json） */
+export type PackageConf = {
+	/** 容器 schema 版本；当前仅 1 */
+	schemaVersion: number;
+	/** 包目录名；路由键 */
+	packageId: string;
+	/** 包展示标题；可空 */
+	title?: string;
+	/** 入口章 id；须落在 chapters 列表内 */
+	entryChapterId: string;
+	/** 包内章索引；至少含 chapterId */
+	chapters: Array<{ chapterId: string }>;
+};
+
+/** @deprecated 使用 ChapterConf */
+export type StoryPackageConf = ChapterConf;
 
 /** ScheduleCard 形态守卫：cardKind 必须为 schedule；与引擎 isScheduleCard 同构镜像 */
 export function isScheduleCard(

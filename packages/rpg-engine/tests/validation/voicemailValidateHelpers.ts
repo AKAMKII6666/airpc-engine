@@ -16,7 +16,7 @@ const dataSrc = path.join(repoRoot, "data");
 
 export const VM_VALIDATE_PKG = "golden_handoff";
 export const VM_VALIDATE_CARD_REL =
-	"storis-packages/golden_handoff/cards/doubao_intro_outbound.s-card.json";
+	"storis-packages/golden_handoff/chapters/golden_handoff/cards/doubao_intro_outbound.s-card.json";
 
 export type VmValidateHost = ReturnType<typeof createEngineHost>;
 
@@ -32,6 +32,7 @@ export async function prepareVmValidateWorkspace(): Promise<{
 		persist: false,
 		content: createFsContentPort(),
 	});
+	// 触发扁平包就地迁移后再改卡路径
 	await host.loadWorkspace(dataRoot);
 	return { tmpRoot, dataRoot, host };
 }

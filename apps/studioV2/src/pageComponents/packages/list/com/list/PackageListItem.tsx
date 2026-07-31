@@ -4,8 +4,6 @@
 "use client";
 
 import type { FC } from "react";
-import Link from "next/link";
-import { Button } from "@mui/material";
 import type { StoryPackageSummary } from "@studio-v2/typeFiles/story/summary/storyPackageSummary";
 import {
 	formatRelativeEdit,
@@ -13,6 +11,8 @@ import {
 	validationLabel,
 } from "@studio-v2/typeFiles/story/labels/statusLabels";
 import styles from "../../PackageListView.module.scss";
+// 引用了PackageListItemActions组件，用于本行操作按钮组
+import { PackageListItemActions } from "./PackageListItemActions";
 
 type Props = {
 	pkg: StoryPackageSummary;
@@ -34,6 +34,12 @@ function badgeClass(v: StoryPackageSummary["validation"]): string {
 	if (v === "ok") return styles.badgeOk;
 	if (v === "warning") return styles.badgeWarn;
 	return styles.badgeErr;
+}
+
+function chapterEditorHref(pkg: StoryPackageSummary): string {
+	const chapterId =
+		pkg.entryChapterId.trim() !== "" ? pkg.entryChapterId : pkg.packageId;
+	return `/packages/${encodeURIComponent(pkg.packageId)}/chapters/${encodeURIComponent(chapterId)}`;
 }
 
 export const PackageListItem: FC<Props> = function (props) {
@@ -79,60 +85,17 @@ export const PackageListItem: FC<Props> = function (props) {
 				<span className={badgeClass(pkg.validation)}>
 					{validationLabel(pkg.validation)}
 				</span>
-				<div className={styles.itemActions}>
-					{/* 引用了Button组件，用于设定工作区首故事 */}
-					<Button
-						size="small"
-						variant={pkg.isStartup ? "contained" : "outlined"}
-						color="warning"
-						disabled={pkg.isStartup || startupBusy}
-						onClick={function () {
-							onSetStartup(pkg.packageId);
-						}}
-					>
-						{pkg.isStartup ? "已是首故事" : "设定为首故事"}
-					</Button>
-					{/* 引用了Button组件，用于进入故事编辑器 */}
-					<Button
-						component={Link}
-						href={`/stories/${pkg.packageId}`}
-						size="small"
-						variant="contained"
-					>
-						编辑器
-					</Button>
-					{/* 引用了Button组件，用于进入调试台 */}
-					<Button
-						component={Link}
-						href="/debugger"
-						size="small"
-						variant="outlined"
-					>
-						调试
-					</Button>
-					{/* 引用了Button组件，用于单包导出页 */}
-					<Button
-						component={Link}
-						href="/packages/export"
-						size="small"
-						variant="text"
-					>
-						导出
-					</Button>
-					{/* 引用了Button组件，用于删除故事包 */}
-					<Button
-						size="small"
-						variant="text"
-						color="error"
-						disabled={!canDelete || deleteBusy || startupBusy}
-						title={deleteBlockedReason}
-						onClick={function () {
-							onRequestDelete(pkg);
-						}}
-					>
-						删除
-					</Button>
-				</div>
+				{/* 引用了PackageListItemActions组件，用于本行操作按钮组 */}
+				<PackageListItemActions
+					pkg={pkg}
+					onSetStartup={onSetStartup}
+					startupBusy={startupBusy}
+					onRequestDelete={onRequestDelete}
+					canDelete={canDelete}
+					deleteBlockedReason={deleteBlockedReason}
+					deleteBusy={deleteBusy}
+					chapterEditorHref={chapterEditorHref(pkg)}
+				/>
 			</div>
 		</li>
 	);

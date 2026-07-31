@@ -60,7 +60,7 @@ export function createStoryCanvasNodeCommands(
 		fitView,
 	} = args;
 
-	const applyDeps = { nodesRef, setNodes, setEdges, onSelectionChange };
+	const applyDeps = { nodesRef, edgesRef, setNodes, setEdges, onSelectionChange };
 	const applyNodeData = createApplyCallCardNodeData(applyDeps);
 	const applyChapterNodeData = createApplyChapterNodeData(applyDeps);
 

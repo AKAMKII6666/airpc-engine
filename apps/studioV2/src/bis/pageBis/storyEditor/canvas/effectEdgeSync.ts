@@ -111,6 +111,7 @@ export function buildEffectEdge(args: {
 		target: targetNodeId,
 		sourceHandle: exitId,
 		targetHandle: "parent",
+		type: "effect",
 		label: isAttach ? "挂载" : "卸载",
 		style: {
 			...(isAttach ? ATTACH_EFFECT_EDGE_STYLE : UNMOUNT_EFFECT_EDGE_STYLE),
@@ -246,7 +247,8 @@ export function removeEffectRowFromCard(
 /**
 	* 反向同步：拖出效果边到目标卡时，向源卡对应出口追加一条 attach/unmount 行。
 	* agentId 默认取目标卡归属（cardOwnerAgentId）；返回新投影与新 effectId（供建边）。
-	* 出口不存在时不改动（返回原投影 + null）。
+	* 出口不存在、或出口已含 end_story（方案 A 封死）时不改动。
+	* 每个 attach/unmount 行仅对应一条边；本函数每次新建一行（多挂载=多行）。
 	*/
 export function appendMountEffectRow(args: {
 	card: EditorCallCardProjection;
@@ -259,6 +261,10 @@ export function appendMountEffectRow(args: {
 	const exitIndex = card.exits.findIndex((exit) => exit.exitId === exitId);
 	if (exitIndex < 0) return { card, effectId: null };
 	const exit = card.exits[exitIndex]!;
+	// 出口已 end_story：禁止再挂载/卸载边
+	if (exit.effects.some((fx) => fx.effect === "end_story")) {
+		return { card, effectId: null };
+	}
 	const effectId = nextEffectId(exit.effects);
 	const effectName =
 		effectKind === "attach" ? "attach_call_card" : "unmount_call_card";
