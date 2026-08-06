@@ -11,23 +11,13 @@ import { reloadStudioV2WorkspaceIfBooted } from "@studio-v2/src/utils/server/hos
 import { createDiskStoryPackage } from "@studio-v2/src/utils/server/packages/fs/package/packagesFs.server";
 import { listDiskStoryPackages } from "@studio-v2/src/utils/server/packages/list/packagesList.server";
 import { isValidPackageId } from "@studio-v2/src/utils/server/packages/paths/packagesPaths.server";
-import {
-	ensureWorkspaceStartupPackageId,
-	readWorkspaceConfig,
-	setWorkspaceStartupPackageId,
-	validateStartupPackageId,
-} from "@studio-v2/src/utils/server/workspace/workspaceFs.server";
 import { isEngineError } from "@airpc/rpg-engine";
 
 export async function GET(): Promise<Response> {
 	try {
-		const [packages, workspace] = await Promise.all([
-			listDiskStoryPackages(),
-			ensureWorkspaceStartupPackageId(),
-		]);
+		const packages = await listDiskStoryPackages();
 		return apiOk({
 			packages,
-			startupPackageId: workspace.startupPackageId,
 		});
 	} catch (err) {
 		return apiFail(
@@ -90,14 +80,6 @@ export async function POST(req: Request): Promise<Response> {
 				typeof body.description === "string" ? body.description : "",
 			withStartCard: body.withStartCard !== false,
 		});
-		// 库空或指针无效时：新建包自动成为首故事
-		const workspace = await readWorkspaceConfig();
-		const startupErr = await validateStartupPackageId(
-			workspace.startupPackageId,
-		);
-		if (startupErr) {
-			await setWorkspaceStartupPackageId(packageId);
-		}
 		await reloadStudioV2WorkspaceIfBooted();
 		return apiOk(bundle, { status: 201 });
 	} catch (err) {

@@ -1,5 +1,5 @@
 /**
-	* 故事包列表会话 feature bis：从 store 投影给 UI；create / 导入 / 设首故事 / 删除后 bump 重拉。
+	* 故事包列表会话 feature bis：从 store 投影给 UI；create / 导入 / 删除后 bump 重拉。
 	* 打开真源在 shell；本 hook 不发列表 GET。
 	* 搜索/分页/Modal 开合等瞬时态仍由 page hook 持有；导航在 page（禁 bis 引 next/navigation）。
 	*/
@@ -9,7 +9,8 @@ import { useCallback } from "react";
 import { commitCreatePackage } from "@studio-v2/src/bis/pageBis/packages/createPackage_bis";
 import type { CreatePackageFormValues } from "@studio-v2/src/bis/pageBis/packages/createPackageForm";
 import { commitDeletePackage } from "@studio-v2/src/bis/pageBis/packages/delete/deletePackage_bis";
-import { setStartupPackage } from "@studio-v2/src/bis/pageBis/packages/list/setStartupPackage_bis";
+import { commitEditPackage } from "@studio-v2/src/bis/pageBis/packages/editPackage_bis";
+import type { EditPackageFormValues } from "@studio-v2/src/bis/pageBis/packages/editPackageForm";
 import { usePackagesStore } from "@studio-v2/src/stores/packages/packagesStore";
 import type { StoryPackageSummary } from "@studio-v2/typeFiles/story/summary/storyPackageSummary";
 
@@ -29,25 +30,25 @@ export type PackageListSessionBis = {
 		* 本 bis 不 push 路由（STRUCT-023）。
 		*/
 	onCreateSubmit: (values: CreatePackageFormValues) => Promise<{ packageId: string }>;
+	/** 编辑包容器标题：写盘后刷新列表。 */
+	onEditSubmit: (
+		packageId: string,
+		values: EditPackageFormValues,
+	) => Promise<{ packageId: string }>;
 	/**
 		* 导入确认后：bump 重拉；导航由调用方处理。
 		* 写盘成功由 importPackage_bis 保证后再调用。
 		*/
 	onImported: (packageId: string) => void;
 	/**
-		* 设定首故事：写 workspace → bump 重拉。
-		* 已是首故事时仍可幂等调用。
-		*/
-	onSetStartup: (packageId: string) => Promise<void>;
-	/**
 		* 删除故事包：写盘删目录 → bump 重拉。
-		* 首故事 / 最后一包由服务端拒删。
+		* 最后一包由服务端拒删。
 		*/
 	onDelete: (packageId: string) => Promise<void>;
 };
 
 /**
-	* 订 packages store 列表切片 + create/导入/首故事/删除后 bump；供页 hook 消费。
+	* 订 packages store 列表切片 + create/导入/删除后 bump；供页 hook 消费。
 	*/
 export function usePackageListSessionBis(): PackageListSessionBis {
 	const packages = usePackagesStore(function (s) {
@@ -86,12 +87,17 @@ export function usePackageListSessionBis(): PackageListSessionBis {
 		[setPreferSelectedId, bumpPackagesRefreshStamp],
 	);
 
-	const onSetStartup = useCallback(
-		async function (packageId: string): Promise<void> {
-			await setStartupPackage(packageId);
+	const onEditSubmit = useCallback(
+		async function (
+			packageId: string,
+			values: EditPackageFormValues,
+		): Promise<{ packageId: string }> {
+			const result = await commitEditPackage(packageId, values);
+			setPreferSelectedId(packageId);
 			bumpPackagesRefreshStamp();
+			return result;
 		},
-		[bumpPackagesRefreshStamp],
+		[setPreferSelectedId, bumpPackagesRefreshStamp],
 	);
 
 	const onDelete = useCallback(
@@ -107,8 +113,8 @@ export function usePackageListSessionBis(): PackageListSessionBis {
 		loading,
 		loadError,
 		onCreateSubmit,
+		onEditSubmit,
 		onImported,
-		onSetStartup,
 		onDelete,
 	};
 }

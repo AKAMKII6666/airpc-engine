@@ -6,6 +6,7 @@
 /** 可生成内部 ID 的实体种类；影响前缀，便于日志识别 */
 export type StudioIdKind =
 	| "package"
+	| "chapter"
 	| "card"
 	| "exit"
 	| "effect"
@@ -19,6 +20,7 @@ export type StudioIdKind =
 
 const PREFIX: Record<StudioIdKind, string> = {
 	package: "pkg",
+	chapter: "ch",
 	card: "card",
 	exit: "exit",
 	effect: "fx",

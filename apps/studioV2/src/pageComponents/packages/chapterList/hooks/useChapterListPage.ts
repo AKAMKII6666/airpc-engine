@@ -11,6 +11,7 @@ import {
 	removeChapter,
 	setEntryChapter,
 } from "@studio-v2/src/bis/pageBis/packages/chapterList/chapterListSession.bis";
+import type { CreateChapterFormValues } from "@studio-v2/src/bis/pageBis/packages/chapterList/chapterCreateForm";
 import type { DiskChapterSummary } from "@studio-v2/typeFiles/story/package/diskStoryPackage";
 
 export type UseChapterListPageArgs = {
@@ -24,8 +25,7 @@ export function useChapterListPage(args: UseChapterListPageArgs) {
 	const [title, setTitle] = useState("");
 	const [entryChapterId, setEntryChapterId] = useState("");
 	const [chapters, setChapters] = useState<DiskChapterSummary[]>([]);
-	const [newChapterId, setNewChapterId] = useState("");
-	const [newTitle, setNewTitle] = useState("");
+	const [createOpen, setCreateOpen] = useState(false);
 	const [busy, setBusy] = useState(false);
 
 	const reload = useCallback(async function () {
@@ -53,19 +53,18 @@ export function useChapterListPage(args: UseChapterListPageArgs) {
 		[reload],
 	);
 
-	async function onCreateChapter(): Promise<void> {
-		const cid = newChapterId.trim();
-		const t = newTitle.trim();
-		if (cid === "" || t === "") return;
+	async function onCreateSubmit(
+		values: CreateChapterFormValues,
+	): Promise<void> {
+		const t = values.title.trim();
+		if (t === "") return;
 		setBusy(true);
 		try {
 			await createChapterOnDisk({
 				packageId,
-				chapterId: cid,
 				title: t,
 			});
-			setNewChapterId("");
-			setNewTitle("");
+			setCreateOpen(false);
 			await reload();
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "新建章失败");
@@ -105,12 +104,10 @@ export function useChapterListPage(args: UseChapterListPageArgs) {
 		title,
 		entryChapterId,
 		chapters,
-		newChapterId,
-		setNewChapterId,
-		newTitle,
-		setNewTitle,
+		createOpen,
+		setCreateOpen,
 		busy,
-		onCreateChapter,
+		onCreateSubmit,
 		onSetEntry,
 		onDelete,
 	};

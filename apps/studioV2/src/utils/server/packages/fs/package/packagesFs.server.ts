@@ -11,7 +11,6 @@ import {
 } from "@airpc/rpg-engine";
 import { ensureFlatPackageMigrated } from "@studio-v2/engineIOModule/content/migrate/packageMigrate";
 import { listDiskStoryPackages } from "@studio-v2/src/utils/server/packages/list/packagesList.server";
-import { readWorkspaceConfig } from "@studio-v2/src/utils/server/workspace/workspaceFs.server";
 import { buildNewPackageCanvasLayout } from "../../layout/newPackageCanvasLayout.server";
 import {
 	isValidChapterId,
@@ -144,6 +143,21 @@ export async function setDiskEntryChapterId(
 	return next;
 }
 
+/** 更新包容器元数据；不改章、卡、layout。 */
+export async function updateDiskPackageMeta(input: {
+	packageId: string;
+	title: string;
+}): Promise<PackageConf> {
+	const packageConf = await readDiskPackageConf(input.packageId);
+	const title = input.title.trim();
+	if (title.length === 0) {
+		packageFail("VALIDATION_FAILED", "title required");
+	}
+	const next: PackageConf = { ...packageConf, title };
+	await writeJson(packageConfPath(input.packageId), next);
+	return next;
+}
+
 /**
 	* 新建故事包：package.conf + 默认章 + chapter_start/end layout。
 	*/
@@ -237,14 +251,7 @@ export async function deleteDiskStoryPackage(
 	if (packages.length <= 1) {
 		packageFail(
 			"VALIDATION_FAILED",
-			"不能删除工作区最后一个故事包（须至少保留一个首故事）",
-		);
-	}
-	const workspace = await readWorkspaceConfig();
-	if (workspace.startupPackageId.trim() === id) {
-		packageFail(
-			"VALIDATION_FAILED",
-			"不能删除当前首故事；请先将其它包设定为首故事",
+			"不能删除工作区最后一个故事包",
 		);
 	}
 	await rm(packageDir(id), { recursive: true, force: true });

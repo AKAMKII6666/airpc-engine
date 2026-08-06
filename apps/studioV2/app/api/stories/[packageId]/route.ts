@@ -12,6 +12,7 @@ import {
 	deleteDiskStoryPackage,
 	readDiskPackageConf,
 	readDiskPackageContainer,
+	updateDiskPackageMeta,
 	writeDiskPackageContainer,
 } from "@studio-v2/src/utils/server/packages/fs/package/packagesFs.server";
 
@@ -76,6 +77,26 @@ export async function PUT(
 		});
 		await reloadStudioV2WorkspaceIfBooted();
 		return apiOk(container);
+	} catch (err) {
+		return failFromUnknown(err);
+	}
+}
+
+/** PATCH 包容器元数据 */
+export async function PATCH(
+	req: Request,
+	ctx: { params: Promise<{ packageId: string }> },
+): Promise<Response> {
+	try {
+		const { packageId } = await ctx.params;
+		const body = (await req.json()) as { title?: unknown };
+		const title = typeof body.title === "string" ? body.title.trim() : "";
+		if (title.length === 0) {
+			return apiFail("VALIDATION_FAILED", "title required");
+		}
+		const packageConf = await updateDiskPackageMeta({ packageId, title });
+		await reloadStudioV2WorkspaceIfBooted();
+		return apiOk({ packageConf });
 	} catch (err) {
 		return failFromUnknown(err);
 	}

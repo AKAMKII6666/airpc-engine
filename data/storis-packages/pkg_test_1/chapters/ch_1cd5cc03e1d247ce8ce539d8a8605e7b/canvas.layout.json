@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "chapterId": "ch_1cd5cc03e1d247ce8ce539d8a8605e7b",
+  "lanes": [],
+  "nodes": [
+    {
+      "nodeId": "chapter_start",
+      "kind": "chapter_start",
+      "x": 200,
+      "y": 200,
+      "title": "测试2",
+      "summary": ""
+    },
+    {
+      "nodeId": "card_card_1c0263b790eb49a59617fd27f443a738",
+      "cardId": "card_1c0263b790eb49a59617fd27f443a738",
+      "x": 420,
+      "y": 200
+    },
+    {
+      "nodeId": "chapter_end",
+      "kind": "chapter_end",
+      "x": 760,
+      "y": 200,
+      "title": "章节结束",
+      "summary": ""
+    }
+  ],
+  "edges": [
+    {
+      "edgeId": "e_start_card_1c0263b790eb49a59617fd27f443a738",
+      "edgeKind": "story",
+      "source": "chapter_start",
+      "target": "card_card_1c0263b790eb49a59617fd27f443a738",
+      "sourceHandle": "exit",
+      "targetHandle": "parent",
+      "label": "起点"
+    }
+  ],
+  "note": "新建包种子：chapter_start 必有；引擎忽略本文件"
+}

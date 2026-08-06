@@ -20,54 +20,64 @@ type Props = {
 
 export const ChapterListRow: FC<Props> = function (props) {
 	const { packageId, chapter, isEntry, busy, onSetEntry, onDelete } = props;
+	const rowClass = isEntry
+		? `${styles.item} ${styles.itemEntry}`
+		: styles.item;
+	const entryCardText =
+		chapter.entryCardId.trim() !== "" ? chapter.entryCardId : "未指定";
 
 	return (
-		<li className={styles.item}>
-			<div>
-				<div className={styles.itemTitle}>
-					{chapter.title}
-					{isEntry ? (
-						<span className={styles.entryBadge}>入口</span>
-					) : null}
+		<li className={rowClass}>
+			<div className={styles.itemMain}>
+				<div className={styles.itemTitleRow}>
+					<div className={styles.itemTitle}>{chapter.title}</div>
+					{isEntry ? <span className={styles.entryBadge}>入口章</span> : null}
 				</div>
 				<div className={styles.itemMeta}>
-					{chapter.chapterId} · {chapter.cardCount} 卡
+					{chapter.chapterId} · 入口卡 {entryCardText}
+				</div>
+				<div className={styles.itemStats}>
+					{chapter.cardCount} 卡 · {chapter.characterCount} 角色 ·{" "}
+					{chapter.assetCount} 资源
 				</div>
 			</div>
-			<div className={styles.itemActions}>
-				{/* 引用了Button组件，用于进入章编辑器 */}
-				<Button
-					component={Link}
-					href={`/packages/${packageId}/chapters/${chapter.chapterId}`}
-					size="small"
-					variant="contained"
-				>
-					编辑器
-				</Button>
-				{!isEntry ? (
-					// 引用了Button组件，用于设为入口章
+			<div className={styles.itemSide}>
+				<div className={styles.itemActions}>
+					{/* 引用了Button组件，用于进入章编辑器 */}
+					<Button
+						component={Link}
+						href={`/packages/${encodeURIComponent(packageId)}/chapters/${encodeURIComponent(chapter.chapterId)}`}
+						size="small"
+						variant="contained"
+					>
+						进入编辑器
+					</Button>
+					{!isEntry ? (
+						// 引用了Button组件，用于设为入口章
+						<Button
+							size="small"
+							variant="outlined"
+							disabled={busy}
+							onClick={function () {
+								void onSetEntry(chapter.chapterId);
+							}}
+						>
+							设为入口
+						</Button>
+					) : null}
+					{/* 引用了Button组件，用于删除章 */}
 					<Button
 						size="small"
-						variant="outlined"
-						disabled={busy}
+						variant="text"
+						color="error"
+						disabled={busy || isEntry}
 						onClick={function () {
-							void onSetEntry(chapter.chapterId);
+							void onDelete(chapter.chapterId);
 						}}
 					>
-						设为入口
+						删除
 					</Button>
-				) : null}
-				{/* 引用了Button组件，用于删除章 */}
-				<Button
-					size="small"
-					color="error"
-					disabled={busy || isEntry}
-					onClick={function () {
-						void onDelete(chapter.chapterId);
-					}}
-				>
-					删除
-				</Button>
+				</div>
 			</div>
 		</li>
 	);

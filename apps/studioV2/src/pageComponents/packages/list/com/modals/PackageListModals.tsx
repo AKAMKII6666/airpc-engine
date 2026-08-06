@@ -14,6 +14,11 @@ import {
 	validateCreatePackageForm,
 	type CreatePackageFormValues,
 } from "@studio-v2/src/bis/pageBis/packages/createPackageForm";
+import {
+	EDIT_PACKAGE_FORM_ITEMS,
+	validateEditPackageForm,
+	type EditPackageFormValues,
+} from "@studio-v2/src/bis/pageBis/packages/editPackageForm";
 // 引用了ImportPackageModal组件，用于导入故事包弹层
 import { ImportPackageModal } from "@studio-v2/src/pageComponents/packages/import/ImportPackageModal";
 
@@ -24,6 +29,10 @@ type Props = {
 	createOpen: boolean;
 	onCloseCreate: () => void;
 	onCreateSubmit: (values: CreatePackageFormValues) => Promise<void>;
+	editOpen: boolean;
+	editInitialTitle: string;
+	onCloseEdit: () => void;
+	onEditSubmit: (values: EditPackageFormValues) => Promise<void>;
 	deleteOpen: boolean;
 	deleteDisplayName: string;
 	deleteReferenceLines: readonly string[];
@@ -37,6 +46,7 @@ export const PackageListModals: FC<Props> = function (props) {
 	const { importOpen, onCloseImport, onImported } = props;
 	// createOpen / onCloseCreate / onCreateSubmit：新建弹层
 	const { createOpen, onCloseCreate, onCreateSubmit } = props;
+	const { editOpen, editInitialTitle, onCloseEdit, onEditSubmit } = props;
 	// delete*：删除确认弹层
 	const {
 		deleteOpen,
@@ -66,7 +76,20 @@ export const PackageListModals: FC<Props> = function (props) {
 				validate={validateCreatePackageForm}
 				onClose={onCloseCreate}
 				onSubmit={onCreateSubmit}
-				submitLabel="创建并进入编辑器"
+				submitLabel="创建并进入故事包"
+			/>
+
+			{/* 引用了FormModal组件，用于 PATCH /api/stories/:packageId 改名 */}
+			<FormModal<EditPackageFormValues>
+				open={editOpen}
+				title="编辑故事包"
+				mode="edit"
+				initialValues={{ title: editInitialTitle }}
+				items={EDIT_PACKAGE_FORM_ITEMS}
+				validate={validateEditPackageForm}
+				onClose={onCloseEdit}
+				onSubmit={onEditSubmit}
+				submitLabel="保存"
 			/>
 
 			{/* 引用了DeleteConfirmModal组件，用于删除故事包确认 */}

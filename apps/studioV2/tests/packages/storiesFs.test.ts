@@ -10,6 +10,7 @@ import {
 	createDiskStoryPackage,
 	readDiskChapterBundle,
 	readDiskStoryPackage,
+	updateDiskPackageMeta,
 	writeDiskChapterBundle,
 } from "@studio-v2/src/utils/server/packages/fs/package/packagesFs.server";
 import { writeValidatedDiskStoryPackage } from "@studio-v2/src/utils/server/packages/fs/validate/writeValidatedPackage.server";
@@ -166,6 +167,31 @@ describe("packagesFs against data/storis-packages", () => {
 			await readFile(packageConfPath(pkgId), "utf8"),
 		) as { entryChapterId: string };
 		expect(pkgConf.entryChapterId).toBe(pkgId);
+	});
+
+	it("updateDiskPackageMeta changes package title without touching entry chapter", async () => {
+		const pkgId = "studio_v2_meta_probe";
+		probeIds.push(pkgId);
+		await createDiskStoryPackage({
+			packageId: pkgId,
+			title: "旧故事包名",
+			withStartCard: false,
+		});
+
+		const updated = await updateDiskPackageMeta({
+			packageId: pkgId,
+			title: "新故事包名",
+		});
+
+		expect(updated.title).toBe("新故事包名");
+		expect(updated.entryChapterId).toBe(pkgId);
+		const pkgConf = JSON.parse(
+			await readFile(packageConfPath(pkgId), "utf8"),
+		) as { title: string; entryChapterId: string };
+		expect(pkgConf.title).toBe("新故事包名");
+		expect(pkgConf.entryChapterId).toBe(pkgId);
+		const chapter = await readDiskChapterBundle(pkgId, pkgId);
+		expect(chapter.conf.chapterId).toBe(pkgId);
 	});
 
 	it("writeValidatedDiskStoryPackage rolls back when validate has errors", async () => {

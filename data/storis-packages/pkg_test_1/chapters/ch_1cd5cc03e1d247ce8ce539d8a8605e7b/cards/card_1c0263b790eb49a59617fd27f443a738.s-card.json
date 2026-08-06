@@ -1,0 +1,19 @@
+{
+  "cardId": "card_1c0263b790eb49a59617fd27f443a738",
+  "cardKind": "story",
+  "title": "第一张通话卡",
+  "ownerAgentId": "",
+  "entryMode": "inbound_user_dial",
+  "interactionMode": "realtime_dialogue",
+  "context": {
+    "privateBrief": "",
+    "speakableBrief": ""
+  },
+  "objectives": {
+    "requiredBeats": []
+  },
+  "toolPolicy": {
+    "mode": "inherit_free"
+  },
+  "exits": []
+}

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "packageId": "pkg_test_1",
+  "title": "test",
+  "entryChapterId": "pkg_test_1",
+  "chapters": [
+    {
+      "chapterId": "pkg_test_1"
+    },
+    {
+      "chapterId": "ch_1cd5cc03e1d247ce8ce539d8a8605e7b"
+    }
+  ]
+}

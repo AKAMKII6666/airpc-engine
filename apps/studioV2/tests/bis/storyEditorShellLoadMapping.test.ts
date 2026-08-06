@@ -37,7 +37,6 @@ function summary(packageId: string): StoryPackageSummary {
 		validation: "ok",
 		saveState: "saved",
 		lastExportedAt: null,
-		isStartup: false,
 		entryChapterId: packageId,
 	};
 }

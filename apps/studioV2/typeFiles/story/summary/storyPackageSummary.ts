@@ -36,11 +36,6 @@ export type StoryPackageSummary = {
 	saveState: SavePresence;
 	/** 最近导出时间 ISO-8601；null 表示从未导出 */
 	lastExportedAt: string | null;
-	/**
-		* 是否为工作区默认打开/调试选包（可选偏好；非实机冷启动真源）。
-		* 实机/首入口真源 = 包内 entryChapterId。
-		*/
-	isStartup: boolean;
 	/** 入口章 id；打开编辑器路由用 */
 	entryChapterId: string;
 };

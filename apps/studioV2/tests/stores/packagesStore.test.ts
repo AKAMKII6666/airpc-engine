@@ -20,7 +20,6 @@ function summary(packageId: string, title = packageId): StoryPackageSummary {
 		validation: "ok",
 		saveState: "saved",
 		lastExportedAt: null,
-		isStartup: false,
 		entryChapterId: packageId,
 	};
 }

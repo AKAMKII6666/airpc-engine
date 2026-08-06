@@ -1,5 +1,5 @@
 /**
-	* GET/PUT /api/workspace — 工作区配置（含首故事 startupPackageId）。
+	* GET/PUT /api/workspace — 工作区元信息。
 	*/
 import {
 	apiFail,
@@ -7,10 +7,7 @@ import {
 	httpStatusForCode,
 } from "@studio-v2/src/utils/server/http/apiResponse.server";
 import {
-	ensureWorkspaceStartupPackageId,
 	readWorkspaceConfig,
-	setWorkspaceStartupPackageId,
-	validateStartupPackageId,
 	writeWorkspaceConfig,
 	type WorkspaceConfig,
 } from "@studio-v2/src/utils/server/workspace/workspaceFs.server";
@@ -18,7 +15,7 @@ import { reloadStudioV2WorkspaceIfBooted } from "@studio-v2/src/utils/server/hos
 
 export async function GET(): Promise<Response> {
 	try {
-		const workspace = await ensureWorkspaceStartupPackageId();
+		const workspace = await readWorkspaceConfig();
 		return apiOk({ workspace });
 	} catch (err) {
 		return apiFail(
@@ -29,23 +26,12 @@ export async function GET(): Promise<Response> {
 	}
 }
 
-/**
-	* PUT body: { startupPackageId } 或完整 { workspace }。
-	* 仅允许改工作区元数据；首故事必须指向已存在包。
-	*/
+/** PUT body: { workspace }；仅允许改工作区元信息。 */
 export async function PUT(req: Request): Promise<Response> {
 	try {
 		const body = (await req.json()) as {
-			startupPackageId?: unknown;
 			workspace?: Partial<WorkspaceConfig>;
 		};
-		if (typeof body.startupPackageId === "string") {
-			const workspace = await setWorkspaceStartupPackageId(
-				body.startupPackageId,
-			);
-			await reloadStudioV2WorkspaceIfBooted();
-			return apiOk({ workspace });
-		}
 		if (body.workspace && typeof body.workspace === "object") {
 			const prev = await readWorkspaceConfig();
 			const next: WorkspaceConfig = {
@@ -61,23 +47,12 @@ export async function PUT(req: Request): Promise<Response> {
 					typeof body.workspace.engineMinVersion === "string"
 						? body.workspace.engineMinVersion
 						: prev.engineMinVersion,
-				startupPackageId:
-					typeof body.workspace.startupPackageId === "string"
-						? body.workspace.startupPackageId.trim()
-						: prev.startupPackageId,
 			};
-			const err = await validateStartupPackageId(next.startupPackageId);
-			if (err) {
-				return apiFail("VALIDATION_FAILED", err);
-			}
 			await writeWorkspaceConfig(next);
 			await reloadStudioV2WorkspaceIfBooted();
 			return apiOk({ workspace: next });
 		}
-		return apiFail(
-			"VALIDATION_FAILED",
-			"startupPackageId or workspace object required",
-		);
+		return apiFail("VALIDATION_FAILED", "workspace object required");
 	} catch (err) {
 		const code =
 			err && typeof err === "object" && "code" in err

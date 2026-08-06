@@ -5,7 +5,7 @@ import { deleteDiskStoryPackage } from "@studio-v2/src/utils/ajaxProxy/packages/
 
 /**
 	* 删除成功回执；调用方 bump 列表。
-	* 首故事 / 最后一包由服务端拒删。
+	* 最后一包由服务端拒删。
 	*/
 export type DeletePackageResult = {
 	/** 已删除的 packageId */

@@ -8,8 +8,6 @@ import type { StoryPackageSummary } from "@studio-v2/typeFiles/story/summary/sto
 /** 扫描摘要转列表卡片；description 本步留空，validation 默认 ok */
 export function diskSummaryToPackageSummary(
 	disk: DiskStoryPackageSummary,
-	/** 工作区首故事 id；空串表示当前无有效指针 */
-	startupPackageId = "",
 ): StoryPackageSummary {
 	return {
 		packageId: disk.packageId,
@@ -22,19 +20,17 @@ export function diskSummaryToPackageSummary(
 		validation: "ok",
 		saveState: "saved",
 		lastExportedAt: null,
-		isStartup:
-			startupPackageId.length > 0 && disk.packageId === startupPackageId,
 		entryChapterId: disk.entryChapterId,
 	};
 }
 
 /**
-	* 首故事置顶；其余保持相对顺序（稳定排序）。
+	* 包列表排序：保持字典序；首入口只在包内章列表管理。
 	*/
 export function sortPackagesStartupFirst(
 	packages: readonly StoryPackageSummary[],
 ): StoryPackageSummary[] {
 	return [...packages].sort(function (a, b) {
-		return Number(b.isStartup) - Number(a.isStartup);
+		return a.packageId.localeCompare(b.packageId);
 	});
 }

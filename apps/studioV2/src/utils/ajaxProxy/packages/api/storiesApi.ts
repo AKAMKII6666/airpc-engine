@@ -18,7 +18,6 @@ import type { ValidationReport } from "@studio-v2/typeFiles/story/validate/engin
 
 export type StoriesListData = {
 	packages: DiskStoryPackageSummary[];
-	startupPackageId?: string;
 };
 
 export async function fetchDiskStoryPackagesList(): Promise<StoriesListData> {
@@ -125,6 +124,18 @@ export async function deleteDiskStoryPackage(
 		method: "DELETE",
 	});
 	return parseStudioApiJson<{ packageId: string }>(res);
+}
+
+export async function patchDiskPackageConf(
+	packageId: string,
+	body: { title: string },
+): Promise<{ packageConf: PackageConf }> {
+	const res = await fetch(`/api/stories/${encodeURIComponent(packageId)}`, {
+		method: "PATCH",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify(body),
+	});
+	return parseStudioApiJson<{ packageConf: PackageConf }>(res);
 }
 
 export type ChaptersListData = {

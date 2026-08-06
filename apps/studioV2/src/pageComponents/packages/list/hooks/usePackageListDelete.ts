@@ -31,15 +31,13 @@ export function usePackageListDelete(input: {
 	const [deleteBusy, setDeleteBusy] = useState(false);
 
 	function canDeletePackage(pkg: StoryPackageSummary): boolean {
-		if (pkg.isStartup) return false;
+		void pkg;
 		if (packageCount <= 1) return false;
 		return true;
 	}
 
 	function deleteBlockedReason(pkg: StoryPackageSummary): string | undefined {
-		if (pkg.isStartup) {
-			return "不能删除当前首故事；请先将其它包设定为首故事";
-		}
+		void pkg;
 		if (packageCount <= 1) {
 			return "不能删除工作区最后一个故事包";
 		}

@@ -1,6 +1,5 @@
 {
   "schemaVersion": 1,
-  "packageId": "pkg_test_1",
   "title": "test",
   "entryCardId": "card_pkg_test_1_start",
   "cards": [
@@ -13,5 +12,6 @@
     {
       "cardId": "card_5c5401b383564b09b4c4db3d1d818f95"
     }
-  ]
+  ],
+  "chapterId": "pkg_test_1"
 }

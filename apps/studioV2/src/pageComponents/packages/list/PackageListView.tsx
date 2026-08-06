@@ -1,6 +1,6 @@
 /**
 	* 故事包管理完整列表：前端搜索 + 分页；列表真源为 data/storis-packages。
-	* 挂 shell 灌 packages store；增删改 / 导入 / 首故事经 pageBis。
+	* 挂 shell 灌 packages store；增删改 / 导入经 pageBis。
 	*/
 "use client";
 
@@ -29,8 +29,7 @@ export const PackageListView: FC = function PackageListView() {
 					</Typography>
 					{/* 引用了Typography组件，用于页说明 */}
 					<Typography variant="body2" className={styles.sub}>
-						管理章节工程：列表来自磁盘扫描；首故事由工作区
-						startupPackageId 指定。单包导入导出为 .storypack.json。
+						管理章节工程：列表来自磁盘扫描。每个故事包的首入口在包内章节列表中设定。
 					</Typography>
 				</div>
 				<div className={styles.actions}>
@@ -48,11 +47,6 @@ export const PackageListView: FC = function PackageListView() {
 			{list.loadError ? (
 				// 引用了Alert组件，用于列表加载失败
 				<Alert severity="error">{list.loadError}</Alert>
-			) : null}
-
-			{list.startupError ? (
-				// 引用了Alert组件，用于设定首故事失败
-				<Alert severity="error">{list.startupError}</Alert>
 			) : null}
 
 			{list.deleteError && !list.deleteTarget ? (
@@ -75,10 +69,7 @@ export const PackageListView: FC = function PackageListView() {
 					pageSize={PACKAGE_LIST_PAGE_SIZE}
 					filteredCount={list.filteredCount}
 					onPageChange={list.setPage}
-					onSetStartup={function (packageId) {
-						void list.onSetStartup(packageId);
-					}}
-					startupBusy={list.startupBusy}
+					onRequestEdit={list.setEditTarget}
 					onRequestDelete={list.openDeleteModal}
 					canDeletePackage={list.canDeletePackage}
 					deleteBlockedReason={list.deleteBlockedReason}
@@ -94,6 +85,10 @@ export const PackageListView: FC = function PackageListView() {
 				createOpen={list.createOpen}
 				onCloseCreate={() => list.setCreateOpen(false)}
 				onCreateSubmit={list.onCreateSubmit}
+				editOpen={list.editTarget != null}
+				editInitialTitle={list.editTarget?.title ?? ""}
+				onCloseEdit={() => list.setEditTarget(null)}
+				onEditSubmit={list.onEditSubmit}
 				deleteOpen={list.deleteTarget != null}
 				deleteDisplayName={list.deleteTarget?.title ?? ""}
 				deleteReferenceLines={list.deleteTarget?.referenceLines ?? []}

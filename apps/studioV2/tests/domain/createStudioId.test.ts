@@ -17,6 +17,10 @@ describe("createStudioId", () => {
 		assert.notEqual(id, createStudioId("package", "Demo Pack"));
 	});
 
+	it("chapter 使用系统 uuid 前缀", () => {
+		assert.match(createStudioId("chapter"), /^ch_[a-f0-9]{32}$/);
+	});
+
 	it("空 seed 仍可生成且互不相同", () => {
 		const a = createStudioId("card");
 		const b = createStudioId("card");

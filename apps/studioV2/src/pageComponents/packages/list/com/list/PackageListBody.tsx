@@ -20,8 +20,7 @@ type Props = {
 	pageSize: number;
 	filteredCount: number;
 	onPageChange: (page: number) => void;
-	onSetStartup: (packageId: string) => void;
-	startupBusy: boolean;
+	onRequestEdit: (pkg: StoryPackageSummary) => void;
 	onRequestDelete: (pkg: StoryPackageSummary) => void;
 	canDeletePackage: (pkg: StoryPackageSummary) => boolean;
 	deleteBlockedReason: (pkg: StoryPackageSummary) => string | undefined;
@@ -33,8 +32,7 @@ export const PackageListBody: FC<Props> = function (props) {
 	const { search, onSearchChange } = props;
 	// pageItems / page / pageSize / filteredCount / onPageChange：分页切片
 	const { pageItems, page, pageSize, filteredCount, onPageChange } = props;
-	// onSetStartup / startupBusy：首故事设定
-	const { onSetStartup, startupBusy } = props;
+	const { onRequestEdit } = props;
 	// onRequestDelete / canDeletePackage / deleteBlockedReason / deleteBusy：删除
 	const {
 		onRequestDelete,
@@ -61,8 +59,7 @@ export const PackageListBody: FC<Props> = function (props) {
 					<PackageListItem
 						key={pkg.packageId}
 						pkg={pkg}
-						onSetStartup={onSetStartup}
-						startupBusy={startupBusy}
+						onRequestEdit={onRequestEdit}
 						onRequestDelete={onRequestDelete}
 						canDelete={canDeletePackage(pkg)}
 						deleteBlockedReason={deleteBlockedReason(pkg)}

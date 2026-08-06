@@ -9,6 +9,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { sliceForPage } from "@studio-v2/src/commonUiComponents/pagination/sliceForPage";
 import type { CreatePackageFormValues } from "@studio-v2/src/bis/pageBis/packages/createPackageForm";
+import type { EditPackageFormValues } from "@studio-v2/src/bis/pageBis/packages/editPackageForm";
 import { usePackageListSessionBis } from "@studio-v2/src/bis/pageBis/packages/list/packageListSession.bis";
 import { usePackagesShellBis } from "@studio-v2/src/bis/shellBis/packages/packages.shell.bis";
 import { usePackageListDelete } from "./usePackageListDelete";
@@ -26,12 +27,6 @@ function matchesSearch(pkg: StoryPackageSummary, raw: string): boolean {
 	);
 }
 
-function editorHref(pkg: StoryPackageSummary): string {
-	const chapterId =
-		pkg.entryChapterId.trim() !== "" ? pkg.entryChapterId : pkg.packageId;
-	return `/packages/${encodeURIComponent(pkg.packageId)}/chapters/${encodeURIComponent(chapterId)}`;
-}
-
 /**
 	* 故事包列表页：列表经 session bis；搜索/分页/Modal 为 UI 瞬时态。
 	*/
@@ -43,11 +38,8 @@ export function usePackageListPage() {
 	const [search, setSearch] = useState("");
 	const [importOpen, setImportOpen] = useState(false);
 	const [createOpen, setCreateOpen] = useState(false);
-	const [startupBusyId, setStartupBusyId] = useState<string | undefined>(
-		undefined,
-	);
-	const [startupError, setStartupError] = useState<string | undefined>(
-		undefined,
+	const [editTarget, setEditTarget] = useState<StoryPackageSummary | null>(
+		null,
 	);
 	const deleteFlow = usePackageListDelete({
 		onDelete: session.onDelete,
@@ -89,19 +81,10 @@ export function usePackageListPage() {
 		router.push(`/packages/${encodeURIComponent(packageId)}`);
 	}
 
-	async function onSetStartup(packageId: string): Promise<void> {
-		setStartupError(undefined);
-		setStartupBusyId(packageId);
-		try {
-			await session.onSetStartup(packageId);
-			setPage(1);
-		} catch (err) {
-			setStartupError(
-				err instanceof Error ? err.message : "设定首故事失败",
-			);
-		} finally {
-			setStartupBusyId(undefined);
-		}
+	async function onEditSubmit(values: EditPackageFormValues): Promise<void> {
+		if (!editTarget) return;
+		await session.onEditSubmit(editTarget.packageId, values);
+		setEditTarget(null);
 	}
 
 	return {
@@ -117,13 +100,12 @@ export function usePackageListPage() {
 		setImportOpen,
 		createOpen,
 		setCreateOpen,
+		editTarget,
+		setEditTarget,
 		pageItems,
 		onImported,
 		onCreateSubmit,
-		onSetStartup,
-		startupBusy: startupBusyId !== undefined,
-		startupError,
-		editorHref,
+		onEditSubmit,
 		deleteTarget: deleteFlow.deleteTarget,
 		deleteError: deleteFlow.deleteError,
 		deleteBusy: deleteFlow.deleteBusy,

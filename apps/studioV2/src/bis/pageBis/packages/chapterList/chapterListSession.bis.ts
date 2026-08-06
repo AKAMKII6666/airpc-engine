@@ -10,6 +10,7 @@ import {
 	postDiskChapter,
 } from "@studio-v2/src/utils/ajaxProxy/packages/api/storiesApi";
 import type { DiskChapterSummary } from "@studio-v2/typeFiles/story/package/diskStoryPackage";
+import { createStudioId } from "@studio-v2/typeFiles/ids/createStudioId";
 
 /** GET /api/stories/:pkg/chapters */
 export async function listChaptersForPackage(
@@ -34,12 +35,12 @@ export async function loadPackageMeta(packageId: string): Promise<{
 /** POST 新建章 */
 export async function createChapterOnDisk(input: {
 	packageId: string;
-	chapterId: string;
 	title: string;
 }): Promise<{ chapterId: string }> {
+	const chapterId = createStudioId("chapter", input.title);
 	const bundle = await postDiskChapter({
 		packageId: input.packageId,
-		chapterId: input.chapterId,
+		chapterId,
 		title: input.title,
 		withStartCard: true,
 	});

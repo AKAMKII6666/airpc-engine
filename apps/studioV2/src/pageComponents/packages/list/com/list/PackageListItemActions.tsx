@@ -11,22 +11,17 @@ import styles from "../../PackageListView.module.scss";
 
 type Props = {
 	pkg: StoryPackageSummary;
-	onSetStartup: (packageId: string) => void;
-	startupBusy: boolean;
+	onRequestEdit: (pkg: StoryPackageSummary) => void;
 	onRequestDelete: (pkg: StoryPackageSummary) => void;
 	canDelete: boolean;
 	deleteBlockedReason: string | undefined;
 	deleteBusy: boolean;
-	chapterEditorHref: string;
 };
 
 export const PackageListItemActions: FC<Props> = function (props) {
 	// pkg：本行故事包列表投影
 	const { pkg } = props;
-	// onSetStartup：点击「设定为首故事」
-	const { onSetStartup } = props;
-	// startupBusy：设定首故事请求进行中
-	const { startupBusy } = props;
+	const { onRequestEdit } = props;
 	// onRequestDelete：打开删除确认
 	const { onRequestDelete } = props;
 	// canDelete：是否允许删除
@@ -35,40 +30,26 @@ export const PackageListItemActions: FC<Props> = function (props) {
 	const { deleteBlockedReason } = props;
 	// deleteBusy：删除提交中
 	const { deleteBusy } = props;
-	// chapterEditorHref：入口章编辑器链接
-	const { chapterEditorHref } = props;
-
 	return (
 		<div className={styles.itemActions}>
-			{/* 引用了Button组件，用于设定工作区首故事 */}
-			<Button
-				size="small"
-				variant={pkg.isStartup ? "contained" : "outlined"}
-				color="warning"
-				disabled={pkg.isStartup || startupBusy}
-				onClick={function () {
-					onSetStartup(pkg.packageId);
-				}}
-			>
-				{pkg.isStartup ? "已是首故事" : "设定为首故事"}
-			</Button>
 			{/* 引用了Button组件，用于进入章列表 */}
 			<Button
 				component={Link}
 				href={`/packages/${encodeURIComponent(pkg.packageId)}`}
 				size="small"
-				variant="outlined"
-			>
-				管理章节
-			</Button>
-			{/* 引用了Button组件，用于进入入口章编辑器 */}
-			<Button
-				component={Link}
-				href={chapterEditorHref}
-				size="small"
 				variant="contained"
 			>
-				编辑器
+				进入故事包
+			</Button>
+			{/* 引用了Button组件，用于编辑故事包元数据 */}
+			<Button
+				size="small"
+				variant="outlined"
+				onClick={function () {
+					onRequestEdit(pkg);
+				}}
+			>
+				编辑
 			</Button>
 			{/* 引用了Button组件，用于进入调试台 */}
 			<Button
@@ -93,7 +74,7 @@ export const PackageListItemActions: FC<Props> = function (props) {
 				size="small"
 				variant="text"
 				color="error"
-				disabled={!canDelete || deleteBusy || startupBusy}
+				disabled={!canDelete || deleteBusy}
 				title={deleteBlockedReason}
 				onClick={function () {
 					onRequestDelete(pkg);
