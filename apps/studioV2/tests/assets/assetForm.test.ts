@@ -17,7 +17,6 @@ import {
 	buildAssetMetaFromCreateForm,
 	mergeDetailFormIntoAssetMeta,
 	resolveAssetAvailability,
-	studioKindToEngineKind,
 } from "@studio-v2/src/bis/pageBis/assets/assetMetaMapper";
 import { resetStudioIdSeq } from "@studio-v2/typeFiles/ids/createStudioId";
 import { createStudioId } from "@studio-v2/typeFiles/ids/createStudioId";
@@ -52,7 +51,7 @@ describe("createAssetForm", () => {
 });
 
 describe("assetDetailForm", () => {
-	it("rejects empty displayName and bad measure text", () => {
+	it("rejects empty displayName", () => {
 		resetStudioIdSeq(10);
 		const assetId = createStudioId("asset", "基线");
 		const meta = buildAssetMetaFromCreateForm(assetId, {
@@ -66,13 +65,11 @@ describe("assetDetailForm", () => {
 		});
 		const values = toAssetDetailFormValues(base);
 		values.displayName = "  ";
-		values.measureValueText = "12.5";
 		const errors = validateAssetDetailForm(values);
 		expect(errors.displayName).toBe("请填写资源名");
-		expect(errors.measureValueText).toBe("请填写非负整数，或留空");
 	});
 
-	it("applies type and note without changing assetId", () => {
+	it("applies displayName and note while preserving uploaded file fields", () => {
 		resetStudioIdSeq(20);
 		const assetId = createStudioId("asset", "可编辑");
 		const meta = buildAssetMetaFromCreateForm(assetId, {
@@ -85,23 +82,21 @@ describe("assetDetailForm", () => {
 			lastEditedAt: "2026-07-22T00:00:00.000Z",
 		});
 		const values = toAssetDetailFormValues(base);
+		values.displayName = " 可编辑资源 ";
 		values.note = "新备注";
-		values.kind = "other";
-		values.availability = "missing";
-		values.measureValueText = "4096";
-		values.measureUnit = "size_bytes";
 		const next = applyAssetDetailForm(base, values);
 		expect(next.assetId).toBe(base.assetId);
+		expect(next.displayName).toBe("可编辑资源");
 		expect(next.note).toBe("新备注");
-		expect(next.kind).toBe("other");
-		expect(next.availability).toBe("missing");
-		expect(next.measureValue).toBe(4096);
+		expect(next.kind).toBe(base.kind);
+		expect(next.availability).toBe(base.availability);
+		expect(next.measureValue).toBe(base.measureValue);
 
 		const merged = mergeDetailFormIntoAssetMeta(meta, values);
 		expect(merged.assetId).toBe(assetId);
+		expect(merged.displayName).toBe("可编辑资源");
 		expect(merged.meta?.note).toBe("新备注");
-		expect(merged.meta?.studioKind).toBe("other");
-		expect(studioKindToEngineKind("other")).toBe("prompt_clip");
+		expect(merged.meta?.studioKind).toBe("text");
 	});
 });
 

@@ -29,7 +29,6 @@ import {
 } from "@studio-v2/src/bis/pageBis/assets/createAssetForm";
 import {
 	ASSET_BASIC_ITEMS,
-	ASSET_FILE_ITEMS,
 } from "@studio-v2/src/bis/pageBis/assets/assetDetailForm";
 
 describe("projectEditorPackageConfFromBundle", () => {
@@ -102,11 +101,9 @@ describe("storyEditor asset form reuse", () => {
 		);
 	});
 
-	it("edit form items reuse asset detail basic + file segments", () => {
-		const names = [...ASSET_BASIC_ITEMS, ...ASSET_FILE_ITEMS].map((i) => i.name);
-		expect(names).toContain("displayName");
-		expect(names).toContain("availability");
-		expect(names).toContain("measureValueText");
+	it("edit form items only expose user-owned metadata", () => {
+		const names = ASSET_BASIC_ITEMS.map((i) => i.name);
+		expect(names).toEqual(["displayName", "note"]);
 	});
 });
 

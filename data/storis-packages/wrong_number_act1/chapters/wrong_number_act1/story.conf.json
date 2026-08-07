@@ -1,5 +1,6 @@
 {
   "schemaVersion": 1,
+  "chapterId": "wrong_number_act1",
   "title": "第一幕：打错电话",
   "entryCardId": "lanxing_wrong_number",
   "cards": [
@@ -12,6 +13,5 @@
     {
       "cardId": "lanxing_voicemail"
     }
-  ],
-  "chapterId": "wrong_number_act1"
+  ]
 }

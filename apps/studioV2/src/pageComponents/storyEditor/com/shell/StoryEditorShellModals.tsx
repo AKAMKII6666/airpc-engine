@@ -1,5 +1,5 @@
 /**
-	* 故事编辑器壳层弹层聚合：角色 FormModal + 资源 FormModal/删除确认 + 节点删除确认。
+	* 故事编辑器壳层弹层聚合：角色 FormModal + 资源上传/删除确认 + 节点删除确认。
 	* 从 StoryEditorShell 拆出以控函数有效行数；不接 Host。
 	*/
 "use client";
@@ -14,7 +14,6 @@ import { DeleteConfirmModal } from "@studio-v2/src/commonUiComponents/modal/conf
 import type { CreateCharacterFormValues } from "@studio-v2/src/bis/pageBis/characters/create/createCharacterForm";
 import type { CharacterDetailFormValues } from "@studio-v2/src/bis/pageBis/characters/detail/form/characterDetailForm";
 import type { CharacterSummary } from "@studio-v2/typeFiles/library/characters/form/characterSummary";
-import type { CreateAssetFormValues } from "@studio-v2/src/bis/pageBis/assets/createAssetForm";
 import type { AssetDetailFormValues } from "@studio-v2/src/bis/pageBis/assets/assetDetailForm";
 import type { AssetSummary } from "@studio-v2/typeFiles/library/assets/assetSummary";
 import type { PendingDeleteNode } from "@studio-v2/src/pageComponents/storyEditor/hooks/shell/useStoryEditorShellController";
@@ -37,7 +36,7 @@ export type StoryEditorShellCharacterModalState = {
 export type StoryEditorShellAssetModalState = {
 	createOpen: boolean;
 	closeCreate: () => void;
-	onCreateSubmit: (values: CreateAssetFormValues) => Promise<void>;
+	onUploadFile: (file: File) => Promise<void>;
 	editOpen: boolean;
 	editAsset: AssetSummary | null;
 	editInitialValues: AssetDetailFormValues | null;
@@ -89,7 +88,7 @@ export const StoryEditorShellModals: FC<StoryEditorShellModalsProps> = function 
 			<StoryEditorAssetModals
 				createOpen={asset.createOpen}
 				onCloseCreate={asset.closeCreate}
-				onCreateSubmit={asset.onCreateSubmit}
+				onUploadFile={asset.onUploadFile}
 				editOpen={asset.editOpen}
 				editAsset={asset.editAsset}
 				editInitialValues={asset.editInitialValues}

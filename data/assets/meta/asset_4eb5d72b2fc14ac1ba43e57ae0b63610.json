@@ -1,0 +1,15 @@
+{
+  "assetId": "asset_4eb5d72b2fc14ac1ba43e57ae0b63610",
+  "kind": "prompt_clip",
+  "uri": "files/asset_4eb5d72b2fc14ac1ba43e57ae0b63610.mp4",
+  "displayName": "1782801152938865",
+  "meta": {
+    "studioKind": "other",
+    "format": "mp4",
+    "measureValue": 1137369,
+    "measureUnit": "size_bytes",
+    "mimeType": "video/mp4",
+    "originalFileName": "1782801152938865.mp4",
+    "pendingFile": false
+  }
+}

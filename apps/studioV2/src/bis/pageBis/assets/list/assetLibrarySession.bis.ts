@@ -1,14 +1,13 @@
 /**
-	* 资源库列表会话 feature bis：从 store 投影给 UI；create/delete 后 bump 重拉。
+	* 资源库列表会话 feature bis：从 store 投影给 UI；upload/delete 后 bump 重拉。
 	* 打开真源在 shell；本 hook 不发列表 GET。
 	* Modal 开合、kind 筛选等瞬时态仍由 page hook 持有。
 	*/
 "use client";
 
 import { useCallback, useMemo } from "react";
-import { commitCreateAsset } from "@studio-v2/src/bis/pageBis/assets/createAsset_bis";
-import type { CreateAssetFormValues } from "@studio-v2/src/bis/pageBis/assets/createAssetForm";
 import { commitDeleteAsset } from "@studio-v2/src/bis/pageBis/assets/delete/deleteAsset_bis";
+import { commitUploadAssetFile } from "@studio-v2/src/bis/pageBis/assets/uploadAsset_bis";
 import { useAssetsStore } from "@studio-v2/src/stores/assets/assetsStore";
 import type { AssetSummary } from "@studio-v2/typeFiles/library/assets/assetSummary";
 
@@ -29,8 +28,8 @@ export type AssetLibrarySessionBis = {
 	setSelectedId: (assetId: string) => void;
 	/** 详情保存成功：单条 upsert，不 bump */
 	onDetailSaved: (next: AssetSummary) => void;
-	/** 新建成功：prefer 选中 + bump 重拉 */
-	onCreateSubmit: (values: CreateAssetFormValues) => Promise<void>;
+	/** 上传成功：prefer 选中 + bump 重拉 */
+	onUploadFile: (file: File) => Promise<void>;
 	/** 删除成功：bump 重拉；失败抛错由调用方记 deleteError */
 	onConfirmDelete: (assetId: string) => Promise<void>;
 };
@@ -80,9 +79,9 @@ export function useAssetLibrarySessionBis(): AssetLibrarySessionBis {
 		[applyAssetUpsertResult],
 	);
 
-	const onCreateSubmit = useCallback(
-		async function (values: CreateAssetFormValues): Promise<void> {
-			const { assetId } = await commitCreateAsset(values);
+	const onUploadFile = useCallback(
+		async function (file: File): Promise<void> {
+			const { assetId } = await commitUploadAssetFile(file);
 			setPreferSelectedId(assetId);
 			bumpAssetsRefreshStamp();
 		},
@@ -104,7 +103,7 @@ export function useAssetLibrarySessionBis(): AssetLibrarySessionBis {
 		loadError,
 		setSelectedId,
 		onDetailSaved,
-		onCreateSubmit,
+		onUploadFile,
 		onConfirmDelete,
 	};
 }

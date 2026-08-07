@@ -1,11 +1,10 @@
 /**
-	* 资源库页编排：Modal / kind 瞬时态本层自管；列表/选中/loading 真源在 assets store。
+	* 资源库页编排：上传 Modal / kind 瞬时态本层自管；列表/选中/loading 真源在 assets store。
 	* 页挂 shell 灌账；本 hook 只消费 session bis + 筛选与删除确认态。
 	*/
 "use client";
 
 import { useMemo, useState } from "react";
-import type { CreateAssetFormValues } from "@studio-v2/src/bis/pageBis/assets/createAssetForm";
 import { useAssetLibrarySessionBis } from "@studio-v2/src/bis/pageBis/assets/list/assetLibrarySession.bis";
 import type { AssetKind } from "@studio-v2/typeFiles/library/assets/assetSummary";
 
@@ -23,7 +22,7 @@ function errorMessage(error: unknown, fallback: string): string {
 export function useAssetLibraryPage() {
 	const session = useAssetLibrarySessionBis();
 	const [kind, setKind] = useState<AssetKind | "all">("all");
-	const [createOpen, setCreateOpen] = useState(false);
+	const [uploadOpen, setUploadOpen] = useState(false);
 	const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 	const [deleteError, setDeleteError] = useState<string | undefined>();
 
@@ -50,10 +49,10 @@ export function useAssetLibraryPage() {
 			? undefined
 			: session.assets.find((a) => a.assetId === deleteTargetId);
 
-	async function onCreateSubmit(values: CreateAssetFormValues): Promise<void> {
-		await session.onCreateSubmit(values);
+	async function onUploadFile(file: File): Promise<void> {
+		await session.onUploadFile(file);
 		setKind("all");
-		setCreateOpen(false);
+		setUploadOpen(false);
 	}
 
 	function onRequestDelete(assetId: string): void {
@@ -83,14 +82,14 @@ export function useAssetLibraryPage() {
 		setKind,
 		filtered,
 		selected,
-		createOpen,
-		setCreateOpen,
+		uploadOpen,
+		setUploadOpen,
 		deleteTarget,
 		deleteError,
 		loadError: session.loadError,
 		loading: session.loading,
 		setSelectedId: session.setSelectedId,
-		onCreateSubmit,
+		onUploadFile,
 		onDetailSaved: session.onDetailSaved,
 		onRequestDelete,
 		onConfirmDelete,

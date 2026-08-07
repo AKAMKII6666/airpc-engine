@@ -1,12 +1,12 @@
 /**
-	* POST /api/assets/upload — multipart 直传图片到 data/assets（meta + files）。
-	* 头像主路径复用本接口；禁止仅写假 assetId 不落盘。
+	* POST /api/assets/upload — multipart 直传文件到 data/assets（meta + files）。
+	* 资源库主路径复用本接口；禁止仅写假 assetId 不落盘。
 	*/
 import { AssetMetaSchema, formatZodError, isEngineError } from "@airpc/rpg-engine";
 import {
-	AVATAR_UPLOAD_MAX_BYTES,
-	buildUploadedImageAssetMeta,
-	imageExtFromMime,
+	ASSET_UPLOAD_MAX_BYTES,
+	buildUploadedAssetMeta,
+	extFromMimeOrName,
 } from "@studio-v2/src/utils/server/assets/upload/uploadAssetBinary.server";
 import { assetMetaToSummary } from "@studio-v2/src/utils/server/assets/meta/assetMetaMapper.server";
 import {
@@ -49,19 +49,16 @@ async function parseUploadFile(
 ): Promise<{ file: File; ext: string; mimeType: string } | Response> {
 	const fileEntry = form.get("file");
 	if (!(fileEntry instanceof File) || fileEntry.size <= 0) {
-		return apiFail("VALIDATION_FAILED", "请选择要上传的图片文件");
+		return apiFail("VALIDATION_FAILED", "请选择要上传的文件");
 	}
-	if (fileEntry.size > AVATAR_UPLOAD_MAX_BYTES) {
+	if (fileEntry.size > ASSET_UPLOAD_MAX_BYTES) {
 		return apiFail(
 			"VALIDATION_FAILED",
-			`图片过大，上限 ${Math.floor(AVATAR_UPLOAD_MAX_BYTES / (1024 * 1024))}MB`,
+			`文件过大，上限 ${Math.floor(ASSET_UPLOAD_MAX_BYTES / (1024 * 1024))}MB`,
 		);
 	}
 	const mimeType = (fileEntry.type || "").trim().toLowerCase();
-	const ext = imageExtFromMime(mimeType);
-	if (!ext) {
-		return apiFail("VALIDATION_FAILED", "仅支持 PNG / JPG / WebP 头像");
-	}
+	const ext = extFromMimeOrName(mimeType, fileEntry.name);
 	return { file: fileEntry, ext, mimeType };
 }
 
@@ -90,11 +87,12 @@ export async function POST(req: Request): Promise<Response> {
 		const usage = usageRaw === "avatar" ? ("avatar" as const) : undefined;
 
 		const bytes = new Uint8Array(await parsedFile.file.arrayBuffer());
-		const meta = buildUploadedImageAssetMeta({
+		const meta = buildUploadedAssetMeta({
 			assetId,
 			displayName,
 			ext: parsedFile.ext,
 			mimeType: parsedFile.mimeType,
+			fileName: parsedFile.file.name,
 			byteLength: bytes.byteLength,
 			usage,
 		});

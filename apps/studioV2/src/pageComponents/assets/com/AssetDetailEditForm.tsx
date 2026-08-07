@@ -12,9 +12,14 @@ import { AutoForm } from "@studio-v2/src/commonUiComponents/form/AutoForm";
 import type { AssetSummary } from "@studio-v2/typeFiles/library/assets/assetSummary";
 import {
 	ASSET_BASIC_ITEMS,
-	ASSET_FILE_ITEMS,
 	type AssetDetailFormValues,
 } from "@studio-v2/src/bis/pageBis/assets/assetDetailForm";
+import { AssetFilePreview } from "@studio-v2/src/pageComponents/assets/com/AssetFilePreview";
+import {
+	assetAvailabilityLabel,
+	assetKindLabel,
+	formatAssetMeasure,
+} from "@studio-v2/typeFiles/library/labels/libraryLabels";
 import styles from "@studio-v2/src/pageComponents/library/LibrarySplit.module.scss";
 
 export type AssetDetailEditFormProps = {
@@ -66,20 +71,27 @@ export const AssetDetailEditForm: FC<AssetDetailEditFormProps> =
 				</div>
 
 				<div className={styles.section}>
-					<h3 className={styles.sectionTitle}>文件信息</h3>
-					{/* 引用了AutoForm组件，用于编排格式与可用性字段 */}
-					<AutoForm
-						formik={formik}
-						mode="edit"
-						enabled
-						items={ASSET_FILE_ITEMS}
-					/>
-					{(asset.kind === "wav" || asset.kind === "bgm") && (
-						// 引用了Typography组件，用于音频预览静态占位说明
-						<Typography variant="body2" className={styles.detailMeta}>
-							播放预览（静态占位）· 引擎不负责真正播 WAV
-						</Typography>
-					)}
+					<h3 className={styles.sectionTitle}>文件预览</h3>
+					<AssetFilePreview asset={asset} />
+				</div>
+
+				<div className={styles.section}>
+					<h3 className={styles.sectionTitle}>文件属性</h3>
+					<Typography variant="body2" className={styles.detailMeta}>
+						类型：{assetKindLabel(asset.kind)}
+					</Typography>
+					<Typography variant="body2" className={styles.detailMeta}>
+						格式：{asset.format || "未知"}
+					</Typography>
+					<Typography variant="body2" className={styles.detailMeta}>
+						大小/时长：{formatAssetMeasure(
+							asset.measureValue,
+							asset.measureUnit,
+						)}
+					</Typography>
+					<Typography variant="body2" className={styles.detailMeta}>
+						状态：{assetAvailabilityLabel(asset.availability)}
+					</Typography>
 				</div>
 
 				<div className={styles.section}>

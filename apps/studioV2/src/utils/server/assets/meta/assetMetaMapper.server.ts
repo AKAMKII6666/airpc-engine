@@ -36,19 +36,8 @@ export type AssetCreateFields = {
 export type AssetDetailFields = {
 	/** 人类可读资源名；trim 后覆盖 AssetMeta.displayName */
 	displayName: string;
-	/** Studio 侧 kind；映射规则同新建 */
-	kind: AssetKind;
 	/** 备注；空串表示无；写回 meta.note */
 	note: string;
-	/** 文件格式短标签；写回 meta.format，非引擎 schema 一等字段 */
-	format: string;
-	/**
-		* 度量数字的文本投影；空串 → null。
-		* 单位由 measureUnit 解释（毫秒或字节）。
-		*/
-	measureValueText: string;
-	/** measureValue 单位；duration_ms 时同步写 AssetMeta.durationMs */
-	measureUnit: AssetSummary["measureUnit"];
 };
 
 const STUDIO_KINDS: readonly AssetKind[] = [
@@ -217,32 +206,13 @@ export function mergeDetailFormIntoAssetMeta(
 	values: AssetDetailFields,
 ): AssetMeta {
 	const bag = readBag(previous);
-	const studioKind = values.kind;
-	const engineKind = studioKindToEngineKind(studioKind);
-	const measureRaw = values.measureValueText.trim();
-	const measureValue = measureRaw.length === 0 ? null : Number(measureRaw);
 	const nextBag: StudioAssetMetaBag = {
-		studioKind,
-		format: values.format.trim(),
-		measureValue,
-		measureUnit: values.measureUnit,
+		...bag,
 		note: values.note.trim(),
-		pendingFile: bag.pendingFile,
 	};
-	const next: AssetMeta = {
+	return {
 		...previous,
-		kind: engineKind,
 		displayName: values.displayName.trim(),
 		meta: nextBag as Record<string, unknown>,
 	};
-	if (values.measureUnit === "duration_ms" && measureValue != null) {
-		next.durationMs = measureValue;
-	} else if (
-		previous.durationMs != null &&
-		values.measureUnit !== "duration_ms"
-	) {
-		const { durationMs: _drop, ...rest } = next;
-		return rest;
-	}
-	return next;
 }

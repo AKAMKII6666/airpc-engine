@@ -18,7 +18,7 @@ export type AssetPickerFloatProps = {
 	onClose: () => void;
 	/** 磁盘资源投影快照；由 hook 经 /api/assets 刷新 */
 	assets: readonly AssetSummary[];
-	/** 打开新建 FormModal */
+	/** 打开上传弹层 */
 	onCreate: () => void;
 	/** 打开编辑 FormModal */
 	onEdit: (asset: AssetSummary) => void;
@@ -41,7 +41,7 @@ export const AssetPickerFloat: FC<AssetPickerFloatProps> =
 		onClose,
 		// assets 是磁盘资源列表投影，用于展示与 CRUD 入口
 		assets,
-		// onCreate 打开新建弹层，用于登记资源
+		// onCreate 打开上传弹层，用于写入资源文件
 		onCreate,
 		// onEdit 打开编辑弹层，用于改资源投影
 		onEdit,
@@ -72,15 +72,15 @@ export const AssetPickerFloat: FC<AssetPickerFloatProps> =
 					playbackClipId；包级 assetRefs 在包配置浮窗勾选。
 				</Typography>
 				<div className={styles.toolbar}>
-					{/* 引用了Button组件，用于打开新建资源 FormModal */}
+					{/* 引用了Button组件，用于打开上传资源弹层 */}
 					<Button size="small" variant="outlined" onClick={onCreate}>
-						新建资源
+						上传资源
 					</Button>
 				</div>
 				{assets.length === 0 ? (
 					// 引用了Typography组件，用于空列表提示
 					<Typography variant="body2" color="text.secondary">
-						暂无资源。可点击「新建资源」写入 data/assets。
+						暂无资源。可点击「上传资源」写入 data/assets。
 					</Typography>
 				) : (
 					<ul className={styles.list}>

@@ -1,5 +1,5 @@
 /**
-	* 故事编辑器资源 FormModal / 删除确认；复用 /assets 同款 items 与 bis。
+	* 故事编辑器资源上传 / 编辑 / 删除确认。
 	*/
 "use client";
 
@@ -7,25 +7,19 @@ import type { FC } from "react";
 import { FormModal } from "@studio-v2/src/commonUiComponents/modal/form/FormModal";
 import { DeleteConfirmModal } from "@studio-v2/src/commonUiComponents/modal/confirm/DeleteConfirmModal";
 import {
-	CREATE_ASSET_FORM_ITEMS,
-	CREATE_ASSET_INITIAL_VALUES,
-	validateCreateAssetForm,
-	type CreateAssetFormValues,
-} from "@studio-v2/src/bis/pageBis/assets/createAssetForm";
-import {
 	ASSET_BASIC_ITEMS,
-	ASSET_FILE_ITEMS,
 	validateAssetDetailForm,
 	type AssetDetailFormValues,
 } from "@studio-v2/src/bis/pageBis/assets/assetDetailForm";
 import type { AssetSummary } from "@studio-v2/typeFiles/library/assets/assetSummary";
+import { AssetUploadModal } from "@studio-v2/src/pageComponents/assets/com/AssetUploadModal";
 
-const EDIT_ASSET_FORM_ITEMS = [...ASSET_BASIC_ITEMS, ...ASSET_FILE_ITEMS];
+const EDIT_ASSET_FORM_ITEMS = [...ASSET_BASIC_ITEMS];
 
 export type StoryEditorAssetModalsProps = {
 	createOpen: boolean;
 	onCloseCreate: () => void;
-	onCreateSubmit: (values: CreateAssetFormValues) => Promise<void>;
+	onUploadFile: (file: File) => Promise<void>;
 	editOpen: boolean;
 	editAsset: AssetSummary | null;
 	editInitialValues: AssetDetailFormValues | null;
@@ -39,12 +33,12 @@ export type StoryEditorAssetModalsProps = {
 
 export const StoryEditorAssetModals: FC<StoryEditorAssetModalsProps> =
 	function StoryEditorAssetModals({
-		// createOpen 控制新建弹层，用于登记资源元数据
+		// createOpen 控制上传弹层，用于上传资源文件
 		createOpen,
-		// onCloseCreate 关闭新建弹层，用于取消
+		// onCloseCreate 关闭上传弹层，用于取消
 		onCloseCreate,
-		// onCreateSubmit 提交新建，用于落盘 meta
-		onCreateSubmit,
+		// onUploadFile 提交上传，用于落盘文件与 meta
+		onUploadFile,
 		// editOpen 控制编辑弹层，用于改资源投影
 		editOpen,
 		// editAsset 是当前编辑 Summary，用于标题上下文
@@ -66,18 +60,11 @@ export const StoryEditorAssetModals: FC<StoryEditorAssetModalsProps> =
 	}) {
 		return (
 			<>
-				{/* 引用了FormModal组件，用于新建资源（与 /assets 同契约） */}
-				<FormModal<CreateAssetFormValues>
+				{/* 引用了AssetUploadModal组件，用于上传资源文件 */}
+				<AssetUploadModal
 					open={createOpen}
-					title="新建资源"
-					description="登记资源元数据即可。assetId 由系统生成；写入 data/assets/meta（本步不真上传二进制文件）。"
 					onClose={onCloseCreate}
-					initialValues={CREATE_ASSET_INITIAL_VALUES}
-					items={CREATE_ASSET_FORM_ITEMS}
-					validate={validateCreateAssetForm}
-					onSubmit={onCreateSubmit}
-					submitLabel="创建资源"
-					mode="add"
+					onUpload={onUploadFile}
 				/>
 
 				{editAsset && editInitialValues ? (
@@ -85,7 +72,7 @@ export const StoryEditorAssetModals: FC<StoryEditorAssetModalsProps> =
 					<FormModal<AssetDetailFormValues>
 						open={editOpen}
 						title="编辑资源"
-						description={`与资源库详情同字段。assetId · ${editAsset.assetId}；保存写入 data/assets。`}
+						description={`仅修改展示名与备注。assetId · ${editAsset.assetId}`}
 						onClose={onCloseEdit}
 						initialValues={editInitialValues}
 						items={EDIT_ASSET_FORM_ITEMS}

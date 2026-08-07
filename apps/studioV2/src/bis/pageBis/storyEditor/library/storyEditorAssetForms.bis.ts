@@ -1,12 +1,11 @@
 /**
-	* 故事编辑器资源浮窗：新建 / 编辑 / 删除复用 /assets FormModal + bis。
+	* 故事编辑器资源浮窗：上传 / 编辑 / 删除复用 /assets bis。
 	* 真源 = /api/assets ↔ data/assets；禁止 MOCK_ASSETS；禁 pageComponents 直引 ajaxProxy。
 	*/
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { commitCreateAsset } from "@studio-v2/src/bis/pageBis/assets/createAsset_bis";
-import type { CreateAssetFormValues } from "@studio-v2/src/bis/pageBis/assets/createAssetForm";
+import { commitUploadAssetFile } from "@studio-v2/src/bis/pageBis/assets/uploadAsset_bis";
 import {
 	toAssetDetailFormValues,
 	type AssetDetailFormValues,
@@ -73,9 +72,9 @@ export function useStoryEditorAssetFormsBis() {
 		setDeleteError(undefined);
 	}, []);
 
-	const onCreateSubmit = useCallback(
-		async function (values: CreateAssetFormValues): Promise<void> {
-			await commitCreateAsset(values);
+	const onUploadFile = useCallback(
+		async function (file: File): Promise<void> {
+			await commitUploadAssetFile(file);
 			await refreshAssets();
 			setCreateOpen(false);
 		},
@@ -118,7 +117,7 @@ export function useStoryEditorAssetFormsBis() {
 		createOpen,
 		openCreate,
 		closeCreate,
-		onCreateSubmit,
+		onUploadFile,
 		editOpen: editAsset != null,
 		editAsset,
 		editInitialValues: editAsset

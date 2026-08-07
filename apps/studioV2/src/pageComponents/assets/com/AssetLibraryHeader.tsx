@@ -1,5 +1,5 @@
 /**
- * 资源库页头：标题说明 + 新建/上传入口（仅元数据 FormModal，不真上传）。
+ * 资源库页头：标题说明 + 上传入口。
  */
 "use client";
 
@@ -8,13 +8,13 @@ import { Button, Typography } from "@mui/material";
 import styles from "@studio-v2/src/pageComponents/library/LibrarySplit.module.scss";
 
 export type AssetLibraryHeaderProps = {
-  onCreate: () => void;
+  onUpload: () => void;
 };
 
 export const AssetLibraryHeader: FC<AssetLibraryHeaderProps> = function (
   props,
 ) {
-  const { onCreate } = props;
+  const { onUpload } = props;
   return (
     <header className={styles.header}>
       <div>
@@ -22,12 +22,12 @@ export const AssetLibraryHeader: FC<AssetLibraryHeaderProps> = function (
           资源库
         </Typography>
         <Typography variant="body2" className={styles.sub}>
-          管理故事包引用的素材。列表紧凑展示；不做媒体瀑布流。
+          管理项目内可引用的外部文件；上传后由系统自动生成资源记录。
         </Typography>
       </div>
       <div className={styles.actions}>
-        <Button variant="contained" size="small" onClick={onCreate}>
-          上传 / 新建资源
+        <Button variant="contained" size="small" onClick={onUpload}>
+          上传资源
         </Button>
       </div>
     </header>

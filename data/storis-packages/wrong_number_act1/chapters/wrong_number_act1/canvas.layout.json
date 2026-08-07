@@ -1,51 +1,47 @@
 {
   "schemaVersion": 1,
-  "packageId": "wrong_number_act1",
+  "chapterId": "wrong_number_act1",
   "lanes": [
     {
       "agentId": "lanxing",
       "order": 0
-    },
-    {
-      "agentId": "xiaopi",
-      "order": 1
     }
   ],
   "nodes": [
     {
       "nodeId": "chapter_start",
       "kind": "chapter_start",
-      "x": 200,
-      "y": 200,
+      "x": 164.69383497985524,
+      "y": 283.52921968180584,
       "title": "第一幕 · 打错电话",
       "summary": "老式电话铃响起；澜星误拨，再补打自报。"
     },
     {
       "nodeId": "card_wrong_number",
       "cardId": "lanxing_wrong_number",
-      "x": 420,
-      "y": 120
+      "x": 356.83341457277146,
+      "y": 331.86295413302713
     },
     {
       "nodeId": "card_callback",
       "cardId": "lanxing_callback_intro",
-      "x": 760,
-      "y": 40
+      "x": 664.6846736266214,
+      "y": 248.29671726290894
     },
     {
       "nodeId": "card_voicemail",
       "cardId": "lanxing_voicemail",
-      "x": 760,
-      "y": 320
+      "x": 1012.8144927472985,
+      "y": 396.6314436871495
     },
     {
       "nodeId": "chapter_end",
       "kind": "chapter_end",
-      "x": 1100,
-      "y": 200,
+      "x": 1246.1218724784708,
+      "y": 118.39299781797047,
       "title": "章节结束",
       "summary": "小皮正往书包塞没电的手电筒；桌上纸条写着「不许乱跑。有事先打电话。」——他嘴硬，十秒后还是拿起了电话。",
-      "nextPackageId": "pkg_night_shift_2",
+      "nextChapterId": "pkg_night_shift_2",
       "nextEntryCardId": "night_shift_open"
     }
   ],
