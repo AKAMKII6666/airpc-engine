@@ -104,12 +104,13 @@ function composeGolden(input: {
   entryMode: string;
   beginContext: BeginCallContext;
   card?: CallCardDefinition;
+  localNowIso?: string;
 }): RenderedPrompt {
   const scene = buildComposeScene({
     entryMode: input.entryMode,
     actualEntry: input.beginContext.actualEntry,
     chapterId: input.beginContext.source === "free" ? "__free__" : "golden_handoff",
-    localNowIso: "2026-07-13T20:10:00+08:00",
+    localNowIso: input.localNowIso ?? "2026-07-13T20:10:00+08:00",
     timeZone: "Asia/Shanghai",
   });
   return mustPrompt(
@@ -152,12 +153,13 @@ describe("composeRenderedPrompt provider golden summaries", () => {
           "maxSentences": 2,
           "mode": "phone_short",
         },
-        "openingSpeakable": "喂？我是澜星。",
+        "openingSpeakable": "喂？请问哪位？",
         "providerIds": [
           "base.card_context",
           "scene.card_promptScenes",
           "opening.character_default",
           "opening.phone_short_policy",
+          "opening.situation",
           "hard.card_objective",
           "style.phone_global",
           "call.source",
@@ -175,6 +177,7 @@ describe("composeRenderedPrompt provider golden summaries", () => {
           "identity",
         ],
         "systemHardTitles": [
+          "opening.situation",
           "objective",
           "style.phone",
           "call.source",
@@ -217,12 +220,13 @@ describe("composeRenderedPrompt provider golden summaries", () => {
           "maxSentences": 2,
           "mode": "phone_short",
         },
-        "openingSpeakable": "喂？我是澜星。",
+        "openingSpeakable": "喂，是我。",
         "providerIds": [
           "base.card_context",
           "scene.card_promptScenes",
           "opening.character_default",
           "opening.phone_short_policy",
+          "opening.situation",
           "hard.card_objective",
           "style.phone_global",
           "call.source",
@@ -240,6 +244,7 @@ describe("composeRenderedPrompt provider golden summaries", () => {
           "identity",
         ],
         "systemHardTitles": [
+          "opening.situation",
           "objective",
           "style.phone",
           "call.source",
@@ -309,12 +314,13 @@ describe("composeRenderedPrompt provider golden summaries", () => {
           "maxSentences": 2,
           "mode": "phone_short",
         },
-        "openingSpeakable": "喂？我是澜星。",
+        "openingSpeakable": "喂，是我。刚才那通没接上。",
         "providerIds": [
           "base.card_context",
           "scene.card_promptScenes",
           "opening.character_default",
           "opening.phone_short_policy",
+          "opening.situation",
           "hard.card_objective",
           "style.phone_global",
           "call.source",
@@ -333,6 +339,7 @@ describe("composeRenderedPrompt provider golden summaries", () => {
           "identity",
         ],
         "systemHardTitles": [
+          "opening.situation",
           "objective",
           "style.phone",
           "call.source",
@@ -382,12 +389,13 @@ describe("composeRenderedPrompt provider golden summaries", () => {
           "maxSentences": 2,
           "mode": "phone_short",
         },
-        "openingSpeakable": "喂？我是澜星。",
+        "openingSpeakable": "喂，是我。",
         "providerIds": [
           "base.card_context",
           "scene.card_promptScenes",
           "opening.character_default",
           "opening.phone_short_policy",
+          "opening.situation",
           "hard.card_objective",
           "style.phone_global",
           "call.source",
@@ -405,6 +413,7 @@ describe("composeRenderedPrompt provider golden summaries", () => {
           "identity",
         ],
         "systemHardTitles": [
+          "opening.situation",
           "objective",
           "style.phone",
           "call.source",
@@ -452,12 +461,13 @@ describe("composeRenderedPrompt provider golden summaries", () => {
           "maxSentences": 2,
           "mode": "phone_short",
         },
-        "openingSpeakable": "喂？我是澜星。",
+        "openingSpeakable": "喂，是我。",
         "providerIds": [
           "base.card_context",
           "scene.card_promptScenes",
           "opening.character_default",
           "opening.phone_short_policy",
+          "opening.situation",
           "hard.card_objective",
           "style.phone_global",
           "call.source",
@@ -475,6 +485,7 @@ describe("composeRenderedPrompt provider golden summaries", () => {
           "identity",
         ],
         "systemHardTitles": [
+          "opening.situation",
           "objective",
           "style.phone",
           "call.source",
@@ -492,4 +503,64 @@ describe("composeRenderedPrompt provider golden summaries", () => {
     expect(hard).toContain("回电话题：补完线索");
     expect(hard).not.toContain("这是用户口头预约的提醒/回电");
   });
-});
+
+	  it("late-night free inbound overrides to sleepy unknown-caller opening", () => {
+	    const prompt = composeGolden({
+      entryMode: "inbound",
+      beginContext: {
+        source: "free",
+        actualEntry: "inbound_user_dial",
+      },
+      card: baseCard({ cardKind: "free" }),
+      localNowIso: "2026-07-13T02:10:00+08:00",
+    });
+
+    expect(prompt.openingSpeakable).toBe("喂？哪位……这么晚了。");
+    expect(prompt.openingPrivate).toContain("深夜用户拨入");
+    expect(prompt.debug?.notes).toContain(
+      "opening.situation:late_night_inbound:override",
+    );
+	    expect(prompt.systemHard.join("\n\n")).toContain("kind=late_night_inbound");
+	  });
+
+	  it("early-morning free inbound acknowledges early hour without self intro", () => {
+	    const prompt = composeGolden({
+	      entryMode: "inbound",
+	      beginContext: {
+	        source: "free",
+	        actualEntry: "inbound_user_dial",
+	      },
+	      card: baseCard({ cardKind: "free" }),
+	      localNowIso: "2026-07-13T06:40:00+08:00",
+	    });
+
+	    expect(prompt.openingSpeakable).toBe("喂？请问哪位？这么早。");
+	    expect(prompt.openingSpeakable).not.toContain("我是");
+	    expect(prompt.openingPrivate).toContain("清早用户拨入");
+	    expect(prompt.debug?.notes).toContain(
+	      "opening.situation:early_morning_inbound:override",
+	    );
+	    expect(prompt.systemHard.join("\n\n")).toContain(
+	      "kind=early_morning_inbound",
+	    );
+	  });
+
+	  it("afternoon free inbound remains a normal answered call while trace keeps temporal kind", () => {
+	    const prompt = composeGolden({
+	      entryMode: "inbound",
+	      beginContext: {
+	        source: "free",
+	        actualEntry: "inbound_user_dial",
+	      },
+	      card: baseCard({ cardKind: "free" }),
+	      localNowIso: "2026-07-13T15:20:00+08:00",
+	    });
+
+	    expect(prompt.openingSpeakable).toBe("喂？请问哪位？");
+	    expect(prompt.openingPrivate).toContain("下午用户拨入");
+	    expect(prompt.debug?.notes).toContain(
+	      "opening.situation:afternoon_inbound:override",
+	    );
+	    expect(prompt.systemHard.join("\n\n")).toContain("kind=afternoon_inbound");
+	  });
+	});

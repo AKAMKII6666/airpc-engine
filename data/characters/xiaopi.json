@@ -32,12 +32,12 @@
 			"layerId": "xiaopi_default",
 			"priority": 0,
 			"match": {
-				"callDirection": "either",
+				"callDirection": "outbound",
 				"localHourRange": { "from": 0, "to": 24 }
 			},
 			"patch": {
 				"openingSpeakable": "喂，是我小皮！有件事超重要——",
-				"openingPrivate": "轻剧情发动机；麻烦背后常有家庭与情绪原因。",
+				"openingPrivate": "角色默认外呼兜底；轻剧情发动机；麻烦背后常有家庭与情绪原因。",
 				"emotion": "兴奋",
 				"toneHint": "小孩、嘴硬",
 				"appendSpeakable": "还有别的事吗？",

@@ -951,7 +951,7 @@
 
 .promptTraceGrid {
 	display: grid;
-	grid-template-columns: minmax(0, 1fr) minmax(120px, 0.5fr);
+	grid-template-columns: minmax(0, 1.1fr) minmax(120px, 0.55fr) minmax(160px, 0.75fr);
 	gap: 8px;
 }
 
@@ -972,6 +972,42 @@
 	white-space: nowrap;
 	color: t.$text-primary;
 	font-size: 12px;
+}
+
+.promptSituation {
+	display: flex;
+	flex-direction: column;
+	gap: 7px;
+	padding: 9px;
+	border: 1px solid rgba(50, 214, 255, 0.24);
+	border-radius: 8px;
+	background: rgba(50, 214, 255, 0.06);
+}
+
+.promptSituation > div:first-child {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.promptSituation span {
+	color: t.$text-muted;
+	font-size: 11px;
+	font-weight: 700;
+}
+
+.promptSituation strong {
+	color: t.$brand-cyan;
+	font-size: 12px;
+	white-space: nowrap;
+}
+
+.promptSituation p {
+	margin: 0;
+	color: t.$text-secondary;
+	font-size: 12px;
+	line-height: 1.45;
 }
 
 .promptMiniList {

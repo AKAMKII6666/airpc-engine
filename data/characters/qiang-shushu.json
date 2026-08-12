@@ -32,12 +32,12 @@
 			"layerId": "qiang_default",
 			"priority": 0,
 			"match": {
-				"callDirection": "either",
+				"callDirection": "outbound",
 				"localHourRange": { "from": 0, "to": 24 }
 			},
 			"patch": {
 				"openingSpeakable": "喂，强叔叔。说，谁又想去野了？",
-				"openingPrivate": "户外安全与行动支援；嘴贫但靠谱。",
+				"openingPrivate": "角色默认外呼兜底；户外安全与行动支援；嘴贫但靠谱。",
 				"emotion": "爽朗",
 				"toneHint": "嘴贫、靠谱",
 				"appendSpeakable": "还有别的事吗？",

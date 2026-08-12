@@ -121,7 +121,40 @@ export const PromptTracePanel: FC<PromptTracePanelProps> =
 								: "无"}
 						</strong>
 					</div>
+					<div>
+						<span className={styles.debugLabel}>Situation</span>
+						<strong>
+							{trace.openingSituation
+								? `${trace.openingSituation.kind} · ${trace.openingSituation.control}`
+								: "无"}
+						</strong>
+					</div>
 				</div>
+
+				{trace.openingSituation ? (
+					<div className={styles.promptSituation}>
+						<div>
+							<span>opening situation</span>
+							<strong>
+								{trace.openingSituation.overridden ? "provider 覆盖" : "card 保持"}
+								{trace.openingSituation.priority !== null
+									? ` · P${trace.openingSituation.priority}`
+									: ""}
+							</strong>
+						</div>
+						<p>{trace.openingSituation.reason || "无 reason"}</p>
+						{trace.openingSituation.tags.length > 0 ? (
+							<div className={styles.promptMiniList}>
+								<span>tags</span>
+								{trace.openingSituation.tags.map((tag, index) => (
+									<code key={promptTraceItemKey("situation_tag", tag, index)}>
+										{tag}
+									</code>
+								))}
+							</div>
+						) : null}
+					</div>
+				) : null}
 
 				{trace.openingPolicy?.forbidden.length ? (
 					<div className={styles.promptMiniList}>

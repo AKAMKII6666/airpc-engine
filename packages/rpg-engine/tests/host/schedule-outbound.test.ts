@@ -220,7 +220,7 @@ describe("schedule → outbound (S3)", () => {
     expect(hard).not.toContain("用户口头预约的提醒/回电");
   });
 
-  it("澜星 Free 首通使用自由通话开场，不继承打错电话剧情开场", async () => {
+  it("澜星 Free 玩家呼入使用陌生来电接听，不继承打错电话剧情开场", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-free-opening-"));
     const dataRoot = path.join(tmpRoot, "data");
     await cp(dataSrc, dataRoot, { recursive: true });
@@ -239,9 +239,12 @@ describe("schedule → outbound (S3)", () => {
     });
     if (isEngineError(session)) throw session;
 
-    expect(session.beginContext?.source).toBe("free");
-    expect(session.renderedPrompt?.openingSpeakable).toBe("喂？我是澜星。");
-    expect(session.renderedPrompt?.openingSpeakable).not.toContain("打错");
+	    expect(session.beginContext?.source).toBe("free");
+	    expect(session.renderedPrompt?.openingSpeakable).toBe("喂？请问哪位？");
+	    expect(session.renderedPrompt?.openingSpeakable).not.toContain("打错");
+	    expect(session.renderedPrompt?.debug?.notes ?? []).toContain(
+	      "opening.situation:evening_inbound",
+	    );
     expect(session.renderedPrompt?.debug?.notes ?? []).not.toContain(
       "fallback: CharacterDef.defaultPromptScenes",
     );
@@ -303,7 +306,10 @@ describe("schedule → outbound (S3)", () => {
     expect(freeSession.renderedPrompt?.openingPrivate).not.toContain(
       "打错电话剧情",
     );
-    expect(freeSession.renderedPrompt?.openingSpeakable).toBe("喂？我是澜星。");
+	    expect(freeSession.renderedPrompt?.openingSpeakable).toBe("喂？请问哪位？");
+	    expect(freeSession.renderedPrompt?.debug?.notes ?? []).toContain(
+	      "opening.situation:evening_inbound",
+	    );
   });
 
   it("Free 提醒忽略模型幻觉目标并写入当前自由卡 pending / once", async () => {

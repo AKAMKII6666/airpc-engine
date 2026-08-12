@@ -306,6 +306,7 @@ describe("runDebuggerLlmWithTools", () => {
 				maxSentences: 2,
 				reason: "phone",
 			},
+			openingSituation: null,
 		});
 		expect(view.promptTrace.systemHardBlocks).toEqual([
 			expect.objectContaining({
@@ -337,6 +338,38 @@ describe("runDebuggerLlmWithTools", () => {
 			argsPreview: "{\n  \"nickname\": \"小明\"\n}",
 		});
 		expect(view.shellEvents).toEqual([]);
+	});
+
+	it("projects opening situation as readable prompt trace summary", () => {
+		const session = sessionFixture();
+		const prompt = session.renderedPrompt;
+		if (!prompt) throw new Error("sessionFixture should include renderedPrompt");
+		prompt.systemHard.unshift(
+			[
+				"[opening.situation]",
+				"- kind=early_morning_inbound",
+				"- control=provider",
+				"- priority=68",
+				"- reason=user dialed in early in the morning; opening may lightly acknowledge the early hour",
+				"- tags=inbound,temporal,early_morning,unknown_caller",
+				"- 本 provider 已决定/覆盖首句 opening。",
+			].join("\n"),
+		);
+
+		const view = projectDebuggerCallSession(session, null, []);
+
+		expect(view.promptTrace.openingSituation).toEqual({
+			kind: "early_morning_inbound",
+			control: "provider",
+			priority: 68,
+			reason:
+				"user dialed in early in the morning; opening may lightly acknowledge the early hour",
+			tags: ["inbound", "temporal", "early_morning", "unknown_caller"],
+			overridden: true,
+		});
+		expect(view.promptTrace.systemHardBlocks[0]).toMatchObject({
+			title: "opening.situation",
+		});
 	});
 
 	it("routes request_hangup through Host shell-control path", async () => {

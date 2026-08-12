@@ -196,6 +196,12 @@ export {
   type PromptProviderRegistry,
 } from "./runtime/promptProviderRegistry.js";
 export {
+  resolveOpeningSituation,
+  type OpeningControl,
+  type OpeningSituation,
+  type OpeningSituationKind,
+} from "./runtime/openingSituationResolver.js";
+export {
   normalizePersonalityCode,
   buildPersonalityHardBlock,
   buildPersonaStyleHardBlock,

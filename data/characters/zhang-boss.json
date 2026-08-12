@@ -32,12 +32,12 @@
 			"layerId": "zhang_default",
 			"priority": 0,
 			"match": {
-				"callDirection": "either",
+				"callDirection": "outbound",
 				"localHourRange": { "from": 0, "to": 24 }
 			},
 			"patch": {
 				"openingSpeakable": "我是张老板。说，机器又怎么了？",
-				"openingPrivate": "技术外援；先骂再帮，关键时可靠。",
+				"openingPrivate": "角色默认外呼兜底；技术外援；先骂再帮，关键时可靠。",
 				"emotion": "不耐烦",
 				"toneHint": "毒舌、靠谱",
 				"appendSpeakable": "还有别的事吗？",

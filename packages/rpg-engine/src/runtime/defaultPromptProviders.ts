@@ -22,6 +22,10 @@ import {
   buildWrongNumberGuardBlock,
   createOpeningPolicy,
 } from "./promptPhoneBlocks.js";
+import {
+  resolveOpeningSituation,
+  type OpeningSituation,
+} from "./openingSituationResolver.js";
 
 function parseLayers(raw: unknown): PromptSceneLayer[] {
   if (!Array.isArray(raw)) return [];
@@ -96,6 +100,97 @@ function hasOpening(draft: PromptProviderContext["draft"]): boolean {
   );
 }
 
+function characterDisplayName(ctx: PromptProviderContext): string {
+  const character = ctx.input.characterDef;
+  return (
+    character?.identity?.fullName?.trim() ||
+    character?.displayName?.trim() ||
+    character?.identity?.nickname?.trim() ||
+    ctx.input.card.ownerAgentId
+  );
+}
+
+function openingForSituation(
+  situation: OpeningSituation,
+  ctx: PromptProviderContext,
+): { speakable?: string; privateNote: string; shouldOverride: boolean } {
+  switch (situation.kind) {
+    case "missed_outbound_resume":
+      return {
+        speakable: "喂，是我。刚才那通没接上。",
+        privateNote: "用户回拨/接回未接外呼；不要装作陌生来电。",
+        shouldOverride: true,
+      };
+    case "scheduled_callback":
+      return {
+        speakable: "喂，是我。",
+        privateNote: "预约/计划回电；首句短接通，随后按 scheduled callback block 带出话题。",
+        shouldOverride: true,
+      };
+    case "late_night_inbound":
+      return {
+        speakable: "喂？哪位……这么晚了。",
+        privateNote: "深夜用户拨入；角色刚接起且未识别来电人，语气可困倦、短。",
+        shouldOverride: true,
+      };
+    case "early_morning_inbound":
+      return {
+        speakable: "喂？请问哪位？这么早。",
+        privateNote: "清早用户拨入；角色刚接起且未识别来电人，可轻微意外但不要展开描写。",
+        shouldOverride: true,
+      };
+    case "morning_inbound":
+      return {
+        speakable: "喂？请问哪位？",
+        privateNote: "上午用户拨入；角色刚接起且尚未识别来电人，保持普通接听，不主动报时。",
+        shouldOverride: true,
+      };
+    case "noon_inbound":
+      return {
+        speakable: "喂？请问哪位？",
+        privateNote: "中午用户拨入；角色刚接起且尚未识别来电人，短句接听，不写吃饭/午休剧情。",
+        shouldOverride: true,
+      };
+    case "afternoon_inbound":
+      return {
+        speakable: "喂？请问哪位？",
+        privateNote: "下午用户拨入；角色刚接起且尚未识别来电人，保持普通接听。",
+        shouldOverride: true,
+      };
+    case "evening_inbound":
+      return {
+        speakable: "喂？请问哪位？",
+        privateNote: "傍晚/晚间用户拨入；角色刚接起且尚未识别来电人，短句自然接听。",
+        shouldOverride: true,
+      };
+    case "night_inbound":
+      return {
+        speakable: "喂？哪位？这么晚了。",
+        privateNote: "夜间用户拨入；角色刚接起且未识别来电人，短句接听。",
+        shouldOverride: true,
+      };
+    case "inbound_unknown":
+      return {
+        speakable: "喂？请问哪位？",
+        privateNote: "用户拨入；角色刚接起且尚未识别来电人，禁止先自报或叫用户名字。",
+        shouldOverride: true,
+      };
+    case "outbound_generic":
+      return {
+        speakable: `喂，我是${characterDisplayName(ctx)}。`,
+        privateNote: "NPC 主动外呼；只在卡片未提供 opening 时作为弱兜底。",
+        shouldOverride: !hasOpening(ctx.draft),
+      };
+    case "card_story":
+    case "mailbox_playback":
+    case "unknown":
+      return {
+        privateNote: "当前 opening 由卡片/播放卡控制。",
+        shouldOverride: false,
+      };
+  }
+}
+
 const baseContextProvider: PromptProvider = {
   providerId: "base.card_context",
   apply(ctx) {
@@ -151,6 +246,49 @@ const openingPolicyProvider: PromptProvider = {
   providerId: "opening.phone_short_policy",
   apply(ctx) {
     ctx.draft.openingPolicy = createOpeningPolicy(ctx.input.beginContext);
+  },
+};
+
+const openingSituationProvider: PromptProvider = {
+  providerId: "opening.situation",
+  apply(ctx) {
+    if (!ctx.input.beginContext) {
+      ctx.draft.notes.push("opening.situation:skip(no_begin_context)");
+      return;
+    }
+    const situation = resolveOpeningSituation({
+      beginContext: ctx.input.beginContext,
+      scene: ctx.input.scene,
+    });
+    const opening = openingForSituation(situation, ctx);
+    const previous = ctx.draft.openingSpeakable;
+    if (opening.shouldOverride && opening.speakable) {
+      ctx.draft.openingSpeakable = opening.speakable;
+      ctx.draft.openingPrivate = opening.privateNote;
+      ctx.draft.notes.push(
+        previous && previous !== opening.speakable
+          ? `opening.situation:${situation.kind}:override`
+          : `opening.situation:${situation.kind}`,
+      );
+    } else {
+      ctx.draft.notes.push(`opening.situation:${situation.kind}:observe`);
+      if (!ctx.draft.openingPrivate && opening.privateNote) {
+        ctx.draft.openingPrivate = opening.privateNote;
+      }
+    }
+    ctx.systemHard.push(
+      [
+        "[opening.situation]",
+        `- kind=${situation.kind}`,
+        `- control=${situation.control}`,
+        `- priority=${situation.priority}`,
+        `- reason=${situation.reason}`,
+        `- tags=${situation.tags.join(",") || "none"}`,
+        opening.shouldOverride
+          ? "- 本 provider 已决定/覆盖首句 opening。"
+          : "- 本 provider 只观察，不覆盖当前卡片 opening。",
+      ].join("\n"),
+    );
   },
 };
 
@@ -268,6 +406,7 @@ export const DEFAULT_PROMPT_PROVIDERS: readonly PromptProvider[] = [
   promptSceneProvider,
   characterOpeningProvider,
   openingPolicyProvider,
+  openingSituationProvider,
   hardBlocksProvider,
   phoneStyleProvider,
   callSourceProvider,

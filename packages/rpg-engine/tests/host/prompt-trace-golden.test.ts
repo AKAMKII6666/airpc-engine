@@ -111,14 +111,15 @@ describe("Host prompt trace golden", () => {
       {
         "actualEntry": "inbound_user_dial",
         "matchedLayerIds": [
-          "lanxing_free_default",
+          "lanxing_free_inbound_style",
         ],
-        "opening": "喂？我是澜星。",
+        "opening": "喂？请问哪位？",
         "providerIds": [
           "base.card_context",
           "scene.card_promptScenes",
           "opening.character_default",
           "opening.phone_short_policy",
+          "opening.situation",
           "hard.card_objective",
           "style.phone_global",
           "call.source",
@@ -133,18 +134,21 @@ describe("Host prompt trace golden", () => {
           "soft.extras",
         ],
         "softContextTitles": [
+          "conversation.inertia.recent_turns",
           "identity",
           "lore source=fallback",
           "tools",
         ],
         "source": "free",
         "systemHardTitles": [
+          "opening.situation",
           "objective",
           "forbidden",
           "emotion",
           "toneHint",
           "style.phone",
           "call.source",
+          "conversation.inertia",
           "opening.guard",
           "persona.systemPrompt",
           "persona.personality",
@@ -184,14 +188,15 @@ describe("Host prompt trace golden", () => {
       {
         "actualEntry": "outbound_auto",
         "matchedLayerIds": [
-          "lanxing_free_default",
+          "lanxing_free_outbound_default",
         ],
-        "opening": "喂？我是澜星。",
+        "opening": "喂，是我。",
         "providerIds": [
           "base.card_context",
           "scene.card_promptScenes",
           "opening.character_default",
           "opening.phone_short_policy",
+          "opening.situation",
           "hard.card_objective",
           "style.phone_global",
           "call.source",
@@ -206,18 +211,21 @@ describe("Host prompt trace golden", () => {
           "soft.extras",
         ],
         "softContextTitles": [
+          "conversation.inertia.recent_turns",
           "identity",
           "lore source=fallback",
           "tools",
         ],
         "source": "schedule_reminder",
         "systemHardTitles": [
+          "opening.situation",
           "objective",
           "forbidden",
           "emotion",
           "toneHint",
           "style.phone",
           "call.source",
+          "conversation.inertia",
           "scheduled.callback.user_reminder",
           "opening.guard",
           "persona.systemPrompt",
@@ -269,15 +277,14 @@ describe("Host prompt trace golden", () => {
     expect(traceSummary(callback)).toMatchInlineSnapshot(`
       {
         "actualEntry": "inbound_user_dial",
-        "matchedLayerIds": [
-          "xiaopi_default",
-        ],
-        "opening": "喂，是我小皮！有件事超重要——",
+        "matchedLayerIds": [],
+        "opening": "喂，是我。刚才那通没接上。",
         "providerIds": [
           "base.card_context",
           "scene.card_promptScenes",
           "opening.character_default",
           "opening.phone_short_policy",
+          "opening.situation",
           "hard.card_objective",
           "style.phone_global",
           "call.source",
@@ -297,10 +304,10 @@ describe("Host prompt trace golden", () => {
         ],
         "source": "expert_referral",
         "systemHardTitles": [
+          "opening.situation",
           "objective",
           "forbidden",
           "emotion",
-          "toneHint",
           "style.phone",
           "call.source",
           "call.missed_outbound",
@@ -364,15 +371,14 @@ describe("Host prompt trace golden", () => {
     expect(traceSummary(callback)).toMatchInlineSnapshot(`
       {
         "actualEntry": "inbound_user_dial",
-        "matchedLayerIds": [
-          "xiaopi_default",
-        ],
-        "opening": "喂，是我小皮！有件事超重要——",
+        "matchedLayerIds": [],
+        "opening": "喂，是我。刚才那通没接上。",
         "providerIds": [
           "base.card_context",
           "scene.card_promptScenes",
           "opening.character_default",
           "opening.phone_short_policy",
+          "opening.situation",
           "hard.card_objective",
           "style.phone_global",
           "call.source",
@@ -392,10 +398,10 @@ describe("Host prompt trace golden", () => {
         ],
         "source": "expert_referral",
         "systemHardTitles": [
+          "opening.situation",
           "objective",
           "forbidden",
           "emotion",
-          "toneHint",
           "style.phone",
           "call.source",
           "call.missed_outbound",

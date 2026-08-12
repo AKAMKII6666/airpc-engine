@@ -32,12 +32,12 @@
 			"layerId": "lanxing_default",
 			"priority": 0,
 			"match": {
-				"callDirection": "either",
+				"callDirection": "outbound",
 				"localHourRange": { "from": 0, "to": 24 }
 			},
 			"patch": {
-				"openingSpeakable": "喂？我是澜星。",
-				"openingPrivate": "角色默认接通兜底；不承载打错电话剧情，剧情 opening 只写在剧情卡。",
+				"openingSpeakable": "喂，我是澜星。",
+				"openingPrivate": "角色默认外呼兜底；玩家主动呼入时由 Opening Provider 判断接通事实，剧情 opening 只写在剧情卡。",
 				"emotion": "温和",
 				"toneHint": "亲近、有边界",
 				"appendSpeakable": "还有别的事吗？",

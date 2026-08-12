@@ -19,6 +19,15 @@ export type DebuggerPromptProviderView = {
 	important: boolean;
 };
 
+export type DebuggerOpeningSituationView = {
+	kind: string;
+	control: string;
+	priority: number | null;
+	reason: string;
+	tags: string[];
+	overridden: boolean;
+};
+
 export type DebuggerPromptTraceView = {
 	providerIds: string[];
 	providerRows: DebuggerPromptProviderView[];
@@ -31,6 +40,7 @@ export type DebuggerPromptTraceView = {
 		maxSentences: number;
 		forbidden: string[];
 	} | null;
+	openingSituation: DebuggerOpeningSituationView | null;
 	systemHardBlocks: DebuggerPromptBlockView[];
 	softContextBlocks: DebuggerPromptBlockView[];
 };
@@ -104,10 +114,42 @@ function projectPromptBlocks(
 	});
 }
 
+function blockBodyValue(block: string, key: string): string | null {
+	const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+	const match = block.match(new RegExp(`^- ${escaped}=(.*)$`, "m"));
+	return match?.[1]?.trim() || null;
+}
+
+function parseOpeningSituation(
+	blocks: readonly string[],
+): DebuggerOpeningSituationView | null {
+	const block = blocks.find(function (item) {
+		return item.startsWith("[opening.situation]");
+	});
+	if (!block) return null;
+	const priority = blockBodyValue(block, "priority");
+	return {
+		kind: blockBodyValue(block, "kind") ?? "unknown",
+		control: blockBodyValue(block, "control") ?? "unknown",
+		priority: priority === null ? null : Number.parseInt(priority, 10),
+		reason: blockBodyValue(block, "reason") ?? "",
+		tags: (blockBodyValue(block, "tags") ?? "")
+			.split(",")
+			.map(function (tag) {
+				return tag.trim();
+			})
+			.filter(function (tag) {
+				return tag.length > 0 && tag !== "none";
+			}),
+		overridden: block.includes("已决定/覆盖首句 opening"),
+	};
+}
+
 export function projectPromptTrace(
 	prompt: RenderedPrompt | undefined,
 ): DebuggerPromptTraceView {
 	const providerIds = prompt?.debug?.providerIds ?? [];
+	const systemHard = prompt?.systemHard ?? [];
 	return {
 		providerIds,
 		providerRows: projectPromptProviders(providerIds),
@@ -120,10 +162,11 @@ export function projectPromptTrace(
 					reason: prompt.openingPolicy.reason,
 					maxSentences: prompt.openingPolicy.maxSentences,
 					forbidden: prompt.openingPolicy.forbidden,
-				}
-			: null,
+					}
+				: null,
+		openingSituation: parseOpeningSituation(systemHard),
 		systemHardBlocks: projectPromptBlocks(
-			prompt?.systemHard ?? [],
+			systemHard,
 			"systemHard",
 		),
 		softContextBlocks: projectPromptBlocks(

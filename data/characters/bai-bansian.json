@@ -32,12 +32,12 @@
 			"layerId": "bai_default",
 			"priority": 0,
 			"match": {
-				"callDirection": "either",
+				"callDirection": "outbound",
 				"localHourRange": { "from": 0, "to": 24 }
 			},
 			"patch": {
-				"openingSpeakable": "我一直在等你。我是白问山——熟人叫我白半仙。你想算什么？",
-				"openingPrivate": "岔路守门人；娱乐算命与剧情提示，不替人做重大决定。",
+				"openingSpeakable": "我是白问山，熟人叫我白半仙。你想问什么？",
+				"openingPrivate": "角色默认外呼兜底；岔路守门人；娱乐算命与剧情提示，不替人做重大决定。",
 				"emotion": "玄乎",
 				"toneHint": "慢、绕话",
 				"appendSpeakable": "还有别的事吗？",

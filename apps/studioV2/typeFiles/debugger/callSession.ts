@@ -135,6 +135,22 @@ export type DebuggerPromptProviderView = {
 	important: boolean;
 };
 
+/** Opening Situation Resolver 的浏览器摘要；server 从 systemHard block 投影 */
+export type DebuggerOpeningSituationView = {
+	/** situation kind，如 inbound_unknown / late_night_inbound */
+	kind: string;
+	/** opening 控制权：card 或 provider */
+	control: string;
+	/** resolver 优先级 */
+	priority: number | null;
+	/** 命中原因 */
+	reason: string;
+	/** resolver tags */
+	tags: string[];
+	/** provider 是否改写了首句 opening */
+	overridden: boolean;
+};
+
 /** 表示 Host Composer 输出的浏览器 Trace 投影，不暴露 private 原文 */
 export type DebuggerPromptTraceView = {
 	/** Provider 执行顺序；来自 renderedPrompt.debug.providerIds */
@@ -154,6 +170,8 @@ export type DebuggerPromptTraceView = {
 		maxSentences: number;
 		forbidden: string[];
 	} | null;
+	/** Opening Situation 摘要；为空表示当前 prompt 未经过 opening.situation provider */
+	openingSituation: DebuggerOpeningSituationView | null;
 	/** systemHard 块；已裁剪 */
 	systemHardBlocks: DebuggerPromptBlockView[];
 	/** softContext 块；已裁剪 */
