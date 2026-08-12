@@ -58,13 +58,15 @@ describe("SqliteMemoryPort", () => {
 		expect(proj.debug?.hotCount).toBeLessThanOrEqual(
 			MEMORY_PROJECT_DEFAULTS.maxCallSummaries +
 				MEMORY_PROJECT_DEFAULTS.maxVignettes +
+				MEMORY_PROJECT_DEFAULTS.maxSemantic +
 				MEMORY_PROJECT_DEFAULTS.maxRollups,
 		);
 		expect(proj.debug?.chars ?? 0).toBeLessThanOrEqual(
 			MEMORY_PROJECT_DEFAULTS.maxSoftChars,
 		);
 		expect(proj.includedEntryIds.length).toBeLessThanOrEqual(
-			MEMORY_PROJECT_DEFAULTS.maxCallSummaries,
+			MEMORY_PROJECT_DEFAULTS.maxCallSummaries +
+				MEMORY_PROJECT_DEFAULTS.maxSemantic,
 		);
 	});
 
@@ -237,6 +239,95 @@ describe("SqliteMemoryPort", () => {
 		expect(hits).toHaveLength(1);
 		expect(hits[0]?.text).toContain("user:");
 		expect(hits[0]?.text).toContain("生日蛋糕");
+	});
+
+	it("applyPatch rejects non-semantic memory patches", async () => {
+		const mem = await setup();
+		type PatchInput = Parameters<typeof mem.applyPatch>[0];
+		await expect(
+			mem.applyPatch({
+				userId: "u1",
+				agentId: "a1",
+				layer: "commitments",
+				op: "insert",
+				payload: { text: "伪造承诺", kind: "semantic" },
+			} as unknown as PatchInput),
+		).rejects.toThrow(/layer not allowed/);
+		await expect(
+			mem.applyPatch({
+				userId: "u1",
+				agentId: "a1",
+				layer: "semantic",
+				op: "upsert",
+				payload: { text: "伪造更新", kind: "semantic" },
+			} as unknown as PatchInput),
+		).rejects.toThrow(/op not allowed/);
+	});
+
+	it("applyPatch inserts strict semantic memory", async () => {
+		const mem = await setup();
+		await mem.applyPatch({
+			userId: "u1",
+			agentId: "a1",
+			layer: "semantic",
+			op: "insert",
+			payload: { text: "用户喜欢桂花乌龙", kind: "semantic" },
+		});
+		const hits = await mem.search({
+			userId: "u1",
+			agentId: "a1",
+			textQuery: "桂花乌龙",
+			kinds: ["semantic"],
+			maxResults: 5,
+		});
+		expect(hits).toHaveLength(1);
+		expect(hits[0]).toMatchObject({
+			layer: "semantic",
+			kind: "semantic",
+		});
+	});
+
+	it("projectForCall returns structured items including semantic patches", async () => {
+		const mem = await setup();
+		const card = CallCardDefinitionSchema.parse({
+			cardId: "c",
+			ownerAgentId: "a",
+			exits: [],
+		});
+		await mem.commitAfterCall({
+			userId: "u1",
+			agentId: "a1",
+			sessionId: "s1",
+			transcript: null,
+			endedAt: "2026-07-15T10:00:00.000Z",
+			summaryText: "聊到用户最近喜欢喝茶",
+			vignettes: ["用户喜欢桂花乌龙"],
+		});
+		await mem.applyPatch({
+			userId: "u1",
+			agentId: "a1",
+			layer: "semantic",
+			op: "insert",
+			payload: { text: "用户偏好：桂花乌龙", kind: "semantic" },
+		});
+
+		const proj = await mem.projectForCall({
+			userId: "u1",
+			agentId: "a1",
+			card,
+		});
+
+		expect(proj.softText).toContain("[semantic]");
+		expect(proj.items?.map((item) => item.kind)).toEqual(
+			expect.arrayContaining(["call_summary", "vignette", "semantic"]),
+		);
+		expect(proj.items?.find((item) => item.kind === "semantic")).toMatchObject({
+			layer: "semantic",
+			source: "entry",
+			text: "用户偏好：桂花乌龙",
+		});
+		expect(proj.items?.[0]?.kind).toBe("semantic");
+		expect(proj.debug?.counts?.semantic).toBe(1);
 	});
 
 	it("E5: rollupIfNeeded creates month/quarter rollup; before/after assertable", async () => {

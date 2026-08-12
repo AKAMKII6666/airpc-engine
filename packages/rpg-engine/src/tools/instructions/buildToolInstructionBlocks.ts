@@ -192,7 +192,7 @@ function buildMemoryBlockIfOpen(open: OpenSet): string | null {
   }
   if (hasGet) {
     lines.push(
-      "摘要不够时，用 `get_memory_by_id` 取 `search_memory` 返回的 `entry_id` 正文。",
+      "摘要不够时，用 `get_memory_by_id` 取本通 `search_memory` 返回的 `entry_id` 正文；不要猜 id。",
     );
   }
   lines.push(

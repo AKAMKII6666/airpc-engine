@@ -176,4 +176,5 @@ describe("effectExecutor S11 world / story / media stubs", () => {
       (profile.research.commitments[0] as { question?: string }).question,
     ).toBe("明天天气？");
   });
+
 });

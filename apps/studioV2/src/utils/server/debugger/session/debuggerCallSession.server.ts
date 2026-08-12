@@ -4,14 +4,11 @@
 	*/
 import {
 	isEngineError,
-	listToolsForCard,
 	type CallIntent,
 	type CallSession,
 	type EngineHost,
 	type EndCallResult,
-	type RenderedPrompt,
 	type RuntimeExitCandidate,
-	type ToolDefinition,
 } from "@airpc/rpg-engine";
 import { getStudioV2EngineHost } from "@studio-v2/src/utils/server/host/engineHost.server";
 import { isValidUserId } from "@studio-v2/src/utils/server/users/usersFs.server";
@@ -27,7 +24,16 @@ import {
 	projectShellEvents,
 	type DebuggerShellEventView,
 } from "@studio-v2/src/utils/server/debugger/session/projectors/shellEventProject.server";
-import { listDebuggerShellControlTools } from "@studio-v2/src/utils/server/debugger/shell/shellControlTools.server";
+import {
+	projectPromptTrace,
+	type DebuggerPromptBlockView,
+	type DebuggerPromptProviderView,
+	type DebuggerPromptTraceView,
+} from "@studio-v2/src/utils/server/debugger/session/projectors/promptTraceProject.server";
+import {
+	projectAvailableTools,
+	type DebuggerAvailableToolView,
+} from "@studio-v2/src/utils/server/debugger/session/projectors/availableToolsProject.server";
 import {
 	runDebuggerLlmWithTools,
 	type DebuggerLlmToolEvent,
@@ -79,37 +85,13 @@ export type DebuggerCallSessionView = {
 	shellEvents: DebuggerShellEventView[];
 };
 
-export type DebuggerPromptBlockView = {
-	title: string;
-	text: string;
-	charCount: number;
+export type {
+	DebuggerPromptBlockView,
+	DebuggerPromptProviderView,
+	DebuggerPromptTraceView,
 };
 
-export type DebuggerPromptTraceView = {
-	providerIds: string[];
-	notes: string[];
-	matchedLayerIds: string[];
-	openingSpeakable: string | null;
-	openingPolicy: {
-		mode: string;
-		reason: string;
-		maxSentences: number;
-		forbidden: string[];
-	} | null;
-	systemHardBlocks: DebuggerPromptBlockView[];
-	softContextBlocks: DebuggerPromptBlockView[];
-};
-
-export type DebuggerAvailableToolView = {
-	/** 引擎 toolId；等同 LLM function name */
-	toolId: string;
-	/** 工具展示名 */
-	displayName: string;
-	/** 工具行为；register_exit 不会在通话中直接执行 Effect */
-	behavior: ToolDefinition["behavior"];
-	/** 面向模型的触发说明 */
-	description: string;
-};
+export type { DebuggerAvailableToolView };
 
 export type DebuggerToolEventView = {
 	/** 供应商 tool_call id */
@@ -222,73 +204,6 @@ function previewUnknown(value: unknown, emptyText: string): string {
 		typeof value === "string" ? value : JSON.stringify(value, null, 2);
 	if (!text) return emptyText;
 	return text.length > 320 ? `${text.slice(0, 317)}...` : text;
-}
-
-function previewText(value: string, maxChars: number): string {
-	return value.length > maxChars ? `${value.slice(0, maxChars - 3)}...` : value;
-}
-
-function titleFromPromptBlock(text: string, fallback: string): string {
-	const first = text.split("\n")[0]?.trim() ?? "";
-	const bracket = first.match(/^\[([^\]]+)\]/);
-	if (bracket?.[1]) return bracket[1];
-	return first || fallback;
-}
-
-function projectPromptBlocks(
-	blocks: readonly string[],
-	fallbackPrefix: string,
-): DebuggerPromptBlockView[] {
-	return blocks.map(function (block, index) {
-		return {
-			title: titleFromPromptBlock(block, `${fallbackPrefix}.${index + 1}`),
-			text: previewText(block, 1200),
-			charCount: block.length,
-		};
-	});
-}
-
-function projectPromptTrace(
-	prompt: RenderedPrompt | undefined,
-): DebuggerPromptTraceView {
-	return {
-		providerIds: prompt?.debug?.providerIds ?? [],
-		notes: prompt?.debug?.notes ?? [],
-		matchedLayerIds: prompt?.matchedLayerIds ?? [],
-		openingSpeakable: prompt?.openingSpeakable?.trim() || null,
-		openingPolicy: prompt?.openingPolicy
-			? {
-					mode: prompt.openingPolicy.mode,
-					reason: prompt.openingPolicy.reason,
-					maxSentences: prompt.openingPolicy.maxSentences,
-					forbidden: prompt.openingPolicy.forbidden,
-				}
-			: null,
-		systemHardBlocks: projectPromptBlocks(
-			prompt?.systemHard ?? [],
-			"systemHard",
-		),
-		softContextBlocks: projectPromptBlocks(
-			prompt?.softContext ?? [],
-			"softContext",
-		),
-	};
-}
-
-function projectAvailableTools(
-	session: CallSession,
-): DebuggerAvailableToolView[] {
-	return [
-		...listToolsForCard(session.frozenCard),
-		...listDebuggerShellControlTools(),
-	].map(function (tool) {
-		return {
-			toolId: tool.toolId,
-			displayName: tool.displayName,
-			behavior: tool.behavior,
-			description: tool.description,
-		};
-	});
 }
 
 function projectToolEvent(event: DebuggerLlmToolEvent): DebuggerToolEventView {

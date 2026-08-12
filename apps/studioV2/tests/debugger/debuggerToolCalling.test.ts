@@ -144,7 +144,12 @@ describe("runDebuggerLlmWithTools", () => {
 				return {
 					ok: true,
 					behavior: "session_local",
-					localResult: [{ id: "mem_1", text: "露营那天你说过怕冷" }],
+					localResult: {
+						status: "ok",
+						count: 1,
+						hits: [{ id: "mem_1", text: "露营那天你说过怕冷" }],
+						next: "Use get_memory_by_id with one returned entry_id if the snippet is not enough.",
+					},
 				} satisfies ToolInvokeResult;
 			},
 			getSession() {
@@ -185,6 +190,8 @@ describe("runDebuggerLlmWithTools", () => {
 			role: "tool",
 			toolCallId: "call_1",
 		});
+		expect(llmInputs[1]?.messages.at(-1)?.content).toContain("\"status\":\"ok\"");
+		expect(llmInputs[1]?.messages.at(-1)?.content).toContain("\"next\"");
 		expect(result.toolEvents).toMatchObject([{
 			toolCallId: "call_1",
 			toolId: "search_memory",
@@ -278,18 +285,43 @@ describe("runDebuggerLlmWithTools", () => {
 		})).toContain("search_memory");
 		expect(view.promptTrace).toMatchObject({
 			providerIds: ["style.phone_global", "conversation.inertia"],
+			providerRows: [
+				{
+					providerId: "style.phone_global",
+					index: 1,
+					group: "style",
+					important: true,
+				},
+				{
+					providerId: "conversation.inertia",
+					index: 2,
+					group: "memory",
+					important: true,
+				},
+			],
 			matchedLayerIds: ["free_inbound"],
 			openingSpeakable: "喂？我是澜星。",
 			openingPolicy: {
 				mode: "phone_short",
 				maxSentences: 2,
+				reason: "phone",
 			},
 		});
-		expect(view.promptTrace.systemHardBlocks.map(function (block) {
-			return block.title;
-		})).toEqual(["style.phone", "conversation.inertia"]);
+		expect(view.promptTrace.systemHardBlocks).toEqual([
+			expect.objectContaining({
+				title: "style.phone",
+				preview: expect.stringContaining("短句"),
+				truncated: false,
+			}),
+			expect.objectContaining({
+				title: "conversation.inertia",
+				preview: expect.stringContaining("不要重新完整自我介绍"),
+				truncated: false,
+			}),
+		]);
 		expect(view.promptTrace.softContextBlocks[0]).toMatchObject({
 			title: "conversation.inertia.recent_turns",
+			preview: expect.stringContaining("刚才聊到提醒"),
 		});
 		expect(view.recentToolEvents[0]).toMatchObject({
 			toolCallId: "call_name",

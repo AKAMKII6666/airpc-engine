@@ -34,6 +34,7 @@ import type {
 	GenerateVoicemailPort,
 	OnVoicemailUnreadChanged,
 } from "../runtime/voicemail/voicemailPorts.js";
+import type { PromptProviderRegistry } from "../runtime/promptProviderRegistry.js";
 import type { Outcome } from "../schema/outcome.js";
 import type { PlayerProfile } from "../schema/profile.js";
 import type { WorldLoreDoc } from "../schema/worldLore.js";
@@ -231,6 +232,8 @@ export interface CreateEngineHostOptions {
 	engineLog?: EngineLogPort | null;
 	/** 媒介 EffectSink；缺省 Noop 桩 */
 	effectSink?: EffectSink | null;
+	/** Prompt Provider Registry；未注入则使用引擎内置默认链。 */
+	promptProviderRegistry?: PromptProviderRegistry | null;
 	/** Lore 生成端口；null／缺省 → 直接 fallback */
 	loreBootstrap?: LoreBootstrapPort | null;
 	/**

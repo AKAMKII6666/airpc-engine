@@ -112,7 +112,7 @@ export const BUILTIN_TOOL_DEFINITIONS: ToolDefinition[] = [
     displayName: "按 id 取记忆",
     description:
       "在 search_memory 返回的条目 id 上取单条正文（有长度上限）。" +
-      "须提供 entry_id。先 search 再本工具；空结果勿编造。只读，不写库、不登记出口。",
+      "须提供 entry_id，且必须来自本通 search_memory 返回结果；不可猜 id。空结果勿编造。只读，不写库、不登记出口。",
     inputSchema: jsonSchemaForTool("get_memory_by_id"),
     allowedCardKinds: ["free", "story"],
     allowedInPlayback: true,

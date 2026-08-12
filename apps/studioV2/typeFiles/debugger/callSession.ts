@@ -115,12 +115,32 @@ export type DebuggerPromptBlockView = {
 	text: string;
 	/** 原始字符数；超过 text 表示 server 做过裁剪 */
 	charCount: number;
+	/** 单行预览；用于折叠态快速判断内容 */
+	preview: string;
+	/** true 表示 text 已由 server 裁剪 */
+	truncated: boolean;
+};
+
+/** 表示单个 Prompt Provider 执行节点；由 server 分类，client 不猜引擎语义 */
+export type DebuggerPromptProviderView = {
+	/** Provider id；来自 renderedPrompt.debug.providerIds */
+	providerId: string;
+	/** 执行序号；从 1 开始 */
+	index: number;
+	/** server 归类后的 provider 组别 */
+	group: string;
+	/** 展示标签 */
+	label: string;
+	/** 是否为电话/记忆/风格等关键 provider */
+	important: boolean;
 };
 
 /** 表示 Host Composer 输出的浏览器 Trace 投影，不暴露 private 原文 */
 export type DebuggerPromptTraceView = {
 	/** Provider 执行顺序；来自 renderedPrompt.debug.providerIds */
 	providerIds: string[];
+	/** Provider 执行顺序的增强投影 */
+	providerRows: DebuggerPromptProviderView[];
 	/** Provider/debug 备注；如 character fallback/skip */
 	notes: string[];
 	/** promptScenes 命中的 layerId */

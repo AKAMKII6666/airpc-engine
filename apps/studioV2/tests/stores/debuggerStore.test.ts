@@ -73,6 +73,7 @@ function sampleCall(): DebuggerCallSessionView {
 		availableTools: [],
 		promptTrace: {
 			providerIds: [],
+			providerRows: [],
 			notes: [],
 			matchedLayerIds: [],
 			openingSpeakable: null,

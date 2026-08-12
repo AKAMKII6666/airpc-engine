@@ -914,7 +914,9 @@
 .promptProviderChipActive {
 	display: inline-flex;
 	align-items: center;
+	gap: 5px;
 	min-height: 22px;
+	max-width: 100%;
 	padding: 0 7px;
 	border-radius: 6px;
 	border: 1px solid t.$border-subtle;
@@ -923,6 +925,22 @@
 	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 	font-size: 11px;
 	line-height: 1;
+}
+
+.promptProviderChip small,
+.promptProviderChipActive small {
+	color: t.$text-muted;
+	font-size: 10px;
+	font-weight: 800;
+}
+
+.promptProviderChip em,
+.promptProviderChipActive em {
+	padding-left: 1px;
+	color: t.$text-muted;
+	font-size: 10px;
+	font-style: normal;
+	font-weight: 700;
 }
 
 .promptProviderChipActive {
@@ -979,6 +997,28 @@
 	font-size: 11px;
 }
 
+.promptPolicyReason {
+	padding: 9px;
+	border: 1px solid t.$border-subtle;
+	border-radius: 8px;
+	background: t.$bg-input;
+}
+
+.promptPolicyReason span {
+	display: block;
+	margin-bottom: 4px;
+	color: t.$text-muted;
+	font-size: 11px;
+	font-weight: 700;
+}
+
+.promptPolicyReason p {
+	margin: 0;
+	color: t.$text-secondary;
+	font-size: 12px;
+	line-height: 1.5;
+}
+
 .promptBlockGrid {
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1017,6 +1057,31 @@
 	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 	font-size: 11px;
 	font-weight: 700;
+}
+
+.promptBlock summary span {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	min-width: 0;
+}
+
+.promptBlock summary strong {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: t.$text-primary;
+	font-size: 11px;
+}
+
+.promptBlock summary em {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: t.$text-muted;
+	font-size: 10px;
+	font-style: normal;
+	font-weight: 500;
 }
 
 .promptBlock summary small {

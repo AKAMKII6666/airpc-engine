@@ -16,6 +16,7 @@ import {
 	type EngineIOPorts,
 } from "@studio-v2/engineIOModule/createEngineIOPorts";
 import { getStudioV2DataRoot } from "../data/dataRoot.server";
+import { createMemoryCommitExtractingPort } from "../memory/memoryCommitMemoryPort.server";
 
 let ports: EngineIOPorts | null = null;
 let workspaceLoaded = false;
@@ -26,7 +27,11 @@ let workspaceError: { code: string; message: string } | null = null;
 	*/
 function ensureEngineIOPorts(dataRoot: string): EngineIOPorts {
 	if (!ports) {
-		ports = createEngineIOPorts(dataRoot);
+		const io = createEngineIOPorts(dataRoot);
+		ports = {
+			...io,
+			memory: createMemoryCommitExtractingPort(io.memory),
+		};
 	}
 	return ports;
 }

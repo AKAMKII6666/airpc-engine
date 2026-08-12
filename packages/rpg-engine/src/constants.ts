@@ -20,6 +20,7 @@ export const SCHEDULE_PACKAGE_ID = SCHEDULE_CHAPTER_ID;
 export const MEMORY_PROJECT_DEFAULTS = {
   maxCallSummaries: 5,
   maxVignettes: 8,
+  maxSemantic: 6,
   maxRollups: 2,
   maxSoftChars: 2000,
 } as const;

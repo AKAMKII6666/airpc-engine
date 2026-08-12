@@ -21,6 +21,7 @@ import {
   clearStoryPendingCards,
 } from "./scheduleTick.js";
 import { writeRecurringIntentFromEffect } from "../schedule/writeRecurringIntentFromEffect.js";
+import { normalizeMemoryPatchEffect } from "../memory/patchMemoryPolicy.js";
 import type { ScheduledCardLookup } from "../schedule/scheduleCardReferenceResolver.js";
 import { applyAttachCallCardToBoard } from "./attachCallCardEffect.js";
 import { applyScheduleCallCardToBoard } from "./scheduleCallCardEffect.js";
@@ -104,7 +105,7 @@ export async function executeEffects(
     }
 
     try {
-      applyOneEffect(effect, ctx);
+      await applyOneEffect(effect, ctx);
 
       if (sink && isMediaEffect(effect)) {
         let sinkResult: EffectSinkResult;
@@ -159,7 +160,10 @@ export async function executeEffects(
   };
 }
 
-function applyOneEffect(effect: Effect, ctx: EffectExecutorContext): void {
+async function applyOneEffect(
+  effect: Effect,
+  ctx: EffectExecutorContext,
+): Promise<void> {
   const { profile, session, nowIso } = ctx;
   switch (effect.effect) {
     case "set_character_unlocked": {
@@ -281,17 +285,13 @@ function applyOneEffect(effect: Effect, ctx: EffectExecutorContext): void {
       if (!ctx.memory) {
         throw new Error("patch_memory requires MemoryPort");
       }
-      const agentId = String(effect.agentId ?? session.resolve.agentId);
-      const layer = String(effect.layer ?? "semantic");
-      const text = String(effect.text ?? "");
-      const kind = String(effect.kind ?? "semantic");
-      // EffectExecutor：SQLite MemoryPort 同步写口
-      void ctx.memory.applyPatch({
+      const patch = normalizeMemoryPatchEffect(
+        effect as Record<string, unknown>,
+        session.resolve.agentId,
+      );
+      await ctx.memory.applyPatch({
         userId: session.userId,
-        agentId,
-        layer,
-        op: "upsert",
-        payload: { text, kind },
+        ...patch,
       });
       return;
     }

@@ -3,6 +3,7 @@
 	*/
 import {
 	MEMORY_SEARCH_DEFAULTS,
+	validateMemoryPatchInput,
 	type MemoryCommitInput,
 	type MemoryCommitResult,
 	type MemorySearchHit,
@@ -73,26 +74,22 @@ export async function applyMemoryPatch(
 		userId: string;
 		agentId: string;
 		layer: string;
+		op?: string;
 		payload: unknown;
 	},
 ): Promise<void> {
-	const payload = input.payload as { text?: string; kind?: string };
-	const text =
-		typeof payload?.text === "string"
-			? payload.text
-			: JSON.stringify(input.payload);
-	const kind =
-		typeof payload?.kind === "string"
-			? payload.kind
-			: input.layer === "semantic"
-				? "semantic"
-				: "beat";
-	insertEntry({
-		userId: input.userId,
+	const patch = validateMemoryPatchInput({
 		agentId: input.agentId,
 		layer: input.layer,
-		kind,
-		text,
+		op: input.op ?? "insert",
+		payload: input.payload,
+	});
+	insertEntry({
+		userId: input.userId,
+		agentId: patch.agentId,
+		layer: patch.layer,
+		kind: patch.payload.kind,
+		text: patch.payload.text,
 		at: new Date().toISOString(),
 	});
 }

@@ -103,6 +103,13 @@ export async function runFreeCallPostPipeline(input: {
       outcome: input.outcome,
       endedAt: input.nowIso,
       summaryText: summary,
+      commitContext: {
+        callKind: "free",
+        policy: "free_post_pipeline",
+        source: input.session.resolve.source,
+        chapterId: input.session.chapterId,
+        cardId: input.session.resolve.cardId,
+      },
     });
     committed = commit.ok;
     commitEntryIds = commit.writtenEpisodicIds;

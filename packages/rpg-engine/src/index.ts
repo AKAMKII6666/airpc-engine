@@ -185,11 +185,16 @@ export {
 } from "./runtime/composeScene.js";
 export {
   composeRenderedPrompt,
+  createDefaultPromptProviderRegistry,
   listPromptProviderIds,
   type ComposeInput,
   type PromptProvider,
   type PromptProviderContext,
 } from "./runtime/composer.js";
+export {
+  createPromptProviderRegistry,
+  type PromptProviderRegistry,
+} from "./runtime/promptProviderRegistry.js";
 export {
   normalizePersonalityCode,
   buildPersonalityHardBlock,
@@ -211,12 +216,20 @@ export {
 export type {
   MemoryPort,
   MemoryProjection,
+  MemoryProjectionItem,
   MemorySearchHit,
   MemorySearchQuery,
   MemoryCommitInput,
   MemoryCallTranscript,
   MemoryCommitResult,
+  MemoryPatchKind,
+  MemoryPatchLayer,
+  MemoryPatchPayload,
 } from "./memory/types.js";
+export {
+  normalizeMemoryPatchEffect,
+  validateMemoryPatchInput,
+} from "./memory/patchMemoryPolicy.js";
 
 export type { ProfilePort } from "./ports/profilePort.js";
 export type {

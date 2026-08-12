@@ -34,7 +34,14 @@ import { composeRenderedPrompt } from "../runtime/composer.js";
 import { buildBeginCallSoftExtras } from "./buildBeginCallSoftExtras.js";
 import { selectExit } from "../runtime/exitSelector.js";
 import { executeEffects } from "../runtime/effectExecutor.js";
-import { runFreeCallPostPipeline } from "../runtime/freeCallPostPipeline.js";
+import {
+  runFreeCallPostPipeline,
+  type FreeCallPostPipelineResult,
+} from "../runtime/freeCallPostPipeline.js";
+import {
+  commitStoryCallMemory,
+  type StoryCallMemoryCommitResult,
+} from "../runtime/storyCallMemoryCommit.js";
 import { isEffectiveDialable } from "../schema/character.js";
 import { pickPendingForIntent } from "../runtime/pickPendingForUserDial.js";
 import { resolvePendingStoryCard } from "../runtime/resolvePendingStoryCard.js";
@@ -53,6 +60,7 @@ import type { MemoryPort } from "../memory/types.js";
 import {
   createHostPushLog,
   createInjectedPortAccessorsFromOptions,
+  resolveOptionalPort,
   type CreateEngineHostOptions,
   type EngineHost,
   type LoadWorkspaceOptions,
@@ -88,6 +96,11 @@ import {
 } from "../runtime/selectCallFlowPrompt.js";
 import { bootstrapLoreOntoProfile } from "../lore/bootstrapLore.js";
 import { resolveChapterId } from "../chapter/resolveChapterId.js";
+import {
+  buildSessionConversationInertia,
+  persistConversationInertiaToProfile,
+  readPersistedConversationInertia,
+} from "./conversationInertiaStore.js";
 
 export type {
   CreateEngineHostOptions,
@@ -104,6 +117,10 @@ const ACTIVE_STATUSES = new Set<CallSession["status"]>([
   "executing_effects",
 ]);
 
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
 export function createEngineHost(
   options: CreateEngineHostOptions = {},
 ): EngineHost {
@@ -114,6 +131,7 @@ export function createEngineHost(
       : (options.effectSink ?? createNoopEffectSink());
   const loreBootstrapPort =
     options.loreBootstrap === undefined ? null : options.loreBootstrap;
+  const promptProviderRegistry = resolveOptionalPort(options.promptProviderRegistry);
   const voicemailPorts = {
     generateVoicemail:
       options.generateVoicemail === undefined
@@ -316,15 +334,12 @@ export function createEngineHost(
     };
   }
 
-  function truncateInertiaText(text: string, maxChars: number): string {
-    return text.length <= maxChars ? text : `${text.slice(0, maxChars - 1)}…`;
-  }
-
   function buildConversationInertia(input: {
     userId: string;
     agentId: string;
     currentSessionId: string;
   }): BeginCallContext["conversationInertia"] | undefined {
+    const profile = profiles.get(input.userId);
     const latest = Array.from(sessions.values())
       .filter(function (session) {
         return (
@@ -340,21 +355,13 @@ export function createEngineHost(
         return (b.endedAt ?? "").localeCompare(a.endedAt ?? "");
       })[0];
     if (!latest?.chatTurns?.length) {
-      return undefined;
+      return readPersistedConversationInertia({
+        profile,
+        agentId: input.agentId,
+        currentSessionId: input.currentSessionId,
+      });
     }
-    return {
-      previousSessionId: latest.sessionId,
-      previousEndedAt: latest.endedAt,
-      previousCardId: latest.resolve.cardId,
-      previousSource: latest.resolve.source,
-      recentTurns: latest.chatTurns.slice(-4).map(function (turn) {
-        return {
-          role: turn.role,
-          text: truncateInertiaText(turn.text, 180),
-          at: turn.at,
-        };
-      }),
-    };
+    return buildSessionConversationInertia(latest);
   }
 
   function markOutboundMissed(input: {
@@ -849,6 +856,7 @@ export function createEngineHost(
           allowCharacterOpeningFallback:
             beginCard.cardKind !== "free" || beginContext.source !== "free",
           softExtras,
+          promptProviderRegistry: promptProviderRegistry ?? undefined,
         });
         if (isEngineError(rendered)) {
           return rendered;
@@ -1146,10 +1154,34 @@ export function createEngineHost(
         });
       }
 
+      async function finalizeEndedCall(input: {
+        saveReason: SaveReason;
+        logType?: string;
+        logPayload?: unknown;
+      }): Promise<void> {
+        endSession.endedAt = nowIso;
+        endSession.interactionPhase = "done";
+        persistConversationInertiaToProfile({
+          profile: endProfile,
+          session: endSession,
+        });
+        await host.saveProfile(endSession.userId, input.saveReason);
+        activeByUser.delete(endSession.userId);
+        if (input.logType) {
+          pushLog({
+            at: nowIso,
+            type: input.logType,
+            userId: endSession.userId,
+            sessionId,
+            payload: input.logPayload,
+          });
+        }
+      }
+
       if (isFree) {
         session.status = "selecting_exit";
         await preloadExitCandidateScheduleTargets(session);
-        const pipe = await runFreeCallPostPipeline({
+        let pipe = await runFreeCallPostPipeline({
           session,
           profile,
           outcome,
@@ -1158,30 +1190,58 @@ export function createEngineHost(
           opts: { minTurns: session.channel === "manual" ? 0 : 2 },
           effectSink,
           lookupCard,
+        }).catch(function (err): FreeCallPostPipelineResult {
+          return {
+            committed: false,
+            effectPlanResult: {
+              results: [
+                {
+                  effectId: "free_post_pipeline",
+                  status: "failed",
+                  error: errorMessage(err),
+                },
+              ],
+              aborted: false,
+              status: "completed_with_errors",
+            },
+            skippedExit: true,
+          };
         });
-        await materializeVoicemailsAfterPlan({
-          profile,
-          nowIso,
-          lookupCard,
-          ports: voicemailPorts,
-        });
+        try {
+          await materializeVoicemailsAfterPlan({
+            profile,
+            nowIso,
+            lookupCard,
+            ports: voicemailPorts,
+          });
+        } catch (err) {
+          pipe = {
+            ...pipe,
+            effectPlanResult: {
+              results: [
+                ...pipe.effectPlanResult.results,
+                {
+                  effectId: "materialize_voicemails",
+                  status: "failed",
+                  error: errorMessage(err),
+                },
+              ],
+              aborted: pipe.effectPlanResult.aborted,
+              status: "completed_with_errors",
+            },
+          };
+        }
         applyVoicemailListenedSideEffect();
-        await host.saveProfile(session.userId, "after_free_pipeline");
         session.status =
           pipe.effectPlanResult.status === "aborted"
             ? "aborted"
             : pipe.effectPlanResult.status === "completed_with_errors"
               ? "completed_with_errors"
               : "completed";
-        session.endedAt = nowIso;
-        session.interactionPhase = "done";
-        activeByUser.delete(session.userId);
-        pushLog({
-          at: nowIso,
-          type: "call.completed",
-          userId: session.userId,
-          sessionId,
-          payload: {
+        await finalizeEndedCall({
+          saveReason: "after_free_pipeline",
+          logType: "call.completed",
+          logPayload: {
             free: true,
             committed: pipe.committed,
             exitId: pipe.selectedExitId,
@@ -1251,16 +1311,34 @@ export function createEngineHost(
         session.exitCandidates,
       );
       if (!selected) {
+        const storyMemoryCommit = await commitStoryCallMemory({
+          session,
+          outcome,
+          memory,
+          nowIso,
+          planStatus: "aborted",
+        }).catch(function (err): StoryCallMemoryCommitResult {
+          return {
+            committed: false,
+            skippedReason: "commit_failed",
+            error: errorMessage(err),
+          };
+        });
         applyVoicemailListenedSideEffect();
         session.status = "aborted";
-        session.endedAt = nowIso;
-        activeByUser.delete(session.userId);
-        await host.saveProfile(session.userId, "after_effect");
-        pushLog({
-          at: session.endedAt,
-          type: "call.no_exit",
-          userId: session.userId,
-          sessionId,
+        session.effectPlanResult = {
+          results: [],
+          aborted: true,
+          status: "aborted",
+        };
+        await finalizeEndedCall({
+          saveReason: "after_effect",
+          logType: "call.no_exit",
+          logPayload: {
+            memoryCommitted: storyMemoryCommit.committed,
+            memorySkippedReason: storyMemoryCommit.skippedReason,
+            memoryError: storyMemoryCommit.error,
+          },
         });
         return engineError("NO_EXIT_MATCHED", "no exit matched outcome");
       }
@@ -1293,15 +1371,37 @@ export function createEngineHost(
         },
       });
       session.effectPlanResult = plan;
-
-      await materializeVoicemailsAfterPlan({
-        profile,
+      const storyMemoryCommit = await commitStoryCallMemory({
+        session,
+        outcome,
+        memory,
         nowIso,
-        lookupCard,
-        ports: voicemailPorts,
+        selectedExitId: selected.exit.exitId,
+        planStatus: plan.status,
+      }).catch(function (err): StoryCallMemoryCommitResult {
+        return {
+          committed: false,
+          skippedReason: "commit_failed",
+          error: errorMessage(err),
+        };
       });
+
+      try {
+        await materializeVoicemailsAfterPlan({
+          profile,
+          nowIso,
+          lookupCard,
+          ports: voicemailPorts,
+        });
+      } catch (err) {
+        plan.results.push({
+          effectId: "materialize_voicemails",
+          status: "failed",
+          error: errorMessage(err),
+        });
+        plan.status = "completed_with_errors";
+      }
       applyVoicemailListenedSideEffect();
-      await host.saveProfile(session.userId, "after_effect");
 
       session.status =
         plan.status === "aborted"
@@ -1309,17 +1409,14 @@ export function createEngineHost(
           : plan.status === "completed_with_errors"
             ? "completed_with_errors"
             : "completed";
-      session.endedAt = nowIso;
-      session.interactionPhase = "done";
-      activeByUser.delete(session.userId);
-
-      pushLog({
-        at: nowIso,
-        type: "call.completed",
-        userId: session.userId,
-        sessionId,
-        payload: {
+      await finalizeEndedCall({
+        saveReason: "after_effect",
+        logType: "call.completed",
+        logPayload: {
           exitId: selected.exit.exitId,
+          memoryCommitted: storyMemoryCommit.committed,
+          memorySkippedReason: storyMemoryCommit.skippedReason,
+          memoryError: storyMemoryCommit.error,
           effectResults: plan.results,
           planStatus: plan.status,
         },
@@ -1330,6 +1427,7 @@ export function createEngineHost(
         session,
         selectedExitId: selected.exit.exitId,
         effectPlanResult: plan,
+        storyMemoryCommit,
       };
     },
 

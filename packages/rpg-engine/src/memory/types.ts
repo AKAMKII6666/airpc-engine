@@ -26,11 +26,23 @@ export interface MemorySearchHit {
   createdAt: string;
 }
 
+export interface MemoryProjectionItem {
+  id: string;
+  layer: string;
+  kind: "call_summary" | "vignette" | "semantic" | "rollup" | string;
+  text: string;
+  at: string;
+  createdAt: string;
+  source: "entry" | "rollup";
+}
+
 export interface MemoryProjection {
   softText: string;
+  /** 结构化投影；Composer 仍用 softText，调试/后续 prompt provider 可按 kind 分层使用。 */
+  items?: MemoryProjectionItem[];
   includedEntryIds: string[];
   rollupIds?: string[];
-  debug?: { hotCount: number; chars: number };
+  debug?: { hotCount: number; chars: number; counts?: Record<string, number> };
 }
 
 /** Host 挂机时交给 MemoryPort 的稳定 transcript DTO。 */
@@ -47,6 +59,16 @@ export interface MemoryCommitInput {
   transcript: unknown;
   outcome?: Outcome;
   endedAt: string;
+  /** Host 对本次挂机提交的领域语义；Memory/LLM 只据此收紧抽取，不推进剧情状态。 */
+  commitContext?: {
+    callKind: "free" | "story";
+    policy: "free_post_pipeline" | "story_call";
+    source: string;
+    chapterId: string;
+    cardId: string;
+    selectedExitId?: string;
+    planStatus?: string;
+  };
   /** Manual / 无 LLM 时的摘要文本 */
   summaryText?: string;
   /** 生活边角碎片；写入 kind=vignette（可选） */
@@ -65,6 +87,14 @@ export interface MemoryCommitResult {
   >;
   writtenEpisodicIds?: string[];
   error?: string;
+}
+
+export type MemoryPatchLayer = "semantic";
+export type MemoryPatchKind = "semantic";
+
+export interface MemoryPatchPayload {
+  text: string;
+  kind: MemoryPatchKind;
 }
 
 export interface MemoryPort {
@@ -86,9 +116,9 @@ export interface MemoryPort {
   applyPatch(input: {
     userId: string;
     agentId: string;
-    layer: string;
-    op: string;
-    payload: unknown;
+    layer: MemoryPatchLayer;
+    op: "insert";
+    payload: MemoryPatchPayload;
   }): Promise<void>;
 
   commitAfterCall(input: MemoryCommitInput): Promise<MemoryCommitResult>;

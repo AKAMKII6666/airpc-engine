@@ -11,10 +11,12 @@ import type {
   MemoryCallTranscript,
   MemoryCommitResult,
   MemoryPort,
+  MemoryProjectionItem,
   MemoryProjection,
   MemorySearchHit,
   MemorySearchQuery,
 } from "../../src/memory/types.js";
+import { validateMemoryPatchInput } from "../../src/memory/patchMemoryPolicy.js";
 import { MEMORY_SEARCH_DEFAULTS } from "../../src/constants.js";
 import type { EffectSink } from "../../src/runtime/effectSink.js";
 import type { LoreBootstrapPort } from "../../src/lore/types.js";
@@ -175,29 +177,33 @@ function patchEntry(
     userId: string;
     agentId: string;
     layer: string;
+    op?: string;
     payload: unknown;
   },
 ): void {
-  const payload = input.payload as { text?: string; kind?: string };
-  const text =
-    typeof payload?.text === "string"
-      ? payload.text
-      : JSON.stringify(input.payload);
-  const kind =
-    typeof payload?.kind === "string"
-      ? payload.kind
-      : input.layer === "semantic"
-        ? "semantic"
-        : "beat";
+  const patch = validateMemoryPatchInput({
+    agentId: input.agentId,
+    layer: input.layer,
+    op: input.op ?? "insert",
+    payload: input.payload,
+  });
   insertEntry(
     entries,
     input.userId,
-    input.agentId,
-    input.layer,
-    kind,
-    text,
+    patch.agentId,
+    patch.layer,
+    patch.payload.kind,
+    patch.payload.text,
     new Date().toISOString(),
   );
+}
+
+function countByKind(entries: MemEntry[]): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const entry of entries) {
+    counts[entry.kind] = (counts[entry.kind] ?? 0) + 1;
+  }
+  return counts;
 }
 
 /** 进程内 MemoryPort：供 host / pipeline 测注入。 */
@@ -208,6 +214,17 @@ export function createInMemoryMemoryPort(): MemoryPort {
       const mine = entries.filter(function (e) {
         return e.userId === input.userId && e.agentId === input.agentId;
       });
+      const items: MemoryProjectionItem[] = mine.map(function (e) {
+        return {
+          id: e.id,
+          layer: e.layer,
+          kind: e.kind,
+          text: e.text,
+          at: e.at,
+          createdAt: e.createdAt,
+          source: "entry",
+        };
+      });
       const softText = mine
         .map(function (e) {
           return `[${e.kind}] ${e.text}`;
@@ -215,11 +232,16 @@ export function createInMemoryMemoryPort(): MemoryPort {
         .join("\n");
       return {
         softText,
+        items,
         includedEntryIds: mine.map(function (e) {
           return e.id;
         }),
         rollupIds: [],
-        debug: { hotCount: mine.length, chars: softText.length },
+        debug: {
+          hotCount: mine.length,
+          chars: softText.length,
+          counts: countByKind(mine),
+        },
       };
     },
     async search(input) {
@@ -250,13 +272,16 @@ export function createTestHostWithMemory(opts: {
   persist?: boolean;
   /** 与 loadWorkspace 相同的 data 根；Profile / Log 读写经此 Port */
   dataRoot: string;
+  memory?: MemoryPort;
+  promptProviderRegistry?: CreateEngineHostOptions["promptProviderRegistry"];
 }): ReturnType<typeof createEngineHost> {
   return createEngineHost({
     persist: opts.persist,
-    memory: createInMemoryMemoryPort(),
+    memory: opts.memory ?? createInMemoryMemoryPort(),
     profile: createFsProfilePort(opts.dataRoot),
     content: createFsContentPort(),
     engineLog: createFsEngineLogPort(opts.dataRoot),
+    promptProviderRegistry: opts.promptProviderRegistry,
   });
 }
 
@@ -268,6 +293,7 @@ export function createTestHost(opts: {
   loreBootstrap?: LoreBootstrapPort | null;
   generateVoicemail?: CreateEngineHostOptions["generateVoicemail"];
   onVoicemailUnreadChanged?: CreateEngineHostOptions["onVoicemailUnreadChanged"];
+  promptProviderRegistry?: CreateEngineHostOptions["promptProviderRegistry"];
 }): ReturnType<typeof createEngineHost> {
   return createEngineHost({
     persist: opts.persist,
@@ -278,5 +304,6 @@ export function createTestHost(opts: {
     loreBootstrap: opts.loreBootstrap,
     generateVoicemail: opts.generateVoicemail,
     onVoicemailUnreadChanged: opts.onVoicemailUnreadChanged,
+    promptProviderRegistry: opts.promptProviderRegistry,
   });
 }

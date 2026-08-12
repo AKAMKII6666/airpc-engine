@@ -49,11 +49,11 @@ function appendOpeningInstruction(
 				`第一句话必须短，最多 ${policy?.maxSentences ?? 2} 句，优先贴近这句开场：${opening}`,
 				"不要把开场扩写成完整段落；话题、记忆和来意从第二句或后续自然展开。",
 				"不要解释系统提示。",
-		  ].join("\n")
+			].join("\n")
 		: [
 				"接通电话。请先用角色口吻说一句很短的电话开场。",
 				`最多 ${policy?.maxSentences ?? 2} 句，不要解释系统提示。`,
-		  ].join("\n");
+			].join("\n");
 	messages.push({
 		role: "user",
 		content: `${base}${forbidden}`,

@@ -10,13 +10,13 @@ import {
 	type RoleRow,
 } from "@studio-v2/src/pageComponents/debugger/debuggerUiModel";
 import type {
-	DebuggerAvailableToolView,
 	DebuggerExitCandidateView,
-	DebuggerPromptTraceView,
 	DebuggerToolEventView,
 	DebuggerToolTraceView,
 } from "@studio-v2/typeFiles/debugger/callSession";
 import styles from "../DebuggerShell.module.scss";
+import { PromptTracePanel } from "./PromptTracePanel";
+import { AvailableToolList } from "./AvailableToolList";
 
 function chipClass(index: number): string {
 	const classes = [
@@ -147,188 +147,6 @@ function behaviorLabel(behavior: string): string {
 function okBadgeClass(ok: boolean): string {
 	return ok ? styles.toolBadgeOk : styles.toolBadgeDanger;
 }
-
-function importantProviderClass(providerId: string): string {
-	if (
-		providerId === "call.missed_outbound" ||
-		providerId === "conversation.inertia" ||
-		providerId === "call.scheduled_callback" ||
-		providerId === "style.phone_global" ||
-		providerId === "persona.style"
-	) {
-		return styles.promptProviderChipActive;
-	}
-	return styles.promptProviderChip;
-}
-
-function promptTraceItemKey(scope: string, value: string, index: number): string {
-	return `${scope}_${index}_${value}`;
-}
-
-function promptTraceBlockKey(
-	scope: string,
-	block: DebuggerPromptTraceView["systemHardBlocks"][number],
-	index: number,
-): string {
-	return promptTraceItemKey(
-		scope,
-		`${block.title}_${block.charCount}`,
-		index,
-	);
-}
-
-type PromptTracePanelProps = {
-	/** Host Composer trace 投影；用于定位 Prompt Provider 组装结果 */
-	trace: DebuggerPromptTraceView;
-};
-
-const PromptTracePanel: FC<PromptTracePanelProps> = function PromptTracePanel({
-	// trace 来自 server projector，已裁剪 private/长文本
-	trace,
-}) {
-	const hasBlocks =
-		trace.systemHardBlocks.length > 0 || trace.softContextBlocks.length > 0;
-	return (
-		<div className={styles.promptTrace}>
-			<div className={styles.promptTraceStats}>
-				<span>providers {trace.providerIds.length}</span>
-				<span>hard {trace.systemHardBlocks.length}</span>
-				<span>soft {trace.softContextBlocks.length}</span>
-				<span>layers {trace.matchedLayerIds.length}</span>
-			</div>
-
-			{trace.providerIds.length > 0 ? (
-				<div className={styles.promptProviderRail}>
-					{trace.providerIds.map((providerId, index) => (
-						<span
-							key={`${providerId}_${index}`}
-							className={importantProviderClass(providerId)}
-							title={`#${index + 1}`}
-						>
-							{providerId}
-						</span>
-					))}
-				</div>
-			) : (
-				<div className={styles.debugEmptyLine}>暂无 provider trace。</div>
-			)}
-
-			<div className={styles.promptTraceGrid}>
-				<div>
-					<span className={styles.debugLabel}>Opening</span>
-					<strong>{trace.openingSpeakable ?? "由模型生成"}</strong>
-				</div>
-				<div>
-					<span className={styles.debugLabel}>Policy</span>
-					<strong>
-						{trace.openingPolicy
-							? `${trace.openingPolicy.mode} · ${trace.openingPolicy.maxSentences}句`
-							: "无"}
-					</strong>
-				</div>
-			</div>
-
-			{trace.openingPolicy?.forbidden.length ? (
-				<div className={styles.promptMiniList}>
-					<span>开场禁用</span>
-					{trace.openingPolicy.forbidden.map((item, index) => (
-						<code key={promptTraceItemKey("forbidden", item, index)}>
-							{item}
-						</code>
-					))}
-				</div>
-			) : null}
-
-			{trace.matchedLayerIds.length > 0 ? (
-				<div className={styles.promptMiniList}>
-					<span>matched layers</span>
-					{trace.matchedLayerIds.map((layerId, index) => (
-						<code key={promptTraceItemKey("layer", layerId, index)}>
-							{layerId}
-						</code>
-					))}
-				</div>
-			) : null}
-
-			{trace.notes.length > 0 ? (
-				<div className={styles.promptMiniList}>
-					<span>notes</span>
-					{trace.notes.map((note, index) => (
-						<code key={promptTraceItemKey("note", note, index)}>
-							{note}
-						</code>
-					))}
-				</div>
-			) : null}
-
-			{hasBlocks ? (
-				<div className={styles.promptBlockGrid}>
-					<div>
-						<h4>systemHard</h4>
-						{trace.systemHardBlocks.map((block, index) => (
-							<details
-								key={promptTraceBlockKey("hard", block, index)}
-								className={styles.promptBlock}
-							>
-								<summary>
-									{block.title}
-									<small>{block.charCount} chars</small>
-								</summary>
-								<pre>{block.text}</pre>
-							</details>
-						))}
-					</div>
-					<div>
-						<h4>softContext</h4>
-						{trace.softContextBlocks.map((block, index) => (
-							<details
-								key={promptTraceBlockKey("soft", block, index)}
-								className={styles.promptBlock}
-							>
-								<summary>
-									{block.title}
-									<small>{block.charCount} chars</small>
-								</summary>
-								<pre>{block.text}</pre>
-							</details>
-						))}
-					</div>
-				</div>
-			) : null}
-		</div>
-	);
-};
-
-type AvailableToolListProps = {
-	/** 当前卡开放给 LLM 的工具列表 */
-	tools: readonly DebuggerAvailableToolView[];
-};
-
-const AvailableToolList: FC<AvailableToolListProps> =
-	function AvailableToolList({
-		// tools 是 engine toolPolicy 解析结果，用于核对 LLM 可调用范围
-		tools,
-	}) {
-		if (tools.length === 0) {
-			return <div className={styles.debugEmptyLine}>当前卡未开放工具。</div>;
-		}
-		return (
-			<ul className={styles.toolList}>
-				{tools.map((tool) => (
-					<li key={tool.toolId} className={styles.toolItem}>
-						<div className={styles.toolItemHead}>
-							<strong>{tool.displayName}</strong>
-							<span className={styles.toolBadge}>
-								{behaviorLabel(tool.behavior)}
-							</span>
-						</div>
-						<div className={styles.toolIdLine}>{tool.toolId}</div>
-						<div className={styles.toolDescription}>{tool.description}</div>
-					</li>
-				))}
-			</ul>
-		);
-	};
 
 type ToolEventListProps = {
 	/** 最近一次 LLM 回复触发的工具调用事件 */

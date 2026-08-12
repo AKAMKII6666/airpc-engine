@@ -215,6 +215,13 @@ export interface FreePipelineTrace {
   }>;
 }
 
+export interface StoryMemoryCommitTrace {
+  committed: boolean;
+  commitEntryIds?: string[];
+  skippedReason?: "memory_disabled" | "empty_transcript" | "commit_failed";
+  error?: string;
+}
+
 export interface EndCallResult {
   ok: true;
   session: CallSession;
@@ -222,6 +229,8 @@ export interface EndCallResult {
   effectPlanResult: EffectPlanResult;
   /** Free 挂机管线分步；Story 为 undefined */
   freePipeline?: FreePipelineTrace;
+  /** Story 挂机记忆提交；Free 为 undefined */
+  storyMemoryCommit?: StoryMemoryCommitTrace;
 }
 
 export interface LogRecord {

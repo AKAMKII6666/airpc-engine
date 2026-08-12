@@ -48,6 +48,7 @@ function callFixture(): DebuggerCallSessionView {
 		availableTools: [],
 		promptTrace: {
 			providerIds: [],
+			providerRows: [],
 			notes: [],
 			matchedLayerIds: [],
 			openingSpeakable: null,
