@@ -48,8 +48,6 @@ export const ShareExpertNumberArgsSchema = z.object({
 
 /** delay 可缺省；expand 缺省约 60 分钟 */
 export const ScheduleReminderCallArgsSchema = z.object({
-  card_id: z.string().min(1).describe("到点接通的通话卡 cardId"),
-  package_id: z.string().min(1).describe("到点接通卡所在故事章 chapterId"),
   topic_hint: z
     .string()
     .optional()

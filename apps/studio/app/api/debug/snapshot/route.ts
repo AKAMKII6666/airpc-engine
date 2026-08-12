@@ -50,7 +50,7 @@ export async function GET(req: Request): Promise<Response> {
             status: active.status,
             cardId: active.resolve.cardId,
             agentId: active.resolve.agentId,
-            packageId: active.packageId,
+            packageId: active.chapterId,
             resolveSource: active.resolve.source,
             cardKind: active.frozenCard.cardKind,
             interactionPhase: active.interactionPhase,

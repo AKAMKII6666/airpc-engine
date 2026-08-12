@@ -115,6 +115,17 @@ export type {
 } from "./host/types.js";
 
 export {
+  isShellControlToolId,
+} from "./host/shellControl/shellControlTool.js";
+export type {
+  IncomingCallShellEvent,
+  IncomingCallShellEventStatus,
+  ShellControlEvent,
+  ShellControlToolId,
+  ShellControlToolResult,
+} from "./host/shellControl/shellControlTypes.js";
+
+export {
   WorldLoreDocSchema,
   formatLoreSoftContext,
   type WorldLoreDoc,
@@ -174,11 +185,15 @@ export {
 } from "./runtime/composeScene.js";
 export {
   composeRenderedPrompt,
+  listPromptProviderIds,
   type ComposeInput,
+  type PromptProvider,
+  type PromptProviderContext,
 } from "./runtime/composer.js";
 export {
   normalizePersonalityCode,
   buildPersonalityHardBlock,
+  buildPersonaStyleHardBlock,
 } from "./runtime/personalityPrompt.js";
 
 export {
@@ -199,6 +214,7 @@ export type {
   MemorySearchHit,
   MemorySearchQuery,
   MemoryCommitInput,
+  MemoryCallTranscript,
   MemoryCommitResult,
 } from "./memory/types.js";
 
@@ -335,4 +351,3 @@ export type {
   ChatTurn,
   InteractionMode,
 } from "./schema/dialogueSession.js";
-

@@ -142,12 +142,15 @@ describe("diskBundleGraph", () => {
 	it("falls back to layout.lanes when character library lookup is empty", async () => {
 		const bundle = await readDiskStoryPackage("wrong_number_act1");
 		const seed = bundleToEditorGraph(bundle, {});
+		const laneAgentIds = (bundle.layout.lanes ?? []).map(function (lane) {
+			return lane.agentId;
+		});
 		const anchors = seed.nodes.filter(function (n) {
 			return n.type === "characterAnchor";
 		});
 		expect(anchors.map(function (a) {
 			return (a.data as { agentId: string }).agentId;
-		})).toEqual(["lanxing", "xiaopi"]);
+		})).toEqual(laneAgentIds);
 	});
 
 	it("persists float-panel card/chapter/owner edits through editorGraphToBundle", async () => {

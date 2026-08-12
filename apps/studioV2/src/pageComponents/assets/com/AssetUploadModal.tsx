@@ -20,8 +20,14 @@ function fileText(file: File | null): string {
 	return `${file.name} · ${sizeKb} KB`;
 }
 
-export const AssetUploadModal: FC<Props> = function AssetUploadModal(props) {
-	const { open, onClose, onUpload } = props;
+export const AssetUploadModal: FC<Props> = function AssetUploadModal({
+	// open 表示上传弹层显示状态，用于控制 AppModal
+	open,
+	// onClose 是关闭上传弹层回调，用于取消或成功后收起
+	onClose,
+	// onUpload 是文件提交回调，用于经 API 写入资源库
+	onUpload,
+}) {
 	const [file, setFile] = useState<File | null>(null);
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState<string | undefined>();
@@ -53,6 +59,7 @@ export const AssetUploadModal: FC<Props> = function AssetUploadModal(props) {
 	}
 
 	return (
+		// 引用了AppModal组件，用于承载资源上传表单
 		<AppModal
 			open={open}
 			title="上传资源"
@@ -61,9 +68,11 @@ export const AssetUploadModal: FC<Props> = function AssetUploadModal(props) {
 			busy={busy}
 			actions={
 				<>
+					{/* 引用了Button组件，用于取消上传 */}
 					<Button color="inherit" disabled={busy} onClick={handleClose}>
 						取消
 					</Button>
+					{/* 引用了Button组件，用于提交上传 */}
 					<Button
 						variant="contained"
 						disabled={!file || busy}
@@ -77,14 +86,17 @@ export const AssetUploadModal: FC<Props> = function AssetUploadModal(props) {
 			}
 		>
 			{error ? (
+				// 引用了Alert组件，用于展示上传错误
 				<Alert severity="error" role="alert">
 					{error}
 				</Alert>
 			) : null}
+			{/* 引用了Button组件，用于选择本地文件 */}
 			<Button variant="outlined" component="label" disabled={busy}>
 				选择文件
 				<input hidden type="file" onChange={handleFileChange} />
 			</Button>
+			{/* 引用了Typography组件，用于展示已选文件名与大小 */}
 			<Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
 				{fileText(file)}
 			</Typography>

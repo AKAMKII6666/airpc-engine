@@ -31,6 +31,7 @@ export interface ScheduledRecurringIntent {
 	cardId?: string;
 	chapterId?: string;
 	topicHint?: string;
+	origin?: string;
 	hour: number;
 	minute: number;
 	scheduleMode: "daily" | "weekly";
@@ -136,6 +137,7 @@ function asRecurringIntent(raw: unknown): ScheduledRecurringIntent | null {
 				? row.chapterId
 				: undefined,
 		topicHint: typeof row.topicHint === "string" ? row.topicHint : undefined,
+		origin: typeof row.origin === "string" ? row.origin : undefined,
 		hour,
 		minute,
 		scheduleMode,
@@ -196,6 +198,7 @@ function serializeRecurring(rec: ScheduledRecurringIntent): Record<string, unkno
 	if (rec.cardId) out.cardId = rec.cardId;
 	if (rec.chapterId) out.chapterId = rec.chapterId;
 	if (rec.topicHint) out.topicHint = rec.topicHint;
+	if (rec.origin) out.origin = rec.origin;
 	if (rec.weekdays && rec.weekdays.length > 0) out.weekdays = rec.weekdays;
 	if (typeof rec.lastMaterializedAtMs === "number") {
 		out.lastMaterializedAtMs = rec.lastMaterializedAtMs;
@@ -221,6 +224,7 @@ function buildOccurrenceOnce(
 		status: "pending",
 		createdAt: nowIso,
 		sourcedFromRecurringId: rec.intentId,
+		origin: "recurring_schedule",
 	};
 	if (rec.topicHint) row.topicHint = rec.topicHint;
 	return row;

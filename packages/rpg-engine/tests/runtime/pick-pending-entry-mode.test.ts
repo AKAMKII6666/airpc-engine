@@ -86,6 +86,26 @@ describe("entryMode pending pick (S2)", () => {
     expect(hit?.cardId).toBe("out_card");
   });
 
+  it("missed outbound can be resumed by user dial but not auto outbound", () => {
+    const profile = baseProfile([
+      {
+        instanceId: "i-missed",
+        cardId: "missed_card",
+        chapterId: "pkg",
+        agentId: "xiaopi",
+        status: "missed",
+        entryMode: "either",
+        missedOutboundAt: "2026-01-01T00:00:02.000Z",
+        missedOutboundReason: "dismissed",
+        createdAt: "2026-01-01T00:00:00.000Z",
+      },
+    ]);
+    const userDial = pickPendingForIntent(profile, "xiaopi", "user_dial");
+    const autoOutbound = pickPendingForIntent(profile, "xiaopi", "agent_outbound");
+    expect(userDial?.cardId).toBe("missed_card");
+    expect(autoOutbound).toBeNull();
+  });
+
   it("redialSlot 命中错 mode 不得选中", () => {
     const profile = baseProfile(
       [

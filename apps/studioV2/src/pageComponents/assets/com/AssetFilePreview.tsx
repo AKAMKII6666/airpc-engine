@@ -1,15 +1,15 @@
 /**
-	* 资源文件预览：复用 /api/assets/:assetId/file，同步展示只读请求路径。
+	* 资源文件预览：展示同源请求路径，并按文件类型内嵌预览。
 	*/
 "use client";
 
-import { useEffect, useMemo, useState, type FC } from "react";
+import type { FC, ReactNode } from "react";
 import { Alert, Button, Typography } from "@mui/material";
-import { assetFilePreviewUrl } from "@studio-v2/src/utils/ajaxProxy/library/api/assetsApi";
 import type { AssetSummary } from "@studio-v2/typeFiles/library/assets/assetSummary";
 import styles from "@studio-v2/src/pageComponents/library/LibrarySplit.module.scss";
 
 export type AssetFilePreviewProps = {
+	/** 当前资源投影；用于决定请求路径、预览类型与可用性 */
 	asset: AssetSummary;
 };
 
@@ -29,6 +29,10 @@ const TEXT_FORMATS = new Set([
 
 type PreviewKind = "image" | "audio" | "video" | "text" | "other";
 
+function assetFilePreviewPath(assetId: string): string {
+	return `/api/assets/${encodeURIComponent(assetId)}/file`;
+}
+
 function inferPreviewKind(asset: AssetSummary): PreviewKind {
 	const format = asset.format.trim().toLowerCase();
 	if (asset.kind === "image" || IMAGE_FORMATS.has(format)) return "image";
@@ -40,49 +44,92 @@ function inferPreviewKind(asset: AssetSummary): PreviewKind {
 	return "other";
 }
 
+function previewOpenLabel(previewKind: PreviewKind): string {
+	return previewKind === "other" ? "打开文件" : "新窗口打开";
+}
+
+type PreviewContentProps = {
+	/** 资源投影；图片 alt 等可访问文本使用展示名 */
+	asset: AssetSummary;
+	/** 同源文件请求路径；不含本地绝对路径 */
+	requestPath: string;
+	/** 已推断预览类型；控制媒体元素选择 */
+	previewKind: PreviewKind;
+};
+
+function PreviewContent({
+	// asset 是当前资源，用于图片 alt 与文本标题
+	asset,
+	// requestPath 是同源资源 URL，用于媒体元素 src
+	requestPath,
+	// previewKind 是推断后的展示类型，用于选择预览控件
+	previewKind,
+}: PreviewContentProps): ReactNode {
+	if (previewKind === "image") {
+		return (
+			<div className={styles.previewStage}>
+				<img
+					src={requestPath}
+					alt={asset.displayName}
+					className={styles.previewImage}
+				/>
+			</div>
+		);
+	}
+	if (previewKind === "audio") {
+		return (
+			<div className={styles.previewStage}>
+				<audio controls className={styles.previewMedia} src={requestPath}>
+					浏览器不支持音频预览。
+				</audio>
+			</div>
+		);
+	}
+	if (previewKind === "video") {
+		return (
+			<div className={styles.previewStage}>
+				<video controls className={styles.previewVideo} src={requestPath}>
+					浏览器不支持视频预览。
+				</video>
+			</div>
+		);
+	}
+	if (previewKind === "text") {
+		return (
+			<div className={styles.previewStage}>
+				<iframe
+					title={`${asset.displayName} 文本预览`}
+					src={requestPath}
+					className={styles.previewFrame}
+				/>
+			</div>
+		);
+	}
+	return (
+		// 引用了Alert组件，用于提示暂不支持的内嵌预览
+		<Alert severity="info" className={styles.previewAlert}>
+			此格式暂无内嵌预览，可通过请求路径打开或下载。
+		</Alert>
+	);
+}
+
 export const AssetFilePreview: FC<AssetFilePreviewProps> =
-	function AssetFilePreview({ asset }) {
-		const requestPath = assetFilePreviewUrl(asset.assetId);
+	function AssetFilePreview({
+		// asset 是当前资源投影，用于展示路径与预览内容
+		asset,
+	}) {
+		const requestPath = assetFilePreviewPath(asset.assetId);
 		const previewKind = inferPreviewKind(asset);
-		const [textPreview, setTextPreview] = useState("");
-		const [textError, setTextError] = useState("");
-
 		const canPreview = asset.availability === "ready";
-
-		const openLabel = useMemo(() => {
-			if (previewKind === "other") return "打开文件";
-			return "新窗口打开";
-		}, [previewKind]);
-
-		useEffect(() => {
-			let cancelled = false;
-			setTextPreview("");
-			setTextError("");
-			if (!canPreview || previewKind !== "text") return;
-			fetch(requestPath)
-				.then(async (res) => {
-					if (!res.ok) {
-						throw new Error(`读取失败：${res.status}`);
-					}
-					const text = await res.text();
-					if (!cancelled) setTextPreview(text.slice(0, 12000));
-				})
-				.catch((err: unknown) => {
-					if (!cancelled) {
-						setTextError(err instanceof Error ? err.message : String(err));
-					}
-				});
-			return () => {
-				cancelled = true;
-			};
-		}, [canPreview, previewKind, requestPath]);
 
 		return (
 			<div className={styles.previewBlock}>
 				<div className={styles.requestPathHead}>
+					{/* 引用了Typography组件，用于请求路径标签 */}
 					<Typography variant="body2" className={styles.fieldLabel}>
 						请求路径
 					</Typography>
+					{/* 引用了Button组件，用于新窗口打开资源文件 */}
 					<Button
 						size="small"
 						variant="outlined"
@@ -90,62 +137,26 @@ export const AssetFilePreview: FC<AssetFilePreviewProps> =
 						target="_blank"
 						rel="noreferrer"
 					>
-						{openLabel}
+						{previewOpenLabel(previewKind)}
 					</Button>
 				</div>
 				<div className={styles.requestPath} aria-label="资源请求路径">
 					{requestPath}
 				</div>
 
-				{!canPreview ? (
+				{canPreview ? (
+					// 引用了PreviewContent组件，用于按文件类型渲染预览控件
+					<PreviewContent
+						asset={asset}
+						requestPath={requestPath}
+						previewKind={previewKind}
+					/>
+				) : (
+					// 引用了Alert组件，用于提示文件缺失不可预览
 					<Alert severity="warning" className={styles.previewAlert}>
 						文件不可用，无法预览。请重新上传或检查 data/assets/files。
 					</Alert>
-				) : null}
-
-				{canPreview && previewKind === "image" ? (
-					<div className={styles.previewStage}>
-						<img
-							src={requestPath}
-							alt={asset.displayName}
-							className={styles.previewImage}
-						/>
-					</div>
-				) : null}
-
-				{canPreview && previewKind === "audio" ? (
-					<div className={styles.previewStage}>
-						<audio controls className={styles.previewMedia} src={requestPath}>
-							浏览器不支持音频预览。
-						</audio>
-					</div>
-				) : null}
-
-				{canPreview && previewKind === "video" ? (
-					<div className={styles.previewStage}>
-						<video controls className={styles.previewVideo} src={requestPath}>
-							浏览器不支持视频预览。
-						</video>
-					</div>
-				) : null}
-
-				{canPreview && previewKind === "text" ? (
-					<div className={styles.previewStage}>
-						{textError ? (
-							<Alert severity="warning">{textError}</Alert>
-						) : (
-							<pre className={styles.previewText}>
-								{textPreview || "正在读取文本..."}
-							</pre>
-						)}
-					</div>
-				) : null}
-
-				{canPreview && previewKind === "other" ? (
-					<Alert severity="info" className={styles.previewAlert}>
-						此格式暂无内嵌预览，可通过请求路径打开或下载。
-					</Alert>
-				) : null}
+				)}
 			</div>
 		);
 	};

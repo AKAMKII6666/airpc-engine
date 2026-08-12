@@ -4,6 +4,7 @@
 import type { CallCardDefinition } from "../schema/callCard.js";
 import type { ChatTurn } from "../schema/dialogueSession.js";
 import type { Outcome } from "../schema/outcome.js";
+import type { ShellControlEvent } from "./shellControl/shellControlTypes.js";
 import type { RuntimeExitCandidate } from "../tools/types.js";
 
 export type { ChatTurn };
@@ -79,11 +80,17 @@ export interface RenderedPrompt {
 	systemHard: string[];
 	openingSpeakable?: string;
 	openingPrivate?: string;
+	openingPolicy?: {
+		mode: "phone_short";
+		reason: string;
+		maxSentences: number;
+		forbidden: string[];
+	};
 	speakable: string;
 	private: string;
 	softContext: string[];
 	matchedLayerIds: string[];
-	debug?: { notes?: string[] };
+	debug?: { notes?: string[]; providerIds?: string[] };
 }
 
 export interface BeginCallOpts {
@@ -92,6 +99,40 @@ export interface BeginCallOpts {
 	timeZone?: string;
 	/** 调试覆盖：方向 / 本地时间 / 提及时段政策 */
 	sceneOverride?: Partial<ComposeScene>;
+}
+
+export interface BeginCallContext {
+	source:
+		| "free"
+		| "story"
+		| "schedule_reminder"
+		| "expert_referral"
+		| "story_scheduled_call"
+		| "recurring_schedule"
+		| "scheduled_call"
+		| "simulate"
+		| "mailbox";
+	actualEntry?: ActualCallEntry;
+	scheduledIntentId?: string;
+	topicHint?: string;
+	isEarlyUserDial?: boolean;
+	missedOutbound?: {
+		at?: string;
+		reason?: "rejected" | "dismissed";
+		eventId?: string;
+	};
+	isMissedOutbound?: boolean;
+	conversationInertia?: {
+		previousSessionId: string;
+		previousEndedAt?: string;
+		previousCardId: string;
+		previousSource: ResolveResult["source"];
+		recentTurns: Array<{
+			role: "user" | "assistant" | "system";
+			text: string;
+			at: string;
+		}>;
+	};
 }
 
 export type SaveReason =
@@ -121,6 +162,7 @@ export interface CallSession {
 	 * 延迟外呼卡 entryMode=either 时仍依此区分开场姿态，而非卡定义 preferred。
 	 */
 	actualEntry?: ActualCallEntry;
+	beginContext?: BeginCallContext;
 	composeScene: ComposeScene;
 	renderedPrompt?: RenderedPrompt;
 	matchedLayerIds?: string[];
@@ -157,6 +199,8 @@ export interface CallSession {
   };
   /** 文本调试轮次（server Adapter 经 Host 登记；禁 Effect） */
   chatTurns?: ChatTurn[];
+  /** 电话壳控制事件；由 Host shell-control FC 登记，供壳层/UI 消费 */
+  shellEvents?: ShellControlEvent[];
 }
 
 export interface FreePipelineTrace {

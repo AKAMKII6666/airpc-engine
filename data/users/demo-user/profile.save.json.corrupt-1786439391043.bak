@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "userId": "demo-user",
+  "user": {
+    "userId": "demo-user",
+    "nickname": "小明",
+    "fullName": "王小明",
+    "gender": "male",
+    "birthday": "2000-01-15",
+    "age": 26,
+    "outboundWindow": {
+      "from": 9,
+      "to": 22
+    },
+    "location": {
+      "country": "中国",
+      "province": "广东省",
+      "city": "深圳市",
+      "district": "南山区"
+    },
+    "createdAt": "2026-07-13T00:00:00.000Z",
+    "updatedAt": "2026-07-13T00:00:00.000Z"
+  },
+  "characters": {
+    "lanxing": {
+      "agentId": "lanxing",
+      "unlocked": true
+    }
+  },
+  "stories": {
+    "golden_handoff": {
+      "packageId": "golden_handoff",
+      "status": "active",
+      "instanceId": "daa7992d-6649-4e4d-a62d-edc7c282daf9",
+      "variables": {}
+    }
+  },
+  "callCards": {
+    "board": {
+      "byAgent": {}
+    }
+  },
+  "telephony": {
+    "voicemailGenStack": []
+  },
+  "world": {
+    "lore": {
+      "version": 1,
+      "source": "fallback",
+      "generatedAt": "2026-07-15T05:43:23.063Z",
+      "location": {
+        "country": "中国",
+        "province": "广东省",
+        "city": "深圳市"
+      },
+      "sharedPremise": "世界背景（降级）：用户与角色们的故事发生在「中国·广东省·深圳市」语境下；保持日常电话感，勿剧透未解锁内容。",
+      "perspectives": {
+        "lanxing": [
+          "你知道用户大致在「中国·广东省·深圳市」附近生活。",
+          "不要编造未提供的地域细节。"
+        ],
+        "xiaopi": [
+          "你知道用户大致在「中国·广东省·深圳市」附近生活。",
+          "不要编造未提供的地域细节。"
+        ]
+      },
+      "characters": {
+        "lanxing": {
+          "displayName": "澜星",
+          "blurb": "澜星是本地可通话的角色。"
+        },
+        "xiaopi": {
+          "displayName": "小皮",
+          "blurb": "小皮是本地可通话的角色。"
+        }
+      }
+    },
+    "facts": [],
+    "knowledge": {}
+  },
+  "schedule": {
+    "clockMs": 7103768,
+    "intents": []
+  },
+  "research": {
+    "commitments": []
+  },
+  "meta": {
+    "createdAt": "2026-07-13T00:00:00.000Z",
+    "updatedAt": "2026-08-11T09:05:49.919Z",
+    "note": "记忆明细在 data/memory/memory.sqlite，不在本文件内嵌"
+  }
+}
+       "lanxing": {
+          "displayName": "澜星",
+          "blurb": "澜星是本地可通话的角色。"
+        },
+        "xiaopi": {
+          "displayName": "小皮",
+          "blurb": "小皮是本地可通话的角色。"
+        }
+      }
+    },
+    "facts": [],
+    "knowledge": {}
+  },
+  "schedule": {
+    "clockMs": 7101391,
+    "intents": [
+      {
+        "kind": "once",
+        "intentId": "reminder_cef40abe-bb4b-4cd3-9da8-7a659487d9d7",
+        "agentId": "lanxing",
+        "cardId": "lanxing_free",
+        "chapterId": "__free__",
+        "fireAtMs": 7125266,
+        "status": "pending",
+        "topicHint": "叫用户起床",
+        "createdAt": "2026-08-11T09:04:15.962Z",
+        "linkedInstanceId": "69f93bbd-37e7-4c0f-ad74-881d70951093"
+      }
+    ]
+  },
+  "research": {
+    "commitments": []
+  },
+  "meta": {
+    "createdAt": "2026-07-13T00:00:00.000Z",
+    "updatedAt": "2026-08-11T09:05:49.914Z",
+    "note": "记忆明细在 data/memory/memory.sqlite，不在本文件内嵌"
+  }
+}

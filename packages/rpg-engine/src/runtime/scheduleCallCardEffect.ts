@@ -6,6 +6,7 @@ import { randomUUID } from "node:crypto";
 import type { CallCardInstance, PlayerProfile } from "../schema/profile.js";
 import type { Effect } from "../schema/outcome.js";
 import { resolveChapterId } from "../chapter/resolveChapterId.js";
+import type { ScheduledCardLookup } from "../schedule/scheduleCardReferenceResolver.js";
 
 function ensureAgentBoard(
 	profile: PlayerProfile,
@@ -25,6 +26,26 @@ function resolveScheduleDelayMs(effect: Effect): number {
 	const delayMinutes =
 		typeof effect.delayMinutes === "number" ? effect.delayMinutes : 5;
 	return delayMinutes * 60_000;
+}
+
+function validateScheduleTarget(input: {
+	lookupCard?: ScheduledCardLookup | null;
+	agentId: string;
+	cardId: string;
+	chapterId: string;
+}): void {
+	if (!input.lookupCard) return;
+	const card = input.lookupCard(input.chapterId, input.cardId);
+	if (!card) {
+		throw new Error(
+			`schedule_call_card target not found: ${input.chapterId}/${input.cardId}`,
+		);
+	}
+	if (card.ownerAgentId !== input.agentId) {
+		throw new Error(
+			`schedule_call_card target owner ${card.ownerAgentId} !== agentId ${input.agentId}`,
+		);
+	}
 }
 
 function upsertEitherPending(
@@ -69,6 +90,7 @@ export function applyScheduleCallCardToBoard(
 	effect: Effect,
 	profile: PlayerProfile,
 	nowIso: string,
+	lookupCard?: ScheduledCardLookup | null,
 ): void {
 	const agentId = String(effect.agentId ?? "");
 	const cardId = String(effect.cardId ?? "");
@@ -78,6 +100,7 @@ export function applyScheduleCallCardToBoard(
 			"schedule_call_card requires agentId + chapterId + cardId（禁止仅 topicHint 推进）",
 		);
 	}
+	validateScheduleTarget({ lookupCard, agentId, cardId, chapterId });
 	const minMs = resolveScheduleDelayMs(effect);
 	if (!profile.schedule) {
 		profile.schedule = { clockMs: 0, intents: [] };
@@ -109,6 +132,10 @@ export function applyScheduleCallCardToBoard(
 		chapterId,
 		topicHint:
 			typeof effect.topicHint === "string" ? effect.topicHint : undefined,
+		origin:
+			typeof effect.scheduleOrigin === "string"
+				? effect.scheduleOrigin
+				: "story_scheduled_call",
 		fireAtMs: clockMs + minMs,
 		status: "pending",
 		linkedInstanceId: instanceId,

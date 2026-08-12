@@ -88,6 +88,10 @@ export function writeRecurringIntentFromEffect(input: {
     ...ref,
   };
   if (typeof effect.topicHint === "string") intent.topicHint = effect.topicHint;
+  intent.origin =
+    typeof effect.scheduleOrigin === "string"
+      ? effect.scheduleOrigin
+      : "recurring_schedule";
   if (Array.isArray(effect.weekdays)) intent.weekdays = effect.weekdays;
   if (effect.jobId !== undefined) intent.jobId = effect.jobId;
   profile.schedule.intents.push(intent);

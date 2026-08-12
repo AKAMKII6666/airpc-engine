@@ -5,7 +5,7 @@
 	* Server 边界：仅 Host 装配 / API / *.server.ts 可引用；禁止 Client。
 	* 协议：技术设计 23 §4.2。
 	*/
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import {
 	engineError,
@@ -16,6 +16,39 @@ import {
 
 function profileFilePath(dataRoot: string, userId: string): string {
 	return path.join(dataRoot, "users", userId, "profile.save.json");
+}
+
+const profileWriteQueues = new Map<string, Promise<void>>();
+
+function enqueueProfileWrite(file: string, write: () => Promise<void>): Promise<void> {
+	const previous = profileWriteQueues.get(file) ?? Promise.resolve();
+	const current = previous.then(write, write);
+	const queued = current.finally(function () {
+		if (profileWriteQueues.get(file) === queued) {
+			profileWriteQueues.delete(file);
+		}
+	});
+	profileWriteQueues.set(file, queued);
+	return current;
+}
+
+async function writeProfileFileAtomic(
+	file: string,
+	profile: PlayerProfile,
+): Promise<void> {
+	await mkdir(path.dirname(file), { recursive: true });
+	const tmp = `${file}.${process.pid}.${Date.now()}.${Math.random()
+		.toString(36)
+		.slice(2)}.tmp`;
+	try {
+		await writeFile(tmp, JSON.stringify(profile, null, 2) + "\n", "utf8");
+		await rename(tmp, file);
+	} catch (err) {
+		await rm(tmp, { force: true }).catch(function () {
+			// best effort cleanup
+		});
+		throw err;
+	}
 }
 
 /**
@@ -72,7 +105,6 @@ export function createFsProfilePort(dataRoot: string): ProfilePort {
 		const { profile } = input;
 		const file = profileFilePath(dataRoot, profile.userId);
 		try {
-			await mkdir(path.dirname(file), { recursive: true });
 			const next: PlayerProfile = {
 				...profile,
 				meta: {
@@ -80,7 +112,9 @@ export function createFsProfilePort(dataRoot: string): ProfilePort {
 					updatedAt: new Date().toISOString(),
 				},
 			};
-			await writeFile(file, JSON.stringify(next, null, 2) + "\n", "utf8");
+			await enqueueProfileWrite(file, function () {
+				return writeProfileFileAtomic(file, next);
+			});
 		} catch (err) {
 			toIoFailed(err, `writeProfile failed: ${profile.userId}`);
 		}

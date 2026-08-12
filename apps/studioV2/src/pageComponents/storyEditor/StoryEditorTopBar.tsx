@@ -12,6 +12,8 @@ import styles from "./StoryEditorTopBar.module.scss";
 export type StoryEditorTopBarProps = {
 	/** 故事包人类标题 */
 	packageTitle: string;
+	/** 当前章节 id；用于章节级调试入口 */
+	chapterId: string;
 	/** 章节显示名 */
 	chapterTitle: string;
 	/** 整包保存状态 */
@@ -40,6 +42,8 @@ function saveStateLabel(state: EditorPackageSaveState): string {
 export const StoryEditorTopBar: FC<StoryEditorTopBarProps> = function ({
 	// packageTitle 是故事包标题，用于顶栏主文案
 	packageTitle,
+	// chapterId 是当前章节 id，用于运行调试入口
+	chapterId,
 	// chapterTitle 是章节名，用于副标题
 	chapterTitle,
 	// saveState 是整包保存状态
@@ -61,6 +65,7 @@ export const StoryEditorTopBar: FC<StoryEditorTopBarProps> = function ({
 		validationSummary && validationSummary.trim() !== ""
 			? validationSummary
 			: "尚未校验";
+	const debuggerHref = `/debugger?chapterId=${encodeURIComponent(chapterId)}`;
 	return (
 		<header className={styles.bar}>
 			<div className={styles.titles}>
@@ -119,7 +124,12 @@ export const StoryEditorTopBar: FC<StoryEditorTopBarProps> = function ({
 					导出
 				</Button>
 				{/* 引用了Button组件，用于跳转调试器 */}
-				<Button component={Link} href="/debugger" size="small" variant="contained">
+				<Button
+					component={Link}
+					href={debuggerHref}
+					size="small"
+					variant="contained"
+				>
 					运行调试
 				</Button>
 			</div>

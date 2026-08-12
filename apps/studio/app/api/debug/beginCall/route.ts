@@ -45,7 +45,7 @@ export async function POST(req: Request): Promise<Response> {
       }
       resolved = await host.resolveAsync(userId, {
         kind: "simulate_start",
-        packageId: body.packageId,
+        chapterId: body.packageId,
         cardId: body.cardId,
       });
     }
@@ -72,7 +72,7 @@ export async function POST(req: Request): Promise<Response> {
     }
     return apiOk({
       sessionId: session.sessionId,
-      packageId: session.packageId,
+      packageId: session.chapterId,
       cardId: session.resolve.cardId,
       agentId: session.resolve.agentId,
       resolveSource: session.resolve.source,

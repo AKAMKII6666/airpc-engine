@@ -3,6 +3,7 @@
  */
 import type { CallCardDefinition } from "../schema/callCard.js";
 import type { Outcome } from "../schema/outcome.js";
+import type { ChatTurn } from "../schema/dialogueSession.js";
 
 export interface MemorySearchQuery {
   userId: string;
@@ -30,6 +31,13 @@ export interface MemoryProjection {
   includedEntryIds: string[];
   rollupIds?: string[];
   debug?: { hotCount: number; chars: number };
+}
+
+/** Host 挂机时交给 MemoryPort 的稳定 transcript DTO。 */
+export interface MemoryCallTranscript {
+  schemaVersion: 1;
+  source: "host.chat_turns";
+  turns: ChatTurn[];
 }
 
 export interface MemoryCommitInput {

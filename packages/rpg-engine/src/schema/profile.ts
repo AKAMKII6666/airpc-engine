@@ -45,7 +45,7 @@ export const CallCardInstanceSchema = z.object({
   cardId: z.string(),
   chapterId: z.string(),
   agentId: z.string(),
-  status: z.enum(["pending", "active", "completed", "cancelled"]),
+  status: z.enum(["pending", "missed", "active", "completed", "cancelled"]),
   entryMode: z.string().optional(),
   /**
    * 推荐入口姿态（延迟外呼常用 outbound_auto）；
@@ -54,6 +54,10 @@ export const CallCardInstanceSchema = z.object({
   activationHint: z.string().optional(),
   /** 关联的 schedule once intentId；提前呼入／外呼 beginCall 时用于消费 intent */
   scheduledIntentId: z.string().optional(),
+  /** 外呼到点后壳层未接；用户后续回拨时保留接续事实 */
+  missedOutboundAt: z.string().optional(),
+  missedOutboundReason: z.enum(["rejected", "dismissed"]).optional(),
+  missedIncomingEventId: z.string().optional(),
   /** Resolve 多 pending 时与 card/出口 priority 对齐（可选） */
   priority: z.number().optional(),
   createdAt: z.string(),

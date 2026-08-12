@@ -72,23 +72,28 @@ export const AssetDetailEditForm: FC<AssetDetailEditFormProps> =
 
 				<div className={styles.section}>
 					<h3 className={styles.sectionTitle}>文件预览</h3>
+					{/* 引用了AssetFilePreview组件，用于展示资源文件预览与请求路径 */}
 					<AssetFilePreview asset={asset} />
 				</div>
 
 				<div className={styles.section}>
 					<h3 className={styles.sectionTitle}>文件属性</h3>
+					{/* 引用了Typography组件，用于展示资源类型 */}
 					<Typography variant="body2" className={styles.detailMeta}>
 						类型：{assetKindLabel(asset.kind)}
 					</Typography>
+					{/* 引用了Typography组件，用于展示文件格式 */}
 					<Typography variant="body2" className={styles.detailMeta}>
 						格式：{asset.format || "未知"}
 					</Typography>
+					{/* 引用了Typography组件，用于展示文件大小或时长 */}
 					<Typography variant="body2" className={styles.detailMeta}>
 						大小/时长：{formatAssetMeasure(
 							asset.measureValue,
 							asset.measureUnit,
 						)}
 					</Typography>
+					{/* 引用了Typography组件，用于展示资源可用状态 */}
 					<Typography variant="body2" className={styles.detailMeta}>
 						状态：{assetAvailabilityLabel(asset.availability)}
 					</Typography>

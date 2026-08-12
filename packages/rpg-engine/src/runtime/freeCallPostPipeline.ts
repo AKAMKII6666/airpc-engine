@@ -4,7 +4,7 @@
 import type { CallSession, EffectPlanResult } from "../host/types.js";
 import type { PlayerProfile } from "../schema/profile.js";
 import type { Outcome } from "../schema/outcome.js";
-import type { MemoryPort } from "../memory/types.js";
+import type { MemoryCallTranscript, MemoryPort } from "../memory/types.js";
 import { selectExit } from "./exitSelector.js";
 import { executeEffects } from "./effectExecutor.js";
 import type { EffectSink } from "./effectSink.js";
@@ -25,9 +25,37 @@ export interface FreeCallPostPipelineOpts {
 }
 
 function countTurns(session: CallSession): number {
+  const fromChat = session.chatTurns?.length ?? 0;
   const fromTrace = session.toolTrace.length;
   const fromBeats = session.completedBeats.length;
-  return Math.max(fromTrace, fromBeats, session.channel === "manual" ? 2 : 0);
+  return Math.max(
+    fromChat,
+    fromTrace,
+    fromBeats,
+    session.channel === "manual" ? 2 : 0,
+  );
+}
+
+function buildTranscript(session: CallSession): MemoryCallTranscript | null {
+  const turns = session.chatTurns ?? [];
+  if (turns.length === 0) return null;
+  return {
+    schemaVersion: 1,
+    source: "host.chat_turns",
+    turns: turns.map(function (turn) {
+      return { role: turn.role, text: turn.text, at: turn.at };
+    }),
+  };
+}
+
+function transcriptSummary(transcript: MemoryCallTranscript | null): string | null {
+  if (!transcript || transcript.turns.length === 0) return null;
+  return transcript.turns
+    .map(function (turn) {
+      return `${turn.role}: ${turn.text}`;
+    })
+    .join("\n")
+    .trim();
 }
 
 /**
@@ -57,7 +85,8 @@ export async function runFreeCallPostPipeline(input: {
   let commitEntryIds: string[] | undefined;
 
   if (gateOk && commitEnabled && input.memory) {
-    const summary = [
+    const transcript = buildTranscript(input.session);
+    const summary = transcriptSummary(transcript) ?? [
       `Free call with ${input.session.resolve.agentId}`,
       `card=${input.session.resolve.cardId}`,
       input.session.frozenCard.title
@@ -70,7 +99,7 @@ export async function runFreeCallPostPipeline(input: {
       userId: input.session.userId,
       agentId: input.session.resolve.agentId,
       sessionId: input.session.sessionId,
-      transcript: null,
+      transcript,
       outcome: input.outcome,
       endedAt: input.nowIso,
       summaryText: summary,

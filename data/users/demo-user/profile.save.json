@@ -37,10 +37,29 @@
   },
   "callCards": {
     "board": {
-      "byAgent": {}
+      "byAgent": {
+        "lanxing": {
+          "pending": [
+            {
+              "instanceId": "2c54e594-f7ae-462e-9d34-dbe22c8e2088",
+              "cardId": "lanxing_free",
+              "chapterId": "__free__",
+              "agentId": "lanxing",
+              "status": "active",
+              "entryMode": "either",
+              "activationHint": "outbound_auto",
+              "scheduledIntentId": "reminder_97512cd5-f444-45e6-b20f-fc9e6116f459",
+              "createdAt": "2026-08-12T01:37:27.488Z",
+              "updatedAt": "2026-08-12T01:39:38.451Z"
+            }
+          ]
+        }
+      }
     }
   },
-  "telephony": {},
+  "telephony": {
+    "voicemailGenStack": []
+  },
   "world": {
     "lore": {
       "version": 1,
@@ -77,15 +96,42 @@
     "knowledge": {}
   },
   "schedule": {
-    "clockMs": 0,
-    "intents": []
+    "clockMs": 68522780,
+    "intents": [
+      {
+        "kind": "once",
+        "intentId": "reminder_cef40abe-bb4b-4cd3-9da8-7a659487d9d7",
+        "agentId": "lanxing",
+        "cardId": "lanxing_free",
+        "chapterId": "__free__",
+        "fireAtMs": 7125266,
+        "status": "consumed",
+        "topicHint": "叫用户起床",
+        "createdAt": "2026-08-11T09:04:15.962Z",
+        "linkedInstanceId": "69f93bbd-37e7-4c0f-ad74-881d70951093"
+      },
+      {
+        "kind": "once",
+        "intentId": "reminder_97512cd5-f444-45e6-b20f-fc9e6116f459",
+        "agentId": "lanxing",
+        "cardId": "lanxing_free",
+        "chapterId": "__free__",
+        "fireAtMs": 63120166,
+        "status": "consumed",
+        "topicHint": "叫用户起床",
+        "createdAt": "2026-08-12T01:37:27.488Z",
+        "linkedInstanceId": "2c54e594-f7ae-462e-9d34-dbe22c8e2088"
+      }
+    ]
   },
   "research": {
     "commitments": []
   },
   "meta": {
     "createdAt": "2026-07-13T00:00:00.000Z",
-    "updatedAt": "2026-07-20T04:24:43.979Z",
-    "note": "记忆明细在 data/memory/memory.sqlite，不在本文件内嵌"
+    "updatedAt": "2026-08-12T08:00:47.585Z",
+    "note": "记忆明细在 data/memory/memory.sqlite，不在本文件内嵌",
+    "repairedAt": "2026-08-11T09:09:51.070Z",
+    "repairedReason": "trimmed corrupted appended JSON tail and restored pending reminder intent"
   }
 }

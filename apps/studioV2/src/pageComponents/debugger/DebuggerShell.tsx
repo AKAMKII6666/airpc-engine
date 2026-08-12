@@ -1,113 +1,117 @@
 /**
-	* CallCard 调试器壳：剧情推进叙事布局 + 读盘 validate + 最小信箱。
-	* 会话/信箱真源在 debugger store（经 shell + feature bis）；禁止直引 mock / ajaxProxy。
+	* 电话调试器 UI 装配：本轮接入模型配置状态，不接真实 Host / LLM 对话。
 	*/
 "use client";
 
-import type { FC } from "react";
-import { Alert, CircularProgress } from "@mui/material";
+import { useEffect, useMemo, useRef, type FC } from "react";
+import { useDebuggerDialableRolesBis } from "@studio-v2/src/bis/pageBis/debugger/dialableRoles.bis";
+import { useDebuggerLlmStatusBis } from "@studio-v2/src/bis/pageBis/debugger/llmStatus.bis";
+import { useDebuggerIncomingCallsBis } from "@studio-v2/src/bis/pageBis/debugger/incomingCalls.bis";
 import { useDebuggerMailboxSessionBis } from "@studio-v2/src/bis/pageBis/debugger/mailboxSession.bis";
-import { useDebuggerSessionBis } from "@studio-v2/src/bis/pageBis/debugger/session/debuggerSession.bis";
 import { useDebuggerShellBis } from "@studio-v2/src/bis/shellBis/debugger/debugger.shell.bis";
-// 引用了DebuggerNarrativeStage组件，用于叙事主区布局
-import { DebuggerNarrativeStage } from "@studio-v2/src/pageComponents/debugger/com/DebuggerNarrativeStage";
-// 引用了DebuggerShellTopBar组件，用于顶栏标题与导航
-import { DebuggerShellTopBar } from "@studio-v2/src/pageComponents/debugger/com/DebuggerShellTopBar";
-// 引用了MailboxPanel组件，用于最小信箱列表与模拟听完
-import { MailboxPanel } from "@studio-v2/src/pageComponents/debugger/com/mailbox/MailboxPanel";
-// 引用了PackageValidatePanel组件，用于读盘包 validate 结果
-import { PackageValidatePanel } from "@studio-v2/src/pageComponents/debugger/com/packageValidate/PackageValidatePanel";
-import { useDebuggerPackageValidate } from "@studio-v2/src/pageComponents/debugger/hooks/useDebuggerPackageValidate";
+import { CallChatPanel } from "@studio-v2/src/pageComponents/debugger/com/CallChatPanel";
+import { DebuggerContextPanel } from "@studio-v2/src/pageComponents/debugger/com/DebuggerContextPanel";
+import { DebuggerTopBar } from "@studio-v2/src/pageComponents/debugger/com/DebuggerTopBar";
+import { IdlePhonePanel } from "@studio-v2/src/pageComponents/debugger/com/IdlePhonePanel";
+import { IncomingCallModal } from "@studio-v2/src/pageComponents/debugger/com/IncomingCallModal";
+import { useDebuggerPrototypeSession } from "@studio-v2/src/pageComponents/debugger/hooks/useDebuggerPrototypeSession";
+import {
+	phoneStatusLabel,
+	toRoleRows,
+	visibleIncomingCall,
+} from "@studio-v2/src/pageComponents/debugger/debuggerUiModel";
 import styles from "./DebuggerShell.module.scss";
 
-export const DebuggerShell: FC = function () {
-	useDebuggerShellBis();
-	const { session, sessionLoading, sessionLoadError } = useDebuggerSessionBis();
-	const mailbox = useDebuggerMailboxSessionBis();
-	const validate = useDebuggerPackageValidate();
+export type DebuggerShellProps = {
+	/** 编辑器入口章节 id；存在时配合 initialCardId 自动启动 simulate_start */
+	initialChapterId?: string;
+	/** 编辑器入口起始卡 id；存在时配合 initialChapterId 自动启动 simulate_start */
+	initialCardId?: string;
+};
 
-	const mailboxPanel = (
-		// 引用了MailboxPanel组件，用于语音留言信箱
-		<MailboxPanel
-			userId={mailbox.userId}
-			onUserIdChange={mailbox.setUserId}
-			mailbox={mailbox.mailbox}
-			loading={mailbox.loading}
-			busy={mailbox.busy}
-			error={mailbox.error}
-			lastListenSummary={mailbox.lastListenSummary}
-			onRefresh={function () {
-				void mailbox.refresh();
-			}}
-			onSeed={function () {
-				void mailbox.onSeed();
-			}}
-			onListen={function (slot) {
-				void mailbox.onListen(slot);
-			}}
-		/>
-	);
+export const DebuggerShell: FC<DebuggerShellProps> = function DebuggerShell({
+	// initialChapterId 来自路由 query，用于编辑器定点调试
+	initialChapterId,
+	// initialCardId 来自路由 query，用于编辑器定点调试
+	initialCardId,
+}) {
+	useDebuggerShellBis();
+	const llmStatus = useDebuggerLlmStatusBis();
+	const roleBis = useDebuggerDialableRolesBis();
+	const mailboxBis = useDebuggerMailboxSessionBis();
+	const incomingBis = useDebuggerIncomingCallsBis();
+	const roleRows = useMemo(function () {
+		return toRoleRows(roleBis.roles);
+	}, [roleBis.roles]);
+	const session = useDebuggerPrototypeSession(roleRows, mailboxBis);
+	const isInCall = session.callState.mode === "inCall";
+	const autoStartKeyRef = useRef<string | null>(null);
+
+	useEffect(function () {
+		if (!initialChapterId || isInCall) return;
+		const key = `${initialChapterId}:${initialCardId ?? "__entry__"}`;
+		if (autoStartKeyRef.current === key) return;
+		autoStartKeyRef.current = key;
+		if (initialCardId) {
+			session.startSimulateCall(initialChapterId, initialCardId);
+			return;
+		}
+		session.startSimulateChapterCall(initialChapterId);
+	}, [initialChapterId, initialCardId, isInCall, session]);
 
 	return (
 		<main className={styles.root}>
-			{/* 引用了DebuggerShellTopBar组件，用于顶栏 */}
-			<DebuggerShellTopBar
-				packageTitle={
-					validate.selectedTitle ||
-					session?.scene.packageTitle ||
-					"调试器"
-				}
-				userLabel={
-					mailbox.userId || session?.scene.userDisplayName || "—"
-				}
-				editorPackageId={
-					validate.packageId || session?.scene.packageId || ""
-				}
+			{/* 引用了DebuggerTopBar组件，用于展示调试器全局选择和模型状态 */}
+			<DebuggerTopBar
+				statusLabel={phoneStatusLabel(session.phoneUi, isInCall)}
+				isInCall={isInCall}
+				llmStatus={llmStatus}
 			/>
 
-			{/* 引用了PackageValidatePanel组件，用于展示磁盘 validate */}
-			<PackageValidatePanel
-				packages={validate.packages}
-				packageId={validate.packageId}
-				listLoading={validate.listLoading}
-				listError={validate.listError}
-				validating={validate.validating}
-				validateError={validate.validateError}
-				report={validate.report}
-				onPackageChange={validate.onPackageChange}
-				onValidate={function () {
-					void validate.runValidate();
-				}}
-			/>
+			<section className={styles.workspace} aria-label="电话调试器工作区">
+				{session.callState.mode === "inCall" ? (
+					// 引用了CallChatPanel组件，用于展示通话态聊天界面
+					<CallChatPanel
+						callState={session.callState}
+						draft={session.draft}
+						busy={session.busy}
+						error={session.error}
+						onDraftChange={session.setDraft}
+						onSend={session.sendDraft}
+						onHangup={session.resetDebugger}
+					/>
+				) : (
+					// 引用了IdlePhonePanel组件，用于展示待机电话盘与拨号 UX
+					<IdlePhonePanel
+						phoneUi={session.phoneUi}
+						busy={session.busy}
+						error={session.error}
+						hasUnreadVoicemail={session.hasUnreadVoicemail}
+						onReset={session.resetDebugger}
+						onLiftReceiver={session.liftReceiver}
+						onDialKey={session.pressDialKey}
+						onRedial={session.redial}
+					/>
+				)}
 
-			{sessionLoadError ? (
-				// 引用了Alert组件，用于会话灌入失败提示
-				<Alert severity="error" className={styles.panel}>
-					{sessionLoadError}
-				</Alert>
-			) : null}
-
-			{sessionLoading && !session ? (
-				<div className={styles.panel}>
-					{/* 引用了CircularProgress组件，用于会话灌入中 */}
-					<CircularProgress size={28} />
-				</div>
-			) : null}
-
-			{session ? (
-				// 引用了DebuggerNarrativeStage组件，用于叙事主区
-				<DebuggerNarrativeStage
-					session={session}
-					mailboxSlot={mailboxPanel}
+				{/* 引用了DebuggerContextPanel组件，用于展示右侧运行时上下文 */}
+				<DebuggerContextPanel
+					callState={session.callState}
+					roles={roleRows}
+					rolesLoading={roleBis.loading}
+					rolesError={roleBis.error}
+					onRefreshRoles={roleBis.refresh}
 				/>
-			) : (
-				<div className={styles.grid}>
-					<div className={styles.panel} />
-					<div className={styles.sideCol}>
-						<div className={styles.panel}>{mailboxPanel}</div>
-					</div>
-				</div>
-			)}
+			</section>
+
+			{/* 引用了IncomingCallModal组件，用于消费 Host 真实调度外呼事件 */}
+			<IncomingCallModal
+				incomingCall={visibleIncomingCall(isInCall, incomingBis.activeIncomingCall)}
+				busy={incomingBis.busy}
+				error={incomingBis.error}
+				onAccept={incomingBis.acceptIncomingCall}
+				onReject={incomingBis.rejectIncomingCall}
+			/>
 		</main>
 	);
 };

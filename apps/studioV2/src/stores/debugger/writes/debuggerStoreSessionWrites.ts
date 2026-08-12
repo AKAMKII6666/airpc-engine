@@ -7,6 +7,7 @@ import type {
 	DebuggerSessionLoadResult,
 } from "@studio-v2/typeFiles/debugger/store/debuggerStoreState";
 import type { DebuggerMailboxSnapshot } from "@studio-v2/typeFiles/debugger/mailboxView";
+import type { DebuggerCallSessionView } from "@studio-v2/typeFiles/debugger/callSession";
 import {
 	createDebuggerSessionSlice,
 	type DebuggerStoreState,
@@ -14,14 +15,23 @@ import {
 
 type DebuggerSet = StoreApi<DebuggerStoreState>["setState"];
 
-/** 会话灌账、信箱读写口、stamp、reset */
-export function createDebuggerSessionActions(
-	set: DebuggerSet,
-): Pick<
+type SessionLoadActions = Pick<
 	DebuggerStoreState,
 	| "applySessionLoadStarted"
 	| "applySessionLoadResult"
 	| "bumpSessionRefreshStamp"
+>;
+
+type CallCommandActions = Pick<
+	DebuggerStoreState,
+	| "applyCallCommandStarted"
+	| "applyCallCommandResult"
+	| "applyCallCommandFailed"
+	| "resetActiveCall"
+>;
+
+type MailboxActions = Pick<
+	DebuggerStoreState,
 	| "setMailboxUserId"
 	| "applyMailboxLoadStarted"
 	| "applyMailboxLoadResult"
@@ -29,8 +39,9 @@ export function createDebuggerSessionActions(
 	| "applyMailboxCommandResult"
 	| "applyMailboxCommandFailed"
 	| "bumpMailboxRefreshStamp"
-	| "resetDebuggerSession"
-> {
+>;
+
+function createSessionLoadActions(set: DebuggerSet): SessionLoadActions {
 	return {
 		applySessionLoadStarted() {
 			set({
@@ -60,7 +71,45 @@ export function createDebuggerSessionActions(
 				return { sessionRefreshStamp: prev.sessionRefreshStamp + 1 };
 			});
 		},
+	};
+}
 
+function createCallCommandActions(set: DebuggerSet): CallCommandActions {
+	return {
+		applyCallCommandStarted() {
+			set({
+				callBusy: true,
+				callError: undefined,
+			});
+		},
+
+		applyCallCommandResult(session: DebuggerCallSessionView) {
+			set({
+				activeCall: session,
+				callBusy: false,
+				callError: undefined,
+			});
+		},
+
+		applyCallCommandFailed(message) {
+			set({
+				callBusy: false,
+				callError: message,
+			});
+		},
+
+		resetActiveCall() {
+			set({
+				activeCall: null,
+				callBusy: false,
+				callError: undefined,
+			});
+		},
+	};
+}
+
+function createMailboxActions(set: DebuggerSet): MailboxActions {
+	return {
 		setMailboxUserId(userId) {
 			set({ mailboxUserId: userId });
 		},
@@ -119,6 +168,34 @@ export function createDebuggerSessionActions(
 				return { mailboxRefreshStamp: prev.mailboxRefreshStamp + 1 };
 			});
 		},
+	};
+}
+
+/** 会话灌账、真实通话、信箱读写口、stamp、reset */
+export function createDebuggerSessionActions(
+	set: DebuggerSet,
+): Pick<
+	DebuggerStoreState,
+	| "applySessionLoadStarted"
+	| "applySessionLoadResult"
+	| "bumpSessionRefreshStamp"
+	| "applyCallCommandStarted"
+	| "applyCallCommandResult"
+	| "applyCallCommandFailed"
+	| "resetActiveCall"
+	| "setMailboxUserId"
+	| "applyMailboxLoadStarted"
+	| "applyMailboxLoadResult"
+	| "applyMailboxCommandStarted"
+	| "applyMailboxCommandResult"
+	| "applyMailboxCommandFailed"
+	| "bumpMailboxRefreshStamp"
+	| "resetDebuggerSession"
+> {
+	return {
+		...createSessionLoadActions(set),
+		...createCallCommandActions(set),
+		...createMailboxActions(set),
 
 		resetDebuggerSession() {
 			set(function (prev) {

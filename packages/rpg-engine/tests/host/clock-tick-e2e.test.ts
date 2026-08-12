@@ -112,8 +112,6 @@ describe("E9 clock / daily tick simulator", () => {
     if (isEngineError(session)) throw session;
 
     const inv = await host.invokeTool(session.sessionId, "schedule_reminder_call", {
-      card_id: "doubao_intro_outbound",
-      package_id: "golden_handoff",
       delay_minutes: 30,
       topic_hint: "e9-once",
     });
@@ -138,15 +136,13 @@ describe("E9 clock / daily tick simulator", () => {
     if (isEngineError(next)) return;
     expect(next.reason).toBe("once");
     expect(next.toClockMs).toBe(30 * 60_000);
-    expect(next.fired.some((f) => f.cardId === "doubao_intro_outbound")).toBe(
-      true,
-    );
+    expect(next.fired.some((f) => f.cardId === "lanxing_free")).toBe(true);
 
     const after = await host.ensureProfile("demo-user");
     expect(after.schedule?.clockMs).toBe(30 * 60_000);
     expect(
       after.callCards.board.byAgent["lanxing"]?.pending?.some(
-        (p) => p.cardId === "doubao_intro_outbound",
+        (p) => p.cardId === "lanxing_free",
       ),
     ).toBe(true);
   });

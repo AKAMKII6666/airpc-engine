@@ -8,6 +8,7 @@ import { createEngineHost } from "../../src/host/createEngineHost.js";
 import type { CreateEngineHostOptions } from "../../src/ports/engineHostApi.js";
 import type {
   MemoryCommitInput,
+  MemoryCallTranscript,
   MemoryCommitResult,
   MemoryPort,
   MemoryProjection,
@@ -65,6 +66,26 @@ function insertEntry(
   return id;
 }
 
+function isMemoryCallTranscript(value: unknown): value is MemoryCallTranscript {
+  const candidate = value as Partial<MemoryCallTranscript> | null;
+  return (
+    !!candidate &&
+    candidate.schemaVersion === 1 &&
+    candidate.source === "host.chat_turns" &&
+    Array.isArray(candidate.turns)
+  );
+}
+
+function summaryFromTranscript(value: unknown): string | null {
+  if (!isMemoryCallTranscript(value) || value.turns.length === 0) return null;
+  return value.turns
+    .map(function (turn) {
+      return `${turn.role}: ${turn.text}`;
+    })
+    .join("\n")
+    .trim();
+}
+
 function entryMatchesQuery(
   e: MemEntry,
   input: MemorySearchQuery,
@@ -117,6 +138,7 @@ function commitCall(
 ): MemoryCommitResult {
   const summary =
     input.summaryText?.trim() ||
+    summaryFromTranscript(input.transcript) ||
     `call_summary session=${input.sessionId} ended=${input.endedAt}`;
   const ids = [
     insertEntry(

@@ -49,6 +49,50 @@ export function buildPersonalityHardBlock(code: string): string {
   ].join("\n");
 }
 
+function normalizeText(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+  return trimmed ? trimmed : null;
+}
+
+function normalizeExampleLines(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((item): item is string => typeof item === "string")
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+}
+
+export function buildPersonaStyleHardBlock(
+  persona: CharacterDef["persona"] | undefined,
+): string | null {
+  if (!persona || typeof persona !== "object") return null;
+  const profession = normalizeText(persona.profession);
+  const speakingStyle = normalizeText(persona.speakingStyle);
+  const voiceNotes = normalizeText(persona.voiceNotes);
+  const exampleLines = normalizeExampleLines(persona.exampleLines);
+  if (!profession && !speakingStyle && !voiceNotes && exampleLines.length === 0) {
+    return null;
+  }
+  const lines = [
+    "[persona.style]",
+    "角色级说话风格；在 [style.phone] 的电话口语底线内保持角色差异。",
+  ];
+  if (profession) lines.push(`- 身份/职业气质：${profession}`);
+  if (speakingStyle) lines.push(`- 说话风格：${speakingStyle}`);
+  if (voiceNotes) lines.push(`- 声音/语气备注：${voiceNotes}`);
+  if (exampleLines.length > 0) {
+    lines.push("- 参考句式（只学节奏和口吻，不要机械复读）：");
+    for (const example of exampleLines.slice(0, 5)) {
+      lines.push(`  - ${example}`);
+    }
+  }
+  lines.push(
+    "- 与 [objective] / [forbidden] 冲突时：objective / forbidden 优先；不要为了模仿口癖牺牲任务。",
+  );
+  return lines.join("\n");
+}
+
 /**
  * 把 persona.systemPrompt 与 personalityCode 写入 systemHard。
  * 人格块紧跟 systemPrompt，保证扮演约束进入 LLM hard 段。

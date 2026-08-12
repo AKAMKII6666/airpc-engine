@@ -5,6 +5,7 @@ import { randomUUID } from "node:crypto";
 import { engineError, isEngineError, type EngineError } from "./errors.js";
 import type {
   ActualCallEntry,
+  BeginCallContext,
   BeginCallOpts,
   CallIntent,
   CallSession,
@@ -58,16 +59,16 @@ import {
 } from "../ports/engineHostApi.js";
 import { invokeSessionTool } from "../tools/invokeSessionLocal.js";
 import type { ToolInvokeResult } from "../tools/types.js";
+import { createShellControlApi } from "./shellControl/createShellControlApi.js";
+import { createOutboundShellApi } from "./outbound/createOutboundShellApi.js";
+import { createDispatchingScheduleClockApi } from "./outbound/createDispatchingScheduleClockApi.js";
 import {
   validatePackage as runValidatePackage,
 } from "../validation/validatePackage.js";
 import type { ValidationReport } from "../validation/types.js";
 import { createScheduleClockApi } from "./createScheduleClockApi.js";
 import { consumeLinkedOnceIntent } from "../runtime/scheduleTick.js";
-import {
-  createNoopEffectSink,
-  type EffectSink,
-} from "../runtime/effectSink.js";
+import { createNoopEffectSink, type EffectSink } from "../runtime/effectSink.js";
 import { materializeVoicemailsAfterPlan } from "./materializeVoicemailsAfterPlan.js";
 import { markVoicemailListenedAfterEndCall } from "../runtime/voicemail/markVoicemailListened.js";
 import { resolveMailboxOpenIntent } from "../runtime/voicemail/resolveMailboxOpen.js";
@@ -86,6 +87,7 @@ import {
   type CallFlowSimEventKind,
 } from "../runtime/selectCallFlowPrompt.js";
 import { bootstrapLoreOntoProfile } from "../lore/bootstrapLore.js";
+import { resolveChapterId } from "../chapter/resolveChapterId.js";
 
 export type {
   CreateEngineHostOptions,
@@ -124,8 +126,7 @@ export function createEngineHost(
   };
   let workspace: WorkspaceState | null = null;
   /** Memory 须由宿主注入（本机：engineIOModule）；引擎不再内建 sqlite。 */
-  let memory: MemoryPort | null =
-    options.memory === undefined ? null : options.memory;
+  let memory: MemoryPort | null = options.memory === undefined ? null : options.memory;
   /** Profile 须由宿主注入（本机：engineIOModule createFsProfilePort）；引擎不再直写 fs。 */
   const profilePort =
     options.profile === undefined ? null : options.profile;
@@ -161,6 +162,33 @@ export function createEngineHost(
   /** 调度/recurring 只读查卡；注入 Executor 与 clock tick，避免各处读盘。 */
   function lookupCard(packageId: string, cardId: string) {
     return lookupCharacterSideCard(requireWorkspace(), packageId, cardId);
+  }
+
+  async function preloadScheduleCallCardTargets(
+    effects: readonly Record<string, unknown>[],
+  ): Promise<void> {
+    for (const effect of effects) {
+      if (effect.effect !== "schedule_call_card") continue;
+      const cardId = typeof effect.cardId === "string" ? effect.cardId : "";
+      const chapterId = resolveChapterId(effect);
+      if (!cardId || !chapterId) continue;
+      const pre = await host.preloadCard(chapterId, cardId);
+      if (pre && isEngineError(pre)) {
+        pushLog({
+          at: new Date().toISOString(),
+          type: "schedule_call_card.preload_failed",
+          payload: { chapterId, cardId, code: pre.code, message: pre.message },
+        });
+      }
+    }
+  }
+
+  async function preloadExitCandidateScheduleTargets(
+    session: CallSession,
+  ): Promise<void> {
+    for (const candidate of session.exitCandidates) {
+      await preloadScheduleCallCardTargets(candidate.effects);
+    }
   }
 
   function resolveFreeForAgent(
@@ -204,11 +232,187 @@ export function createEngineHost(
     };
   }
 
+  function readPendingForResolve(
+    profile: PlayerProfile | undefined,
+    result: ResolveResult,
+  ) {
+    if (!profile) return null;
+    const board = profile.callCards.board.byAgent[result.agentId];
+    return board?.pending.find(function (item) {
+      return item.instanceId === result.instanceId;
+    }) ?? null;
+  }
+
+  function readScheduleIntent(
+    profile: PlayerProfile | undefined,
+    intentId: string | undefined,
+  ): Record<string, unknown> | null {
+    if (!profile || !intentId) return null;
+    const hit = profile.schedule?.intents?.find(function (item) {
+      const row = item as { intentId?: unknown };
+      return row.intentId === intentId;
+    });
+    return hit && typeof hit === "object" ? hit as Record<string, unknown> : null;
+  }
+
+  function classifyBeginContext(input: {
+    result: ResolveResult;
+    actualEntry?: ActualCallEntry;
+    scheduledIntentId?: string;
+    topicHint?: string;
+    scheduleOrigin?: string;
+    missedOutbound?: BeginCallContext["missedOutbound"];
+    conversationInertia?: BeginCallContext["conversationInertia"];
+  }): BeginCallContext {
+    const {
+      result,
+      actualEntry,
+      scheduledIntentId,
+      topicHint,
+      scheduleOrigin,
+      missedOutbound,
+      conversationInertia,
+    } = input;
+    const missedContext = missedOutbound
+      ? {
+          missedOutbound,
+          isMissedOutbound: true,
+        }
+      : {};
+    if (result.source === "mailbox") {
+      return { source: "mailbox", actualEntry, conversationInertia, ...missedContext };
+    }
+    if (result.source === "simulate") {
+      return { source: "simulate", actualEntry, conversationInertia, ...missedContext };
+    }
+    if (scheduledIntentId) {
+      const source =
+        scheduleOrigin === "user_reminder"
+          ? "schedule_reminder"
+          : scheduleOrigin === "expert_referral"
+            ? "expert_referral"
+            : scheduleOrigin === "recurring_schedule"
+              ? "recurring_schedule"
+              : scheduleOrigin === "story_scheduled_call"
+                ? "story_scheduled_call"
+                : topicHint
+                  ? "schedule_reminder"
+                  : "scheduled_call";
+      return {
+        source,
+        actualEntry,
+        scheduledIntentId,
+        topicHint,
+        isEarlyUserDial: result.intent.kind === "user_dial",
+        conversationInertia,
+        ...missedContext,
+      };
+    }
+    return {
+      source: result.source === "free" ? "free" : "story",
+      actualEntry,
+      conversationInertia,
+      ...missedContext,
+    };
+  }
+
+  function truncateInertiaText(text: string, maxChars: number): string {
+    return text.length <= maxChars ? text : `${text.slice(0, maxChars - 1)}…`;
+  }
+
+  function buildConversationInertia(input: {
+    userId: string;
+    agentId: string;
+    currentSessionId: string;
+  }): BeginCallContext["conversationInertia"] | undefined {
+    const latest = Array.from(sessions.values())
+      .filter(function (session) {
+        return (
+          session.sessionId !== input.currentSessionId &&
+          session.userId === input.userId &&
+          session.resolve.agentId === input.agentId &&
+          session.interactionPhase === "done" &&
+          !!session.endedAt &&
+          !!session.chatTurns?.length
+        );
+      })
+      .sort(function (a, b) {
+        return (b.endedAt ?? "").localeCompare(a.endedAt ?? "");
+      })[0];
+    if (!latest?.chatTurns?.length) {
+      return undefined;
+    }
+    return {
+      previousSessionId: latest.sessionId,
+      previousEndedAt: latest.endedAt,
+      previousCardId: latest.resolve.cardId,
+      previousSource: latest.resolve.source,
+      recentTurns: latest.chatTurns.slice(-4).map(function (turn) {
+        return {
+          role: turn.role,
+          text: truncateInertiaText(turn.text, 180),
+          at: turn.at,
+        };
+      }),
+    };
+  }
+
+  function markOutboundMissed(input: {
+    userId: string;
+    event: {
+      eventId: string;
+      agentId: string;
+      instanceId: string;
+    };
+    status: "rejected" | "dismissed";
+    nowIso: string;
+  }): void {
+    const profile = profiles.get(input.userId);
+    const board = profile?.callCards.board.byAgent[input.event.agentId];
+    const pendingItem = board?.pending.find(function (item) {
+      return item.instanceId === input.event.instanceId;
+    });
+    if (!pendingItem || pendingItem.status !== "pending") {
+      return;
+    }
+    pendingItem.status = "missed";
+    pendingItem.updatedAt = input.nowIso;
+    pendingItem.missedOutboundAt = input.nowIso;
+    pendingItem.missedOutboundReason = input.status;
+    pendingItem.missedIncomingEventId = input.event.eventId;
+    pushLog({
+      at: input.nowIso,
+      type: "outbound.schedule.missed",
+      userId: input.userId,
+      payload: {
+        eventId: input.event.eventId,
+        instanceId: input.event.instanceId,
+        agentId: input.event.agentId,
+        status: input.status,
+      },
+    });
+  }
+
 	function clearRuntimeMaps(): void {
 		profiles.clear();
 		sessions.clear();
 		activeByUser.clear();
+		outboundShellApi.resetIncomingCallEvents();
 	}
+
+	const scheduleClockApi = createScheduleClockApi({
+		profiles,
+		lookupCard,
+		pushLog,
+	});
+	const outboundShellApi = createOutboundShellApi({
+		pushLog,
+    markOutboundMissed,
+	});
+	const dispatchingScheduleClockApi = createDispatchingScheduleClockApi({
+		scheduleClockApi,
+		outboundShellApi,
+	});
 
 	const host: EngineHost = {
 		async loadWorkspace(
@@ -587,6 +791,46 @@ export function createEngineHost(
         });
         const characterDef =
           requireWorkspace().characters.get(result.agentId) ?? null;
+        const profileForBegin = profiles.get(userId);
+        const pendingForBegin = readPendingForResolve(profileForBegin, result);
+        const scheduledIntentId = pendingForBegin?.scheduledIntentId;
+        const scheduleIntent = readScheduleIntent(
+          profileForBegin,
+          scheduledIntentId,
+        );
+        const topicHint =
+          typeof scheduleIntent?.topicHint === "string" &&
+          scheduleIntent.topicHint.trim()
+            ? scheduleIntent.topicHint.trim()
+            : undefined;
+        const scheduleOrigin =
+          typeof scheduleIntent?.origin === "string" &&
+          scheduleIntent.origin.trim()
+            ? scheduleIntent.origin.trim()
+            : undefined;
+        const missedOutbound =
+          pendingForBegin?.status === "missed" ||
+          pendingForBegin?.missedOutboundAt
+            ? {
+                at: pendingForBegin.missedOutboundAt,
+                reason: pendingForBegin.missedOutboundReason,
+                eventId: pendingForBegin.missedIncomingEventId,
+              }
+            : undefined;
+        const conversationInertia = buildConversationInertia({
+          userId,
+          agentId: result.agentId,
+          currentSessionId: sessionId,
+        });
+        const beginContext = classifyBeginContext({
+          result,
+          actualEntry,
+          scheduledIntentId,
+          topicHint,
+          scheduleOrigin,
+          missedOutbound,
+          conversationInertia,
+        });
 
         const softExtras = await buildBeginCallSoftExtras({
           userId,
@@ -594,13 +838,16 @@ export function createEngineHost(
           card: beginCard,
           nowIso: now,
           memory,
-          profile: profiles.get(userId),
+          profile: profileForBegin,
         });
 
         const rendered = composeRenderedPrompt({
           card: beginCard,
           characterDef,
           scene: composeScene,
+          beginContext,
+          allowCharacterOpeningFallback:
+            beginCard.cardKind !== "free" || beginContext.source !== "free",
           softExtras,
         });
         if (isEngineError(rendered)) {
@@ -649,6 +896,7 @@ export function createEngineHost(
           },
           frozenCard: structuredClone(beginCard),
           actualEntry,
+          beginContext,
           composeScene,
           renderedPrompt: rendered,
           matchedLayerIds: rendered.matchedLayerIds,
@@ -662,7 +910,6 @@ export function createEngineHost(
           effectLedger: {},
         };
 
-        const profileForBegin = profiles.get(userId);
         if (profileForBegin && result.source === "story_pending") {
           // 延迟外呼：mark pending active + 消费 linked once，后续 tick 不重复外呼
           const board =
@@ -670,7 +917,10 @@ export function createEngineHost(
           const pendingItem = board?.pending.find(function (item) {
             return item.instanceId === result.instanceId;
           });
-          if (pendingItem && pendingItem.status === "pending") {
+          if (
+            pendingItem &&
+            (pendingItem.status === "pending" || pendingItem.status === "missed")
+          ) {
             pendingItem.status = "active";
             pendingItem.updatedAt = now;
           }
@@ -724,6 +974,8 @@ export function createEngineHost(
         memory,
       });
     },
+
+    ...createShellControlApi({ sessions, pushLog }),
 
 		completePlayback(sessionId: string): CallSession | EngineError {
 			const session = sessions.get(sessionId);
@@ -896,6 +1148,7 @@ export function createEngineHost(
 
       if (isFree) {
         session.status = "selecting_exit";
+        await preloadExitCandidateScheduleTargets(session);
         const pipe = await runFreeCallPostPipeline({
           session,
           profile,
@@ -1027,6 +1280,7 @@ export function createEngineHost(
       };
 
       session.status = "executing_effects";
+      await preloadScheduleCallCardTargets(selected.exit.effects);
       const plan = await executeEffects(selected.exit.effects, {
         profile,
         session,
@@ -1179,7 +1433,10 @@ export function createEngineHost(
       });
     },
 
-    ...createScheduleClockApi({ profiles, lookupCard, pushLog }),
+		...dispatchingScheduleClockApi,
+		listIncomingCallEvents: outboundShellApi.listIncomingCallEvents,
+		acceptIncomingCallEvent: outboundShellApi.acceptIncomingCallEvent,
+		dismissIncomingCallEvent: outboundShellApi.dismissIncomingCallEvent,
 
     async bootstrapLore(userId, opts) {
       const profile = profiles.get(userId);

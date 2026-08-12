@@ -35,12 +35,12 @@ export const BUILTIN_TOOL_DEFINITIONS: ToolDefinition[] = [
     toolId: "schedule_reminder_call",
     displayName: "预约回电提醒",
     description:
-      "仅当用户明确要求「过 X 分钟/小时后再打来提醒…」时调用（一次性延迟外呼）。" +
-      "须提供 card_id 与 package_id（故事章 chapterId）；delay_minutes 或 delay_hours 二选一；topic_hint 写清提醒内容。" +
+      "仅在自由通话卡中，当用户明确要求「过 X 分钟/小时后再打来提醒…」时调用（一次性延迟外呼）。" +
+      "只需提供 delay_minutes 或 delay_hours（二选一）与 topic_hint；回拨目标由当前自由通话卡自动决定，禁止自行填写故事章或通话卡目标。" +
       "不支持「明天早上」等未给出具体延迟的模糊预约。固定每天/每周钟点请用 schedule_recurring_call。" +
       "通话中只登记，挂机后写入调度。",
     inputSchema: jsonSchemaForTool("schedule_reminder_call"),
-    allowedCardKinds: ["free", "story"],
+    allowedCardKinds: ["free"],
     allowedInPlayback: false,
     behavior: "register_exit",
   },

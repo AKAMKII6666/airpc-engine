@@ -49,6 +49,16 @@ function effectiveEntryMode(
 	return opts?.resolveEntryMode?.(instance);
 }
 
+function isPickableByIntent(
+	item: CallCardInstance,
+	kind: PendingPickKind,
+): boolean {
+	if (item.status === "pending") {
+		return true;
+	}
+	return kind === "user_dial" && item.status === "missed";
+}
+
 /**
  * 在 pending 中按 entryMode 过滤；redialSlot 仅作优先，不过 mode 则丢弃该优先。
  * 同资格多条：先比 priority 降序，再比 createdAt 最新。
@@ -61,7 +71,7 @@ export function pickPendingForIntent(
 ): CallCardInstance | null {
 	const pending =
 		profile.callCards.board.byAgent[agentId]?.pending.filter(function (item) {
-			return item.status === "pending";
+			return isPickableByIntent(item, kind);
 		}) ?? [];
 	if (pending.length === 0) {
 		return null;

@@ -235,7 +235,7 @@ function applyOneEffect(effect: Effect, ctx: EffectExecutorContext): void {
       if (tryScheduleVoicemailCallCard(effect, ctx)) {
         return;
       }
-      applyScheduleCallCardToBoard(effect, profile, nowIso);
+      applyScheduleCallCardToBoard(effect, profile, nowIso, ctx.lookupCard);
       return;
     }
     case "schedule_recurring_call": {

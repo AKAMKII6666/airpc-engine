@@ -38,7 +38,12 @@ describe("引擎 §7.1–7.3 回归 (V1-E9)", () => {
       const bare = expandRegisterExitEffects(
         "schedule_recurring_call",
         { topic_hint: "bare", hour: 9, minute: 0 },
-        "lanxing",
+        {
+          sessionAgentId: "lanxing",
+          sessionCardId: "lanxing_free",
+          sessionChapterId: "__free__",
+          sessionCardKind: "free",
+        },
       );
       expect(isEngineError(bare)).toBe(true);
     });

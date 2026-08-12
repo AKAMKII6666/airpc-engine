@@ -12,7 +12,19 @@
     "premise": "",
     "emotion": "温和",
     "objective": "自然陪伴闲聊",
-    "forbidden": ["剧透未解锁剧情", "直接砸出小皮爸爸牺牲真相"]
+    "forbidden": ["剧透未解锁剧情", "直接砸出小皮爸爸牺牲真相"],
+    "promptScenes": [
+      {
+        "layerId": "lanxing_free_default",
+        "priority": 0,
+        "match": { "callDirection": "either", "localHourRange": { "from": 0, "to": 24 } },
+        "patch": {
+          "openingSpeakable": "喂？我是澜星。",
+          "openingPrivate": "自由通话；短句接通；不承载任何故事包剧情开场。",
+          "toneHint": "短句、像真人电话；温和但不写小作文"
+        }
+      }
+    ]
   },
   "objectives": { "requiredBeats": [] },
   "toolPolicy": { "mode": "inherit_free" },

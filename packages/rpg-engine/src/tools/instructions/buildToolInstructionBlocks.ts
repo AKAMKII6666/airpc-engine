@@ -73,9 +73,9 @@ function buildReminderBlockIfOpen(open: OpenSet): string | null {
   const hasRecurring = open.has("schedule_recurring_call");
   const lines = [
     "# 口头预约回电（Function Calling）",
-    "当用户**明确**说「过 X 分钟/小时打给我」「X 分钟后提醒我…」等，且你已理解提醒内容时：",
+    "本工具只在自由通话卡开放；当用户**明确**说「过 X 分钟/小时打给我」「X 分钟后提醒我…」等，且你已理解提醒内容时：",
     "1. 先用口语确认时间和提醒事项；",
-    "2. 再调用 `schedule_reminder_call`（`topic_hint`；`delay_minutes` 或 `delay_hours` 二选一；须带 `card_id`+`package_id`（故事章 chapterId））。",
+    "2. 再调用 `schedule_reminder_call`（只传 `topic_hint`；`delay_minutes` 或 `delay_hours` 二选一；**不要**传 `card_id`、`package_id` 或任何故事章/通话卡目标）。",
     "不支持「明天早上」等未给出具体延迟的模糊预约（可引导改成「多少分钟后/小时后」）。",
     "普通闲聊、没有明确回电时间的要求，**不要**调用该工具。",
   ];
@@ -86,6 +86,8 @@ function buildReminderBlockIfOpen(open: OpenSet): string | null {
   }
   lines.push(
     "调用成功后用一句话告诉用户「好的，到点我会打电话提醒你…」，然后继续聊天或等用户挂机。",
+    "同一通话中提醒已登记成功后，用户只是确认或告别时，**不要**再次调用本工具。",
+    "如果电话壳开放 `request_hangup`，用户告别或你准备结束本通时，应调用 `request_hangup` 主动挂断。",
     "通话中只登记候选；挂机后才写入调度。",
   );
   return lines.join("\n");

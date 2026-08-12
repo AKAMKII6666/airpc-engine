@@ -68,13 +68,10 @@ export function ensureOutboundPending(
 ): CallCardInstance | null {
 	if (intent.linkedInstanceId) {
 		const linked = findPendingByInstanceId(profile, intent.linkedInstanceId);
-		if (!linked) {
+		if (linked && linked.status !== "pending") {
 			return null;
 		}
-		if (linked.status !== "pending") {
-			return null;
-		}
-		return linked;
+		if (linked) return linked;
 	}
 
 	const board = ensureAgentBoard(profile, intent.agentId);
@@ -92,7 +89,7 @@ export function ensureOutboundPending(
 		return existing;
 	}
 	const created: CallCardInstance = {
-		instanceId: randomUUID(),
+		instanceId: intent.linkedInstanceId ?? randomUUID(),
 		cardId: intent.cardId,
 		chapterId: intent.chapterId,
 		agentId: intent.agentId,

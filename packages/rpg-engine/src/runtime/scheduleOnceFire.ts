@@ -21,6 +21,7 @@ export type DueOnceIntent = {
 	cardId: string;
 	chapterId: string;
 	topicHint?: string;
+	origin?: string;
 	fireAtMs: number;
 	status: "pending" | "fired" | "cancelled" | "consumed";
 	createdAt?: string;

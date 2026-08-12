@@ -64,6 +64,7 @@ export const StoryEditorLoadErrorView: FC<StoryEditorLoadErrorViewProps> =
 
 export type StoryEditorChromeProps = {
 	packageTitle: string;
+	chapterId: string;
 	chapterTitle: string;
 	saveState: EditorPackageSaveState;
 	saveError: string | undefined;
@@ -80,6 +81,8 @@ export type StoryEditorChromeProps = {
 export const StoryEditorChrome: FC<StoryEditorChromeProps> = function ({
 	// packageTitle 是顶栏包名
 	packageTitle,
+	// chapterId 是当前章节 id，用于顶栏调试入口
+	chapterId,
 	// chapterTitle 是顶栏章节名
 	chapterTitle,
 	// saveState 是整包保存状态
@@ -110,6 +113,7 @@ export const StoryEditorChrome: FC<StoryEditorChromeProps> = function ({
 			{/* 引用了StoryEditorTopBar组件，用于顶栏包名与保存 */}
 			<StoryEditorTopBar
 				packageTitle={packageTitle}
+				chapterId={chapterId}
 				chapterTitle={chapterTitle}
 				saveState={saveState}
 				saveError={saveError}

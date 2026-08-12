@@ -17,6 +17,7 @@
 | [studio-v2/05-引擎Composer与personalityCode.md](./studio-v2/05-引擎Composer与personalityCode.md) | 引擎侧人格 hard 注入 |
 | [studio-v2/06-过程岔子与纠正记录.md](./studio-v2/06-过程岔子与纠正记录.md) | 做错什么、用户怎么要求改、最终口径 |
 | [studio-v2/07-已知边界与下一步候选.md](./studio-v2/07-已知边界与下一步候选.md) | 故意未做的事、易误判项 |
+| [studio-v2/08-调试器人工E2E清单.md](./studio-v2/08-调试器人工E2E清单.md) | 调试器人工走测、提交前核对、失败取证口径 |
 
 ## 2. 与其它文档层的分工
 

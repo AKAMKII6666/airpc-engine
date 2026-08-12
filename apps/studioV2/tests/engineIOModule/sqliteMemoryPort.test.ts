@@ -201,6 +201,44 @@ describe("SqliteMemoryPort", () => {
 		expect(proj.includedEntryIds.length).toBeGreaterThanOrEqual(2);
 	});
 
+	it("commit derives call_summary from Host transcript when summaryText is absent", async () => {
+		const mem = await setup();
+		const commit = await mem.commitAfterCall({
+			userId: "u1",
+			agentId: "a1",
+			sessionId: "s-transcript",
+			transcript: {
+				schemaVersion: 1,
+				source: "host.chat_turns",
+				turns: [
+					{
+						role: "user",
+						text: "我今天想记住妈妈给我做了生日蛋糕",
+						at: "2026-07-15T10:00:00.000Z",
+					},
+					{
+						role: "assistant",
+						text: "我记住了，这是一件很温柔的事。",
+						at: "2026-07-15T10:00:01.000Z",
+					},
+				],
+			},
+			endedAt: "2026-07-15T10:05:00.000Z",
+		});
+
+		expect(commit.ok).toBe(true);
+		const hits = await mem.search({
+			userId: "u1",
+			agentId: "a1",
+			textQuery: "生日蛋糕",
+			kinds: ["call_summary"],
+			maxResults: 5,
+		});
+		expect(hits).toHaveLength(1);
+		expect(hits[0]?.text).toContain("user:");
+		expect(hits[0]?.text).toContain("生日蛋糕");
+	});
+
 	it("E5: rollupIfNeeded creates month/quarter rollup; before/after assertable", async () => {
 		const mem = await setup();
 		const card = CallCardDefinitionSchema.parse({

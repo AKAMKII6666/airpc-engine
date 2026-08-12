@@ -57,6 +57,7 @@ type RecurringRow = {
   scheduleMode: string;
   status: string;
   topicHint?: string;
+  origin?: string;
 };
 
 function asRecurring(row: unknown): RecurringRow | null {
@@ -81,6 +82,7 @@ function asRecurring(row: unknown): RecurringRow | null {
     scheduleMode: r.scheduleMode,
     status: r.status,
     topicHint: typeof r.topicHint === "string" ? r.topicHint : undefined,
+    origin: typeof r.origin === "string" ? r.origin : undefined,
   };
 }
 
@@ -123,8 +125,6 @@ describe("E4c isolation + recurring", () => {
     if (isEngineError(session)) throw session;
 
     const inv = await host.invokeTool(session.sessionId, "schedule_reminder_call", {
-      card_id: "doubao_intro_outbound",
-      package_id: "golden_handoff",
       delay_minutes: 5,
       topic_hint: "iso-a",
     });
@@ -142,13 +142,13 @@ describe("E4c isolation + recurring", () => {
     const firedA = host.advanceClock("demo-user", 5 * 60_000);
     expect(isEngineError(firedA)).toBe(false);
     if (isEngineError(firedA)) return;
-    expect(firedA.some((f) => f.cardId === "doubao_intro_outbound")).toBe(true);
+    expect(firedA.some((f) => f.cardId === "lanxing_free")).toBe(true);
 
     const afterA = await host.ensureProfile("demo-user");
     expect(afterA.schedule?.clockMs).toBe(5 * 60_000);
     expect(
       afterA.callCards.board.byAgent["lanxing"]?.pending?.some(
-        (p) => p.cardId === "doubao_intro_outbound",
+        (p) => p.cardId === "lanxing_free",
       ),
     ).toBe(true);
 
@@ -265,6 +265,7 @@ describe("E4c isolation + recurring", () => {
     expect(recurring?.scheduleMode).toBe("daily");
     expect(recurring?.status).toBe("active");
     expect(recurring?.topicHint).toBe("morning checkin");
+    expect(recurring?.origin).toBe("recurring_schedule");
     expect(typeof recurring?.intentId).toBe("string");
     expect(recurring?.intentId?.length).toBeGreaterThan(0);
 

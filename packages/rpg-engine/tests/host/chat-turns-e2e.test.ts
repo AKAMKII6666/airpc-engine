@@ -119,4 +119,71 @@ describe("E7 chat turns → endCall", () => {
     expect(end.freePipeline).toBeTruthy();
     expect(end.session.chatTurns?.length).toBe(2);
   });
+
+  it("同一角色下一通带上上一通对话惯性", async () => {
+    tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-e7-inertia-"));
+    const dataRoot = path.join(tmpRoot, "data");
+    await cp(dataSrc, dataRoot, { recursive: true });
+
+    const host = createTestHost({ persist: true, dataRoot });
+    await host.loadWorkspace(dataRoot);
+    await host.ensureProfile("demo-user");
+
+    const firstResolved = await host.resolveAsync("demo-user", {
+      kind: "free_call",
+      agentId: "lanxing",
+    });
+    if (isEngineError(firstResolved)) throw firstResolved;
+    const first = await host.beginCall("demo-user", firstResolved, {
+      channel: "text_turn",
+    });
+    if (isEngineError(first)) throw first;
+    const u1 = host.recordChatTurn(first.sessionId, {
+      role: "user",
+      text: "刚才我们说到明天上午九点要提醒我。",
+    });
+    if (isEngineError(u1)) throw u1;
+    const a1 = host.recordChatTurn(first.sessionId, {
+      role: "assistant",
+      text: "好，我会记得轻轻提醒你。",
+    });
+    if (isEngineError(a1)) throw a1;
+    const ended = await host.endCall(first.sessionId, {
+      flags: { answered_completed: true },
+      completedBeats: [],
+      missedRequiredBeats: [],
+    });
+    if (isEngineError(ended)) throw ended;
+
+    const secondResolved = await host.resolveAsync("demo-user", {
+      kind: "free_call",
+      agentId: "lanxing",
+    });
+    if (isEngineError(secondResolved)) throw secondResolved;
+    const second = await host.beginCall("demo-user", secondResolved, {
+      channel: "text_turn",
+    });
+    if (isEngineError(second)) throw second;
+
+    expect(second.beginContext?.conversationInertia).toMatchObject({
+      previousSessionId: first.sessionId,
+      previousCardId: first.resolve.cardId,
+      previousSource: "free",
+    });
+    expect(
+      second.beginContext?.conversationInertia?.recentTurns.map(function (turn) {
+        return turn.text;
+      }),
+    ).toEqual(
+      expect.arrayContaining([
+        "刚才我们说到明天上午九点要提醒我。",
+        "好，我会记得轻轻提醒你。",
+      ]),
+    );
+    const hard = second.renderedPrompt.systemHard.join("\n\n");
+    const soft = second.renderedPrompt.softContext.join("\n\n");
+    expect(hard).toContain("[conversation.inertia]");
+    expect(soft).toContain("[conversation.inertia.recent_turns]");
+    expect(soft).toContain("明天上午九点");
+  });
 });

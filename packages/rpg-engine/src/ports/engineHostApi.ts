@@ -12,6 +12,11 @@ import type {
 	ResolveResult,
 	SaveReason,
 } from "../host/types.js";
+import type { ShellControlToolResult } from "../host/shellControl/shellControlTypes.js";
+import type {
+	IncomingCallShellEvent,
+	IncomingCallShellEventStatus,
+} from "../host/shellControl/shellControlTypes.js";
 import type {
 	WetAppendInput,
 	WetQueryOpts,
@@ -79,6 +84,12 @@ export interface EngineHost {
 		toolId: string,
 		args?: Record<string, unknown>,
 	): Promise<ToolInvokeResult | EngineError>;
+	/** 电话壳控制工具：只登记 shell event，不跑剧情业务工具与 Effect */
+	invokeShellControlTool(
+		sessionId: string,
+		toolId: string,
+		args?: Record<string, unknown>,
+	): ShellControlToolResult | EngineError;
 	/**
 	 * 播放完成（桩）：置 playback_completed；
 	 * hybrid → dialogue；playback_only 仍可挂机收 Outcome。
@@ -151,6 +162,19 @@ export interface EngineHost {
 	advanceClockToNextIntent(
 		userId: string,
 	): AdvanceToNextResult | EngineError;
+	/** 壳/UI 轮询真实调度外呼；只返回仍待接听/拒接的 pending event */
+	listIncomingCallEvents(userId: string): IncomingCallShellEvent[];
+	/** 壳/UI 接听外呼 modal；只消费 event，实际通话仍需 resolve/beginCall */
+	acceptIncomingCallEvent(
+		userId: string,
+		eventId: string,
+	): IncomingCallShellEvent | EngineError;
+	/** 壳/UI 关闭外呼 modal；拒接/忽略均不推进剧情 */
+	dismissIncomingCallEvent(
+		userId: string,
+		eventId: string,
+		status: Extract<IncomingCallShellEventStatus, "rejected" | "dismissed">,
+	): IncomingCallShellEvent | EngineError;
 	/**
 	 * Lore bootstrap：有 location 或 force 时写入 Profile.world.lore；
 	 * port 失败降级 fallback；不阻塞调用方。

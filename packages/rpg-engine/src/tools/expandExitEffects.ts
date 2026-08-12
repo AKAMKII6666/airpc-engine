@@ -2,13 +2,21 @@
  * 模块名称：register_exit 工具 → Effect 模板展开
  */
 import { randomUUID } from "node:crypto";
+import { FREE_CHAPTER_ID } from "../constants.js";
 import type { Effect } from "../schema/outcome.js";
 import { engineError, type EngineError } from "../host/errors.js";
+
+export interface RegisterExitContext {
+  sessionAgentId: string;
+  sessionCardId: string;
+  sessionChapterId: string;
+  sessionCardKind: string;
+}
 
 export function expandRegisterExitEffects(
   toolId: string,
   args: Record<string, unknown>,
-  sessionAgentId: string,
+  ctx: RegisterExitContext,
 ): Effect[] | EngineError {
   switch (toolId) {
     case "share_expert_number": {
@@ -56,6 +64,7 @@ export function expandRegisterExitEffects(
         {
           id: `sched_${target}`,
           effect: "schedule_call_card",
+          scheduleOrigin: "expert_referral",
           agentId: target,
           cardId,
           chapterId,
@@ -65,12 +74,10 @@ export function expandRegisterExitEffects(
       ];
     }
     case "schedule_reminder_call": {
-      const cardId = String(args.card_id ?? "");
-      const chapterId = String(args.package_id ?? "");
-      if (!cardId || !chapterId) {
+      if (ctx.sessionCardKind !== "free") {
         return engineError(
           "VALIDATION_FAILED",
-          "schedule_reminder_call requires card_id + package_id",
+          "schedule_reminder_call is only available on free call cards",
         );
       }
       const delayMinutes =
@@ -83,9 +90,10 @@ export function expandRegisterExitEffects(
         {
           id: `reminder_${randomUUID()}`,
           effect: "schedule_call_card",
-          agentId: sessionAgentId,
-          cardId,
-          chapterId,
+          scheduleOrigin: "user_reminder",
+          agentId: ctx.sessionAgentId,
+          cardId: ctx.sessionCardId,
+          chapterId: ctx.sessionChapterId || FREE_CHAPTER_ID,
           topicHint: String(args.topic_hint ?? ""),
           delayMinutes,
         },
@@ -113,7 +121,8 @@ export function expandRegisterExitEffects(
       const row: Effect = {
         id: `recurring_${randomUUID()}`,
         effect: "schedule_recurring_call",
-        agentId: sessionAgentId,
+        scheduleOrigin: "recurring_schedule",
+        agentId: ctx.sessionAgentId,
         topicHint: String(args.topic_hint ?? ""),
         hour: Number(args.hour ?? 9),
         minute: Number(args.minute ?? 0),
@@ -139,7 +148,7 @@ export function expandRegisterExitEffects(
         {
           id: `secret_${randomUUID()}`,
           effect: "patch_memory",
-          agentId: sessionAgentId,
+          agentId: ctx.sessionAgentId,
           layer: "semantic",
           text: `shared_secret label=${label}; hint=${hint}`,
           kind: "semantic",

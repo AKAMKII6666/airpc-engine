@@ -8,6 +8,7 @@ import {
 } from "@studio-v2/src/stores/debugger/debuggerStore";
 import type { DebuggerSessionSnapshot } from "@studio-v2/typeFiles/debugger/store/debuggerStoreState";
 import type { DebuggerMailboxSnapshot } from "@studio-v2/typeFiles/debugger/mailboxView";
+import type { DebuggerCallSessionView } from "@studio-v2/typeFiles/debugger/callSession";
 
 function sampleSession(): DebuggerSessionSnapshot {
 	return {
@@ -48,6 +49,41 @@ function sampleMailbox(userId: string): DebuggerMailboxSnapshot {
 		userId,
 		hasUnread: true,
 		slots: [],
+	};
+}
+
+function sampleCall(): DebuggerCallSessionView {
+	return {
+		sessionId: "session_1",
+		userId: "demo-user",
+		chapterId: "__free__",
+		cardId: "lanxing_free",
+		agentId: "lanxing",
+		source: "free",
+		cardTitle: "澜星自由通话",
+		objective: "闲聊",
+		interactionPhase: "dialogue",
+		turns: [{ role: "assistant", text: "喂？" }],
+		llm: {
+			text: "喂？",
+			responseId: "chat_1",
+			model: "qwen-plus",
+			finishReason: "stop",
+		},
+		availableTools: [],
+		promptTrace: {
+			providerIds: [],
+			notes: [],
+			matchedLayerIds: [],
+			openingSpeakable: null,
+			openingPolicy: null,
+			systemHardBlocks: [],
+			softContextBlocks: [],
+		},
+		recentToolEvents: [],
+		toolTrace: [],
+		exitCandidates: [],
+		shellEvents: [],
 	};
 }
 
@@ -116,5 +152,23 @@ describe("debuggerStore", () => {
 		expect(useDebuggerStore.getState().mailboxRefreshStamp).toBe(1);
 		useDebuggerStore.getState().bumpSessionRefreshStamp();
 		expect(useDebuggerStore.getState().sessionRefreshStamp).toBe(1);
+	});
+
+	it("真实通话 command actions 只灌浏览器投影", function () {
+		useDebuggerStore.getState().applyCallCommandStarted();
+		expect(useDebuggerStore.getState().callBusy).toBe(true);
+		expect(useDebuggerStore.getState().callError).toBeUndefined();
+
+		useDebuggerStore.getState().applyCallCommandResult(sampleCall());
+		expect(useDebuggerStore.getState().callBusy).toBe(false);
+		expect(useDebuggerStore.getState().activeCall?.agentId).toBe("lanxing");
+
+		useDebuggerStore.getState().applyCallCommandFailed("bad");
+		expect(useDebuggerStore.getState().callError).toBe("bad");
+		expect(useDebuggerStore.getState().activeCall?.sessionId).toBe("session_1");
+
+		useDebuggerStore.getState().resetActiveCall();
+		expect(useDebuggerStore.getState().activeCall).toBeNull();
+		expect(useDebuggerStore.getState().callError).toBeUndefined();
 	});
 });

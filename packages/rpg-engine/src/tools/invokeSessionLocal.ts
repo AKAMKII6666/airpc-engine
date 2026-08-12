@@ -12,6 +12,31 @@ import { parseToolArgs } from "./schemas/parseToolArgs.js";
 import { invokeSessionLocalMemoryTool } from "./invokeSessionLocalMemory.js";
 import type { RuntimeExitCandidate, ToolInvokeResult } from "./types.js";
 
+function stableArgValue(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(stableArgValue);
+  }
+  if (value && typeof value === "object") {
+    const source = value as Record<string, unknown>;
+    const out: Record<string, unknown> = {};
+    for (const key of Object.keys(source).sort()) {
+      out[key] = stableArgValue(source[key]);
+    }
+    return out;
+  }
+  return value;
+}
+
+function registerExitDedupeKey(
+  toolId: string,
+  args: Record<string, unknown>,
+): string {
+  return JSON.stringify({
+    toolId,
+    args: stableArgValue(args),
+  });
+}
+
 export async function invokeSessionTool(input: {
   session: CallSession;
   toolId: string;
@@ -60,10 +85,29 @@ export async function invokeSessionTool(input: {
   const args = argsOrErr;
 
   if (def.behavior === "register_exit") {
+    const dedupeKey = registerExitDedupeKey(input.toolId, args);
+    const duplicated = input.session.exitCandidates.some(function (candidate) {
+      return (
+        registerExitDedupeKey(candidate.toolId, candidate.args ?? {}) ===
+        dedupeKey
+      );
+    });
+    if (duplicated) {
+      return engineError(
+        "VALIDATION_FAILED",
+        `duplicate register_exit tool candidate ignored: ${input.toolId}`,
+        { rule: "TOOL_DUPLICATE_REGISTER_EXIT" },
+      );
+    }
     const effectsOrErr = expandRegisterExitEffects(
       input.toolId,
       args,
-      input.session.resolve.agentId,
+      {
+        sessionAgentId: input.session.resolve.agentId,
+        sessionCardId: input.session.frozenCard.cardId,
+        sessionChapterId: input.session.chapterId,
+        sessionCardKind: input.session.frozenCard.cardKind,
+      },
     );
     if (isEngineError(effectsOrErr)) {
       return effectsOrErr;

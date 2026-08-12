@@ -11,6 +11,7 @@ export type ScheduledOnceIntent = {
 	cardId: string;
 	chapterId: string;
 	topicHint?: string;
+	origin?: string;
 	fireAtMs: number;
 	status: "pending" | "fired" | "cancelled" | "consumed";
 	createdAt?: string;
@@ -61,6 +62,7 @@ function parseModernOnce(
 		cardId,
 		chapterId,
 		topicHint: optionalString(row.topicHint),
+		origin: optionalString(row.origin),
 		fireAtMs,
 		status: parseOnceStatus(row.status),
 		createdAt: optionalString(row.createdAt),
@@ -92,6 +94,7 @@ function parseLegacyScheduleCallCard(
 		cardId,
 		chapterId,
 		topicHint: optionalString(row.topicHint),
+		origin: optionalString(row.origin) ?? "story_scheduled_call",
 		fireAtMs,
 		status: "pending",
 		createdAt: optionalString(row.createdAt),
@@ -126,6 +129,7 @@ export function serializeOnce(
 		status: once.status,
 	};
 	if (once.topicHint) row.topicHint = once.topicHint;
+	if (once.origin) row.origin = once.origin;
 	if (once.createdAt) row.createdAt = once.createdAt;
 	if (once.sourcedFromRecurringId) {
 		row.sourcedFromRecurringId = once.sourcedFromRecurringId;

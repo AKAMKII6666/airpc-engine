@@ -55,6 +55,46 @@ describe("FsProfilePort", () => {
 		expect(again?.userId).toBe("u1");
 	});
 
+	it("同一 profile 并发写入后仍保持合法 JSON", async () => {
+		const port = await setup();
+		const now = "2026-07-01T00:00:00.000Z";
+		const base = PlayerProfileSchema.parse({
+			schemaVersion: 1,
+			userId: "u1",
+			user: {
+				userId: "u1",
+				nickname: "初始",
+				createdAt: now,
+				updatedAt: now,
+			},
+		});
+
+		await Promise.all(
+			Array.from({ length: 20 }, async function (_, i) {
+				await port.writeProfile({
+					profile: {
+						...base,
+						user: {
+							...base.user,
+							nickname: `并发-${i}`,
+						},
+						schedule: {
+							clockMs: i,
+							intents: [],
+						},
+					},
+				});
+			}),
+		);
+
+		const file = path.join(tmp!, "users", "u1", "profile.save.json");
+		const disk = PlayerProfileSchema.parse(
+			JSON.parse(await readFile(file, "utf8")),
+		);
+		expect(disk.userId).toBe("u1");
+		expect(disk.user.nickname).toMatch(/^并发-/);
+	});
+
 	it("ensureProfile 无档时建最小档；有档原样读回", async () => {
 		const port = await setup();
 		const created = await port.ensureProfile({ userId: "new-user" });

@@ -55,7 +55,11 @@ export type BuildUploadedImageMetaInput = {
 	usage?: "avatar";
 };
 
+/**
+	* 通用资源直传元数据入参；在图片头像路径之外保留原始文件名。
+	*/
 export type BuildUploadedAssetMetaInput = BuildUploadedImageMetaInput & {
+	/** 浏览器上传的原文件名，用于服务端补扩展名与默认展示名 */
 	fileName: string;
 };
 
@@ -68,6 +72,9 @@ export function imageExtFromMime(mimeType: string): string | null {
 	return ext && ["png", "jpg", "webp"].includes(ext) ? ext : null;
 }
 
+/**
+	* 优先按 MIME 得到安全扩展名，浏览器未给 MIME 时回退文件名后缀。
+	*/
 export function extFromMimeOrName(
 	mimeType: string,
 	fileName: string,
@@ -83,6 +90,9 @@ export function extFromMimeOrName(
 	return "bin";
 }
 
+/**
+	* 将上传文件归入 Studio 资源筛选类型；视频等未知类型统一走 other。
+	*/
 export function inferStudioKind(input: {
 	mimeType: string;
 	ext: string;
@@ -135,6 +145,9 @@ export function buildUploadedImageAssetMeta(
 	};
 }
 
+/**
+	* 组装任意已落盘文件的 AssetMeta；由上传事实推导 kind/format/measure。
+	*/
 export function buildUploadedAssetMeta(
 	input: BuildUploadedAssetMetaInput,
 ): AssetMeta {

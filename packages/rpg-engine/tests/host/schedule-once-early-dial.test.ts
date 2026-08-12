@@ -180,4 +180,41 @@ describe("schedule_call_card linked pending + early dial (V1-E4/E5)", () => {
     expect(call.actualEntry).toBe("outbound_auto");
     expect(call.composeScene.callDirection).toBe("outbound");
   });
+
+  it("linked pending 丢失时，到点应重建 pending 而不是 consumed", async () => {
+    const host = await scheduleXiaoyuFollowup();
+    const before = await host.ensureProfile("demo-user");
+    const oldLinkedId = before.callCards.board.byAgent.xiaopi?.pending.find(
+      (p) => p.cardId === "xiaopi_waiting_user",
+    )?.instanceId;
+    expect(oldLinkedId).toBeTruthy();
+    before.callCards.board.byAgent.xiaopi = { pending: [] };
+
+    const fired = host.advanceClock("demo-user", 5 * 60_000);
+    expect(isEngineError(fired)).toBe(false);
+    if (isEngineError(fired)) return;
+    expect(fired[0]).toMatchObject({
+      cardId: "xiaopi_waiting_user",
+      instanceId: oldLinkedId,
+    });
+
+    const after = await host.ensureProfile("demo-user");
+    const pending = after.callCards.board.byAgent.xiaopi?.pending.find(
+      (p) => p.cardId === "xiaopi_waiting_user",
+    );
+    expect(pending).toMatchObject({
+      instanceId: oldLinkedId,
+      status: "pending",
+      entryMode: "outbound_auto",
+    });
+    const once = after.schedule?.intents?.find(
+      (row) =>
+        row !== null &&
+        typeof row === "object" &&
+        (row as { kind?: string }).kind === "once" &&
+        (row as { cardId?: string }).cardId === "xiaopi_waiting_user",
+    ) as { status?: string; linkedInstanceId?: string };
+    expect(once?.status).toBe("fired");
+    expect(once?.linkedInstanceId).toBe(oldLinkedId);
+  });
 });

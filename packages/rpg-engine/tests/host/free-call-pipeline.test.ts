@@ -69,6 +69,16 @@ describe("free call + tools + memory", () => {
     expect(isEngineError(session)).toBe(false);
     if (isEngineError(session)) return;
     expect(session.chapterId).toBe(FREE_CHAPTER_ID);
+    const u1 = host.recordChatTurn(session.sessionId, {
+      role: "user",
+      text: "我今天想记住一件事：妈妈给我做了生日蛋糕。",
+    });
+    if (isEngineError(u1)) throw u1;
+    const a1 = host.recordChatTurn(session.sessionId, {
+      role: "assistant",
+      text: "好，我会记住这个温柔的小事。",
+    });
+    if (isEngineError(a1)) throw a1;
     const end = await host.endCall(session.sessionId, {
       flags: { answered_completed: true },
       completedBeats: [],
@@ -83,10 +93,11 @@ describe("free call + tools + memory", () => {
     const hits = await mem!.search({
       userId: "demo-user",
       agentId: "lanxing",
-      textQuery: "Free call",
+      textQuery: "生日蛋糕",
       maxResults: 5,
     });
     expect(hits.length).toBeGreaterThan(0);
+    expect(hits[0]?.text).toContain("妈妈给我做了生日蛋糕");
     const profile = JSON.parse(
       await readFile(
         path.join(dataRoot, "users/demo-user/profile.save.json"),

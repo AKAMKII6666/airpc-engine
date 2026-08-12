@@ -10,6 +10,7 @@ import type {
 	DebuggerValidateRunResult,
 } from "@studio-v2/typeFiles/debugger/store/debuggerStoreState";
 import type { DebuggerMailboxSnapshot } from "@studio-v2/typeFiles/debugger/mailboxView";
+import type { DebuggerCallSessionView } from "@studio-v2/typeFiles/debugger/callSession";
 import type { StoryPackageSummary } from "@studio-v2/typeFiles/story/summary/storyPackageSummary";
 import type { ValidationReport } from "@studio-v2/typeFiles/story/validate/engineValidation";
 
@@ -34,6 +35,15 @@ export type DebuggerStoreState = {
 		* feature bump 后 shell 再灌；store 自身不读 mock。
 		*/
 	sessionRefreshStamp: number;
+	/**
+		* 真实 Host CallSession 投影；null 表示未通话或已回到待机。
+		* server Host 内存仍是真源，store 只持 UI 快照。
+		*/
+	activeCall: DebuggerCallSessionView | null;
+	/** 真实通话 start/message 请求中 */
+	callBusy: boolean;
+	/** 真实通话请求失败人话；成功时 undefined */
+	callError: string | undefined;
 
 	/** 信箱当前用户；空串表示未选 */
 	mailboxUserId: string;
@@ -74,6 +84,14 @@ export type DebuggerStoreState = {
 	applySessionLoadResult: (result: DebuggerSessionLoadResult) => void;
 	/** feature 请求 shell 重灌会话 */
 	bumpSessionRefreshStamp: () => void;
+	/** 真实通话请求开始：置 busy 并清错误 */
+	applyCallCommandStarted: () => void;
+	/** 真实通话请求成功：灌最新 Host session 投影 */
+	applyCallCommandResult: (session: DebuggerCallSessionView) => void;
+	/** 真实通话请求失败：保留现有通话并展示错误 */
+	applyCallCommandFailed: (message: string) => void;
+	/** 清空当前通话投影；第四轮再接 Host endCall */
+	resetActiveCall: () => void;
 
 	/** UI 经 bis 改信箱用户（不发请求；常与 bump 连用） */
 	setMailboxUserId: (userId: string) => void;
@@ -115,10 +133,13 @@ export type DebuggerStoreState = {
 /** 会话初值（不含 stamp / actions）；reset 时复用 */
 export function createDebuggerSessionSlice(): Pick<
 	DebuggerStoreState,
-	| "session"
-	| "sessionLoading"
-	| "sessionLoadError"
-	| "mailboxUserId"
+		| "session"
+		| "sessionLoading"
+		| "sessionLoadError"
+		| "activeCall"
+		| "callBusy"
+		| "callError"
+		| "mailboxUserId"
 	| "mailbox"
 	| "mailboxLoading"
 	| "mailboxBusy"
@@ -133,10 +154,13 @@ export function createDebuggerSessionSlice(): Pick<
 	| "validateError"
 > {
 	return {
-		session: null,
-		sessionLoading: false,
-		sessionLoadError: undefined,
-		mailboxUserId: DEBUGGER_STORE_DEFAULT_MAILBOX_USER_ID,
+			session: null,
+			sessionLoading: false,
+			sessionLoadError: undefined,
+			activeCall: null,
+			callBusy: false,
+			callError: undefined,
+			mailboxUserId: DEBUGGER_STORE_DEFAULT_MAILBOX_USER_ID,
 		mailbox: null,
 		mailboxLoading: false,
 		mailboxBusy: false,

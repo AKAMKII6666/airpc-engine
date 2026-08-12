@@ -59,6 +59,7 @@ export const StoryEditorReadyStage: FC<StoryEditorReadyStageProps> = function ({
 			{/* 引用了StoryEditorChrome组件，用于顶栏与校验条幅 */}
 			<StoryEditorChrome
 				packageTitle={shell.packageTitle}
+				chapterId={chapterId}
 				chapterTitle={bundle.conf.title ?? "章节"}
 				saveState={packageSession.saveState}
 				saveError={packageSession.saveError}

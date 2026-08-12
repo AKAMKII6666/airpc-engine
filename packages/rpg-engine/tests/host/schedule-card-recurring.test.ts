@@ -65,7 +65,12 @@ describe("ScheduleCard + recurring (V1-E1–E3)", () => {
     const bare = expandRegisterExitEffects(
       "schedule_recurring_call",
       { topic_hint: "only hint", hour: 8, minute: 0 },
-      "lanxing",
+      {
+        sessionAgentId: "lanxing",
+        sessionCardId: "lanxing_free",
+        sessionChapterId: "__free__",
+        sessionCardKind: "free",
+      },
     );
     expect(isEngineError(bare)).toBe(true);
 
@@ -76,7 +81,12 @@ describe("ScheduleCard + recurring (V1-E1–E3)", () => {
         hour: 8,
         minute: 0,
       },
-      "lanxing",
+      {
+        sessionAgentId: "lanxing",
+        sessionCardId: "lanxing_free",
+        sessionChapterId: "__free__",
+        sessionCardKind: "free",
+      },
     );
     expect(isEngineError(ok)).toBe(false);
     if (isEngineError(ok)) return;
