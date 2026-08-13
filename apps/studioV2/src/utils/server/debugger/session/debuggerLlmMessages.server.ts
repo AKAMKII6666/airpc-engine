@@ -7,6 +7,19 @@ import type { ServerLlmChatMessage } from "@studio-v2/src/utils/server/debugger/
 import { buildShellControlInstruction } from "@studio-v2/src/utils/server/debugger/shell/shellControlTools.server";
 
 type TextLlmRole = "system" | "user" | "assistant";
+type OpeningLlmContextPolicy = {
+	includeSystemHard: boolean;
+	includeSpeakable: boolean;
+	includePrivate: boolean;
+	includeSoftContext: boolean;
+	includeMemory: boolean;
+	includeInertia: boolean;
+};
+type CallSessionWithOpeningFirstTurn = CallSession & {
+	openingFirstTurn?: {
+		llmContextPolicy?: OpeningLlmContextPolicy;
+	};
+};
 
 function pushIfText(
 	messages: ServerLlmChatMessage[],
@@ -20,17 +33,52 @@ function pushIfText(
 function appendRenderedPrompt(
 	messages: ServerLlmChatMessage[],
 	prompt: RenderedPrompt | undefined,
+	policy?: OpeningLlmContextPolicy,
 ): void {
 	if (!prompt) return;
-	for (const hard of prompt.systemHard) {
-		pushIfText(messages, "system", hard);
+	const effectivePolicy = policy ?? {
+		includeSystemHard: true,
+		includeSpeakable: true,
+		includePrivate: true,
+		includeSoftContext: true,
+		includeMemory: true,
+		includeInertia: true,
+	};
+	if (effectivePolicy.includeSystemHard) {
+		for (const hard of prompt.systemHard) {
+			pushIfText(messages, "system", hard);
+		}
 	}
-	pushIfText(messages, "system", prompt.speakable);
-	pushIfText(messages, "system", prompt.private);
-	for (const soft of prompt.softContext) {
-		pushIfText(messages, "system", soft);
+	if (effectivePolicy.includeSpeakable) {
+		pushIfText(messages, "system", prompt.speakable);
+	}
+	if (effectivePolicy.includePrivate) {
+		pushIfText(messages, "system", prompt.private);
+	}
+	if (effectivePolicy.includeSoftContext) {
+		for (const soft of prompt.softContext) {
+			if (!effectivePolicy.includeMemory && soft.startsWith("[memory]")) {
+				continue;
+			}
+			if (
+				!effectivePolicy.includeInertia &&
+				soft.startsWith("[conversation.inertia")
+			) {
+				continue;
+			}
+			pushIfText(messages, "system", soft);
+		}
 	}
 	pushIfText(messages, "system", buildShellControlInstruction());
+}
+
+function readOpeningLlmContextPolicy(
+	session: CallSession,
+): OpeningLlmContextPolicy | undefined {
+	const policy = (session as CallSessionWithOpeningFirstTurn).openingFirstTurn
+		?.llmContextPolicy;
+	if (!policy) return undefined;
+	return policy;
 }
 
 function appendOpeningInstruction(
@@ -65,7 +113,11 @@ export function buildOpeningLlmMessages(
 	session: CallSession,
 ): ServerLlmChatMessage[] {
 	const messages: ServerLlmChatMessage[] = [];
-	appendRenderedPrompt(messages, session.renderedPrompt);
+	appendRenderedPrompt(
+		messages,
+		session.renderedPrompt,
+		readOpeningLlmContextPolicy(session),
+	);
 	appendOpeningInstruction(messages, session);
 	return messages;
 }

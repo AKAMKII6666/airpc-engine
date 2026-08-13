@@ -28,6 +28,18 @@ export interface OpeningSituation {
   control: OpeningControl;
   reason: string;
   tags: string[];
+  firstTurn: {
+    mode: "direct_opening" | "opening_llm_sanitized" | "normal_llm";
+    callerVisibility:
+      | "unknown"
+      | "known_or_intended"
+      | "card_controlled"
+      | "unknown_state";
+    allowMemoryBeforeUserSpeaks: boolean;
+    allowInertiaBeforeUserSpeaks: boolean;
+    allowNameBeforeIdentified: boolean;
+    forbidden: string[];
+  };
 }
 
 export interface ResolveOpeningSituationInput {
@@ -72,6 +84,44 @@ function situation(input: OpeningSituation): OpeningSituation {
   return input;
 }
 
+function unknownInboundFirstTurn(): OpeningSituation["firstTurn"] {
+  return {
+    mode: "direct_opening",
+    callerVisibility: "unknown",
+    allowMemoryBeforeUserSpeaks: false,
+    allowInertiaBeforeUserSpeaks: false,
+    allowNameBeforeIdentified: false,
+    forbidden: [
+      "叫用户名字",
+      "提上次通话",
+      "提记忆/约定/剧情任务",
+      "说已经听出对方是谁",
+    ],
+  };
+}
+
+function knownOrIntendedFirstTurn(): OpeningSituation["firstTurn"] {
+  return {
+    mode: "normal_llm",
+    callerVisibility: "known_or_intended",
+    allowMemoryBeforeUserSpeaks: true,
+    allowInertiaBeforeUserSpeaks: true,
+    allowNameBeforeIdentified: true,
+    forbidden: [],
+  };
+}
+
+function cardControlledFirstTurn(): OpeningSituation["firstTurn"] {
+  return {
+    mode: "normal_llm",
+    callerVisibility: "card_controlled",
+    allowMemoryBeforeUserSpeaks: true,
+    allowInertiaBeforeUserSpeaks: true,
+    allowNameBeforeIdentified: true,
+    forbidden: [],
+  };
+}
+
 export function resolveOpeningSituation(
   input: ResolveOpeningSituationInput,
 ): OpeningSituation {
@@ -85,6 +135,7 @@ export function resolveOpeningSituation(
       control: "card",
       reason: "mailbox opening belongs to voicemail/playback card",
       tags: ["mailbox", "playback"],
+      firstTurn: cardControlledFirstTurn(),
     });
   }
 
@@ -95,6 +146,7 @@ export function resolveOpeningSituation(
       control: "provider",
       reason: "user is returning a missed outbound call",
       tags: ["missed_outbound", ctx.actualEntry ?? input.scene.callDirection],
+      firstTurn: knownOrIntendedFirstTurn(),
     });
   }
 
@@ -111,6 +163,7 @@ export function resolveOpeningSituation(
         ctx.topicHint ? "has_topic" : "no_topic",
         ctx.isEarlyUserDial ? "early_user_dial" : "on_time_or_outbound",
       ],
+      firstTurn: knownOrIntendedFirstTurn(),
     });
   }
 
@@ -121,6 +174,7 @@ export function resolveOpeningSituation(
       control: "card",
       reason: "story/simulate opening should be owned by the current card",
       tags: [ctx.source, ctx.actualEntry ?? input.scene.callDirection],
+      firstTurn: cardControlledFirstTurn(),
     });
   }
 
@@ -132,6 +186,7 @@ export function resolveOpeningSituation(
 	        control: "provider",
 	        reason: "user dialed in during late night; opening should sound disturbed or sleepy",
 	        tags: [...temporalTags("inbound", "late_night"), "unknown_caller"],
+	        firstTurn: unknownInboundFirstTurn(),
 	      });
 	    }
 	    if (hour >= 5 && hour < 8) {
@@ -141,6 +196,7 @@ export function resolveOpeningSituation(
 	        control: "provider",
 	        reason: "user dialed in early in the morning; opening may lightly acknowledge the early hour",
 	        tags: [...temporalTags("inbound", "early_morning"), "unknown_caller"],
+	        firstTurn: unknownInboundFirstTurn(),
 	      });
 	    }
 	    if (hour >= 8 && hour < 12) {
@@ -150,6 +206,7 @@ export function resolveOpeningSituation(
 	        control: "provider",
 	        reason: "user dialed in during the morning; opening should stay like a normal answered call",
 	        tags: [...temporalTags("inbound", "morning"), "unknown_caller"],
+	        firstTurn: unknownInboundFirstTurn(),
 	      });
 	    }
 	    if (hour >= 12 && hour < 14) {
@@ -159,6 +216,7 @@ export function resolveOpeningSituation(
 	        control: "provider",
 	        reason: "user dialed in around noon; opening should stay short and not overplay the time",
 	        tags: [...temporalTags("inbound", "noon"), "unknown_caller"],
+	        firstTurn: unknownInboundFirstTurn(),
 	      });
 	    }
 	    if (hour >= 14 && hour < 18) {
@@ -168,6 +226,7 @@ export function resolveOpeningSituation(
 	        control: "provider",
 	        reason: "user dialed in during the afternoon; opening should stay like a normal answered call",
 	        tags: [...temporalTags("inbound", "afternoon"), "unknown_caller"],
+	        firstTurn: unknownInboundFirstTurn(),
 	      });
 	    }
 	    if (hour >= 18 && hour < 22) {
@@ -177,6 +236,7 @@ export function resolveOpeningSituation(
 	        control: "provider",
 	        reason: "user dialed in during the evening; opening should stay short and natural",
 	        tags: [...temporalTags("inbound", "evening"), "unknown_caller"],
+	        firstTurn: unknownInboundFirstTurn(),
 	      });
 	    }
 	    if (hour >= 22 && hour < 24) {
@@ -186,6 +246,7 @@ export function resolveOpeningSituation(
 	        control: "provider",
 	        reason: "user dialed in at night; opening should acknowledge the late hour lightly",
 	        tags: [...temporalTags("inbound", "night"), "unknown_caller"],
+	        firstTurn: unknownInboundFirstTurn(),
 	      });
 	    }
     return situation({
@@ -194,6 +255,7 @@ export function resolveOpeningSituation(
       control: "provider",
       reason: "user dialed in and caller is not identified before the first utterance",
       tags: ["inbound", "unknown_caller"],
+      firstTurn: unknownInboundFirstTurn(),
     });
   }
 
@@ -204,6 +266,7 @@ export function resolveOpeningSituation(
       control: "provider",
       reason: "npc is calling out and should not use passive unknown-caller opening",
       tags: ["outbound"],
+      firstTurn: knownOrIntendedFirstTurn(),
     });
   }
 
@@ -213,5 +276,6 @@ export function resolveOpeningSituation(
     control: "card",
     reason: "no specific opening situation matched",
     tags: [],
+    firstTurn: cardControlledFirstTurn(),
   });
 }

@@ -11,6 +11,7 @@ import type {
   CallSession,
   EndCallResult,
   LogRecord,
+  OpeningFirstTurnControl,
   ResolveResult,
   SaveReason,
 } from "./types.js";
@@ -119,6 +120,113 @@ const ACTIVE_STATUSES = new Set<CallSession["status"]>([
 
 function errorMessage(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
+}
+
+function buildOpeningFirstTurnControl(
+  rendered: NonNullable<CallSession["renderedPrompt"]>,
+): OpeningFirstTurnControl {
+  const firstTurn = rendered.openingFirstTurn;
+  if (!firstTurn) {
+    return {
+      status: "skipped",
+      mode: "none",
+      reason: "rendered prompt did not provide opening first-turn control",
+      callerVisibility: "unknown_state",
+      allowMemoryBeforeUserSpeaks: true,
+      allowInertiaBeforeUserSpeaks: true,
+      allowNameBeforeIdentified: true,
+      forbidden: [],
+      llmContextPolicy: {
+        includeSystemHard: true,
+        includeSpeakable: true,
+        includePrivate: true,
+        includeSoftContext: true,
+        includeMemory: true,
+        includeInertia: true,
+        reason: "no opening first-turn control; keep normal prompt context",
+      },
+      source: "none",
+    };
+  }
+  const mode =
+    firstTurn.mode === "direct_opening" ? "direct_opening" : "llm_opening";
+  const isolatedOpening =
+    firstTurn.mode === "direct_opening" ||
+    firstTurn.mode === "opening_llm_sanitized";
+  return {
+    status: "pending",
+    mode,
+    ...(mode === "direct_opening" && rendered.openingSpeakable
+      ? { text: rendered.openingSpeakable }
+      : {}),
+    reason: firstTurn.reason,
+    callerVisibility: firstTurn.callerVisibility,
+    allowMemoryBeforeUserSpeaks: firstTurn.allowMemoryBeforeUserSpeaks,
+    allowInertiaBeforeUserSpeaks: firstTurn.allowInertiaBeforeUserSpeaks,
+    allowNameBeforeIdentified: firstTurn.allowNameBeforeIdentified,
+    forbidden: firstTurn.forbidden,
+    llmContextPolicy: isolatedOpening
+      ? {
+          includeSystemHard: true,
+          includeSpeakable: true,
+          includePrivate: true,
+          includeSoftContext: false,
+          includeMemory: false,
+          includeInertia: false,
+          reason: "opening first turn must not see memory, inertia, topic, or other soft context before the user speaks",
+        }
+      : {
+          includeSystemHard: true,
+          includeSpeakable: true,
+          includePrivate: true,
+          includeSoftContext: true,
+          includeMemory: true,
+          includeInertia: true,
+          reason: "normal opening LLM may use full rendered prompt context",
+        },
+    source: "rendered_prompt",
+  };
+}
+
+function assertCanRecordDialogueTurn(session: CallSession): EngineError | null {
+  if (session.status !== "in_call") {
+    return engineError(
+      "ENGINE_INTERNAL",
+      `session not in_call: ${session.status}`,
+    );
+  }
+  if (session.interactionPhase === "playback") {
+    return engineError(
+      "VALIDATION_FAILED",
+      "chat not allowed during playback phase",
+    );
+  }
+  if (session.frozenCard.interactionMode === "playback_only") {
+    return engineError(
+      "VALIDATION_FAILED",
+      "chat not allowed for playback_only cards",
+    );
+  }
+  return null;
+}
+
+function appendChatTurn(
+  session: CallSession,
+  turn: { role: "user" | "assistant" | "system"; text: string },
+  at: string,
+): EngineError | null {
+  const text = turn.text.trim();
+  if (!text) {
+    return engineError("VALIDATION_FAILED", "chat turn text required");
+  }
+  if (!session.chatTurns) {
+    session.chatTurns = [];
+  }
+  session.chatTurns.push({ role: turn.role, text, at });
+  if (session.channel === "manual") {
+    session.channel = "text_turn";
+  }
+  return null;
 }
 
 export function createEngineHost(
@@ -907,6 +1015,7 @@ export function createEngineHost(
           beginContext,
           composeScene,
           renderedPrompt: rendered,
+          openingFirstTurn: buildOpeningFirstTurnControl(rendered),
           matchedLayerIds: rendered.matchedLayerIds,
           channel: opts.channel,
           interactionPhase: startInPlayback ? "playback" : "dialogue",
@@ -1029,36 +1138,12 @@ export function createEngineHost(
       if (!session) {
         return engineError("NOT_FOUND", `session not found: ${sessionId}`);
       }
-      if (session.status !== "in_call") {
-        return engineError(
-          "ENGINE_INTERNAL",
-          `session not in_call: ${session.status}`,
-        );
-      }
-      if (session.interactionPhase === "playback") {
-        return engineError(
-          "VALIDATION_FAILED",
-          "chat not allowed during playback phase",
-        );
-      }
-      if (session.frozenCard.interactionMode === "playback_only") {
-        return engineError(
-          "VALIDATION_FAILED",
-          "chat not allowed for playback_only cards",
-        );
-      }
+      const turnError = assertCanRecordDialogueTurn(session);
+      if (turnError) return turnError;
       const text = turn.text.trim();
-      if (!text) {
-        return engineError("VALIDATION_FAILED", "chat turn text required");
-      }
       const at = new Date().toISOString();
-      if (!session.chatTurns) {
-        session.chatTurns = [];
-      }
-      session.chatTurns.push({ role: turn.role, text, at });
-      if (session.channel === "manual") {
-        session.channel = "text_turn";
-      }
+      const appendError = appendChatTurn(session, { ...turn, text }, at);
+      if (appendError) return appendError;
       pushLog({
         at,
         type: "chat.turn",
@@ -1067,6 +1152,73 @@ export function createEngineHost(
         payload: { role: turn.role, chars: text.length },
       });
       return session;
+    },
+
+    consumeOpeningFirstTurn(sessionId) {
+      const session = sessions.get(sessionId);
+      if (!session) {
+        return engineError("NOT_FOUND", `session not found: ${sessionId}`);
+      }
+      const turn = session.openingFirstTurn;
+      if (!turn || turn.status === "skipped" || turn.mode === "none") {
+        if (turn) turn.status = "skipped";
+        return {
+          ok: true,
+          action: "skipped",
+          session,
+          source: "opening_first_turn_gate",
+        };
+      }
+      if (turn.status === "emitted") {
+        return {
+          ok: true,
+          action: "already_emitted",
+          session,
+          source: "opening_first_turn_gate",
+        };
+      }
+      const turnError = assertCanRecordDialogueTurn(session);
+      if (turnError) return turnError;
+      if (turn.mode !== "direct_opening") {
+        return {
+          ok: true,
+          action: "request_llm_opening",
+          session,
+          source: "opening_first_turn_gate",
+        };
+      }
+      const text = turn.text?.trim();
+      if (!text) {
+        turn.status = "skipped";
+        return {
+          ok: true,
+          action: "skipped",
+          session,
+          source: "opening_first_turn_gate",
+        };
+      }
+      const at = new Date().toISOString();
+      const appendError = appendChatTurn(
+        session,
+        { role: "assistant", text },
+        at,
+      );
+      if (appendError) return appendError;
+      turn.status = "emitted";
+      pushLog({
+        at,
+        type: "opening.first_turn",
+        userId: session.userId,
+        sessionId,
+        payload: { action: "emit_assistant_turn", chars: text.length },
+      });
+      return {
+        ok: true,
+        action: "emit_assistant_turn",
+        text,
+        session,
+        source: "opening_first_turn_gate",
+      };
     },
 
     simEvent(

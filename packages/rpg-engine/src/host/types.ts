@@ -86,12 +86,81 @@ export interface RenderedPrompt {
 		maxSentences: number;
 		forbidden: string[];
 	};
+	openingFirstTurn?: {
+		mode: "direct_opening" | "opening_llm_sanitized" | "normal_llm";
+		reason: string;
+		callerVisibility:
+			| "unknown"
+			| "known_or_intended"
+			| "card_controlled"
+			| "unknown_state";
+		allowMemoryBeforeUserSpeaks: boolean;
+		allowInertiaBeforeUserSpeaks: boolean;
+		allowNameBeforeIdentified: boolean;
+		forbidden: string[];
+	};
 	speakable: string;
 	private: string;
 	softContext: string[];
 	matchedLayerIds: string[];
 	debug?: { notes?: string[]; providerIds?: string[] };
 }
+
+export type OpeningFirstTurnStatus = "pending" | "emitted" | "skipped";
+export type OpeningFirstTurnRuntimeMode =
+	| "direct_opening"
+	| "llm_opening"
+	| "none";
+
+export interface OpeningLlmContextPolicy {
+	includeSystemHard: boolean;
+	includeSpeakable: boolean;
+	includePrivate: boolean;
+	includeSoftContext: boolean;
+	includeMemory: boolean;
+	includeInertia: boolean;
+	reason: string;
+}
+
+export interface OpeningFirstTurnControl {
+	status: OpeningFirstTurnStatus;
+	mode: OpeningFirstTurnRuntimeMode;
+	/** direct_opening 时由引擎决定的第一句；llm_opening 时只作 opening hint。 */
+	text?: string;
+	reason: string;
+	callerVisibility:
+		| "unknown"
+		| "known_or_intended"
+		| "card_controlled"
+		| "unknown_state";
+	allowMemoryBeforeUserSpeaks: boolean;
+	allowInertiaBeforeUserSpeaks: boolean;
+	allowNameBeforeIdentified: boolean;
+	forbidden: string[];
+	llmContextPolicy: OpeningLlmContextPolicy;
+	source: "rendered_prompt" | "none";
+}
+
+export type ConsumeOpeningFirstTurnResult =
+	| {
+			ok: true;
+			action: "emit_assistant_turn";
+			text: string;
+			session: CallSession;
+			source: "opening_first_turn_gate";
+	  }
+	| {
+			ok: true;
+			action: "request_llm_opening";
+			session: CallSession;
+			source: "opening_first_turn_gate";
+	  }
+	| {
+			ok: true;
+			action: "already_emitted" | "skipped";
+			session: CallSession;
+			source: "opening_first_turn_gate";
+	  };
 
 export interface BeginCallOpts {
 	channel: "manual" | "text_turn" | "realtime_audio";
@@ -165,6 +234,8 @@ export interface CallSession {
 	beginContext?: BeginCallContext;
 	composeScene: ComposeScene;
 	renderedPrompt?: RenderedPrompt;
+	/** 电话接通第一声运行时控制；执行真源，不要求外层解析 prompt/trace。 */
+	openingFirstTurn?: OpeningFirstTurnControl;
 	matchedLayerIds?: string[];
 	channel: BeginCallOpts["channel"];
 	interactionPhase: "playback" | "dialogue" | "done";

@@ -124,4 +124,56 @@ describe("prompt provider registry", () => {
       await rm(tmpRoot, { recursive: true, force: true });
     }
   });
+
+  it("lets external providers request sanitized opening LLM context", async () => {
+    const tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-host-provider-"));
+    try {
+      const dataRoot = path.join(tmpRoot, "data");
+      await cp(dataSrc, dataRoot, { recursive: true });
+      const hostProvider: PromptProvider = {
+        providerId: "custom.sanitized_opening",
+        apply(ctx) {
+          ctx.draft.openingSpeakable = "喂？";
+          ctx.draft.openingFirstTurn = {
+            mode: "opening_llm_sanitized",
+            reason: "custom sanitized opening",
+            callerVisibility: "unknown",
+            allowMemoryBeforeUserSpeaks: false,
+            allowInertiaBeforeUserSpeaks: false,
+            allowNameBeforeIdentified: false,
+            forbidden: ["叫用户名字"],
+          };
+        },
+      };
+      const host = createTestHost({
+        persist: true,
+        dataRoot,
+        promptProviderRegistry: createPromptProviderRegistry([hostProvider]),
+      });
+      await host.loadWorkspace(dataRoot);
+      await host.ensureProfile("demo-user");
+      const resolved = await host.resolveAsync("demo-user", {
+        kind: "free_call",
+        agentId: "lanxing",
+      });
+      if (isEngineError(resolved)) throw resolved;
+      const session = await host.beginCall("demo-user", resolved, {
+        channel: "text_turn",
+      });
+      if (isEngineError(session)) throw session;
+
+      expect(session.openingFirstTurn).toMatchObject({
+        status: "pending",
+        mode: "llm_opening",
+        callerVisibility: "unknown",
+        llmContextPolicy: {
+          includeSoftContext: false,
+          includeMemory: false,
+          includeInertia: false,
+        },
+      });
+    } finally {
+      await rm(tmpRoot, { recursive: true, force: true });
+    }
+  });
 });

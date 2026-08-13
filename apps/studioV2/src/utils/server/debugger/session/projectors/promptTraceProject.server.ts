@@ -26,6 +26,14 @@ export type DebuggerOpeningSituationView = {
 	reason: string;
 	tags: string[];
 	overridden: boolean;
+	firstTurnMode: string | null;
+	firstTurnStatus: string | null;
+	callerVisibility: string | null;
+	llmContextPolicy: {
+		includeSoftContext: boolean;
+		includeMemory: boolean;
+		includeInertia: boolean;
+	} | null;
 };
 
 export type DebuggerPromptTraceView = {
@@ -142,6 +150,58 @@ function parseOpeningSituation(
 				return tag.length > 0 && tag !== "none";
 			}),
 		overridden: block.includes("已决定/覆盖首句 opening"),
+		firstTurnMode: blockBodyValue(block, "firstTurnMode"),
+		firstTurnStatus: null,
+		callerVisibility: null,
+		llmContextPolicy: null,
+	};
+}
+
+type RenderedPromptWithOpeningFirstTurn = RenderedPrompt & {
+	openingFirstTurn?: {
+		mode?: unknown;
+		status?: unknown;
+		callerVisibility?: unknown;
+		llmContextPolicy?: {
+			includeSoftContext?: unknown;
+			includeMemory?: unknown;
+			includeInertia?: unknown;
+		};
+	};
+};
+
+function projectOpeningSituationFromPrompt(
+	prompt: RenderedPromptWithOpeningFirstTurn | undefined,
+): DebuggerOpeningSituationView | null {
+	const parsed = parseOpeningSituation(prompt?.systemHard ?? []);
+	if (!prompt?.openingFirstTurn) return parsed;
+	const policy = prompt.openingFirstTurn.llmContextPolicy;
+	return {
+		kind: parsed?.kind ?? "unknown",
+		control: parsed?.control ?? "unknown",
+		priority: parsed?.priority ?? null,
+		reason: parsed?.reason ?? "",
+		tags: parsed?.tags ?? [],
+		overridden: parsed?.overridden ?? false,
+		firstTurnMode:
+			typeof prompt.openingFirstTurn.mode === "string"
+				? prompt.openingFirstTurn.mode
+				: parsed?.firstTurnMode ?? null,
+		firstTurnStatus:
+			typeof prompt.openingFirstTurn.status === "string"
+				? prompt.openingFirstTurn.status
+				: null,
+		callerVisibility:
+			typeof prompt.openingFirstTurn.callerVisibility === "string"
+				? prompt.openingFirstTurn.callerVisibility
+				: null,
+		llmContextPolicy: policy
+			? {
+					includeSoftContext: policy.includeSoftContext !== false,
+					includeMemory: policy.includeMemory !== false,
+					includeInertia: policy.includeInertia !== false,
+				}
+			: null,
 	};
 }
 
@@ -164,7 +224,9 @@ export function projectPromptTrace(
 					forbidden: prompt.openingPolicy.forbidden,
 					}
 				: null,
-		openingSituation: parseOpeningSituation(systemHard),
+		openingSituation: projectOpeningSituationFromPrompt(
+			prompt as RenderedPromptWithOpeningFirstTurn | undefined,
+		),
 		systemHardBlocks: projectPromptBlocks(
 			systemHard,
 			"systemHard",

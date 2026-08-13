@@ -8,6 +8,29 @@ import {
 	buildTurnLlmMessages,
 } from "@studio-v2/src/utils/server/debugger/session/debuggerLlmMessages.server";
 
+type CallSessionWithOpeningFirstTurn = CallSession & {
+	openingFirstTurn?: {
+		status: "pending" | "emitted" | "skipped";
+		mode: "direct_opening" | "llm_opening" | "none";
+		reason: string;
+		callerVisibility: "unknown" | "known_or_intended" | "card_controlled" | "unknown_state";
+		allowMemoryBeforeUserSpeaks: boolean;
+		allowInertiaBeforeUserSpeaks: boolean;
+		allowNameBeforeIdentified: boolean;
+		forbidden: string[];
+		source: "rendered_prompt" | "none";
+		llmContextPolicy: {
+			includeSystemHard: boolean;
+			includeSpeakable: boolean;
+			includePrivate: boolean;
+			includeSoftContext: boolean;
+			includeMemory: boolean;
+			includeInertia: boolean;
+			reason: string;
+		};
+	};
+};
+
 function sessionFixture(): CallSession {
 	return {
 		schemaVersion: 1,
@@ -108,6 +131,45 @@ describe("debuggerLlmMessages.server", () => {
 		})).toBe(true);
 		expect(messages.at(-1)?.content).not.toContain("提醒睡午觉");
 		expect(messages.at(-1)?.content).toContain("不要把开场扩写成完整段落");
+	});
+
+	it("sanitizes opening LLM context according to engine first-turn policy", () => {
+		const session = sessionFixture() as CallSessionWithOpeningFirstTurn;
+		session.openingFirstTurn = {
+			status: "pending",
+			mode: "llm_opening",
+			reason: "sanitized opening test",
+			callerVisibility: "unknown",
+			allowMemoryBeforeUserSpeaks: false,
+			allowInertiaBeforeUserSpeaks: false,
+			allowNameBeforeIdentified: false,
+			forbidden: [],
+			source: "rendered_prompt",
+			llmContextPolicy: {
+				includeSystemHard: true,
+				includeSpeakable: true,
+				includePrivate: true,
+				includeSoftContext: false,
+				includeMemory: false,
+				includeInertia: false,
+				reason: "opening first turn isolation",
+			},
+		};
+		session.renderedPrompt!.softContext = [
+			"[memory]\n用户自称棍子哥哥",
+			"[conversation.inertia.recent_turns]\nassistant: 喂，棍子哥哥～",
+			"[scheduled.callback]\n回电话题：提醒睡午觉",
+		];
+
+		const messages = buildOpeningLlmMessages(session);
+		const text = messages.map((message) => message.content).join("\n\n");
+
+		expect(text).toContain("硬规则");
+		expect(text).toContain("可说内容");
+		expect(text).toContain("私有目标");
+		expect(text).not.toContain("棍子哥哥");
+		expect(text).not.toContain("conversation.inertia");
+		expect(text).not.toContain("提醒睡午觉");
 	});
 
 	it("builds turn messages from prompt plus recorded Host chatTurns", () => {

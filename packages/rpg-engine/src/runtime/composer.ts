@@ -43,6 +43,7 @@ export interface DraftPrompt {
   openingSpeakable?: string;
   openingPrivate?: string;
   openingPolicy?: RenderedPrompt["openingPolicy"];
+  openingFirstTurn?: RenderedPrompt["openingFirstTurn"];
   matchedLayerIds: string[];
   notes: string[];
   providerIds: string[];
@@ -132,6 +133,7 @@ export function composeRenderedPrompt(
     openingSpeakable: draft.openingSpeakable,
     openingPrivate: draft.openingPrivate,
     openingPolicy: draft.openingPolicy,
+    openingFirstTurn: draft.openingFirstTurn,
     speakable: draft.speakable,
     private: draft.private,
     softContext,

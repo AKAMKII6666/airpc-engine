@@ -261,6 +261,18 @@ const openingSituationProvider: PromptProvider = {
       scene: ctx.input.scene,
     });
     const opening = openingForSituation(situation, ctx);
+    ctx.draft.openingFirstTurn = {
+      mode: situation.firstTurn.mode,
+      reason: situation.reason,
+      callerVisibility: situation.firstTurn.callerVisibility,
+      allowMemoryBeforeUserSpeaks:
+        situation.firstTurn.allowMemoryBeforeUserSpeaks,
+      allowInertiaBeforeUserSpeaks:
+        situation.firstTurn.allowInertiaBeforeUserSpeaks,
+      allowNameBeforeIdentified:
+        situation.firstTurn.allowNameBeforeIdentified,
+      forbidden: situation.firstTurn.forbidden,
+    };
     const previous = ctx.draft.openingSpeakable;
     if (opening.shouldOverride && opening.speakable) {
       ctx.draft.openingSpeakable = opening.speakable;
@@ -284,6 +296,11 @@ const openingSituationProvider: PromptProvider = {
         `- priority=${situation.priority}`,
         `- reason=${situation.reason}`,
         `- tags=${situation.tags.join(",") || "none"}`,
+        `- firstTurnMode=${situation.firstTurn.mode}`,
+        `- callerVisibility=${situation.firstTurn.callerVisibility}`,
+        `- allowMemoryBeforeUserSpeaks=${situation.firstTurn.allowMemoryBeforeUserSpeaks}`,
+        `- allowInertiaBeforeUserSpeaks=${situation.firstTurn.allowInertiaBeforeUserSpeaks}`,
+        `- allowNameBeforeIdentified=${situation.firstTurn.allowNameBeforeIdentified}`,
         opening.shouldOverride
           ? "- 本 provider 已决定/覆盖首句 opening。"
           : "- 本 provider 只观察，不覆盖当前卡片 opening。",

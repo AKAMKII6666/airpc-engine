@@ -19,6 +19,7 @@ import {
 	buildOpeningLlmMessages,
 	buildTurnLlmMessages,
 } from "@studio-v2/src/utils/server/debugger/session/debuggerLlmMessages.server";
+import { consumeDebuggerOpeningFirstTurn } from "@studio-v2/src/utils/server/debugger/session/debuggerConsumeOpeningFirstTurn.server";
 import { findDebuggerChapterEntry } from "@studio-v2/src/utils/server/debugger/session/debuggerChapterEntry.server";
 import {
 	projectShellEvents,
@@ -324,6 +325,38 @@ async function appendAssistantTurn(
 	return recorded;
 }
 
+async function runOpeningFirstTurn(input: {
+	host: EngineHost;
+	session: CallSession;
+}): Promise<{
+	session: CallSession;
+	llm: ServerLlmChatResult | null;
+	toolEvents: DebuggerLlmToolEvent[];
+}> {
+	const openingFirstTurn = consumeDebuggerOpeningFirstTurn(
+		input.host,
+		input.session,
+	);
+	if (openingFirstTurn.mode !== "llm") {
+		return {
+			session: openingFirstTurn.session,
+			llm: openingFirstTurn.llm,
+			toolEvents: openingFirstTurn.toolEvents,
+		};
+	}
+	const result = await runDebuggerLlmWithTools({
+		host: input.host,
+		session: openingFirstTurn.session,
+		messages: buildOpeningLlmMessages(openingFirstTurn.session),
+		temperature: 0.7,
+	});
+	return {
+		session: await appendAssistantTurn(input.host, result.session, result.llm),
+		llm: result.llm,
+		toolEvents: result.toolEvents,
+	};
+}
+
 export async function startDebuggerCallSession(
 	input: StartDebuggerCallInput,
 	host?: EngineHost,
@@ -357,25 +390,18 @@ export async function startDebuggerCallSession(
 			interactionPhase: ready.interactionPhase,
 		},
 	});
-	const result = await runDebuggerLlmWithTools({
+	const result = await runOpeningFirstTurn({
 		host: activeHost,
 		session: ready,
-		messages: buildOpeningLlmMessages(ready),
-		temperature: 0.7,
 	});
-	const withAssistant = await appendAssistantTurn(
-		activeHost,
-		result.session,
-		result.llm,
-	);
 	writeCallSessionDto({
 		event: "debugger.call.started_with_opening",
-		session: withAssistant,
+		session: result.session,
 		llm: result.llm,
 		toolEvents: result.toolEvents,
 	});
 	return projectDebuggerCallSession(
-		withAssistant,
+		result.session,
 		result.llm,
 		result.toolEvents,
 	);

@@ -358,7 +358,7 @@ describe("runDebuggerLlmWithTools", () => {
 
 		const view = projectDebuggerCallSession(session, null, []);
 
-		expect(view.promptTrace.openingSituation).toEqual({
+		expect(view.promptTrace.openingSituation).toMatchObject({
 			kind: "early_morning_inbound",
 			control: "provider",
 			priority: 68,
@@ -366,6 +366,10 @@ describe("runDebuggerLlmWithTools", () => {
 				"user dialed in early in the morning; opening may lightly acknowledge the early hour",
 			tags: ["inbound", "temporal", "early_morning", "unknown_caller"],
 			overridden: true,
+			firstTurnMode: null,
+			firstTurnStatus: null,
+			callerVisibility: null,
+			llmContextPolicy: null,
 		});
 		expect(view.promptTrace.systemHardBlocks[0]).toMatchObject({
 			title: "opening.situation",

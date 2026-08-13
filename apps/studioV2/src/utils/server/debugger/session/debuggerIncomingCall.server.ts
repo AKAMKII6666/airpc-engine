@@ -14,12 +14,14 @@ import {
 	type ServerLlmChatResult,
 } from "@studio-v2/src/utils/server/debugger/llm/llmClient.server";
 import { buildOpeningLlmMessages } from "@studio-v2/src/utils/server/debugger/session/debuggerLlmMessages.server";
+import { consumeDebuggerOpeningFirstTurn } from "@studio-v2/src/utils/server/debugger/session/debuggerConsumeOpeningFirstTurn.server";
 import {
 	projectDebuggerCallSession,
 	type DebuggerCallSessionView,
 } from "@studio-v2/src/utils/server/debugger/session/debuggerCallSession.server";
 import {
 	runDebuggerLlmWithTools,
+	type DebuggerLlmToolEvent,
 	type DebuggerLlmRunner,
 } from "@studio-v2/src/utils/server/debugger/session/debuggerToolCalling.server";
 import { listDebuggerDialableRoles } from "@studio-v2/src/utils/server/debugger/session/debuggerDialableRoles.server";
@@ -126,6 +128,40 @@ async function appendAssistantTurn(
 	});
 	if (isEngineError(recorded)) throw recorded;
 	return recorded;
+}
+
+async function runOpeningFirstTurn(input: {
+	host: EngineHost;
+	session: CallSession;
+	llmRunner?: DebuggerLlmRunner;
+}): Promise<{
+	session: CallSession;
+	llm: ServerLlmChatResult | null;
+	toolEvents: DebuggerLlmToolEvent[];
+}> {
+	const openingFirstTurn = consumeDebuggerOpeningFirstTurn(
+		input.host,
+		input.session,
+	);
+	if (openingFirstTurn.mode !== "llm") {
+		return {
+			session: openingFirstTurn.session,
+			llm: openingFirstTurn.llm,
+			toolEvents: openingFirstTurn.toolEvents,
+		};
+	}
+	const result = await runDebuggerLlmWithTools({
+		host: input.host,
+		session: openingFirstTurn.session,
+		messages: buildOpeningLlmMessages(openingFirstTurn.session),
+		temperature: 0.7,
+		llmRunner: input.llmRunner,
+	});
+	return {
+		session: await appendAssistantTurn(input.host, result.session, result.llm),
+		llm: result.llm,
+		toolEvents: result.toolEvents,
+	};
 }
 
 function ensureDialoguePhase(host: EngineHost, session: CallSession): CallSession {
@@ -244,43 +280,36 @@ export async function acceptDebuggerIncomingCall(
 	);
 	if (isEngineError(accepted)) throw accepted;
 	const ready = ensureDialoguePhase(activeHost, begun);
-	const result = await runDebuggerLlmWithTools({
+	const result = await runOpeningFirstTurn({
 		host: activeHost,
 		session: ready,
-		messages: buildOpeningLlmMessages(ready),
-		temperature: 0.7,
 		llmRunner: options.llmRunner,
 	});
-	const withAssistant = await appendAssistantTurn(
-		activeHost,
-		result.session,
-		result.llm,
-	);
 	void writeDtoLog({
 		bucket: "shell-events",
 		id: accepted.eventId,
 		event: "debugger.incoming.accepted",
-		sessionId: withAssistant.sessionId,
+		sessionId: result.session.sessionId,
 		userId: input.userId,
 		summary: {
 			agentId: accepted.agentId,
 			chapterId: accepted.chapterId,
 			cardId: accepted.cardId,
 		},
-		payload: { incoming: accepted, session: withAssistant },
+		payload: { incoming: accepted, session: result.session },
 	});
 	writeStudioLog("debugger", "info", {
 		event: "debugger.incoming.accepted",
 		userId: input.userId,
-		sessionId: withAssistant.sessionId,
-		chapterId: withAssistant.chapterId,
-		cardId: withAssistant.resolve.cardId,
-		agentId: withAssistant.resolve.agentId,
+		sessionId: result.session.sessionId,
+		chapterId: result.session.chapterId,
+		cardId: result.session.resolve.cardId,
+		agentId: result.session.resolve.agentId,
 		message: "debugger incoming call accepted",
 		payload: accepted,
 	});
 	return projectDebuggerCallSession(
-		withAssistant,
+		result.session,
 		result.llm,
 		result.toolEvents,
 	);

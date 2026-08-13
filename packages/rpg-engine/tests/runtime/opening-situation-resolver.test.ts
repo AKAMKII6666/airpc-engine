@@ -38,6 +38,13 @@ describe("resolveOpeningSituation", function () {
 	    expect(result).toMatchObject({
 	      kind: "evening_inbound",
 	      control: "provider",
+	      firstTurn: {
+	        mode: "direct_opening",
+	        callerVisibility: "unknown",
+	        allowMemoryBeforeUserSpeaks: false,
+	        allowInertiaBeforeUserSpeaks: false,
+	        allowNameBeforeIdentified: false,
+	      },
 	    });
 	    expect(result.tags).toEqual(
 	      expect.arrayContaining(["inbound", "temporal", "evening", "unknown_caller"]),
@@ -56,6 +63,12 @@ describe("resolveOpeningSituation", function () {
       control: "provider",
     });
     expect(result.tags).toContain("outbound");
+    expect(result.firstTurn).toMatchObject({
+      mode: "normal_llm",
+      callerVisibility: "known_or_intended",
+      allowMemoryBeforeUserSpeaks: true,
+      allowInertiaBeforeUserSpeaks: true,
+    });
   });
 
   it("classifies late-night player inbound above generic inbound", function () {

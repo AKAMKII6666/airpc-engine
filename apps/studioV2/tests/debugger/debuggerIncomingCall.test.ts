@@ -184,8 +184,22 @@ function acceptSuccessHostFixture(
 			event.status = "accepted";
 			return event;
 		},
+		consumeOpeningFirstTurn() {
+			steps.push("consume_opening");
+			return {
+				ok: true,
+				action: "request_llm_opening",
+				session,
+				source: "opening_first_turn_gate",
+			};
+		},
 		recordChatTurn() {
 			steps.push("record_assistant");
+			session.chatTurns = [{
+				role: "assistant",
+				text: "喂，我接上了。",
+				at: "2026-08-10T00:00:02.000Z",
+			}];
 			return session;
 		},
 	} as unknown as EngineHost;
@@ -274,12 +288,19 @@ describe("debuggerIncomingCall.server", () => {
 			},
 		);
 
-		expect(steps).toEqual(["resolve", "begin", "accept", "record_assistant"]);
+		expect(steps).toEqual([
+			"resolve",
+			"begin",
+			"accept",
+			"consume_opening",
+			"record_assistant",
+		]);
 		expect(event.status).toBe("accepted");
 		expect(view).toMatchObject({
 			sessionId: "session_accepted",
 			agentId: "lanxing",
 			cardId: "doubao_intro_outbound",
 		});
+		expect(view.turns).toEqual([{ role: "assistant", text: "喂，我接上了。" }]);
 	});
 });

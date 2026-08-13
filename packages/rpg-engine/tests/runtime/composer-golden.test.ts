@@ -558,9 +558,19 @@ describe("composeRenderedPrompt provider golden summaries", () => {
 
 	    expect(prompt.openingSpeakable).toBe("喂？请问哪位？");
 	    expect(prompt.openingPrivate).toContain("下午用户拨入");
+	    expect(prompt.openingFirstTurn).toMatchObject({
+	      mode: "direct_opening",
+	      callerVisibility: "unknown",
+	      allowMemoryBeforeUserSpeaks: false,
+	      allowInertiaBeforeUserSpeaks: false,
+	      allowNameBeforeIdentified: false,
+	    });
 	    expect(prompt.debug?.notes).toContain(
 	      "opening.situation:afternoon_inbound:override",
 	    );
 	    expect(prompt.systemHard.join("\n\n")).toContain("kind=afternoon_inbound");
+	    expect(prompt.systemHard.join("\n\n")).toContain(
+	      "firstTurnMode=direct_opening",
+	    );
 	  });
 	});

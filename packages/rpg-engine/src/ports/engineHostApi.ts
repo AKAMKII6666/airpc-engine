@@ -7,6 +7,7 @@ import type {
 	BeginCallOpts,
 	CallIntent,
 	CallSession,
+	ConsumeOpeningFirstTurnResult,
 	EndCallResult,
 	LogRecord,
 	ResolveResult,
@@ -110,6 +111,13 @@ export interface EngineHost {
 		sessionId: string,
 		turn: { role: "user" | "assistant" | "system"; text: string },
 	): CallSession | EngineError;
+	/**
+	 * 消费电话接通第一声。direct opening 由引擎登记 assistant turn；
+	 * LLM opening 只返回 request_llm_opening，外层再按消息策略调用模型。
+	 */
+	consumeOpeningFirstTurn(
+		sessionId: string,
+	): ConsumeOpeningFirstTurnResult | EngineError;
 	getActiveSession(userId: string): CallSession | null;
 	getSession(sessionId: string): CallSession | null;
 	getRecentLogs(opts?: { userId?: string; limit?: number }): LogRecord[];

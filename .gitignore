@@ -27,3 +27,4 @@ data/logs/*.jsonl
 data/logs/
 data/debug-dto/
 !.gitkeep
+/.codex-cache-quarantine
