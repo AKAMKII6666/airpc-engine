@@ -33,7 +33,7 @@ import {
 
 1. 用 IO 模块创建 ports（Studio：`engineIOModule` 工厂，指向 `data/`）。  
 2. `createEngineHost({ ...ports })` 注入。  
-3. `loadWorkspace` → `ensureProfile(userId)` → `resolve` / `beginCall` / 对话 → `endCall`。  
+3. `loadWorkspace` → `ensureProfile(userId)` → `resolve` / `beginCall` → `consumeOpeningFirstTurn` → 对话 → `endCall`。  
 4. 需要持久化经历态时由门面触发 Profile / Memory 相关保存（经 Port）。
 
 ```text
@@ -41,6 +41,11 @@ import {
   → loadWorkspace（ContentPort）
   → ensureProfile(userId)（ProfilePort）
   → resolve / beginCall
+  → consumeOpeningFirstTurn
+       · emit_assistant_turn：播放/展示 Host 已登记的首句
+       · request_llm_opening：server/壳按 openingFirstTurn.llmContextPolicy 调首句 LLM
+       · skipped / already_emitted：直接进入普通对话
+  → 多轮对话（recordChatTurn / tool / adapter events）
   → endCall
        → ExitSelector → EffectExecutor
        → 经 Port 写 Profile / Memory（若本通需要）
@@ -71,7 +76,8 @@ import {
 
 ## 常见闭环提示
 
-- Manual / 调试：`beginCall` → 多轮对话 → `endCall(manualOutcome)`。  
+- Manual / 调试：`beginCall` → `consumeOpeningFirstTurn` → 多轮对话 → `endCall(manualOutcome)`。  
+- Text / 壳：首句必须先走 `consumeOpeningFirstTurn`；不要在 Studio 或电话壳里解析 Prompt Trace 文本自行拼开场。
 - Free：挂机走 Free 管线（MemoryCommit；有 candidate 再 Exit）。  
 - 样例包：`data/storis-packages/golden_handoff/` 等（由 ContentPort 读取）。
 

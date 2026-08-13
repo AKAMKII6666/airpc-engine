@@ -126,9 +126,12 @@ interface PromptSceneLayer {
 **组装口径（定稿）：**
 
 - `context` 基线 = 本通**剧情合同**；`promptScenes` = 声明式「怎么开口/时段语气」，效果对齐老话机呼入呼出/按时段切词，但由 Composer 统一按 `localHourRange` 组装。
+- **剧情 opening 落点：** 具体剧情开场、误会开场、带任务/带话题的首句提示，应写在当前 Story 卡 `promptScenes` 或由明确 Opening Provider 规则生成；不要写进角色 `defaultPromptScenes`。
+- **Free / 日常 opening 落点：** Free 卡 `promptScenes` 只能写日常接听/闲聊风格；不得承载某一幕剧情的固定开场。
 - **禁止** `match.timeBuckets`（已删除；含该字段的内容 **拒载**）。
 - **禁止** `patch` 覆盖 `objective` / `forbidden`（校验器拒绝此类字段）。
 - 目标相同、仅开场不同 → 一张卡 + `promptScenes`；目标/出口都不同 → 仍拆多卡 + `entryMode`。
+- 玩家主动拨入且角色尚未识别来电者时，首句由 Opening First-Turn Gate 约束；卡级 opening 不得要求模型在用户开口前直呼姓名或引用记忆。
 
 ### 2.5 objectives / beats
 

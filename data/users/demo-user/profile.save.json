@@ -75,6 +75,18 @@
               "scheduledIntentId": "reminder_086a8c60-474e-49b2-a85c-8fc8b9dacbe6",
               "createdAt": "2026-08-13T01:55:12.838Z",
               "updatedAt": "2026-08-13T01:57:21.320Z"
+            },
+            {
+              "instanceId": "15d5c7b3-dd33-48cb-b594-08d5a44c5aa5",
+              "cardId": "lanxing_free",
+              "chapterId": "__free__",
+              "agentId": "lanxing",
+              "status": "pending",
+              "entryMode": "either",
+              "activationHint": "outbound_auto",
+              "scheduledIntentId": "reminder_18a923c3-a5a7-4179-ada7-35d065ff1db5",
+              "createdAt": "2026-08-13T09:04:57.874Z",
+              "updatedAt": "2026-08-13T09:04:57.874Z"
             }
           ]
         }
@@ -120,7 +132,7 @@
     "knowledge": {}
   },
   "schedule": {
-    "clockMs": 71014906,
+    "clockMs": 72478035,
     "intents": [
       {
         "kind": "once",
@@ -171,6 +183,19 @@
         "origin": "user_reminder",
         "createdAt": "2026-08-13T01:55:12.838Z",
         "linkedInstanceId": "3c395df9-c6c9-42e7-86d1-801beb5a50dc"
+      },
+      {
+        "kind": "once",
+        "intentId": "reminder_18a923c3-a5a7-4179-ada7-35d065ff1db5",
+        "agentId": "lanxing",
+        "cardId": "lanxing_free",
+        "chapterId": "__free__",
+        "fireAtMs": 79142765,
+        "status": "pending",
+        "topicHint": "提醒用户7点下班打卡",
+        "origin": "user_reminder",
+        "createdAt": "2026-08-13T09:04:57.874Z",
+        "linkedInstanceId": "15d5c7b3-dd33-48cb-b594-08d5a44c5aa5"
       }
     ]
   },
@@ -179,36 +204,36 @@
   },
   "meta": {
     "createdAt": "2026-07-13T00:00:00.000Z",
-    "updatedAt": "2026-08-13T02:16:33.932Z",
+    "updatedAt": "2026-08-13T09:14:55.494Z",
     "note": "记忆明细在 data/memory/memory.sqlite，不在本文件内嵌",
     "repairedAt": "2026-08-11T09:09:51.070Z",
     "repairedReason": "trimmed corrupted appended JSON tail and restored pending reminder intent",
     "conversationInertiaByAgent": {
       "lanxing": {
-        "previousSessionId": "7f9a0188-83ab-4022-8afa-8a144c594fa4",
-        "previousEndedAt": "2026-08-13T02:04:40.326Z",
+        "previousSessionId": "313ae24e-3154-4181-83a8-0add2532fa9c",
+        "previousEndedAt": "2026-08-13T09:04:57.874Z",
         "previousCardId": "lanxing_free",
-        "previousSource": "story_pending",
+        "previousSource": "free",
         "recentTurns": [
           {
             "role": "user",
-            "text": "哈哈哈，品鉴咖啡醒脑提神写程序",
-            "at": "2026-08-13T01:58:06.597Z"
+            "text": "行，那我先去忙了，晚点再打电话给你。",
+            "at": "2026-08-13T09:04:44.508Z"
           },
           {
             "role": "assistant",
-            "text": "懂了——  \n咖啡是药引，程序是处方，你这医生，自己开自己喝。",
-            "at": "2026-08-13T01:58:07.544Z"
+            "text": "好嘞，挂啦～  \n（轻声）等你call我。",
+            "at": "2026-08-13T09:04:45.483Z"
           },
           {
             "role": "user",
-            "text": "哈哈，必须的。不和你说了，我要去忙了",
-            "at": "2026-08-13T02:04:34.631Z"
+            "text": "拜拜",
+            "at": "2026-08-13T09:04:52.168Z"
           },
           {
             "role": "assistant",
-            "text": "（轻声）挂啦～",
-            "at": "2026-08-13T02:04:36.953Z"
+            "text": "（电话已挂断）",
+            "at": "2026-08-13T09:04:54.998Z"
           }
         ]
       }
