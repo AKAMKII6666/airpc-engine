@@ -308,6 +308,21 @@ describe("runDebuggerLlmWithTools", () => {
 			},
 			openingSituation: null,
 		});
+		expect(view.promptTrace.toolResolution).toMatchObject({
+			cardPolicyMode: "inherit_free",
+		});
+		expect(view.promptTrace.toolResolution.finalToolIds).toContain(
+			"search_memory",
+		);
+		expect(
+			view.promptTrace.toolResolution.items.find(function (item) {
+				return item.toolId === "search_memory";
+			}),
+		).toMatchObject({
+			availability: "global",
+			exposedToLlm: true,
+			reason: "exposed",
+		});
 		expect(view.promptTrace.systemHardBlocks).toEqual([
 			expect.objectContaining({
 				title: "style.phone",

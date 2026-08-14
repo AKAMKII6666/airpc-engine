@@ -74,6 +74,14 @@ type PromptTracePanelProps = {
 	trace: DebuggerPromptTraceView;
 };
 
+function traceReasonLabel(reason: string): string {
+	if (reason === "exposed") return "开放";
+	if (reason === "character_capability_missing") return "角色未声明";
+	if (reason === "card_policy_filtered") return "卡策略过滤";
+	if (reason === "card_kind_blocked") return "卡类型不允许";
+	return reason;
+}
+
 export const PromptTracePanel: FC<PromptTracePanelProps> =
 	function PromptTracePanel({
 		// trace 表示 server projector 投影出的 Composer trace，用于核对 provider 与开场来源
@@ -173,6 +181,51 @@ export const PromptTracePanel: FC<PromptTracePanelProps> =
 						<p>{trace.openingPolicy.reason}</p>
 					</div>
 				) : null}
+
+				<div className={styles.promptToolTrace}>
+					<div className={styles.promptToolTraceHead}>
+						<div>
+							<span>tool resolution</span>
+							<strong>
+								{trace.toolResolution.cardPolicyMode} · final {trace.toolResolution.finalToolIds.length}
+							</strong>
+						</div>
+						<div>
+							<span>registry</span>
+							<strong>{trace.toolResolution.registryToolIds.length}</strong>
+						</div>
+						<div>
+							<span>character</span>
+							<strong>{trace.toolResolution.characterCapabilityToolIds.length}</strong>
+						</div>
+					</div>
+					{trace.toolResolution.characterCapabilityToolIds.length > 0 ? (
+						<div className={styles.promptMiniList}>
+							<span>character tools</span>
+							{trace.toolResolution.characterCapabilityToolIds.map((toolId, index) => (
+								<code key={promptTraceItemKey("character_tool", toolId, index)}>
+									{toolId}
+								</code>
+							))}
+						</div>
+					) : null}
+					<div className={styles.promptToolRows}>
+						{trace.toolResolution.items.map((item, index) => (
+							<div
+								key={promptTraceItemKey("tool_resolution", item.toolId, index)}
+								className={
+									item.exposedToLlm
+										? styles.promptToolRowActive
+										: styles.promptToolRow
+								}
+							>
+								<strong>{item.toolId}</strong>
+								<span>{item.availability}</span>
+								<em>{traceReasonLabel(item.reason)}</em>
+							</div>
+						))}
+					</div>
+				</div>
 
 				{trace.matchedLayerIds.length > 0 ? (
 					<div className={styles.promptMiniList}>

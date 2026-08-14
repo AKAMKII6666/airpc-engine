@@ -210,6 +210,21 @@ export const GetMemoryByIdArgsSchema = z
     { message: "entry_id required" },
   );
 
+export const ComputeBaziChartArgsSchema = z.object({
+  calendar_type: z
+    .enum(["solar", "lunar"])
+    .describe("生日历法：solar=公历/阳历；lunar=农历/阴历"),
+  birth_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .describe("出生日期，YYYY-MM-DD；必须先确认历法"),
+  birth_time: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/)
+    .optional()
+    .describe("可选出生时间，24 小时制 HH:mm；不知道时不要编造"),
+});
+
 /** toolId → Zod；invoke 与 Registry 共用 */
 export const TOOL_INPUT_SCHEMAS: Record<string, z.ZodType> = {
   refer_to_expert: ReferToExpertArgsSchema,
@@ -221,6 +236,7 @@ export const TOOL_INPUT_SCHEMAS: Record<string, z.ZodType> = {
   record_user_name: RecordUserNameArgsSchema,
   search_memory: SearchMemoryArgsSchema,
   get_memory_by_id: GetMemoryByIdArgsSchema,
+  compute_bazi_chart: ComputeBaziChartArgsSchema,
 };
 
 export function getToolInputSchema(toolId: string): z.ZodType | undefined {

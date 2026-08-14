@@ -81,12 +81,12 @@
               "cardId": "lanxing_free",
               "chapterId": "__free__",
               "agentId": "lanxing",
-              "status": "pending",
+              "status": "active",
               "entryMode": "either",
               "activationHint": "outbound_auto",
               "scheduledIntentId": "reminder_18a923c3-a5a7-4179-ada7-35d065ff1db5",
               "createdAt": "2026-08-13T09:04:57.874Z",
-              "updatedAt": "2026-08-13T09:04:57.874Z"
+              "updatedAt": "2026-08-14T01:57:12.752Z"
             }
           ]
         }
@@ -132,7 +132,7 @@
     "knowledge": {}
   },
   "schedule": {
-    "clockMs": 72478035,
+    "clockMs": 172048899,
     "intents": [
       {
         "kind": "once",
@@ -191,7 +191,7 @@
         "cardId": "lanxing_free",
         "chapterId": "__free__",
         "fireAtMs": 79142765,
-        "status": "pending",
+        "status": "consumed",
         "topicHint": "提醒用户7点下班打卡",
         "origin": "user_reminder",
         "createdAt": "2026-08-13T09:04:57.874Z",
@@ -204,36 +204,64 @@
   },
   "meta": {
     "createdAt": "2026-07-13T00:00:00.000Z",
-    "updatedAt": "2026-08-13T09:14:55.494Z",
+    "updatedAt": "2026-08-14T08:22:59.953Z",
     "note": "记忆明细在 data/memory/memory.sqlite，不在本文件内嵌",
     "repairedAt": "2026-08-11T09:09:51.070Z",
     "repairedReason": "trimmed corrupted appended JSON tail and restored pending reminder intent",
     "conversationInertiaByAgent": {
       "lanxing": {
-        "previousSessionId": "313ae24e-3154-4181-83a8-0add2532fa9c",
-        "previousEndedAt": "2026-08-13T09:04:57.874Z",
+        "previousSessionId": "1a0ab40f-3d84-48e8-b1eb-ca30667a990b",
+        "previousEndedAt": "2026-08-14T01:58:00.907Z",
         "previousCardId": "lanxing_free",
+        "previousSource": "story_pending",
+        "recentTurns": [
+          {
+            "role": "user",
+            "text": "哈哈，为什么突然想给我打电话？",
+            "at": "2026-08-14T01:57:32.399Z"
+          },
+          {
+            "role": "assistant",
+            "text": "因为……你上次挂电话前说「晚点再打电话给你」，我可一直记着呢。  \n（轻笑）  \n还有——七点下班打卡，这事儿也快到了。",
+            "at": "2026-08-14T01:57:34.000Z"
+          },
+          {
+            "role": "user",
+            "text": "行，谢谢哈，我还在忙，晚点再联系",
+            "at": "2026-08-14T01:57:57.520Z"
+          },
+          {
+            "role": "assistant",
+            "text": "好嘞，不打扰你啦～  \n忙完随时call我。  \n（稍顿）  \n挂啦？",
+            "at": "2026-08-14T01:57:58.438Z"
+          }
+        ]
+      },
+      "bai-bansian": {
+        "previousSessionId": "e3064181-f403-4de4-a0ca-0951f8eaba8a",
+        "previousEndedAt": "2026-08-14T08:21:52.090Z",
+        "previousCardId": "bai_bansian_free",
         "previousSource": "free",
         "recentTurns": [
           {
             "role": "user",
-            "text": "行，那我先去忙了，晚点再打电话给你。",
-            "at": "2026-08-13T09:04:44.508Z"
+            "text": "哈哈，你话里有话啊老白",
+            "at": "2026-08-14T08:21:11.707Z"
           },
           {
             "role": "assistant",
-            "text": "好嘞，挂啦～  \n（轻声）等你call我。",
-            "at": "2026-08-13T09:04:45.483Z"
+            "text": "（低笑）  \n话里有话？  \n那得看听的人，心里装着哪句没说出口的话。  \n\n我这嘴啊，  \n一半是卦摊上的闲话，  \n一半是电话线里漏出来的回声——  \n你往里放什么，它才响什么。  \n\n所以啊……  \n不是我话里有话，  \n是你，已经悄悄把答案，  \n塞进上一句里了。  \n\n（停顿两秒，语气轻下来）  \n要不——  \n咱歇会儿？  \n你喝口水，我摸摸茶…",
+            "at": "2026-08-14T08:21:15.315Z"
           },
           {
             "role": "user",
-            "text": "拜拜",
-            "at": "2026-08-13T09:04:52.168Z"
+            "text": "行，拿下次再聊了，拜拜",
+            "at": "2026-08-14T08:21:44.677Z"
           },
           {
             "role": "assistant",
-            "text": "（电话已挂断）",
-            "at": "2026-08-13T09:04:54.998Z"
+            "text": "（轻声）  \n挂了。",
+            "at": "2026-08-14T08:21:46.441Z"
           }
         ]
       }

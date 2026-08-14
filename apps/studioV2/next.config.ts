@@ -6,6 +6,12 @@ const studioV2Root = path.dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
 	transpilePackages: ["@airpc/rpg-engine"],
+	experimental: {
+		extensionAlias: {
+			".js": [".ts", ".tsx", ".js"],
+			".mjs": [".mts", ".mjs"],
+		},
+	},
 	// better-sqlite3 为原生模块，仅 Memory 只读 API 使用
 	serverExternalPackages: ["better-sqlite3"],
 	sassOptions: {

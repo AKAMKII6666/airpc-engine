@@ -203,7 +203,7 @@ describe("SqliteMemoryPort", () => {
 		expect(proj.includedEntryIds.length).toBeGreaterThanOrEqual(2);
 	});
 
-	it("commit derives call_summary from Host transcript when summaryText is absent", async () => {
+	it("commit derives user-only call_summary from Host transcript when summaryText is absent", async () => {
 		const mem = await setup();
 		const commit = await mem.commitAfterCall({
 			userId: "u1",
@@ -220,7 +220,7 @@ describe("SqliteMemoryPort", () => {
 					},
 					{
 						role: "assistant",
-						text: "我记住了，这是一件很温柔的事。",
+						text: "我记住了，这是一件很温柔的事。电话线微微震了一下。",
 						at: "2026-07-15T10:00:01.000Z",
 					},
 				],
@@ -237,8 +237,10 @@ describe("SqliteMemoryPort", () => {
 			maxResults: 5,
 		});
 		expect(hits).toHaveLength(1);
-		expect(hits[0]?.text).toContain("user:");
+		expect(hits[0]?.text).toContain("user[0]:");
 		expect(hits[0]?.text).toContain("生日蛋糕");
+		expect(hits[0]?.text).not.toContain("assistant:");
+		expect(hits[0]?.text).not.toContain("电话线微微震");
 	});
 
 	it("applyPatch rejects non-semantic memory patches", async () => {

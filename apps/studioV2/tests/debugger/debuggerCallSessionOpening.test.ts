@@ -52,7 +52,8 @@ function inboundFreeSession(): CallSession {
 			matchedLayerIds: ["free_inbound_unknown"],
 			debug: { providerIds: ["opening.situation"], notes: [] },
 			openingFirstTurn: {
-				mode: "direct",
+				mode: "direct_opening",
+				reason: "玩家主动拨入，角色尚不知道是谁",
 				status: "pending",
 				text: "喂，请问哪位？",
 				callerVisibility: "unknown",
@@ -67,6 +68,7 @@ function inboundFreeSession(): CallSession {
 					includeSoftContext: false,
 					includeMemory: false,
 					includeInertia: false,
+					reason: "direct opening should not include memory before identification",
 				},
 			},
 		},
@@ -94,9 +96,25 @@ describe("startDebuggerCallSession opening first turn", () => {
 				at: "2026-08-10T00:00:02.000Z",
 			}],
 			openingFirstTurn: {
-				mode: "direct",
+				mode: "direct_opening",
 				status: "emitted",
 				text: "喂，请问哪位？",
+				reason: "玩家主动拨入，角色尚不知道是谁",
+				callerVisibility: "unknown",
+				allowMemoryBeforeUserSpeaks: false,
+				allowInertiaBeforeUserSpeaks: false,
+				allowNameBeforeIdentified: false,
+				forbidden: ["直呼玩家姓名"],
+				llmContextPolicy: {
+					includeSystemHard: true,
+					includeSpeakable: true,
+					includePrivate: true,
+					includeSoftContext: false,
+					includeMemory: false,
+					includeInertia: false,
+					reason: "direct opening should not include memory before identification",
+				},
+				source: "rendered_prompt",
 			},
 		} as unknown as CallSession;
 		const host = {
@@ -145,7 +163,7 @@ describe("startDebuggerCallSession opening first turn", () => {
 		});
 		expect(view.turns).toEqual([{ role: "assistant", text: "喂，请问哪位？" }]);
 		expect(view.promptTrace.openingSituation).toMatchObject({
-			firstTurnMode: "direct",
+			firstTurnMode: "direct_opening",
 			firstTurnStatus: "pending",
 			callerVisibility: "unknown",
 		});

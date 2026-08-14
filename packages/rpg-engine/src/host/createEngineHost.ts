@@ -951,6 +951,7 @@ export function createEngineHost(
           userId,
           agentId: result.agentId,
           card: beginCard,
+          characterDef,
           nowIso: now,
           memory,
           profile: profileForBegin,
@@ -1011,6 +1012,7 @@ export function createEngineHost(
             intent: result.intent,
           },
           frozenCard: structuredClone(beginCard),
+          frozenCharacter: characterDef ? structuredClone(characterDef) : null,
           actualEntry,
           beginContext,
           composeScene,
@@ -1724,21 +1726,29 @@ export function createEngineHost(
   return host;
 }
 
-/** Studio server 进程单例 */
-let singleton: EngineHost | null = null;
+const ENGINE_HOST_SINGLETON_KEY = "__airpc_rpg_engine_host_singleton__";
+
+type EngineHostGlobal = typeof globalThis & {
+  [ENGINE_HOST_SINGLETON_KEY]?: EngineHost | null;
+};
+
+function engineHostGlobal(): EngineHostGlobal {
+  return globalThis as EngineHostGlobal;
+}
 
 /**
  * 进程单例。仅首次创建时应用 options（如 loreBootstrap LLM port）；
  * 已存在时忽略后续 options。
  */
 export function getEngineHost(options?: CreateEngineHostOptions): EngineHost {
-	if (!singleton) {
-		singleton = createEngineHost(options);
+	const store = engineHostGlobal();
+	if (!store[ENGINE_HOST_SINGLETON_KEY]) {
+		store[ENGINE_HOST_SINGLETON_KEY] = createEngineHost(options);
 	}
-	return singleton;
+	return store[ENGINE_HOST_SINGLETON_KEY];
 }
 
 /** 仅测试：重置单例 */
 export function resetEngineHostForTests(): void {
-	singleton = null;
+	engineHostGlobal()[ENGINE_HOST_SINGLETON_KEY] = null;
 }

@@ -5,6 +5,19 @@ import { z } from "zod";
 import type { PlayerProfile } from "./profile.js";
 import { PromptSceneLayerSchema } from "./promptScene.js";
 
+export const CharacterToolCapabilitySchema = z
+  .object({
+    toolId: z.string().min(1),
+    enabled: z.boolean().default(true),
+  })
+  .passthrough();
+
+export const CharacterCapabilitiesSchema = z
+  .object({
+    tools: z.array(CharacterToolCapabilitySchema).optional(),
+  })
+  .passthrough();
+
 export const CharacterDefSchema = z
   .object({
     schemaVersion: z.number().int().default(1),
@@ -56,6 +69,8 @@ export const CharacterDefSchema = z
       .optional(),
     /** 本通卡未写 opening 时回落；与卡 promptScenes 同构 */
     defaultPromptScenes: z.array(PromptSceneLayerSchema).optional(),
+    /** 角色级特殊能力；ToolRegistry 仍是真源，本字段只声明该角色会哪些非全局工具 */
+    capabilities: CharacterCapabilitiesSchema.optional(),
     callFlowPrompts: z
       .object({
         longSilence: z
@@ -98,6 +113,27 @@ export const CharacterDefSchema = z
   .passthrough();
 
 export type CharacterDef = z.infer<typeof CharacterDefSchema>;
+export type CharacterCapabilities = z.infer<typeof CharacterCapabilitiesSchema>;
+export type CharacterToolCapability = z.infer<
+  typeof CharacterToolCapabilitySchema
+>;
+
+export function listEnabledCharacterToolCapabilityIds(
+  def: CharacterDef | null | undefined,
+): string[] {
+  const tools = def?.capabilities?.tools;
+  if (!Array.isArray(tools)) return [];
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const capability of tools) {
+    if (capability.enabled === false) continue;
+    const toolId = capability.toolId.trim();
+    if (!toolId || seen.has(toolId)) continue;
+    seen.add(toolId);
+    out.push(toolId);
+  }
+  return out;
+}
 
 /**
  * effectiveDialable =

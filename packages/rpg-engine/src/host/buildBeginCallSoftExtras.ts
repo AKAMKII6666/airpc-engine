@@ -3,6 +3,7 @@
  * 从 createEngineHost 抽出以降函数行数基线。
  */
 import type { CallCardDefinition } from "../schema/callCard.js";
+import type { CharacterDef } from "../schema/character.js";
 import type { PlayerProfile } from "../schema/profile.js";
 import {
   formatLoreSoftContext,
@@ -16,6 +17,7 @@ export async function buildBeginCallSoftExtras(input: {
   userId: string;
   agentId: string;
   card: CallCardDefinition;
+  characterDef?: CharacterDef | null;
   nowIso: string;
   memory: MemoryPort | null | undefined;
   profile: PlayerProfile | undefined;
@@ -44,7 +46,9 @@ export async function buildBeginCallSoftExtras(input: {
   }
   softExtras.push(
     ...buildToolInstructionBlocks(
-      listToolsForCard(input.card).map(function (t) {
+      listToolsForCard(input.card, {
+        characterDef: input.characterDef,
+      }).map(function (t) {
         return t.toolId;
       }),
     ),

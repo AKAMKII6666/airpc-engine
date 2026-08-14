@@ -2,6 +2,7 @@
  * 模块名称：CallSession / Resolve / BeginCall 类型（P1）
  */
 import type { CallCardDefinition } from "../schema/callCard.js";
+import type { CharacterDef } from "../schema/character.js";
 import type { ChatTurn } from "../schema/dialogueSession.js";
 import type { Outcome } from "../schema/outcome.js";
 import type { ShellControlEvent } from "./shellControl/shellControlTypes.js";
@@ -226,6 +227,8 @@ export interface CallSession {
 		intent: CallIntent;
 	};
 	frozenCard: CallCardDefinition;
+	/** 本通角色快照；工具能力与 prompt 均以 beginCall 时角色定义为准。 */
+	frozenCharacter?: CharacterDef | null;
 	/**
 	 * 真实入口：user_dial → inbound_user_dial；agent_outbound → outbound_auto。
 	 * 延迟外呼卡 entryMode=either 时仍依此区分开场姿态，而非卡定义 preferred。

@@ -5,6 +5,7 @@ import type { CardKind } from "../schema/callCard.js";
 import type { Effect } from "../schema/outcome.js";
 
 export type ToolBehavior = "register_exit" | "session_local";
+export type ToolAvailability = "global" | "character_capability";
 
 export interface ToolDefinition {
   toolId: string;
@@ -22,6 +23,11 @@ export interface ToolDefinition {
   /** voicemail 强制 deny_all，一般不列入；类型与 CardKind 对齐避免漏枚举 */
   allowedCardKinds: CardKind[];
   allowedInPlayback: boolean;
+  /**
+   * global：所有角色可按卡 toolPolicy 开放。
+   * character_capability：必须由 CharacterDef.capabilities 显式声明后才可开放。
+   */
+  availability?: ToolAvailability;
   behavior: ToolBehavior;
 }
 
@@ -47,4 +53,25 @@ export interface ToolInvokeResult {
 export interface ToolPolicyResolved {
   mode: "allowlist" | "denylist" | "inherit_free" | "deny_all" | "unknown";
   allowedToolIds: string[] | null;
+}
+
+export interface ToolResolutionTraceItem {
+  toolId: string;
+  displayName: string;
+  availability: ToolAvailability;
+  declaredByCharacter: boolean;
+  allowedByCharacter: boolean;
+  allowedByCardKind: boolean;
+  includedByCardPolicy: boolean;
+  exposedToLlm: boolean;
+  reason: string;
+}
+
+export interface ToolResolutionTrace {
+  registryToolIds: string[];
+  characterCapabilityToolIds: string[];
+  cardPolicyMode: ToolPolicyResolved["mode"];
+  cardPolicyToolIds: string[] | null;
+  finalToolIds: string[];
+  items: ToolResolutionTraceItem[];
 }

@@ -1010,6 +1010,87 @@
 	line-height: 1.45;
 }
 
+.promptToolTrace {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 9px;
+	border: 1px solid t.$border-subtle;
+	border-radius: 8px;
+	background: t.$bg-input;
+}
+
+.promptToolTraceHead {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(70px, 0.3fr) minmax(90px, 0.35fr);
+	gap: 8px;
+}
+
+.promptToolTraceHead > div {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	min-width: 0;
+}
+
+.promptToolTraceHead span,
+.promptToolRows span,
+.promptToolRows em,
+.toolSourceLine {
+	color: t.$text-muted;
+	font-size: 11px;
+	font-style: normal;
+}
+
+.promptToolTraceHead strong {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: t.$text-primary;
+	font-size: 12px;
+}
+
+.promptToolRows {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 5px;
+}
+
+.promptToolRow,
+.promptToolRowActive {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(98px, auto) minmax(72px, auto);
+	gap: 8px;
+	align-items: center;
+	padding: 6px 7px;
+	border: 1px solid t.$border-subtle;
+	border-radius: 6px;
+	background: rgba(255, 255, 255, 0.02);
+}
+
+.promptToolRowActive {
+	border-color: rgba(50, 214, 255, 0.28);
+	background: rgba(50, 214, 255, 0.07);
+}
+
+.promptToolRows strong {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: t.$text-secondary;
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-size: 11px;
+}
+
+.promptToolRowActive strong {
+	color: t.$brand-cyan;
+}
+
+.toolSourceLine {
+	margin-top: 4px;
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
 .promptMiniList {
 	display: flex;
 	flex-wrap: wrap;

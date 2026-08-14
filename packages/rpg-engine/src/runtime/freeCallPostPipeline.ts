@@ -5,6 +5,7 @@ import type { CallSession, EffectPlanResult } from "../host/types.js";
 import type { PlayerProfile } from "../schema/profile.js";
 import type { Outcome } from "../schema/outcome.js";
 import type { MemoryCallTranscript, MemoryPort } from "../memory/types.js";
+import { summarizeUserFactTranscript } from "../memory/factMemoryTranscript.js";
 import { selectExit } from "./exitSelector.js";
 import { executeEffects } from "./effectExecutor.js";
 import type { EffectSink } from "./effectSink.js";
@@ -49,13 +50,7 @@ function buildTranscript(session: CallSession): MemoryCallTranscript | null {
 }
 
 function transcriptSummary(transcript: MemoryCallTranscript | null): string | null {
-  if (!transcript || transcript.turns.length === 0) return null;
-  return transcript.turns
-    .map(function (turn) {
-      return `${turn.role}: ${turn.text}`;
-    })
-    .join("\n")
-    .trim();
+  return summarizeUserFactTranscript(transcript);
 }
 
 /**
@@ -86,39 +81,33 @@ export async function runFreeCallPostPipeline(input: {
 
   if (gateOk && commitEnabled && input.memory) {
     const transcript = buildTranscript(input.session);
-    const summary = transcriptSummary(transcript) ?? [
-      `Free call with ${input.session.resolve.agentId}`,
-      `card=${input.session.resolve.cardId}`,
-      input.session.frozenCard.title
-        ? `title=${input.session.frozenCard.title}`
-        : "",
-    ]
-      .filter(Boolean)
-      .join("; ");
-    const commit = await input.memory.commitAfterCall({
-      userId: input.session.userId,
-      agentId: input.session.resolve.agentId,
-      sessionId: input.session.sessionId,
-      transcript,
-      outcome: input.outcome,
-      endedAt: input.nowIso,
-      summaryText: summary,
-      commitContext: {
-        callKind: "free",
-        policy: "free_post_pipeline",
-        source: input.session.resolve.source,
-        chapterId: input.session.chapterId,
-        cardId: input.session.resolve.cardId,
-      },
-    });
-    committed = commit.ok;
-    commitEntryIds = commit.writtenEpisodicIds;
-    if (input.memory.rollupIfNeeded) {
-      await input.memory.rollupIfNeeded({
+    const summary = transcriptSummary(transcript);
+    if (summary) {
+      const commit = await input.memory.commitAfterCall({
         userId: input.session.userId,
         agentId: input.session.resolve.agentId,
+        sessionId: input.session.sessionId,
+        transcript,
+        outcome: input.outcome,
         endedAt: input.nowIso,
+        summaryText: summary,
+        commitContext: {
+          callKind: "free",
+          policy: "free_post_pipeline",
+          source: input.session.resolve.source,
+          chapterId: input.session.chapterId,
+          cardId: input.session.resolve.cardId,
+        },
       });
+      committed = commit.ok;
+      commitEntryIds = commit.writtenEpisodicIds;
+      if (input.memory.rollupIfNeeded) {
+        await input.memory.rollupIfNeeded({
+          userId: input.session.userId,
+          agentId: input.session.resolve.agentId,
+          endedAt: input.nowIso,
+        });
+      }
     }
   }
 

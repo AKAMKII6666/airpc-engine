@@ -4,6 +4,7 @@
 import type { CallSession } from "../host/types.js";
 import type { Outcome } from "../schema/outcome.js";
 import type { MemoryCallTranscript, MemoryPort } from "../memory/types.js";
+import { summarizeUserFactTranscript } from "../memory/factMemoryTranscript.js";
 
 export interface StoryCallMemoryCommitResult {
   committed: boolean;
@@ -25,12 +26,7 @@ function buildTranscript(session: CallSession): MemoryCallTranscript | null {
 }
 
 function transcriptSummary(transcript: MemoryCallTranscript): string {
-  return transcript.turns
-    .map(function (turn) {
-      return `${turn.role}: ${turn.text}`;
-    })
-    .join("\n")
-    .trim();
+  return summarizeUserFactTranscript(transcript) ?? "";
 }
 
 export async function commitStoryCallMemory(input: {
@@ -48,6 +44,10 @@ export async function commitStoryCallMemory(input: {
   if (!transcript || transcript.turns.length === 0) {
     return { committed: false, skippedReason: "empty_transcript" };
   }
+  const summaryText = transcriptSummary(transcript);
+  if (!summaryText) {
+    return { committed: false, skippedReason: "empty_transcript" };
+  }
   const commit = await input.memory.commitAfterCall({
     userId: input.session.userId,
     agentId: input.session.resolve.agentId,
@@ -55,7 +55,7 @@ export async function commitStoryCallMemory(input: {
     transcript,
     outcome: input.outcome,
     endedAt: input.nowIso,
-    summaryText: transcriptSummary(transcript),
+    summaryText,
     commitContext: {
       callKind: "story",
       policy: "story_call",

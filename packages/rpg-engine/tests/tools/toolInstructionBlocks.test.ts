@@ -65,4 +65,15 @@ describe("buildToolInstructionBlocks", () => {
     expect(text).toMatch(/search_memory/);
     expect(text).toMatch(/get_memory_by_id/);
   });
+
+});
+
+describe("buildToolInstructionBlocks for bazi", () => {
+  it("includes guidance only when compute_bazi_chart is open", () => {
+    const text = buildToolInstructionBlocks(["compute_bazi_chart"]).join("\n");
+    expect(text).toMatch(/八字排盘/);
+    expect(text).toMatch(/compute_bazi_chart/);
+    expect(text).toMatch(/禁止自行编造/);
+    expect(text).toMatch(/重大决定/);
+  });
 });

@@ -3,6 +3,7 @@
 	*/
 import {
 	MEMORY_SEARCH_DEFAULTS,
+	summarizeUserFactTranscript,
 	validateMemoryPatchInput,
 	type MemoryCommitInput,
 	type MemoryCommitResult,
@@ -14,38 +15,8 @@ import type { EntryRow, SqlDb } from "../db/types";
 
 type InsertFn = ReturnType<typeof createInsertEntry>;
 
-type MemoryTranscriptTurn = {
-	role: "user" | "assistant" | "system";
-	text: string;
-	at: string;
-};
-
-type MemoryCallTranscriptLike = {
-	schemaVersion: 1;
-	source: "host.chat_turns";
-	turns: MemoryTranscriptTurn[];
-};
-
-function isMemoryCallTranscript(
-	value: unknown,
-): value is MemoryCallTranscriptLike {
-	const candidate = value as Partial<MemoryCallTranscriptLike> | null;
-	return (
-		!!candidate &&
-		candidate.schemaVersion === 1 &&
-		candidate.source === "host.chat_turns" &&
-		Array.isArray(candidate.turns)
-	);
-}
-
 function summaryFromTranscript(value: unknown): string | null {
-	if (!isMemoryCallTranscript(value) || value.turns.length === 0) return null;
-	return value.turns
-		.map(function (turn) {
-			return `${turn.role}: ${turn.text}`;
-		})
-		.join("\n")
-		.trim();
+	return summarizeUserFactTranscript(value);
 }
 
 export async function getMemoryById(

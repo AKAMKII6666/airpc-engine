@@ -11,9 +11,9 @@ import {
 } from "../../src/index.js";
 
 describe("builtin tool descriptions and inputSchema", () => {
-  it("nine tools each have non-empty description and serializable inputSchema", () => {
+  it("ten tools each have non-empty description and serializable inputSchema", () => {
     const tools = listBuiltinTools();
-    expect(tools).toHaveLength(9);
+    expect(tools).toHaveLength(10);
     for (const t of tools) {
       expect(t.description.trim().length).toBeGreaterThan(10);
       expect(t.inputSchema).toBeTruthy();
@@ -75,6 +75,16 @@ describe("builtin tool descriptions and inputSchema", () => {
   });
 });
 
+describe("compute_bazi_chart contract", () => {
+  it("describes trigger and safety boundary", () => {
+    const bazi = BUILTIN_TOOL_DEFINITIONS.find(function (t) {
+      return t.toolId === "compute_bazi_chart";
+    });
+    expect(bazi?.description).toMatch(/八字|生日/);
+    expect(bazi?.description).toMatch(/禁止|重大决定/);
+  });
+});
+
 describe("parseToolArgs", () => {
   it("accepts valid refer_to_expert args", () => {
     const parsed = parseToolArgs("refer_to_expert", {
@@ -114,6 +124,23 @@ describe("parseToolArgs", () => {
     const parsed = parseToolArgs("schedule_recurring_call", {
       topic_hint: "morning",
       hour: 9,
+    });
+    expect(isEngineError(parsed)).toBe(true);
+  });
+
+  it("accepts compute_bazi_chart without birth_time", () => {
+    const parsed = parseToolArgs("compute_bazi_chart", {
+      calendar_type: "solar",
+      birth_date: "1990-01-02",
+    });
+    expect(isEngineError(parsed)).toBe(false);
+  });
+
+  it("rejects compute_bazi_chart with malformed birth_time", () => {
+    const parsed = parseToolArgs("compute_bazi_chart", {
+      calendar_type: "solar",
+      birth_date: "1990-01-02",
+      birth_time: "25:01",
     });
     expect(isEngineError(parsed)).toBe(true);
   });

@@ -71,7 +71,7 @@ export async function previewFirstConnectPrompt(
 		profile,
 		memory: host.getMemoryPort(),
 	});
-	const toolsForCard = listToolsForCard(v.card);
+	const toolsForCard = listToolsForCard(v.card, { characterDef });
 	softExtras.push(
 		...buildToolInstructionBlocks(
 			toolsForCard.map(function (t) {

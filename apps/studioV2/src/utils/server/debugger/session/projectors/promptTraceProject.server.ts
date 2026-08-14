@@ -2,6 +2,11 @@
 	* RenderedPrompt → Debugger Prompt Trace DTO。
 	*/
 import type { RenderedPrompt } from "@airpc/rpg-engine";
+import {
+	projectToolResolutionTrace,
+	type CallSession,
+	type ToolResolutionTrace,
+} from "@airpc/rpg-engine";
 
 export type DebuggerPromptBlockView = {
 	title: string;
@@ -51,6 +56,7 @@ export type DebuggerPromptTraceView = {
 	openingSituation: DebuggerOpeningSituationView | null;
 	systemHardBlocks: DebuggerPromptBlockView[];
 	softContextBlocks: DebuggerPromptBlockView[];
+	toolResolution: ToolResolutionTrace;
 };
 
 const PROVIDER_GROUP_BY_PREFIX: Record<string, string> = {
@@ -205,9 +211,21 @@ function projectOpeningSituationFromPrompt(
 	};
 }
 
+function emptyToolResolutionTrace(): ToolResolutionTrace {
+	return {
+		registryToolIds: [],
+		characterCapabilityToolIds: [],
+		cardPolicyMode: "unknown",
+		cardPolicyToolIds: null,
+		finalToolIds: [],
+		items: [],
+	};
+}
+
 export function projectPromptTrace(
-	prompt: RenderedPrompt | undefined,
+	session: CallSession | undefined,
 ): DebuggerPromptTraceView {
+	const prompt = session?.renderedPrompt;
 	const providerIds = prompt?.debug?.providerIds ?? [];
 	const systemHard = prompt?.systemHard ?? [];
 	return {
@@ -235,5 +253,10 @@ export function projectPromptTrace(
 			prompt?.softContext ?? [],
 			"softContext",
 		),
+		toolResolution: session
+			? projectToolResolutionTrace(session.frozenCard, {
+					characterDef: session.frozenCharacter,
+				})
+			: emptyToolResolutionTrace(),
 	};
 }

@@ -11,6 +11,10 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      "@airpc/rpg-engine": path.resolve(
+        __dirname,
+        "../../packages/rpg-engine/src/index.ts",
+      ),
       "@studio-v2": path.resolve(__dirname, "."),
     },
   },

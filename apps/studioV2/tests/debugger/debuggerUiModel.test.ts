@@ -12,8 +12,20 @@ import {
 import type {
 	DebuggerCallSessionView,
 	DebuggerIncomingCallView,
+	DebuggerToolResolutionTrace,
 } from "@studio-v2/typeFiles/debugger/callSession";
 import type { DebuggerVoicemailSlotView } from "@studio-v2/typeFiles/debugger/mailboxView";
+
+function emptyToolResolutionTrace(): DebuggerToolResolutionTrace {
+	return {
+		registryToolIds: [],
+		characterCapabilityToolIds: [],
+		cardPolicyMode: "unknown",
+		cardPolicyToolIds: null,
+		finalToolIds: [],
+		items: [],
+	};
+}
 
 function slotFixture(
 	patch: Partial<DebuggerVoicemailSlotView>,
@@ -50,13 +62,14 @@ function callFixture(): DebuggerCallSessionView {
 			providerIds: [],
 			providerRows: [],
 			notes: [],
-				matchedLayerIds: [],
-				openingSpeakable: null,
-				openingPolicy: null,
-				openingSituation: null,
-				systemHardBlocks: [],
-				softContextBlocks: [],
-			},
+			matchedLayerIds: [],
+			openingSpeakable: null,
+			openingPolicy: null,
+			openingSituation: null,
+			systemHardBlocks: [],
+			softContextBlocks: [],
+			toolResolution: emptyToolResolutionTrace(),
+		},
 		recentToolEvents: [],
 		toolTrace: [],
 		exitCandidates: [],

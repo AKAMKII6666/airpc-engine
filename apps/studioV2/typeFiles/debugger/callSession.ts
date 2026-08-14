@@ -43,6 +43,12 @@ export type DebuggerAvailableToolView = {
 	behavior: "register_exit" | "session_local" | string;
 	/** 面向模型的触发说明 */
 	description: string;
+	/** 工具来源：global 或角色专属能力 */
+	availability: string;
+	/** 该工具是否来自当前角色 capabilities 声明 */
+	declaredByCharacter: boolean;
+	/** 工具最终开放原因；用于定位过滤过程 */
+	resolutionReason: string;
 };
 
 /** 表示最近一次 LLM 回复触发的工具闭环事件，用于核对模型调用与工具结果 */
@@ -149,6 +155,41 @@ export type DebuggerOpeningSituationView = {
 	tags: string[];
 	/** provider 是否改写了首句 opening */
 	overridden: boolean;
+	/** 首轮运行模式；如 direct_opening / normal_llm */
+	firstTurnMode?: string | null;
+	/** 首轮运行状态；如 pending / emitted */
+	firstTurnStatus?: string | null;
+	/** 接通首轮 caller 可见性 */
+	callerVisibility?: string | null;
+	/** 首轮 LLM 上下文策略摘要 */
+	llmContextPolicy?: {
+		includeSoftContext: boolean;
+		includeMemory: boolean;
+		includeInertia: boolean;
+	} | null;
+};
+
+/** 单个工具在 Registry / 角色能力 / 卡策略过滤链上的投影 */
+export type DebuggerToolResolutionTraceItem = {
+	toolId: string;
+	displayName: string;
+	availability: "global" | "character_capability" | string;
+	declaredByCharacter: boolean;
+	allowedByCharacter: boolean;
+	allowedByCardKind: boolean;
+	includedByCardPolicy: boolean;
+	exposedToLlm: boolean;
+	reason: string;
+};
+
+/** 工具能力来源 Trace；由 engine projector 产生，client 只展示 */
+export type DebuggerToolResolutionTrace = {
+	registryToolIds: string[];
+	characterCapabilityToolIds: string[];
+	cardPolicyMode: string;
+	cardPolicyToolIds: string[] | null;
+	finalToolIds: string[];
+	items: DebuggerToolResolutionTraceItem[];
 };
 
 /** 表示 Host Composer 输出的浏览器 Trace 投影，不暴露 private 原文 */
@@ -176,6 +217,8 @@ export type DebuggerPromptTraceView = {
 	systemHardBlocks: DebuggerPromptBlockView[];
 	/** softContext 块；已裁剪 */
 	softContextBlocks: DebuggerPromptBlockView[];
+	/** 工具能力来源与最终过滤结果 */
+	toolResolution: DebuggerToolResolutionTrace;
 };
 
 /** 表示 Host 调度外呼事件的浏览器投影；FE 镜像，禁止 import engine 类型 */

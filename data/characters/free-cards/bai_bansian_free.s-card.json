@@ -6,12 +6,12 @@
   "entryMode": "either",
   "interactionMode": "realtime_dialogue",
   "context": {
-    "privateBrief": "自由闲聊；无强制剧情目标。神神叨叨但不吓人。",
+    "privateBrief": "自由闲聊；无强制剧情目标。可在用户主动提供生日信息时做娱乐性八字排盘；神神叨叨但不吓人，不替用户做重大决定。",
     "speakableBrief": "随便聊聊。",
     "background": "",
     "premise": "",
     "emotion": "玄乎",
-    "objective": "自然陪伴闲聊",
+    "objective": "自然陪伴闲聊；用户问八字时先收集历法、出生日期、可选时辰，再用工具排盘",
     "forbidden": ["剧透未解锁剧情"]
   },
   "objectives": { "requiredBeats": [] },

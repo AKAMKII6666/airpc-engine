@@ -8,7 +8,21 @@ import {
 } from "@studio-v2/src/stores/debugger/debuggerStore";
 import type { DebuggerSessionSnapshot } from "@studio-v2/typeFiles/debugger/store/debuggerStoreState";
 import type { DebuggerMailboxSnapshot } from "@studio-v2/typeFiles/debugger/mailboxView";
-import type { DebuggerCallSessionView } from "@studio-v2/typeFiles/debugger/callSession";
+import type {
+	DebuggerCallSessionView,
+	DebuggerToolResolutionTrace,
+} from "@studio-v2/typeFiles/debugger/callSession";
+
+function emptyToolResolutionTrace(): DebuggerToolResolutionTrace {
+	return {
+		registryToolIds: [],
+		characterCapabilityToolIds: [],
+		cardPolicyMode: "unknown",
+		cardPolicyToolIds: null,
+		finalToolIds: [],
+		items: [],
+	};
+}
 
 function sampleSession(): DebuggerSessionSnapshot {
 	return {
@@ -75,13 +89,14 @@ function sampleCall(): DebuggerCallSessionView {
 			providerIds: [],
 			providerRows: [],
 			notes: [],
-				matchedLayerIds: [],
-				openingSpeakable: null,
-				openingPolicy: null,
-				openingSituation: null,
-				systemHardBlocks: [],
-				softContextBlocks: [],
-			},
+			matchedLayerIds: [],
+			openingSpeakable: null,
+			openingPolicy: null,
+			openingSituation: null,
+			systemHardBlocks: [],
+			softContextBlocks: [],
+			toolResolution: emptyToolResolutionTrace(),
+		},
 		recentToolEvents: [],
 		toolTrace: [],
 		exitCandidates: [],

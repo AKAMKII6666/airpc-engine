@@ -8,6 +8,7 @@
     "incremental": false,
     "plugins": [{ "name": "next" }],
     "paths": {
+      "@airpc/rpg-engine": ["../../packages/rpg-engine/src/index.ts"],
       "@studio-v2/*": ["./*"]
     },
     "types": ["node"]

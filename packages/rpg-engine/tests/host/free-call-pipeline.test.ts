@@ -29,7 +29,7 @@ describe("free call + tools + memory", () => {
     }
   });
 
-  it("registry lists seven business tools + two memory tools", () => {
+  it("registry lists seven business tools + two memory tools + bazi capability", () => {
     const ids = listBuiltinTools().map((t) => t.toolId);
     expect(ids).toEqual(
       expect.arrayContaining([
@@ -42,9 +42,10 @@ describe("free call + tools + memory", () => {
         "record_user_name",
         "search_memory",
         "get_memory_by_id",
+        "compute_bazi_chart",
       ]),
     );
-    expect(ids).toHaveLength(9);
+    expect(ids).toHaveLength(10);
   });
 
   it("free_call → packageId __free__ → Commit without candidate", async () => {
@@ -98,6 +99,8 @@ describe("free call + tools + memory", () => {
     });
     expect(hits.length).toBeGreaterThan(0);
     expect(hits[0]?.text).toContain("妈妈给我做了生日蛋糕");
+    expect(hits[0]?.text).not.toContain("assistant:");
+    expect(hits[0]?.text).not.toContain("温柔的小事");
     const profile = JSON.parse(
       await readFile(
         path.join(dataRoot, "users/demo-user/profile.save.json"),

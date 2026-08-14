@@ -266,7 +266,7 @@ export function projectDebuggerCallSession(
 		turns: projectTurns(session),
 		llm,
 		availableTools: projectAvailableTools(session),
-		promptTrace: projectPromptTrace(session.renderedPrompt),
+		promptTrace: projectPromptTrace(session),
 		recentToolEvents: toolEvents.map(projectToolEvent),
 		toolTrace: session.toolTrace.map(projectToolTraceItem),
 		exitCandidates: session.exitCandidates.map(projectExitCandidate),

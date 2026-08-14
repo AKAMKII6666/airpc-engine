@@ -10,6 +10,7 @@ import { writeStudioLog } from "@studio-v2/src/utils/server/observability/logger
 import {
 	extractMemoryCommitFromTranscript,
 	isMemoryCallTranscript,
+	sanitizeMemoryCommitExtractionForFacts,
 	type MemoryCommitExtraction,
 	type MemoryCommitLlmRunner,
 } from "@studio-v2/src/utils/server/memory/memoryCommitExtractor.server";
@@ -36,11 +37,22 @@ function mergeVignettes(
 	return merged.length > 0 ? merged : undefined;
 }
 
+function userOnlyTranscript(
+	transcript: Parameters<typeof extractMemoryCommitFromTranscript>[0]["transcript"],
+): Parameters<typeof extractMemoryCommitFromTranscript>[0]["transcript"] {
+	return {
+		...transcript,
+		turns: transcript.turns.filter(function (turn) {
+			return turn.role === "user" && turn.text.trim();
+		}),
+	};
+}
+
 async function enrichCommitInput(
 	input: MemoryCommitInput,
 	extractor: MemoryCommitExtractor,
 	logErrors: boolean,
-): Promise<MemoryCommitInput> {
+): Promise<MemoryCommitInput | null> {
 	if (!isMemoryCallTranscript(input.transcript) || input.transcript.turns.length === 0) {
 		return input;
 	}
@@ -48,18 +60,26 @@ async function enrichCommitInput(
 		commitContext?: Parameters<typeof extractMemoryCommitFromTranscript>[0]["commitContext"];
 	};
 	try {
-		const extracted = await extractor({
+		const extractionTranscript = userOnlyTranscript(input.transcript);
+		const extracted = sanitizeMemoryCommitExtractionForFacts(await extractor({
 			agentId: input.agentId,
 			sessionId: input.sessionId,
-			transcript: input.transcript,
+			transcript: extractionTranscript,
 			commitContext: commitInput.commitContext,
-		});
+		}), input.transcript);
 		return {
 			...input,
 			summaryText: extracted.summaryText,
 			vignettes: mergeVignettes(input.vignettes, extracted.vignettes),
 		};
 	} catch (error) {
+		const message = error instanceof Error ? error.message : String(error);
+		if (
+			message.includes("memory fact candidates required") ||
+			message.includes("memory extraction user turns required")
+		) {
+			return null;
+		}
 		if (logErrors) {
 			writeStudioLog("llm", "warn", {
 				event: "memory_commit.extract_failed",
@@ -106,7 +126,15 @@ export function createMemoryCommitExtractingPort(
 			return base.applyPatch(input);
 		},
 		async commitAfterCall(input) {
-			return base.commitAfterCall(await enrichCommitInput(input, extractor, logErrors));
+			const enriched = await enrichCommitInput(input, extractor, logErrors);
+			if (!enriched) {
+				return {
+					ok: true,
+					writtenLayers: ["episodic"],
+					writtenEpisodicIds: [],
+				};
+			}
+			return base.commitAfterCall(enriched);
 		},
 		rollupIfNeeded: base.rollupIfNeeded
 			? function (input) {

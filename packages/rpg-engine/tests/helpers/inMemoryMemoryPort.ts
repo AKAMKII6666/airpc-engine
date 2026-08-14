@@ -8,7 +8,6 @@ import { createEngineHost } from "../../src/host/createEngineHost.js";
 import type { CreateEngineHostOptions } from "../../src/ports/engineHostApi.js";
 import type {
   MemoryCommitInput,
-  MemoryCallTranscript,
   MemoryCommitResult,
   MemoryPort,
   MemoryProjectionItem,
@@ -17,6 +16,7 @@ import type {
   MemorySearchQuery,
 } from "../../src/memory/types.js";
 import { validateMemoryPatchInput } from "../../src/memory/patchMemoryPolicy.js";
+import { summarizeUserFactTranscript } from "../../src/memory/factMemoryTranscript.js";
 import { MEMORY_SEARCH_DEFAULTS } from "../../src/constants.js";
 import type { EffectSink } from "../../src/runtime/effectSink.js";
 import type { LoreBootstrapPort } from "../../src/lore/types.js";
@@ -68,24 +68,8 @@ function insertEntry(
   return id;
 }
 
-function isMemoryCallTranscript(value: unknown): value is MemoryCallTranscript {
-  const candidate = value as Partial<MemoryCallTranscript> | null;
-  return (
-    !!candidate &&
-    candidate.schemaVersion === 1 &&
-    candidate.source === "host.chat_turns" &&
-    Array.isArray(candidate.turns)
-  );
-}
-
 function summaryFromTranscript(value: unknown): string | null {
-  if (!isMemoryCallTranscript(value) || value.turns.length === 0) return null;
-  return value.turns
-    .map(function (turn) {
-      return `${turn.role}: ${turn.text}`;
-    })
-    .join("\n")
-    .trim();
+  return summarizeUserFactTranscript(value);
 }
 
 function entryMatchesQuery(

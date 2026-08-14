@@ -30,6 +30,13 @@ export class StudioApiError extends Error {
 	}
 }
 
+export function isStudioApiErrorCode(
+	error: unknown,
+	code: string,
+): error is StudioApiError {
+	return error instanceof StudioApiError && error.code === code;
+}
+
 /**
 	* 解析 fetch Response；非 JSON 或业务失败时抛 StudioApiError / Error（message 为人话）。
 	*/

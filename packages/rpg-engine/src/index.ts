@@ -241,6 +241,15 @@ export {
   normalizeMemoryPatchEffect,
   validateMemoryPatchInput,
 } from "./memory/patchMemoryPolicy.js";
+export {
+  isMemoryCallTranscript,
+  projectUserFactTranscript,
+  summarizeUserFactTranscript,
+} from "./memory/factMemoryTranscript.js";
+export type {
+  UserFactTranscriptProjection,
+  UserFactTranscriptTurn,
+} from "./memory/factMemoryTranscript.js";
 
 export type { ProfilePort } from "./ports/profilePort.js";
 export type {
@@ -255,18 +264,29 @@ export {
   getBuiltinTool,
   BUILTIN_TOOL_DEFINITIONS,
 } from "./tools/builtinRegistry.js";
-export { resolveToolPolicy, isToolAllowedOnCard, listToolsForCard } from "./tools/resolveToolPolicy.js";
+export { resolveToolPolicy, isToolAllowedOnCard, isToolAllowedInSession, listToolsForCard, projectToolResolutionTrace } from "./tools/resolveToolPolicy.js";
 export { buildToolInstructionBlocks } from "./tools/instructions/buildToolInstructionBlocks.js";
 export {
   getToolInputSchema,
   TOOL_INPUT_SCHEMAS,
+  ComputeBaziChartArgsSchema,
 } from "./tools/schemas/toolInputSchemas.js";
 export { parseToolArgs } from "./tools/schemas/parseToolArgs.js";
 export { toToolJsonSchema } from "./tools/schemas/toToolJsonSchema.js";
+export {
+  computeBaziChart,
+  COMPUTE_BAZI_CHART_TOOL_ID,
+  type BaziChart,
+  type BaziCalendarType,
+  type ComputeBaziChartArgs,
+  type ComputeBaziChartLocalResult,
+} from "./tools/bazi/computeBaziChart.js";
 export type {
   ToolDefinition,
   ToolInvokeResult,
   RuntimeExitCandidate,
+  ToolResolutionTrace,
+  ToolResolutionTraceItem,
 } from "./tools/types.js";
 
 export {
@@ -320,8 +340,13 @@ export {
 
 export {
   CharacterDefSchema,
+  CharacterCapabilitiesSchema,
+  CharacterToolCapabilitySchema,
   isEffectiveDialable,
+  listEnabledCharacterToolCapabilityIds,
+  type CharacterCapabilities,
   type CharacterDef,
+  type CharacterToolCapability,
 } from "./schema/character.js";
 
 export {

@@ -85,6 +85,12 @@ describe("Story call MemoryCommit policy with transcript", function () {
       maxResults: 5,
     });
     expect(hits.some((hit) => hit.kind === "call_summary")).toBe(true);
+    expect(hits.find((hit) => hit.kind === "call_summary")?.text).not.toContain(
+      "assistant:",
+    );
+    expect(hits.find((hit) => hit.kind === "call_summary")?.text).not.toContain(
+      "轻轻提起",
+    );
   });
 
   it("no-exit story hangup still ends the call and commits transcript memory", async function () {

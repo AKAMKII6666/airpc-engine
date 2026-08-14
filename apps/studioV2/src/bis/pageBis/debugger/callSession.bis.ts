@@ -10,6 +10,7 @@ import {
 	postDebuggerCallMessage,
 	postDebuggerCallStart,
 } from "@studio-v2/src/utils/ajaxProxy/debugger/api/callSessionApi";
+import { isStudioApiErrorCode } from "@studio-v2/src/utils/ajaxHelper/studioApiClient";
 import { useDebuggerStore } from "@studio-v2/src/stores/debugger/debuggerStore";
 import type { DebuggerCallSessionView } from "@studio-v2/typeFiles/debugger/callSession";
 
@@ -60,6 +61,18 @@ function errorMessage(error: unknown): string {
 	return "调试通话请求失败";
 }
 
+function isStaleCallSessionError(error: unknown): boolean {
+	return (
+		isStudioApiErrorCode(error, "NOT_FOUND") &&
+		error.message.toLowerCase().includes("session not found")
+	);
+}
+
+function applyStaleCallSession(actions: CallCommandActions): void {
+	actions.resetActiveCall();
+	actions.applyFailed("通话会话已失效，请重新拨号");
+}
+
 async function runStartFreeCall(
 	actions: CallCommandActions,
 	userId: string,
@@ -97,6 +110,10 @@ async function runStartSimulateCall(
 		actions.applyResult(session);
 		return session;
 	} catch (err) {
+		if (isStaleCallSessionError(err)) {
+			applyStaleCallSession(actions);
+			return null;
+		}
 		actions.applyFailed(errorMessage(err));
 		return null;
 	}
@@ -159,6 +176,10 @@ async function runEndCall(
 		actions.resetActiveCall();
 		return true;
 	} catch (err) {
+		if (isStaleCallSessionError(err)) {
+			applyStaleCallSession(actions);
+			return false;
+		}
 		actions.applyFailed(errorMessage(err));
 		return false;
 	}

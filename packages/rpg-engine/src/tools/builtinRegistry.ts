@@ -118,6 +118,19 @@ export const BUILTIN_TOOL_DEFINITIONS: ToolDefinition[] = [
     allowedInPlayback: true,
     behavior: "session_local",
   },
+  {
+    toolId: "compute_bazi_chart",
+    displayName: "八字排盘",
+    description:
+      "白半仙等明确声明该能力的角色专用；当用户问八字、生日、时辰、五行等，且已给出历法与出生日期后调用。" +
+      "必须用工具排盘，禁止自行编造天干地支；birth_time 不知道可省略。" +
+      "结果只作娱乐性性格/处境解读，禁止断生死、疾病灾祸或替用户做重大决定。",
+    inputSchema: jsonSchemaForTool("compute_bazi_chart"),
+    allowedCardKinds: ["free", "story"],
+    allowedInPlayback: false,
+    availability: "character_capability",
+    behavior: "session_local",
+  },
 ];
 
 export function getBuiltinTool(toolId: string): ToolDefinition | undefined {

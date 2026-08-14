@@ -15,6 +15,7 @@ const BLOCK_BUILDERS: BlockBuilder[] = [
   buildResearchBlockIfOpen,
   buildUserNameBlockIfOpen,
   buildMemoryBlockIfOpen,
+  buildBaziBlockIfOpen,
 ];
 
 export function buildToolInstructionBlocks(
@@ -200,4 +201,18 @@ function buildMemoryBlockIfOpen(open: OpenSet): string | null {
     "只读：不写库、不登记出口。",
   );
   return lines.join("\n");
+}
+
+function buildBaziBlockIfOpen(open: OpenSet): string | null {
+  if (!open.has("compute_bazi_chart")) return null;
+  return [
+    "# 八字排盘（Function Calling · 角色专属）",
+    "当用户问八字、生日、时辰、五行、命盘、日主等，先确认：",
+    "1. 生日历法是公历/阳历还是农历/阴历；",
+    "2. 出生日期 `birth_date`，格式 YYYY-MM-DD；",
+    "3. 出生时间 `birth_time` 可选；用户不知道时不要追到尴尬，也不要编造。",
+    "信息足够后，**必须**调用 `compute_bazi_chart`；禁止自行编造天干地支、五行或时柱。",
+    "工具返回后，用角色口吻做娱乐性、启发式解读；若 `hourKnown=false`，要说明缺少时柱所以只看三柱。",
+    "禁止断生死、疾病灾祸、考试/投资/婚姻等重大结果；不可替用户做重大决定。",
+  ].join("\n");
 }

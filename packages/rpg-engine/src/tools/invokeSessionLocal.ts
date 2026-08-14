@@ -7,8 +7,9 @@ import type { CallSession } from "../host/types.js";
 import type { MemoryPort } from "../memory/types.js";
 import { expandRegisterExitEffects } from "./expandExitEffects.js";
 import { getBuiltinTool } from "./builtinRegistry.js";
-import { isToolAllowedOnCard } from "./resolveToolPolicy.js";
+import { isToolAllowedInSession } from "./resolveToolPolicy.js";
 import { parseToolArgs } from "./schemas/parseToolArgs.js";
+import { invokeSessionLocalBaziTool } from "./invokeSessionLocalBazi.js";
 import { invokeSessionLocalMemoryTool } from "./invokeSessionLocalMemory.js";
 import type { RuntimeExitCandidate, ToolInvokeResult } from "./types.js";
 
@@ -52,7 +53,7 @@ export async function invokeSessionTool(input: {
     );
   }
 
-  if (!isToolAllowedOnCard(input.session.frozenCard, input.toolId)) {
+  if (!isToolAllowedInSession(input.session, input.toolId)) {
     return engineError(
       "VALIDATION_FAILED",
       `tool not allowed on this card: ${input.toolId}`,
@@ -79,9 +80,7 @@ export async function invokeSessionTool(input: {
   }
 
   const argsOrErr = parseToolArgs(input.toolId, input.args);
-  if (isEngineError(argsOrErr)) {
-    return argsOrErr;
-  }
+  if (isEngineError(argsOrErr)) return argsOrErr;
   const args = argsOrErr;
 
   if (def.behavior === "register_exit") {
@@ -128,6 +127,10 @@ export async function invokeSessionTool(input: {
       candidateId: candidate.candidateId,
     });
     return { ok: true, behavior: "register_exit", candidate };
+  }
+
+  if (input.toolId === "compute_bazi_chart") {
+    return invokeSessionLocalBaziTool({ session: input.session, toolId: input.toolId, args });
   }
 
   if (!input.memory) {

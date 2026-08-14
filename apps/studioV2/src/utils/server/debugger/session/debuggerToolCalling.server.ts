@@ -88,7 +88,9 @@ function shellToolResultContent(result: ShellControlToolResult): string {
 
 function listLlmToolsForSession(session: CallSession) {
 	return [
-		...listToolsForCard(session.frozenCard),
+		...listToolsForCard(session.frozenCard, {
+			characterDef: session.frozenCharacter,
+		}),
 		...listDebuggerShellControlTools(),
 	];
 }
