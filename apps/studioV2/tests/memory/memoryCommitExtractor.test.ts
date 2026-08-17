@@ -368,7 +368,7 @@ describe("memory commit LLM extractor", () => {
 		});
 	});
 
-	it("drops attitude that lacks user and assistant grounding", async () => {
+	it("keeps assistant-reaction attitude even without dual-role grounding", async () => {
 		const result = await extractAttitudeFromTranscript({
 			transcript: transcript(),
 			llmRunner: async function () {
@@ -391,7 +391,11 @@ describe("memory commit LLM extractor", () => {
 			},
 		});
 
-		expect(result.attitude).toBeNull();
+		expect(result.attitude).toMatchObject({
+			stance: "亲近",
+			summary: "觉得用户很温柔",
+			evidence: "澜星自己说的月光比喻",
+		});
 	});
 
 	it("accepts assistant-reaction attitude when evidence text also hits user turn", async () => {
@@ -423,7 +427,7 @@ describe("memory commit LLM extractor", () => {
 		});
 	});
 
-	it("drops abstract keywords that are not present in transcript", async () => {
+	it("keeps attitude even when keywords are abstract and not in transcript", async () => {
 		const result = await extractAttitudeFromTranscript({
 			transcript: transcript(),
 			llmRunner: async function () {
@@ -446,7 +450,73 @@ describe("memory commit LLM extractor", () => {
 			},
 		});
 
-		expect(result.attitude).toBeNull();
+		expect(result.attitude).toMatchObject({
+			stance: "欣赏与信赖",
+			keywords: ["项目共鸣", "情感支持"],
+		});
+	});
+
+	it("repairs invalid evidenceTurnIndexes instead of discarding attitude", async () => {
+		const result = await extractAttitudeFromTranscript({
+			transcript: transcript(),
+			llmRunner: async function () {
+				return {
+					text: JSON.stringify({
+						attitude: {
+							stance: "被触动",
+							summary: "因用户分享生日蛋糕而觉得亲近",
+							evidence: "用户分享生日蛋糕，我回应很温柔",
+							feel: ["被触动"],
+							keywords: ["生日蛋糕", "温柔"],
+							evidenceTurnIndexes: [99, 100],
+						},
+					}),
+					toolCalls: [],
+					finishReason: "stop",
+					responseId: "attitude_repair_1",
+					model: "test",
+				};
+			},
+		});
+
+		expect(result.attitude).not.toBeNull();
+		expect(result.attitude?.stance).toBe("被触动");
+		expect(result.attitude?.evidenceTurnIndexes.length).toBeGreaterThan(0);
+		expect(result.attitude?.evidenceTurnIndexes.every((i) => i <= 4)).toBe(true);
+	});
+
+	it("keeps attitude even when soft exclusion seeds share common words", async () => {
+		const result = await extractAttitudeFromTranscript({
+			transcript: transcript(),
+			commitContext: {
+				exclusionSeeds: [
+					"[conversation.inertia.recent_turns] previousSource=free - user: 这个项目让我有种被它牵着走的感觉",
+				],
+			},
+			llmRunner: async function () {
+				return {
+					text: JSON.stringify({
+						attitude: {
+							stance: "被触动",
+							summary: "这种被当作人来相信的感觉让她动容",
+							evidence: "用户聊到生日蛋糕，她说这种感觉真真切切",
+							feel: ["被信任"],
+							keywords: ["生日蛋糕", "真真切切"],
+							evidenceTurnIndexes: [1, 2],
+						},
+					}),
+					toolCalls: [],
+					finishReason: "stop",
+					responseId: "attitude_seed_1",
+					model: "test",
+				};
+			},
+		});
+
+		expect(result.attitude).toMatchObject({
+			stance: "被触动",
+			summary: "这种被当作人来相信的感觉让她动容",
+		});
 	});
 
 	it("accepts abstract feel tags with verbatim keywords", async () => {

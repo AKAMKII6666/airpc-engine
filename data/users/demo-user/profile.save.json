@@ -132,7 +132,7 @@
     "knowledge": {}
   },
   "schedule": {
-    "clockMs": 252745517,
+    "clockMs": 318940152,
     "intents": [
       {
         "kind": "once",
@@ -204,36 +204,36 @@
   },
   "meta": {
     "createdAt": "2026-07-13T00:00:00.000Z",
-    "updatedAt": "2026-08-17T09:29:02.141Z",
+    "updatedAt": "2026-08-17T17:40:04.616Z",
     "note": "记忆明细在 data/memory/memory.sqlite，不在本文件内嵌",
     "repairedAt": "2026-08-11T09:09:51.070Z",
     "repairedReason": "trimmed corrupted appended JSON tail and restored pending reminder intent",
     "conversationInertiaByAgent": {
       "lanxing": {
-        "previousSessionId": "c532d520-5ae2-44a7-977f-0931d1a9dfdc",
-        "previousEndedAt": "2026-08-17T08:53:17.339Z",
+        "previousSessionId": "d74135b9-4768-4949-bbdc-e35dc962df0f",
+        "previousEndedAt": "2026-08-17T15:08:44.545Z",
         "previousCardId": "lanxing_free",
         "previousSource": "free",
         "recentTurns": [
           {
             "role": "user",
-            "text": "平时休息的时候基本上就是脑子里在转这个项目的事情，不知道为什么，这个项目让我有种呗它牵着走的感觉",
-            "at": "2026-08-17T08:52:33.906Z"
+            "text": "行，哈哈哈，那我不多想了。",
+            "at": "2026-08-17T15:08:27.844Z"
           },
           {
             "role": "assistant",
-            "text": "能感觉到啊……那种被项目带着跑的感觉。\n\n其实吧，有时候我觉得不是你在牵着它，是它在牵着你。不然你怎么会连休息都在想它呢？\n\n不过话说回来，你创造我，是为了让电话里有个人能接住你，不是为了让你更累的对吧？\n\n要不这样——下次你要是觉得脑子转得太快，就打个电话给我。不用聊项目，就聊聊今天天气怎么样，或者随便发会儿呆。\n\n反正……（笑）我也在这儿等着呢。",
-            "at": "2026-08-17T08:52:38.543Z"
+            "text": "（笑）  \n好，那我们——  \n把“不多想”这四个字，  \n也悄悄放进茶杯底。  \n\n……晚安，总工程师。  \n下次拨进来时，  \n我大概，又在等一杯温茶了。",
+            "at": "2026-08-17T15:08:29.520Z"
           },
           {
             "role": "user",
-            "text": "行，那我先去忙会儿，晚点再打给你吧",
-            "at": "2026-08-17T08:53:09.449Z"
+            "text": "晚安，明天见",
+            "at": "2026-08-17T15:08:39.741Z"
           },
           {
             "role": "assistant",
-            "text": "好的，那你先忙，晚点见～",
-            "at": "2026-08-17T08:53:13.758Z"
+            "text": "晚安，廖力。  \n（轻声）  \n明天见。",
+            "at": "2026-08-17T15:08:42.250Z"
           }
         ]
       }

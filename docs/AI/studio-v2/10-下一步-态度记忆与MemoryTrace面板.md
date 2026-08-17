@@ -15,7 +15,7 @@
 ## 2. 关键约束
 
 - 人设只作抽取视角，不得写成身份或事实记忆。
-- 态度证据必须同时命中至少一条 user 轮和一条 assistant 轮。
-- 没有可依据信号时返回 null，不硬造态度。
+- 态度只要抽出 stance/summary/evidence 就优先落库；坏 `evidenceTurnIndexes` 会按 evidence/keywords 回填，不再因种子误伤或双向 grounding 整条作废。
+- 没有可依据信号时模型可返回 null；空 stance/summary/evidence 才丢弃。
 - 态度失败不阻断事实记忆与 endCall；每条通话只追加一条态度。
 - 热层投影固定最近 3 条态度，抽取参考条数由角色配置控制。
