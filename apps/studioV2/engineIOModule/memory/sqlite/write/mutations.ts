@@ -19,6 +19,27 @@ function summaryFromTranscript(value: unknown): string | null {
 	return summarizeUserFactTranscript(value);
 }
 
+function commitItemLayerKind(
+	kind: string,
+): { layer: string; kind: string } | null {
+	switch (kind) {
+		case "vignette":
+			return { layer: "episodic", kind: "vignette" };
+		case "user_fact":
+			return { layer: "semantic", kind: "semantic" };
+		case "shared_event":
+			return { layer: "relational", kind: "shared_event" };
+		case "social_share":
+			return { layer: "relational", kind: "social_share" };
+		case "emotion":
+			return { layer: "affect", kind: "emotion" };
+		case "promise":
+			return { layer: "commitments", kind: "promise" };
+		default:
+			return null;
+	}
+}
+
 export async function getMemoryById(
 	db: SqlDb,
 	input: { userId: string; agentId: string; entryId: string },
@@ -66,46 +87,64 @@ export async function applyMemoryPatch(
 }
 
 export async function commitMemoryAfterCall(
+	db: SqlDb,
 	insertEntry: InsertFn,
 	input: MemoryCommitInput,
 ): Promise<MemoryCommitResult> {
 	try {
-		const summary =
-			input.summaryText?.trim() ||
-			summaryFromTranscript(input.transcript) ||
-			`call_summary session=${input.sessionId} ended=${input.endedAt}`;
-		const ids: string[] = [];
-		ids.push(
-			insertEntry({
-				userId: input.userId,
-				agentId: input.agentId,
-				layer: "episodic",
-				kind: "call_summary",
-				text: summary,
-				at: input.endedAt,
-				callId: input.sessionId,
-			}),
-		);
-		for (const raw of input.vignettes ?? []) {
-			const text = typeof raw === "string" ? raw.trim() : "";
-			if (!text) continue;
+		return db.transaction(function (): MemoryCommitResult {
+			const summary =
+				input.summaryText?.trim() ||
+				summaryFromTranscript(input.transcript) ||
+				`call_summary session=${input.sessionId} ended=${input.endedAt}`;
+			const ids: string[] = [];
+			const writtenEpisodicIds: string[] = [];
+			const writtenLayers = new Set<MemoryCommitResult["writtenLayers"][number]>([
+				"episodic",
+			]);
+
 			ids.push(
 				insertEntry({
 					userId: input.userId,
 					agentId: input.agentId,
 					layer: "episodic",
-					kind: "vignette",
-					text,
+					kind: "call_summary",
+					text: summary,
 					at: input.endedAt,
 					callId: input.sessionId,
 				}),
 			);
-		}
-		return {
-			ok: true,
-			writtenLayers: ["episodic"],
-			writtenEpisodicIds: ids,
-		};
+			writtenEpisodicIds.push(ids[ids.length - 1]!);
+
+			for (const item of input.items ?? []) {
+				const text = item.text.trim();
+				if (!text) continue;
+				const mapping = commitItemLayerKind(item.kind);
+				if (!mapping) continue;
+				ids.push(
+					insertEntry({
+						userId: input.userId,
+						agentId: input.agentId,
+						layer: mapping.layer,
+						kind: mapping.kind,
+						text,
+						at: input.endedAt,
+						callId: input.sessionId,
+					}),
+				);
+				writtenLayers.add(mapping.layer as MemoryCommitResult["writtenLayers"][number]);
+				if (mapping.layer === "episodic") {
+					writtenEpisodicIds.push(ids[ids.length - 1]!);
+				}
+			}
+
+			return {
+				ok: true,
+				writtenLayers: Array.from(writtenLayers),
+				writtenEntryIds: ids,
+				writtenEpisodicIds,
+			};
+		})();
 	} catch (err) {
 		return {
 			ok: false,

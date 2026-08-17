@@ -257,6 +257,8 @@ describe("runDebuggerLlmWithTools", () => {
 			toolId: "record_user_name",
 			behavior: "register_exit",
 			candidateId: "candidate_1",
+			resultEntryIds: ["mem_1"],
+			resultSeeds: ["工具结果不应写成用户事实"],
 		});
 		session.exitCandidates.push({
 			candidateId: "candidate_1",
@@ -347,6 +349,8 @@ describe("runDebuggerLlmWithTools", () => {
 		expect(view.toolTrace[0]).toMatchObject({
 			toolId: "record_user_name",
 			candidateId: "candidate_1",
+			resultEntryIds: ["mem_1"],
+			resultSeeds: ["工具结果不应写成用户事实"],
 		});
 		expect(view.exitCandidates[0]).toMatchObject({
 			candidateId: "candidate_1",

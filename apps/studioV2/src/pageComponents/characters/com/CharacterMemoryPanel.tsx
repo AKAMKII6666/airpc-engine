@@ -1,6 +1,6 @@
 /**
-	* 角色详情记忆只读区：按调试 userId + 当前 agentId 查 Memory；列表 + 分页。
-	* 无写口，不进角色 JSON。调试 userId 来自 data/users，不走 mock。
+	* 角色详情记忆区：按调试 userId + 当前 agentId 查 Memory；列表 + 分页 + 清空。
+	* 记忆不落角色 JSON；调试 userId 来自 data/users，不走 mock。
 	*/
 "use client";
 
@@ -50,6 +50,9 @@ export const CharacterMemoryPanel: FC<CharacterMemoryPanelProps> =
 				page={memory.page}
 				total={memory.total}
 				onPageChange={memory.onPageChange}
+				clearing={memory.clearing}
+				clearError={memory.clearError}
+				onClearMemory={memory.onClearMemory}
 			/>
 		);
 	};

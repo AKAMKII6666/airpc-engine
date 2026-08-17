@@ -5,6 +5,11 @@ import type { CallSession } from "../host/types.js";
 import type { Outcome } from "../schema/outcome.js";
 import type { MemoryCallTranscript, MemoryPort } from "../memory/types.js";
 import { summarizeUserFactTranscript } from "../memory/factMemoryTranscript.js";
+import {
+  memoryExclusionSeeds,
+  memoryPromptTraceRefs,
+  memoryToolTraceRefs,
+} from "./memoryCommitContext.js";
 
 export interface StoryCallMemoryCommitResult {
   committed: boolean;
@@ -64,6 +69,9 @@ export async function commitStoryCallMemory(input: {
       cardId: input.session.resolve.cardId,
       selectedExitId: input.selectedExitId,
       planStatus: input.planStatus,
+      promptTraceRefs: memoryPromptTraceRefs(input.session),
+      toolTraceRefs: memoryToolTraceRefs(input.session),
+      exclusionSeeds: memoryExclusionSeeds(input.session),
     },
   });
   if (input.memory.rollupIfNeeded) {
@@ -75,6 +83,6 @@ export async function commitStoryCallMemory(input: {
   }
   return {
     committed: commit.ok,
-    commitEntryIds: commit.writtenEpisodicIds,
+    commitEntryIds: commit.writtenEntryIds ?? commit.writtenEpisodicIds,
   };
 }

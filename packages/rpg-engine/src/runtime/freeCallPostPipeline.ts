@@ -10,6 +10,11 @@ import { selectExit } from "./exitSelector.js";
 import { executeEffects } from "./effectExecutor.js";
 import type { EffectSink } from "./effectSink.js";
 import type { ScheduledCardLookup } from "../schedule/scheduleCardReferenceResolver.js";
+import {
+  memoryExclusionSeeds,
+  memoryPromptTraceRefs,
+  memoryToolTraceRefs,
+} from "./memoryCommitContext.js";
 
 export interface FreeCallPostPipelineResult {
   committed: boolean;
@@ -97,10 +102,13 @@ export async function runFreeCallPostPipeline(input: {
           source: input.session.resolve.source,
           chapterId: input.session.chapterId,
           cardId: input.session.resolve.cardId,
+          promptTraceRefs: memoryPromptTraceRefs(input.session),
+          toolTraceRefs: memoryToolTraceRefs(input.session),
+          exclusionSeeds: memoryExclusionSeeds(input.session),
         },
       });
       committed = commit.ok;
-      commitEntryIds = commit.writtenEpisodicIds;
+      commitEntryIds = commit.writtenEntryIds ?? commit.writtenEpisodicIds;
       if (input.memory.rollupIfNeeded) {
         await input.memory.rollupIfNeeded({
           userId: input.session.userId,

@@ -12,7 +12,17 @@ import {
 } from "@studio-v2/src/utils/ajaxProxy/debugger/api/callSessionApi";
 import { isStudioApiErrorCode } from "@studio-v2/src/utils/ajaxHelper/studioApiClient";
 import { useDebuggerStore } from "@studio-v2/src/stores/debugger/debuggerStore";
-import type { DebuggerCallSessionView } from "@studio-v2/typeFiles/debugger/callSession";
+import type {
+	DebuggerCallEndView,
+	DebuggerCallSessionView,
+} from "@studio-v2/typeFiles/debugger/callSession";
+
+export type DebuggerEndCallInput = {
+	/** 指定 Host session；用于 UI 已先退出通话态后的后台收尾 */
+	sessionId?: string;
+	/** true 表示早挂；false/缺省表示完成接听后挂断 */
+	hangupEarly?: boolean;
+};
 
 /** 表示 UI 可消费的真实调试通话命令面；隔离 ajax/store 细节 */
 export type DebuggerCallSessionBis = {
@@ -37,8 +47,8 @@ export type DebuggerCallSessionBis = {
 	) => Promise<DebuggerCallSessionView | null>;
 	/** 发送玩家文本并等待模型回复 */
 	sendMessage: (text: string) => Promise<DebuggerCallSessionView | null>;
-	/** 挂断当前通话：有 Host session 时先 endCall，再清 UI 投影 */
-	endCall: () => Promise<boolean>;
+	/** 挂断当前通话：立即清 UI 投影，再后台执行 Host endCall */
+	endCall: (input?: DebuggerEndCallInput) => Promise<DebuggerCallEndView | null>;
 	/** 清空当前通话 UI 投影；仅无 session 或错误恢复时使用 */
 	resetCall: () => void;
 };
@@ -162,26 +172,29 @@ async function runSendMessage(
 async function runEndCall(
 	actions: CallCommandActions,
 	activeCall: DebuggerCallSessionView | null,
-): Promise<boolean> {
-	if (!activeCall) {
+	input: DebuggerEndCallInput = {},
+): Promise<DebuggerCallEndView | null> {
+	const sessionId = input.sessionId ?? activeCall?.sessionId ?? null;
+	if (!sessionId) {
 		actions.resetActiveCall();
-		return true;
+		return null;
 	}
+	actions.resetActiveCall();
 	actions.applyStarted();
 	try {
-		await postDebuggerCallEnd({
-			sessionId: activeCall.sessionId,
-			hangupEarly: false,
+		const end = await postDebuggerCallEnd({
+			sessionId,
+			hangupEarly: input.hangupEarly ?? false,
 		});
 		actions.resetActiveCall();
-		return true;
+		return end;
 	} catch (err) {
 		if (isStaleCallSessionError(err)) {
 			applyStaleCallSession(actions);
-			return false;
+			return null;
 		}
 		actions.applyFailed(errorMessage(err));
-		return false;
+		return null;
 	}
 }
 
@@ -247,8 +260,8 @@ export function useDebuggerCallSessionBis(): DebuggerCallSessionBis {
 	);
 
 	const endCall = useCallback(
-		async function () {
-			return runEndCall(actions, activeCall);
+		async function (input?: DebuggerEndCallInput) {
+			return runEndCall(actions, activeCall, input);
 		},
 		[activeCall, applyStarted, applyResult, applyFailed, resetActiveCall],
 	);

@@ -1,7 +1,7 @@
 /**
 	* 模块名称：Sqlite Memory 写入条目（含可选 FTS）
 	*/
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import type { SqlDb } from "../db/types";
 
 export type InsertEntryInput = {
@@ -13,6 +13,23 @@ export type InsertEntryInput = {
 	at: string;
 	callId?: string;
 };
+
+function normalizeForHash(value: string): string {
+	return value.trim().replace(/\s+/g, " ");
+}
+
+function contentHash(input: InsertEntryInput): string | null {
+	if (!input.callId) return null;
+	const material = [
+		input.userId,
+		input.agentId,
+		input.callId,
+		input.layer,
+		input.kind,
+		normalizeForHash(input.text),
+	].join("\n");
+	return createHash("sha256").update(material).digest("hex");
+}
 
 /** 构造 insertEntry；ftsReady=false 时跳过 FTS 同步。 */
 export function createInsertEntry(
@@ -36,8 +53,9 @@ export function createInsertEntry(
 	return function insertEntry(input: InsertEntryInput): string {
 		const id = randomUUID();
 		const now = input.at;
-		db.prepare(
-			"INSERT INTO memory_entries (id, user_id, agent_id, layer, kind, text, at, created_at, updated_at, call_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+		const hash = contentHash(input);
+		const result = db.prepare(
+			"INSERT OR IGNORE INTO memory_entries (id, user_id, agent_id, layer, kind, text, at, created_at, updated_at, call_id, content_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 		).run(
 			id,
 			input.userId,
@@ -49,7 +67,22 @@ export function createInsertEntry(
 			now,
 			now,
 			input.callId ?? null,
+			hash,
 		);
+		if (result.changes === 0 && hash) {
+			const existing = db.prepare(
+				"SELECT id FROM memory_entries WHERE user_id = ? AND agent_id = ? AND call_id = ? AND layer = ? AND kind = ? AND content_hash = ? LIMIT 1",
+			).get(
+				input.userId,
+				input.agentId,
+				input.callId,
+				input.layer,
+				input.kind,
+				hash,
+			) as { id: string } | undefined;
+			if (existing?.id) return existing.id;
+		}
+		if (result.changes === 0) return id;
 		insertFts({
 			id,
 			userId: input.userId,

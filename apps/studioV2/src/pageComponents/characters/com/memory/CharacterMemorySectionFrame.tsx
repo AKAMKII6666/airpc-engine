@@ -19,7 +19,7 @@ export const CharacterMemorySectionFrame: FC<
 }) {
 	return (
 		<div className={styles.section}>
-			<h3 className={styles.sectionTitle}>记忆（只读）</h3>
+			<h3 className={styles.sectionTitle}>记忆</h3>
 			{children}
 		</div>
 	);

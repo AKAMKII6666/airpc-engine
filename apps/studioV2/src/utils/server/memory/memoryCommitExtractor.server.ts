@@ -1,565 +1,420 @@
 /**
-	* LLM 挂机记忆抽取器：从 Host transcript 抽 call_summary 与生活 vignette。
-	* 只在 StudioV2 server 侧使用；失败由调用方降级，不阻断 Host endCall。
-	*/
+ * LLM 挂机记忆抽取器：transcript-only 输入 → 带证据的条目 → 证据/污染校验。
+ * 只在 StudioV2 server 侧使用；失败由调用方降级，不阻断 Host endCall。
+ */
 import {
-	projectUserFactTranscript,
-	summarizeUserFactTranscript,
-	type UserFactTranscriptProjection,
+  projectUserFactTranscript,
+  summarizeUserFactTranscript,
+  type MemoryCommitItemKind,
 } from "@airpc/rpg-engine";
 import {
-	runServerLlmChat,
-	type ServerLlmChatInput,
-	type ServerLlmChatResult,
+  runServerLlmChat,
+  type ServerLlmChatInput,
+  type ServerLlmChatResult,
 } from "@studio-v2/src/utils/server/debugger/llm/llmClient.server";
 
 type MemoryTranscriptTurn = {
-	role: "user" | "assistant" | "system";
-	text: string;
-	at: string;
+  role: "user" | "assistant" | "system";
+  text: string;
+  at: string;
 };
 
 export type MemoryCallTranscriptLike = {
-	schemaVersion: 1;
-	source: "host.chat_turns";
-	turns: MemoryTranscriptTurn[];
+  schemaVersion: 1;
+  source: "host.chat_turns";
+  turns: MemoryTranscriptTurn[];
+};
+
+export type MemoryExtractionItem = {
+  kind: MemoryCommitItemKind;
+  text: string;
+  evidenceTurnIndexes: number[];
 };
 
 export type MemoryCommitExtraction = {
-	/** 本通自然语言摘要；写入 kind=call_summary */
-	summaryText: string;
-	/** 可再次提起的生活碎片；写入 kind=vignette */
-	vignettes: string[];
-};
-
-export type FactCandidateType =
-	| "user_name"
-	| "birth_datetime"
-	| "concern_topic"
-	| "project"
-	| "life_event";
-
-export type FactCandidate = {
-	id: string;
-	type: FactCandidateType;
-	value: string;
-	text: string;
-	evidenceTurnIndexes: number[];
-	evidenceText: string;
-	confidence: "high" | "medium";
-};
-
-export type NormalizedFact = {
-	candidateId: string;
-	type: FactCandidateType;
-	text: string;
-	evidenceTurnIndexes: number[];
-};
-
-export type VerifiedFact = NormalizedFact & {
-	confidence: "high" | "medium";
+  summaryText: string;
+  items: MemoryExtractionItem[];
+  debug?: {
+    rawCounts?: Record<string, number>;
+    sanitizedCounts?: Record<string, number>;
+    filteredCounts?: Record<string, number>;
+    llmInput?: ServerLlmChatInput;
+    rawLlmText?: string;
+    llmResponse?: {
+      responseId?: string | null;
+      model?: string;
+      finishReason?: string | null;
+    };
+  };
 };
 
 export type MemoryCommitLlmRunner = (
-	input: ServerLlmChatInput,
+  input: ServerLlmChatInput,
 ) => Promise<ServerLlmChatResult>;
 
 export type MemoryCommitContextLike = {
-	callKind?: "free" | "story";
-	policy?: string;
-	source?: string;
-	chapterId?: string;
-	cardId?: string;
-	selectedExitId?: string;
-	planStatus?: string;
+  callKind?: "free" | "story";
+  policy?: string;
+  source?: string;
+  chapterId?: string;
+  cardId?: string;
+  selectedExitId?: string;
+  planStatus?: string;
+  exclusionSeeds?: string[];
+  toolTraceRefs?: {
+    traceCount?: number;
+    toolIds?: string[];
+    resultEntryIds?: string[];
+    candidateIds?: string[];
+    resultSeeds?: string[];
+  };
 };
 
 const MAX_SUMMARY_CHARS = 260;
-const MAX_VIGNETTES = 5;
-const MAX_VIGNETTE_CHARS = 120;
-const NPC_POLLUTION_PATTERNS = [
-	/assistant\s*:/i,
-	/system\s*:/i,
-	/对方说/,
-	/对方提到/,
-	/被形容为/,
-	/电话线/,
-	/线还热/,
-	/线热/,
-	/微微震/,
-	/阳气/,
-	/掐指/,
-	/命盘显示/,
-	/八字显示/,
-	/NPC/i,
-	/助手/,
-	/白半仙说/,
-	/澜星说/,
-	/命盘/,
-	/丁火/,
-	/日主/,
-	/巳亥/,
-	/驿马/,
-	/财星/,
-	/天生/,
-	/搭桥/,
-	/松了口气/,
-	/我在等你/,
-	/台词/,
-	/岩茶/,
-	/浮光/,
-	/没画完的桥/,
-	/星光/,
+const MAX_ITEM_CHARS = 120;
+const MAX_ITEMS_PER_KIND: Record<MemoryCommitItemKind, number> = {
+  user_fact: 5,
+  vignette: 5,
+  shared_event: 3,
+  social_share: 3,
+  emotion: 1,
+  promise: 0,
+};
+
+const EXTRACTABLE_KINDS: MemoryCommitItemKind[] = [
+  "user_fact",
+  "vignette",
+  "shared_event",
+  "emotion",
+  "social_share",
 ];
-const FILLER_TOPICS = new Set(["算命", "看看", "聊聊"]);
+
+const SYSTEM_PROMPT = [
+  "你是通话挂机后的记忆抽取器，只输出 JSON。",
+  "你只能依据下方 transcript 中的对话内容抽取，禁止依据未出现的内容或你的外部知识。",
+  "summaryText 概括本通聊了什么，可以包含双方互动，但不要复述开场套话或工具执行细节。",
+  "items 中每个条目必须给 evidenceTurnIndexes，指向你依据的 turn。",
+  "字段边界：",
+  "- user_fact：用户稳定事实/偏好/明确自报信息，只写用户说的，禁止写 assistant 自述、比喻、命理断语、剧情 seed、工具结果。",
+  "- vignette：可再聊的用户生活碎片（近况、生活小事），同样只写用户侧内容。",
+  "- shared_event：双方这通真实共同形成、且用户也明确参与或确认的经历；禁止把 assistant 单方原创比喻当成共识。",
+  "- emotion：只在用户有明显情绪时写；text 用简短描述（如“轻松愉快：聊到宝宝成长”）。",
+  "- social_share：低风险、用户愿意分享的闲聊素材。",
+  "禁止输出 promise、identity_note、预约、承诺、回拨、任务执行、剧情推进。",
+  "JSON schema: {\"summaryText\":\"string\",\"items\":[{\"kind\":\"user_fact|vignette|shared_event|emotion|social_share\",\"text\":\"string\",\"evidenceTurnIndexes\":[0]}]}",
+].join("\n");
 
 export function isMemoryCallTranscript(
-	value: unknown,
+  value: unknown,
 ): value is MemoryCallTranscriptLike {
-	const candidate = value as Partial<MemoryCallTranscriptLike> | null;
-	return (
-		!!candidate &&
-		candidate.schemaVersion === 1 &&
-		candidate.source === "host.chat_turns" &&
-		Array.isArray(candidate.turns)
-	);
+  const candidate = value as Partial<MemoryCallTranscriptLike> | null;
+  return (
+    !!candidate &&
+    candidate.schemaVersion === 1 &&
+    candidate.source === "host.chat_turns" &&
+    Array.isArray(candidate.turns)
+  );
 }
 
 function trimTo(value: string, max: number): string {
-	const trimmed = value.trim();
-	return trimmed.length <= max ? trimmed : trimmed.slice(0, max).trim();
+  const trimmed = value.trim();
+  return trimmed.length <= max ? trimmed : trimmed.slice(0, max).trim();
 }
 
-function looksLikeNpcPollution(text: string): boolean {
-	return NPC_POLLUTION_PATTERNS.some(function (pattern) {
-		return pattern.test(text);
-	});
+function normalizeTextForOverlap(text: string): string {
+  return text.trim().toLowerCase().replace(/\s+/g, "");
 }
 
-function sanitizeExtractedFactText(text: string): string {
-	return trimTo(text, MAX_SUMMARY_CHARS)
-		.replace(/\s+/g, " ")
-		.trim();
-}
-
-function normalizeCalendar(raw: string | undefined): string {
-	if (!raw) return "unknown";
-	if (/农历|阴历/.test(raw)) return "lunar";
-	if (/公历|阳历|洋历/.test(raw)) return "gregorian";
-	return "unknown";
-}
-
-function normalizeBirthText(
-	match: RegExpMatchArray,
-): { value: string; text: string } {
-	const calendar = normalizeCalendar(match[1]);
-	const year = match[2];
-	const month = match[3].padStart(2, "0");
-	const day = match[4].padStart(2, "0");
-	const hourRaw = match[5];
-	const minuteRaw = match[6];
-	const minute = match[0].includes("半") ? "30" : (minuteRaw ?? "00").padStart(2, "0");
-	const time = hourRaw ? ` ${hourRaw.padStart(2, "0")}:${minute}` : "";
-	const calendarText =
-		calendar === "gregorian" ? "公历" : calendar === "lunar" ? "农历" : "历法未明";
-	const value = `${calendar}:${year}-${month}-${day}${time}`;
-	const text = `用户出生时间为${calendarText} ${year} 年 ${Number(month)} 月 ${Number(day)} 日${time ? ` ${time.trim()}` : ""}`;
-	return { value, text };
-}
-
-function pushCandidate(
-	candidates: FactCandidate[],
-	seen: Set<string>,
-	input: Omit<FactCandidate, "id">,
-): void {
-	const key = `${input.type}:${input.value}`;
-	if (seen.has(key)) return;
-	seen.add(key);
-	candidates.push({
-		...input,
-		id: `fact_${candidates.length + 1}`,
-	});
-}
-
-function extractNameCandidate(text: string): string | null {
-	const patterns = [
-		/我叫\s*([\u4e00-\u9fa5A-Za-z][\u4e00-\u9fa5A-Za-z0-9·._-]{1,20})/,
-		/我是\s*([\u4e00-\u9fa5A-Za-z][\u4e00-\u9fa5A-Za-z0-9·._-]{1,20})/,
-		/是我[，,\s]+([\u4e00-\u9fa5A-Za-z][\u4e00-\u9fa5A-Za-z0-9·._-]{1,20})/,
-	];
-	for (const pattern of patterns) {
-		const match = text.match(pattern);
-		if (!match?.[1]) continue;
-		const name = match[1].replace(/[，,。.！!？?].*$/, "").trim();
-		if (name && !/想|要|帮|算|聊/.test(name)) return name;
-	}
-	return null;
-}
-
-function extractConcernTopics(text: string): string[] {
-	const topics: string[] = [];
-	for (const topic of ["算命", "财运"]) {
-		if (text.includes(topic)) topics.push(topic);
-	}
-	const explicit = text.match(/我想(?:你帮我)?(?:聊|问|看|算|了解)\s*([\u4e00-\u9fa5A-Za-z0-9·._-]{2,18})/);
-	if (explicit?.[1]) {
-		const value = explicit[1].replace(/[，,。.！!？?].*$/, "").trim();
-		if (value && !FILLER_TOPICS.has(value)) topics.push(value);
-	}
-	return Array.from(new Set(topics));
-}
-
-function extractProject(text: string): string | null {
-	const cleaned = text
-		.replace(/^(那必然是|那就是|必然是|当然是|就是|必然|当然|是)/, "")
-		.replace(/啊$/, "")
-		.trim();
-	const match = cleaned.match(/([\u4e00-\u9fa5A-Za-z0-9·._-]{2,30}(?:项目|工程|产品|App|APP|app))/);
-	return match?.[1]?.trim() ?? null;
-}
-
-function extractLifeEvent(text: string): string | null {
-	if (!/(今天|昨天|最近|刚刚|刚才|上周|这周|这个月)/.test(text)) return null;
-	if (/(算命|财运|命盘|八字)/.test(text)) return null;
-	const cleaned = text.replace(/\s+/g, " ").trim();
-	if (cleaned.length < 6 || cleaned.length > 80) return null;
-	return cleaned;
-}
-
-export function extractFactCandidatesFromProjection(
-	projection: UserFactTranscriptProjection,
-): FactCandidate[] {
-	const candidates: FactCandidate[] = [];
-	const seen = new Set<string>();
-	for (const turn of projection.turns) {
-		const text = turn.text.trim();
-		const name = extractNameCandidate(text);
-		if (name) {
-			pushCandidate(candidates, seen, {
-				type: "user_name",
-				value: name,
-				text: `用户叫${name}`,
-				evidenceTurnIndexes: [turn.index],
-				evidenceText: text,
-				confidence: "high",
-			});
-		}
-		const birth = text.match(/(公历|阳历|洋历|农历|阴历)?\s*(\d{4})年\s*(\d{1,2})月\s*(\d{1,2})(?:日|号)(?:[^，,。.!！?？0-9]*(\d{1,2})点(?:半|(?:(\d{1,2})分?)?)?)?/);
-		if (birth) {
-			const normalized = normalizeBirthText(birth);
-			pushCandidate(candidates, seen, {
-				type: "birth_datetime",
-				value: normalized.value,
-				text: normalized.text,
-				evidenceTurnIndexes: [turn.index],
-				evidenceText: text,
-				confidence: birth[5] ? "high" : "medium",
-			});
-		}
-		for (const topic of extractConcernTopics(text)) {
-			pushCandidate(candidates, seen, {
-				type: "concern_topic",
-				value: topic,
-				text: `用户关心${topic}话题`,
-				evidenceTurnIndexes: [turn.index],
-				evidenceText: text,
-				confidence: "medium",
-			});
-		}
-		const project = extractProject(text);
-		if (project) {
-			pushCandidate(candidates, seen, {
-				type: "project",
-				value: project,
-				text: `用户提到自己在做${project}`,
-				evidenceTurnIndexes: [turn.index],
-				evidenceText: text,
-				confidence: "high",
-			});
-		}
-		const lifeEvent = extractLifeEvent(text);
-		if (lifeEvent) {
-			pushCandidate(candidates, seen, {
-				type: "life_event",
-				value: lifeEvent,
-				text: `用户提到：${lifeEvent}`,
-				evidenceTurnIndexes: [turn.index],
-				evidenceText: text,
-				confidence: "medium",
-			});
-		}
-	}
-	return candidates;
+function sharedTokenCount(a: string, b: string): number {
+  const left = normalizeTextForOverlap(a);
+  const right = normalizeTextForOverlap(b);
+  if (!left || !right) return 0;
+  const grams = new Set<string>();
+  for (let i = 0; i + 2 <= right.length; i += 1) {
+    const gram = right.slice(i, i + 2);
+    if (/^[\u4e00-\u9fa5A-Za-z0-9]{2}$/.test(gram)) grams.add(gram);
+  }
+  let hits = 0;
+  const seen = new Set<string>();
+  for (let i = 0; i + 2 <= left.length; i += 1) {
+    const gram = left.slice(i, i + 2);
+    if (/^[\u4e00-\u9fa5A-Za-z0-9]{2}$/.test(gram) && grams.has(gram) && !seen.has(gram)) {
+      seen.add(gram);
+      hits += 1;
+    }
+  }
+  return hits;
 }
 
 function parseJsonObject(text: string): unknown {
-	const trimmed = text.trim();
-	try {
-		return JSON.parse(trimmed);
-	} catch {
-		const start = trimmed.indexOf("{");
-		const end = trimmed.lastIndexOf("}");
-		if (start < 0 || end <= start) throw new Error("memory extraction JSON not found");
-		return JSON.parse(trimmed.slice(start, end + 1));
-	}
+  const trimmed = text.trim();
+  try {
+    return JSON.parse(trimmed);
+  } catch {
+    const start = trimmed.indexOf("{");
+    const end = trimmed.lastIndexOf("}");
+    if (start < 0 || end <= start) throw new Error("memory extraction JSON not found");
+    return JSON.parse(trimmed.slice(start, end + 1));
+  }
 }
 
-function sanitizeVignettes(value: unknown): string[] {
-	if (!Array.isArray(value)) return [];
-	const out: string[] = [];
-	const seen = new Set<string>();
-	for (const raw of value) {
-		if (typeof raw !== "string") continue;
-		const text = trimTo(raw, MAX_VIGNETTE_CHARS);
-		if (!text || seen.has(text) || looksLikeNpcPollution(text)) continue;
-		seen.add(text);
-		out.push(text);
-		if (out.length >= MAX_VIGNETTES) break;
-	}
-	return out;
+function isExtractableKind(value: string): value is MemoryCommitItemKind {
+  return (EXTRACTABLE_KINDS as string[]).includes(value);
 }
 
-function candidateListText(candidates: readonly FactCandidate[]): string {
-	return candidates.map(function (candidate) {
-		return [
-			`id=${candidate.id}`,
-			`type=${candidate.type}`,
-			`value=${candidate.value}`,
-			`text=${candidate.text}`,
-			`evidenceTurnIndexes=${candidate.evidenceTurnIndexes.join(",")}`,
-			`evidenceText=${candidate.evidenceText}`,
-		].join(" | ");
-	}).join("\n");
-}
-
-function parseNormalizedFacts(text: string): NormalizedFact[] {
-	const parsed = parseJsonObject(text) as {
-		facts?: unknown;
-	};
-	if (!Array.isArray(parsed.facts)) return [];
-	const facts: NormalizedFact[] = [];
-	for (const raw of parsed.facts) {
-		const item = raw as Partial<NormalizedFact> | null;
-		if (
-			!item ||
-			typeof item.candidateId !== "string" ||
-			typeof item.type !== "string" ||
-			typeof item.text !== "string" ||
-			!Array.isArray(item.evidenceTurnIndexes)
-		) {
-			continue;
-		}
-		if (!["user_name", "birth_datetime", "concern_topic", "project", "life_event"].includes(item.type)) {
-			continue;
-		}
-		const evidenceTurnIndexes = item.evidenceTurnIndexes.filter(function (index) {
-			return Number.isInteger(index);
-		});
-		facts.push({
-			candidateId: item.candidateId,
-			type: item.type as FactCandidateType,
-			text: trimTo(item.text, MAX_VIGNETTE_CHARS),
-			evidenceTurnIndexes,
-		});
-	}
-	return facts;
-}
-
-function defaultNormalizedFacts(
-	candidates: readonly FactCandidate[],
-): NormalizedFact[] {
-	return candidates.map(function (candidate) {
-		return {
-			candidateId: candidate.id,
-			type: candidate.type,
-			text: candidate.text,
-			evidenceTurnIndexes: candidate.evidenceTurnIndexes,
-		};
-	});
-}
-
-export function verifyNormalizedFacts(
-	candidates: readonly FactCandidate[],
-	normalizedFacts: readonly NormalizedFact[],
-): VerifiedFact[] {
-	const byId = new Map(candidates.map(function (candidate) {
-		return [candidate.id, candidate] as const;
-	}));
-	const verified: VerifiedFact[] = [];
-	const seen = new Set<string>();
-	for (const fact of normalizedFacts) {
-		const candidate = byId.get(fact.candidateId);
-		if (!candidate || candidate.type !== fact.type) continue;
-		if (looksLikeNpcPollution(fact.text)) continue;
-		const sameEvidence =
-			fact.evidenceTurnIndexes.length === candidate.evidenceTurnIndexes.length &&
-			fact.evidenceTurnIndexes.every(function (index) {
-				return candidate.evidenceTurnIndexes.includes(index);
-			});
-		if (!sameEvidence) continue;
-		const key = `${candidate.type}:${candidate.value}`;
-		if (seen.has(key)) continue;
-		seen.add(key);
-		verified.push({
-			candidateId: candidate.id,
-			type: candidate.type,
-			text: candidate.text,
-			evidenceTurnIndexes: candidate.evidenceTurnIndexes,
-			confidence: candidate.confidence,
-		});
-	}
-	return verified;
-}
-
-export function renderMemoryExtractionFromFacts(
-	facts: readonly VerifiedFact[],
-): MemoryCommitExtraction {
-	if (facts.length === 0) {
-		throw new Error("memory fact candidates required");
-	}
-	const summaryText = trimTo(
-		facts.map(function (fact) {
-			return fact.text;
-		}).join("；"),
-		MAX_SUMMARY_CHARS,
-	);
-	const vignettes = facts
-		.filter(function (fact) {
-			return fact.type !== "concern_topic";
-		})
-		.map(function (fact) {
-			return trimTo(fact.text, MAX_VIGNETTE_CHARS);
-		})
-		.filter(function (text, index, list) {
-			return !!text && list.indexOf(text) === index;
-		})
-		.slice(0, MAX_VIGNETTES);
-	return { summaryText, vignettes };
+function parseItems(value: unknown): MemoryExtractionItem[] {
+  if (!Array.isArray(value)) return [];
+  const out: MemoryExtractionItem[] = [];
+  for (const raw of value) {
+    const item = raw as Partial<MemoryExtractionItem> | null;
+    if (!item || typeof item !== "object") continue;
+    if (typeof item.kind !== "string" || !isExtractableKind(item.kind)) continue;
+    if (typeof item.text !== "string") continue;
+    const text = trimTo(item.text, MAX_ITEM_CHARS);
+    if (!text) continue;
+    const evidenceTurnIndexes = Array.isArray(item.evidenceTurnIndexes)
+      ? item.evidenceTurnIndexes.filter(function (index): index is number {
+          return Number.isInteger(index);
+        })
+      : [];
+    out.push({ kind: item.kind, text, evidenceTurnIndexes });
+  }
+  return out;
 }
 
 export function parseMemoryCommitExtraction(text: string): MemoryCommitExtraction {
-	const parsed = parseJsonObject(text) as {
-		summaryText?: unknown;
-		vignettes?: unknown;
-	};
-	const summaryText =
-		typeof parsed.summaryText === "string"
-			? trimTo(parsed.summaryText, MAX_SUMMARY_CHARS)
-			: "";
-	if (!summaryText) {
-		throw new Error("memory extraction summaryText required");
-	}
-	return {
-		summaryText,
-		vignettes: sanitizeVignettes(parsed.vignettes),
-	};
+  const parsed = parseJsonObject(text) as {
+    summaryText?: unknown;
+    summary?: unknown;
+    items?: unknown;
+  };
+  const summaryText =
+    typeof parsed.summaryText === "string"
+      ? trimTo(parsed.summaryText, MAX_SUMMARY_CHARS)
+      : typeof parsed.summary === "string"
+        ? trimTo(parsed.summary, MAX_SUMMARY_CHARS)
+        : "";
+  if (!summaryText) {
+    throw new Error("memory extraction summaryText required");
+  }
+  return { summaryText, items: parseItems(parsed.items) };
+}
+
+function countItems(items: readonly MemoryExtractionItem[]): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const item of items) {
+    counts[item.kind] = (counts[item.kind] ?? 0) + 1;
+  }
+  return counts;
+}
+
+function subtractCounts(
+  raw: Record<string, number>,
+  sanitized: Record<string, number>,
+): Record<string, number> {
+  const result: Record<string, number> = {};
+  for (const key of Object.keys(raw)) {
+    result[key] = Math.max(0, (raw[key] ?? 0) - (sanitized[key] ?? 0));
+  }
+  return result;
+}
+
+function exclusionSeedsFromContext(
+  context: MemoryCommitContextLike | undefined,
+): string[] {
+  const raw = context as (MemoryCommitContextLike & {
+    exclusionSeeds?: unknown;
+  }) | undefined;
+  if (!Array.isArray(raw?.exclusionSeeds)) return [];
+  const out: string[] = [];
+  for (const item of raw.exclusionSeeds) {
+    if (typeof item === "string" && item.trim()) out.push(item.trim());
+  }
+  return Array.from(new Set(out));
+}
+
+function overlapsAnySeed(text: string, seeds: readonly string[]): boolean {
+  if (seeds.length === 0) return false;
+  const normalized = normalizeTextForOverlap(text);
+  if (!normalized) return false;
+  for (const seed of seeds) {
+    const s = normalizeTextForOverlap(seed);
+    if (!s) continue;
+    if (normalized === s || normalized.includes(s) || s.includes(normalized)) {
+      return true;
+    }
+    if (sharedTokenCount(text, seed) >= 2) return true;
+  }
+  return false;
+}
+
+function turnRole(
+  transcript: MemoryCallTranscriptLike,
+  index: number,
+): "user" | "assistant" | "system" | undefined {
+  return transcript.turns[index]?.role;
+}
+
+function hasUserEvidenceOverlap(
+  item: MemoryExtractionItem,
+  transcript: MemoryCallTranscriptLike,
+): boolean {
+  return item.evidenceTurnIndexes.some(function (index) {
+    const turn = transcript.turns[index];
+    return turn?.role === "user" && sharedTokenCount(item.text, turn.text) >= 1;
+  });
+}
+
+function hasAssistantEvidence(
+  item: MemoryExtractionItem,
+  transcript: MemoryCallTranscriptLike,
+): boolean {
+  return item.evidenceTurnIndexes.some(function (index) {
+    return turnRole(transcript, index) === "assistant";
+  });
+}
+
+function hasUserEvidence(
+  item: MemoryExtractionItem,
+  transcript: MemoryCallTranscriptLike,
+): boolean {
+  return item.evidenceTurnIndexes.some(function (index) {
+    return turnRole(transcript, index) === "user";
+  });
+}
+
+function isValidItemByRole(
+  item: MemoryExtractionItem,
+  transcript: MemoryCallTranscriptLike,
+): boolean {
+  switch (item.kind) {
+    case "user_fact":
+    case "vignette":
+    case "social_share":
+      return hasUserEvidenceOverlap(item, transcript);
+    case "shared_event":
+      return hasUserEvidenceOverlap(item, transcript) && hasAssistantEvidence(item, transcript);
+    case "emotion":
+      return hasUserEvidence(item, transcript);
+    default:
+      return false;
+  }
+}
+
+function filterAndCapItems(
+  items: readonly MemoryExtractionItem[],
+  transcript: MemoryCallTranscriptLike,
+  seeds: readonly string[],
+): MemoryExtractionItem[] {
+  const kept: MemoryExtractionItem[] = [];
+  const seen = new Set<string>();
+  const usedByKind = new Map<MemoryCommitItemKind, number>();
+  for (const item of items) {
+    if (!isValidItemByRole(item, transcript)) continue;
+    if (overlapsAnySeed(item.text, seeds)) continue;
+    const key = `${item.kind}:${normalizeTextForOverlap(item.text)}`;
+    if (seen.has(key)) continue;
+    const used = usedByKind.get(item.kind) ?? 0;
+    if (used >= MAX_ITEMS_PER_KIND[item.kind]) continue;
+    seen.add(key);
+    usedByKind.set(item.kind, used + 1);
+    kept.push(item);
+  }
+  return kept;
+}
+
+function sanitizeSummary(
+  text: string,
+  transcript: MemoryCallTranscriptLike,
+): string {
+  const fallback = summarizeUserFactTranscript(transcript) ?? "";
+  const summary = trimTo(text, MAX_SUMMARY_CHARS);
+  if (summary) return summary;
+  if (!fallback) throw new Error("memory extraction user fact summary required");
+  return trimTo(fallback, MAX_SUMMARY_CHARS);
 }
 
 export function sanitizeMemoryCommitExtractionForFacts(
-	extraction: MemoryCommitExtraction,
-	transcript: MemoryCallTranscriptLike,
+  extraction: MemoryCommitExtraction,
+  transcript: MemoryCallTranscriptLike,
+  commitContext?: MemoryCommitContextLike,
 ): MemoryCommitExtraction {
-	const fallbackSummary = summarizeUserFactTranscript(transcript) ?? "";
-	const summaryText = sanitizeExtractedFactText(extraction.summaryText);
-	const safeSummary =
-		summaryText && !looksLikeNpcPollution(summaryText)
-			? summaryText
-			: trimTo(fallbackSummary, MAX_SUMMARY_CHARS);
-	if (!safeSummary) {
-		throw new Error("memory extraction user fact summary required");
-	}
-	return {
-		summaryText: safeSummary,
-		vignettes: sanitizeVignettes(extraction.vignettes),
-	};
+  const rawCounts = extraction.debug?.rawCounts ?? countItems(extraction.items);
+  const seeds = exclusionSeedsFromContext(commitContext);
+  const items = filterAndCapItems(extraction.items, transcript, seeds);
+  return {
+    summaryText: sanitizeSummary(extraction.summaryText, transcript),
+    items,
+    debug: {
+      ...extraction.debug,
+      rawCounts,
+      sanitizedCounts: countItems(items),
+      filteredCounts: subtractCounts(rawCounts, countItems(items)),
+    },
+  };
 }
 
-function buildNormalizationMessages(
-	input: {
-		agentId: string;
-		sessionId: string;
-		candidates: readonly FactCandidate[];
-		commitContext?: MemoryCommitContextLike;
-	},
+function buildExtractionMessages(
+  transcript: MemoryCallTranscriptLike,
 ): ServerLlmChatInput {
-	const context = input.commitContext;
-	const storyRules =
-		context?.callKind === "story"
-			? [
-					"本通是剧情通话：剧情节点、出口、分支、任务完成状态只由 Effect/Profile 管理，不要当作用户长期记忆事实抽取。",
-					"可以摘要用户在剧情通话中真实表达的感受、偏好、关系态度或可自然复聊的生活细节。",
-				]
-			: [
-					"本通是自由通话：仍只抽取可自然复聊的用户记忆，不要抽取承诺、待办或履约项。",
-				];
-	return {
-		temperature: 0.2,
-		toolChoice: "none",
-		messages: [
-			{
-				role: "system",
-				content: [
-					"你是通话挂机后的记忆抽取器，只输出 JSON。",
-					"目标：只规范化程序已经抽出的事实候选，不发现新事实。",
-					"输入是 candidates，不是完整 transcript。你只能保留、轻微改写或丢弃 candidates。",
-					"禁止新增 candidate 外的信息、评价、比喻、命理断语、工具结果、剧情台词或场景氛围。",
-					"不要抽取预约、承诺、介绍专家、回拨、任务执行、剧情推进或需要履约的事项。",
-					...storyRules,
-					"不要写 Profile、不要推断未明说事实、不要输出解释。",
-					"JSON schema: {\"facts\":[{\"candidateId\":\"string\",\"type\":\"user_name|birth_datetime|concern_topic|project|life_event\",\"text\":\"string\",\"evidenceTurnIndexes\":[number]}]}",
-				].join("\n"),
-			},
-			{
-				role: "user",
-				content: [
-					`agentId=${input.agentId}`,
-					`sessionId=${input.sessionId}`,
-					context
-						? `commitContext=${JSON.stringify(context)}`
-						: "commitContext=null",
-					"candidates:",
-					candidateListText(input.candidates),
-				].join("\n"),
-			},
-		],
-	};
+  const turns = transcript.turns.map(function (turn, index) {
+    return { index, role: turn.role, text: turn.text };
+  });
+  return {
+    temperature: 0.3,
+    toolChoice: "none",
+    messages: [
+      { role: "system", content: SYSTEM_PROMPT },
+      { role: "user", content: `transcript:\n${JSON.stringify(turns)}` },
+    ],
+  };
 }
 
-export async function extractMemoryCommitFromTranscript(
-	input: {
-		agentId: string;
-		sessionId: string;
-		transcript: MemoryCallTranscriptLike;
-		commitContext?: MemoryCommitContextLike;
-		llmRunner?: MemoryCommitLlmRunner;
-	},
-): Promise<MemoryCommitExtraction> {
-	const projection = projectUserFactTranscript(input.transcript);
-	if (!projection || projection.turns.length === 0) {
-		throw new Error("memory extraction user turns required");
-	}
-	const candidates = extractFactCandidatesFromProjection(projection);
-	if (candidates.length === 0) {
-		throw new Error("memory fact candidates required");
-	}
-	const runner = input.llmRunner ?? runServerLlmChat;
-	try {
-		const result = await runner(buildNormalizationMessages({
-			agentId: input.agentId,
-			sessionId: input.sessionId,
-			candidates,
-			commitContext: input.commitContext,
-		}));
-		const verified = verifyNormalizedFacts(
-			candidates,
-			parseNormalizedFacts(result.text),
-		);
-		return renderMemoryExtractionFromFacts(
-			verified.length > 0 ? verified : verifyNormalizedFacts(candidates, defaultNormalizedFacts(candidates)),
-		);
-	} catch {
-		return renderMemoryExtractionFromFacts(
-			verifyNormalizedFacts(candidates, defaultNormalizedFacts(candidates)),
-		);
-	}
+function fallbackExtractionFromTranscript(
+  transcript: MemoryCallTranscriptLike,
+): MemoryCommitExtraction {
+  const summary = summarizeUserFactTranscript(transcript);
+  if (!summary) throw new Error("memory extraction user turns required");
+  return {
+    summaryText: trimTo(summary, MAX_SUMMARY_CHARS),
+    items: [],
+  };
+}
+
+export async function extractMemoryCommitFromTranscript(input: {
+  agentId: string;
+  sessionId: string;
+  transcript: MemoryCallTranscriptLike;
+  commitContext?: MemoryCommitContextLike;
+  llmRunner?: MemoryCommitLlmRunner;
+}): Promise<MemoryCommitExtraction> {
+  const projection = projectUserFactTranscript(input.transcript);
+  if (!projection || projection.turns.length === 0) {
+    throw new Error("memory extraction user turns required");
+  }
+  const runner = input.llmRunner ?? runServerLlmChat;
+  try {
+    const llmInput = buildExtractionMessages(input.transcript);
+    const result = await runner(llmInput);
+    const parsed = parseMemoryCommitExtraction(result.text);
+    return sanitizeMemoryCommitExtractionForFacts(
+      {
+        ...parsed,
+        debug: {
+          rawCounts: countItems(parsed.items),
+          llmInput,
+          rawLlmText: result.text,
+          llmResponse: {
+            responseId: result.responseId,
+            model: result.model,
+            finishReason: result.finishReason,
+          },
+        },
+      },
+      input.transcript,
+      input.commitContext,
+    );
+  } catch {
+    return fallbackExtractionFromTranscript(input.transcript);
+  }
 }

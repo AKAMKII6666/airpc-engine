@@ -7,6 +7,7 @@
 export type DtoLogBucket =
 	| "call-sessions"
 	| "llm"
+	| "memory-commits"
 	| "schedule-intents"
 	| "shell-events"
 	| "tool-calls"

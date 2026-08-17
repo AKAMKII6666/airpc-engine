@@ -44,7 +44,7 @@ export function createSqliteMemoryPort(dbPath: string): MemoryPort {
 			return applyMemoryPatch(insertEntry, input);
 		},
 		async commitAfterCall(input) {
-			return commitMemoryAfterCall(insertEntry, input);
+			return commitMemoryAfterCall(db, insertEntry, input);
 		},
 		async rollupIfNeeded(input) {
 			return rollupIfNeeded(db, input);

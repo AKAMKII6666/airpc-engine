@@ -18,9 +18,25 @@ type SearchMemoryQuery = {
   textQuery?: string;
   fromIso?: string;
   toIso?: string;
-  kinds?: Array<"call_summary" | "vignette" | "beat" | "semantic" | "rollup">;
+  kinds?: Array<
+    | "call_summary"
+    | "vignette"
+    | "beat"
+    | "semantic"
+    | "rollup"
+    | "shared_event"
+    | "emotion"
+    | "identity_note"
+    | "promise"
+    | "social_share"
+  >;
   maxResults: number;
 };
+
+function traceSeed(text: string): string {
+  const compact = text.trim().replace(/\s+/g, " ");
+  return compact.length > 160 ? `${compact.slice(0, 157)}...` : compact;
+}
 
 function authorizedMemoryEntryIds(session: CallSession): Set<string> {
   const ids = new Set<string>();
@@ -77,6 +93,9 @@ async function invokeSearchMemory(
         return hit.id;
       }),
       resultCount: hits.length,
+      resultSeeds: hits.map(function (hit) {
+        return traceSeed(hit.text);
+      }),
     });
     return {
       ok: true,
@@ -129,6 +148,7 @@ async function invokeGetMemoryById(
     behavior: "session_local",
     entryId,
     found: !!hit,
+    resultSeeds: hit ? [traceSeed(hit.text)] : [],
   });
   return {
     ok: true,

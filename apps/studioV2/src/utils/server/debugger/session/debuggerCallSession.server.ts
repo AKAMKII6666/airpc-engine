@@ -118,6 +118,10 @@ export type DebuggerToolTraceView = {
 	behavior: string;
 	/** register_exit 时的候选 id；其他工具为空 */
 	candidateId: string | null;
+	/** search_memory 等工具返回的 entry ids；用于核对 MemoryCommit 排除来源 */
+	resultEntryIds: string[];
+	/** 工具结果短 seed；挂机记忆抽取会纳入 exclusionSeeds */
+	resultSeeds: string[];
 };
 
 export type DebuggerExitCandidateView = {
@@ -183,6 +187,25 @@ export type DebuggerCallEndView = {
 	planStatus: string | null;
 	/** Free pipeline 是否执行了记忆 commit；Story 为 null */
 	freeCommitted: boolean | null;
+	/** 挂机记忆提交摘要；供 UI/console 展示 Memory Trace */
+	memoryTrace: DebuggerMemoryCommitTraceView | null;
+};
+
+export type DebuggerMemoryCommitTraceView = {
+	/** DTO trace id；对应 debug-dto indexes/by-trace */
+	traceId: string;
+	/** DTO id；对应 debug-dto/memory-commits/<dtoId>.json */
+	dtoId: string;
+	/** 记忆提交策略来源 */
+	policy: "free_post_pipeline" | "story_call";
+	/** 是否提交成功 */
+	committed: boolean;
+	/** 本次提交写入/命中的 entry ids */
+	entryIds: string[];
+	/** 跳过原因；Free 成功/失败路径可为空 */
+	skippedReason: string | null;
+	/** 提交错误；无则为空 */
+	error: string | null;
 };
 
 function readObjective(session: CallSession): string {
@@ -224,6 +247,8 @@ function projectToolTraceItem(raw: unknown): DebuggerToolTraceView {
 		toolId?: unknown;
 		behavior?: unknown;
 		candidateId?: unknown;
+		resultEntryIds?: unknown;
+		resultSeeds?: unknown;
 	};
 	return {
 		at: typeof trace.at === "string" ? trace.at : null,
@@ -231,6 +256,18 @@ function projectToolTraceItem(raw: unknown): DebuggerToolTraceView {
 		behavior: typeof trace.behavior === "string" ? trace.behavior : "unknown",
 		candidateId:
 			typeof trace.candidateId === "string" ? trace.candidateId : null,
+		resultEntryIds: Array.isArray(trace.resultEntryIds)
+			? trace.resultEntryIds.filter(function (id): id is string {
+					return typeof id === "string";
+				})
+			: [],
+		resultSeeds: Array.isArray(trace.resultSeeds)
+			? trace.resultSeeds.filter(function (seed): seed is string {
+					return typeof seed === "string";
+				}).map(function (seed) {
+					return previewUnknown(seed, "");
+				})
+			: [],
 	};
 }
 
@@ -458,6 +495,35 @@ export async function sendDebuggerCallMessage(
 	);
 }
 
+function projectMemoryTrace(
+	result: EndCallResult,
+): DebuggerMemoryCommitTraceView | null {
+	const traceId = `memory_commit:${result.session.sessionId}`;
+	if (result.freePipeline) {
+		return {
+			traceId,
+			dtoId: result.session.sessionId,
+			policy: "free_post_pipeline",
+			committed: result.freePipeline.committed,
+			entryIds: result.freePipeline.commitEntryIds ?? [],
+			skippedReason: result.freePipeline.committed ? null : "not_committed",
+			error: null,
+		};
+	}
+	if (result.storyMemoryCommit) {
+		return {
+			traceId,
+			dtoId: result.session.sessionId,
+			policy: "story_call",
+			committed: result.storyMemoryCommit.committed,
+			entryIds: result.storyMemoryCommit.commitEntryIds ?? [],
+			skippedReason: result.storyMemoryCommit.skippedReason ?? null,
+			error: result.storyMemoryCommit.error ?? null,
+		};
+	}
+	return null;
+}
+
 function projectEndResult(result: EndCallResult): DebuggerCallEndView {
 	return {
 		sessionId: result.session.sessionId,
@@ -465,6 +531,7 @@ function projectEndResult(result: EndCallResult): DebuggerCallEndView {
 		selectedExitId: result.selectedExitId ?? null,
 		planStatus: result.effectPlanResult.status,
 		freeCommitted: result.freePipeline?.committed ?? null,
+		memoryTrace: projectMemoryTrace(result),
 	};
 }
 

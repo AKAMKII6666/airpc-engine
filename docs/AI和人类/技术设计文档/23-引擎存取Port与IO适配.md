@@ -65,7 +65,8 @@ data/（storis-packages / users / memory / logs …）
 
 **职责：** 按 `userId`+`agentId` 读写记忆；通话前投影、挂机 commit、工具 patch。  
 **本机实现：** SQLite（原 `createSqliteMemoryPort` → `engineIOModule/memory`）。  
-**代码对齐：** `packages/rpg-engine/src/memory/types.ts`（已存在，迁实现时保持兼容）。
+**代码对齐：** `packages/rpg-engine/src/memory/types.ts`。  
+**抽取不在本 Port：** Studio Host 装配时用 `createMemoryCommitOrchestratingPort` 包一层；Port 本身只存结构化 payload。产品分层见 [12 §4.2](../需求/12-记忆模型.md)。
 
 ```ts
 interface MemoryPort {
@@ -112,13 +113,13 @@ interface MemoryPort {
 
 | 方法 | 入参 | 出参 |
 |------|------|------|
-| `projectForCall` | 见上 | `MemoryProjection`：`{ softText: string; includedEntryIds: string[]; rollupIds?: string[]; debug?: { hotCount: number; chars: number } }` |
-| `search` | `MemorySearchQuery`：`{ userId, agentId, textQuery?, fromIso?, toIso?, kinds?: ("call_summary"\|"vignette"\|"beat"\|"semantic"\|"rollup")[], maxResults: number }` | `MemorySearchHit[]`，每条 `{ id, layer, kind?, text, at, createdAt }`；无命中 `[]` |
+| `projectForCall` | 见上 | `MemoryProjection`：`{ softText; items?; includedEntryIds; rollupIds?; debug?: { hotCount, chars, counts? } }` |
+| `search` | `MemorySearchQuery`：`{ userId, agentId, textQuery?, fromIso?, toIso?, kinds?: (call_summary\|vignette\|beat\|semantic\|rollup\|shared_event\|emotion\|identity_note\|promise\|social_share)[], maxResults }` | `MemorySearchHit[]`，每条 `{ id, layer, kind?, text, at, createdAt }`；无命中 `[]` |
 | `getById` | `userId, agentId, entryId` | `MemorySearchHit \| null` |
 | `applyPatch` | `userId, agentId, layer, op, payload` | `void`；非法 op/层 throw |
-| `commitAfterCall` | `MemoryCommitInput`：`{ userId, agentId, sessionId, transcript: unknown, outcome?: Outcome, endedAt: string, summaryText?: string, vignettes?: string[] }` | `MemoryCommitResult`：`{ ok: boolean; writtenLayers: (...层名)[]; writtenEpisodicIds?: string[]; error?: string }`。`ok:false` 时可不 throw，由 Host 读 `error` |
+| `commitAfterCall` | `MemoryCommitInput`：`{ userId, agentId, sessionId, transcript, outcome?, endedAt, commitContext?, summaryText?, vignettes?, structuredMemory? }`。`commitContext` 含 `exclusionSeeds` / prompt·tool refs。`structuredMemory` 由 Orchestrator 填，Port 按字段落库。 | `MemoryCommitResult`：`{ ok; writtenLayers; writtenEntryIds?; writtenEpisodicIds?; error? }`。新代码用 `writtenEntryIds`；`writtenEpisodicIds` 仅兼容。`ok:false` 时可不 throw，由 Host 读 `error` |
 
-**实现注意：** 不把万级 episodic 写进 Profile JSON；查询走库，不扫 Content。
+**实现注意：** 不把万级 episodic 写进 Profile JSON；查询走库，不扫 Content。`commitAfterCall` 须事务 + 按 `callId + layer + kind + contentHash` 幂等。
 
 ---
 

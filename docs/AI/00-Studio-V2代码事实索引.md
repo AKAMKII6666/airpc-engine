@@ -18,6 +18,8 @@
 | [studio-v2/06-过程岔子与纠正记录.md](./studio-v2/06-过程岔子与纠正记录.md) | 做错什么、用户怎么要求改、最终口径 |
 | [studio-v2/07-已知边界与下一步候选.md](./studio-v2/07-已知边界与下一步候选.md) | 故意未做的事、易误判项 |
 | [studio-v2/08-调试器人工E2E清单.md](./studio-v2/08-调试器人工E2E清单.md) | 调试器人工走测、提交前核对、失败取证口径 |
+| [studio-v2/09-记忆Commit与Trace.md](./studio-v2/09-记忆Commit与Trace.md) | 挂机抽取分层、Orchestrator 落点、Memory Trace |
+| [studio-v2/10-下一步-态度记忆与MemoryTrace面板.md](./studio-v2/10-下一步-态度记忆与MemoryTrace面板.md) | 给后续 Agent：态度记忆 + Trace 成品面板 |
 
 ## 2. 与其它文档层的分工
 
@@ -42,6 +44,10 @@
 - **编辑接线可落盘**：浮窗/出口/Effect/归属/章节字段 → 会话图 → 顶栏整包保存 → `cards` + `canvas.layout.json`。  
 - **引擎已接** `persona.personalityCode` → Composer `systemHard`；Studio 字段与之对齐。  
 - **下一步（非本步）：** 资源库落盘、调试器真会话、第二幕内容、Host 闭环。
+
+### 3.1 增量（2026-08-17）
+
+T3-8 之后调试器真会话 / Host 已接通。记忆加强已落地：完整 transcript 结构化抽取、Orchestrator 与 Port 分层、exclusionSeeds 污染过滤、Memory Trace DTO + 挂机 overlay。细节见 [09](./studio-v2/09-记忆Commit与Trace.md)。态度记忆仍后置。
 
 ## 4. 真源接通（里程碑）
 

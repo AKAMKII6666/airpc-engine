@@ -35,6 +35,8 @@ export type CharacterMemoryListBis = {
 	error: string | undefined;
 	/** 翻页：触发 bis 重拉并写 store */
 	onPageChange: (nextPage: number) => void;
+	/** 回到第 1 页重拉（清空成功后刷新） */
+	reload: () => void;
 };
 
 /**
@@ -122,5 +124,8 @@ export function useCharacterMemoryListBis(
 		loading,
 		error,
 		onPageChange,
+		reload() {
+			void load(1, userId);
+		},
 	};
 }

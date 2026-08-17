@@ -11,13 +11,32 @@ import {
   isEngineError,
   listBuiltinTools,
 } from "../../src/index.js";
-import { createTestHostWithMemory } from "../helpers/inMemoryMemoryPort.js";
+import type { MemoryCommitInput, MemoryPort } from "../../src/memory/types.js";
+import {
+  createInMemoryMemoryPort,
+  createTestHostWithMemory,
+} from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../../../..",
 );
 const dataSrc = path.join(repoRoot, "data");
+
+async function copyStableDataRoot(target: string): Promise<void> {
+  await cp(dataSrc, target, {
+    recursive: true,
+    filter(src) {
+      const rel = path.relative(dataSrc, src);
+      return !(
+        rel === "debug-dto" ||
+        rel.startsWith(`debug-dto${path.sep}`) ||
+        rel === "logs" ||
+        rel.startsWith(`logs${path.sep}`)
+      );
+    },
+  });
+}
 
 describe("free call + tools + memory", () => {
   let tmpRoot: string | undefined;
@@ -51,7 +70,7 @@ describe("free call + tools + memory", () => {
   it("free_call → packageId __free__ → Commit without candidate", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-p5-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyStableDataRoot(dataRoot);
     const host = createTestHostWithMemory({ persist: true, dataRoot });
     await host.loadWorkspace(dataRoot);
     await host.ensureProfile("demo-user");
@@ -113,8 +132,17 @@ describe("free call + tools + memory", () => {
   it("register_exit candidate → Free Exit Effect (share_expert_number unlock)", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-p5-cand-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
-    const host = createTestHostWithMemory({ persist: true, dataRoot });
+    await copyStableDataRoot(dataRoot);
+    const commits: MemoryCommitInput[] = [];
+    const baseMemory = createInMemoryMemoryPort();
+    const memory: MemoryPort = {
+      ...baseMemory,
+      async commitAfterCall(input) {
+        commits.push(input);
+        return baseMemory.commitAfterCall(input);
+      },
+    };
+    const host = createTestHostWithMemory({ persist: true, dataRoot, memory });
     await host.loadWorkspace(dataRoot);
     await host.ensureProfile("demo-user");
     const resolved = await host.resolveAsync("demo-user", {
@@ -133,6 +161,11 @@ describe("free call + tools + memory", () => {
     if (isEngineError(inv)) return;
     expect(inv.behavior).toBe("register_exit");
     expect(session.exitCandidates.length).toBe(1);
+    const u1 = host.recordChatTurn(session.sessionId, {
+      role: "user",
+      text: "我想之后认识一下小皮老师。",
+    });
+    if (isEngineError(u1)) throw u1;
     const unknown = await host.invokeTool(session.sessionId, "not_a_tool", {});
     expect(isEngineError(unknown)).toBe(true);
     const end = await host.endCall(session.sessionId, {
@@ -143,6 +176,14 @@ describe("free call + tools + memory", () => {
     expect(isEngineError(end)).toBe(false);
     if (isEngineError(end)) return;
     expect(end.selectedExitId).toBeTruthy();
+    expect(commits.at(-1)?.commitContext?.toolTraceRefs).toMatchObject({
+      traceCount: 1,
+      toolIds: ["share_expert_number"],
+    });
+    expect(commits.at(-1)?.commitContext?.toolTraceRefs?.candidateIds?.length).toBe(1);
+    expect(commits.at(-1)?.commitContext?.exclusionSeeds).toEqual(
+      expect.arrayContaining(["tool:share_expert_number"]),
+    );
     expect(
       end.effectPlanResult.results.some((r) => r.status === "executed"),
     ).toBe(true);
@@ -155,10 +196,66 @@ describe("free call + tools + memory", () => {
     expect(saved.characters.xiaopi?.unlocked).toBe(true);
   });
 
+  it("passes session_local tool result seeds into MemoryCommit exclusions", async () => {
+    tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-p5-tool-seed-"));
+    const dataRoot = path.join(tmpRoot, "data");
+    await copyStableDataRoot(dataRoot);
+    const commits: MemoryCommitInput[] = [];
+    const baseMemory = createInMemoryMemoryPort();
+    const memory: MemoryPort = {
+      ...baseMemory,
+      async commitAfterCall(input) {
+        commits.push(input);
+        return baseMemory.commitAfterCall(input);
+      },
+    };
+    const host = createTestHostWithMemory({ persist: true, dataRoot, memory });
+    await host.loadWorkspace(dataRoot);
+    await host.ensureProfile("demo-user");
+    const resolved = await host.resolveAsync("demo-user", {
+      kind: "free_call",
+      agentId: "bai-bansian",
+    });
+    if (isEngineError(resolved)) throw resolved;
+    const session = await host.beginCall("demo-user", resolved, {
+      channel: "manual",
+    });
+    if (isEngineError(session)) throw session;
+    const turn = host.recordChatTurn(session.sessionId, {
+      role: "user",
+      text: "我想让你看看我的生日。",
+    });
+    if (isEngineError(turn)) throw turn;
+    const inv = await host.invokeTool(session.sessionId, "compute_bazi_chart", {
+      calendar_type: "solar",
+      birth_date: "1990-01-02",
+    });
+    expect(isEngineError(inv)).toBe(false);
+    if (isEngineError(inv)) return;
+
+    const end = await host.endCall(session.sessionId, {
+      flags: { answered_completed: true },
+      completedBeats: [],
+      missedRequiredBeats: [],
+    });
+    expect(isEngineError(end)).toBe(false);
+    expect(commits.at(-1)?.commitContext?.toolTraceRefs).toMatchObject({
+      traceCount: 1,
+      toolIds: ["compute_bazi_chart"],
+      resultSeeds: [expect.stringContaining("八字排盘")],
+    });
+    expect(commits.at(-1)?.commitContext?.exclusionSeeds).toEqual(
+      expect.arrayContaining([
+        "tool:compute_bazi_chart",
+        expect.stringContaining("八字排盘"),
+      ]),
+    );
+  });
+
   it("loadCard 可经 __free__ 解析角色 FreeCard", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-p5-free-load-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyStableDataRoot(dataRoot);
     const host = createTestHostWithMemory({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);
     const ok = await host.preloadCard(FREE_CHAPTER_ID, "lanxing_free");

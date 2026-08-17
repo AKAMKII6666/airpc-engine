@@ -11,6 +11,11 @@ export type OpenedMemoryDb = {
 	ftsReady: boolean;
 };
 
+function tableColumns(db: SqlDb, table: string): Set<string> {
+	const rows = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>;
+	return new Set(rows.map((row) => row.name));
+}
+
 /** 打开（或创建）memory.sqlite，建表并探测 FTS5。 */
 export function openSqliteMemoryDb(dbPath: string): OpenedMemoryDb {
 	mkdirSync(path.dirname(dbPath), { recursive: true });
@@ -32,6 +37,7 @@ export function openSqliteMemoryDb(dbPath: string): OpenedMemoryDb {
 			fact_id TEXT,
 			expires_at TEXT,
 			status TEXT,
+			content_hash TEXT,
 			payload_json TEXT
 		);
 		CREATE INDEX IF NOT EXISTS idx_mem_user_agent_at
@@ -53,6 +59,15 @@ export function openSqliteMemoryDb(dbPath: string): OpenedMemoryDb {
 		);
 		CREATE INDEX IF NOT EXISTS idx_rollup_user_agent
 			ON memory_rollups(user_id, agent_id, range_to DESC);
+	`);
+	const entryColumns = tableColumns(db, "memory_entries");
+	if (!entryColumns.has("content_hash")) {
+		db.exec("ALTER TABLE memory_entries ADD COLUMN content_hash TEXT");
+	}
+	db.exec(`
+		CREATE UNIQUE INDEX IF NOT EXISTS idx_mem_commit_idempotency
+			ON memory_entries(user_id, agent_id, call_id, layer, kind, content_hash)
+			WHERE call_id IS NOT NULL AND content_hash IS NOT NULL;
 	`);
 	let ftsReady = false;
 	try {

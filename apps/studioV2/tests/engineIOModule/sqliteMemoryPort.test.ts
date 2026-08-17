@@ -178,7 +178,10 @@ describe("SqliteMemoryPort", () => {
 			transcript: null,
 			endedAt: "2026-07-15T10:00:00.000Z",
 			summaryText: "聊了家里近况",
-			vignettes: ["奶奶给用户做了小蛋糕", "  ", "阳台种了西红柿"],
+			items: [
+				{ kind: "vignette", text: "奶奶给用户做了小蛋糕" },
+				{ kind: "vignette", text: "阳台种了西红柿" },
+			],
 		});
 		expect(commit.ok).toBe(true);
 		expect(commit.writtenEpisodicIds?.length).toBe(3); // 1 summary + 2 vignettes
@@ -303,7 +306,7 @@ describe("SqliteMemoryPort", () => {
 			transcript: null,
 			endedAt: "2026-07-15T10:00:00.000Z",
 			summaryText: "聊到用户最近喜欢喝茶",
-			vignettes: ["用户喜欢桂花乌龙"],
+			items: [{ kind: "vignette", text: "用户喜欢桂花乌龙" }],
 		});
 		await mem.applyPatch({
 			userId: "u1",
@@ -332,6 +335,93 @@ describe("SqliteMemoryPort", () => {
 		expect(proj.debug?.counts?.semantic).toBe(1);
 	});
 
+	it("commit writes structured memory layers and projects them", async () => {
+		const mem = await setup();
+		const card = CallCardDefinitionSchema.parse({
+			cardId: "c",
+			ownerAgentId: "a",
+			exits: [],
+		});
+		const commit = await mem.commitAfterCall({
+			userId: "u1",
+			agentId: "a1",
+			sessionId: "s-structured",
+			transcript: null,
+			endedAt: "2026-07-15T10:00:00.000Z",
+			summaryText: "聊到用户刚下班，有些疲惫。",
+			items: [
+				{ kind: "user_fact", text: "用户刚下班时会觉得脑子有点空" },
+				{ kind: "emotion", text: "情绪：疲惫；原因：刚下班；跟进：问问休息好了没" },
+				{ kind: "shared_event", text: "一起聊了下班后的放空感" },
+				{ kind: "social_share", text: "用户愿意把下班后的放空感分享给澜星" },
+			],
+		});
+
+		expect(commit.ok).toBe(true);
+		expect(commit.writtenEntryIds?.length).toBeGreaterThan(1);
+		expect(commit.writtenLayers).toEqual(
+			expect.arrayContaining(["episodic", "semantic", "affect", "relational"]),
+		);
+
+		const semanticHits = await mem.search({
+			userId: "u1",
+			agentId: "a1",
+			textQuery: "脑子有点空",
+			kinds: ["semantic"],
+			maxResults: 5,
+		});
+		expect(semanticHits).toHaveLength(1);
+
+		const proj = await mem.projectForCall({
+			userId: "u1",
+			agentId: "a1",
+			card,
+		});
+		expect(proj.items?.map((item) => item.kind)).toEqual(
+			expect.arrayContaining([
+				"semantic",
+				"shared_event",
+				"emotion",
+				"social_share",
+			]),
+		);
+		expect(proj.softText).toContain("脑子有点空");
+		expect(proj.softText).toContain("一起聊了下班后的放空感");
+		expect(proj.softText).toContain("情绪：疲惫");
+		expect(proj.softText).toContain("用户愿意把下班后的放空感分享给澜星");
+	});
+
+	it("commitAfterCall is idempotent per session/layer/kind/content", async () => {
+		const mem = await setup();
+		const input = {
+			userId: "u1",
+			agentId: "a1",
+			sessionId: "s-idem",
+			transcript: null,
+			endedAt: "2026-07-15T10:00:00.000Z",
+			summaryText: "聊到用户最近睡眠很浅。",
+			items: [
+				{ kind: "user_fact" as const, text: "用户最近睡眠很浅" },
+				{ kind: "shared_event" as const, text: "一起聊了睡前放松" },
+			],
+		};
+
+		const first = await mem.commitAfterCall(input);
+		const second = await mem.commitAfterCall(input);
+		expect(second.writtenEntryIds).toEqual(first.writtenEntryIds);
+
+		const hits = await mem.search({
+			userId: "u1",
+			agentId: "a1",
+			textQuery: "睡眠很浅",
+			fromIso: "2026-07-15T00:00:00.000Z",
+			toIso: "2026-07-16T00:00:00.000Z",
+			maxResults: 10,
+		});
+		expect(hits.filter((hit) => hit.kind === "call_summary")).toHaveLength(1);
+		expect(hits.filter((hit) => hit.kind === "semantic")).toHaveLength(1);
+	});
+
 	it("E5: rollupIfNeeded creates month/quarter rollup; before/after assertable", async () => {
 		const mem = await setup();
 		const card = CallCardDefinitionSchema.parse({
@@ -348,7 +438,7 @@ describe("SqliteMemoryPort", () => {
 			transcript: null,
 			endedAt: "2026-06-20T12:00:00.000Z",
 			summaryText: "六月聊了搬家",
-			vignettes: ["六月买了绿植"],
+			items: [{ kind: "vignette", text: "六月买了绿植" }],
 		});
 
 		const before = await mem.projectForCall({
@@ -382,7 +472,7 @@ describe("SqliteMemoryPort", () => {
 			transcript: null,
 			endedAt: "2026-07-15T18:00:00.000Z",
 			summaryText: "七月聊了高考",
-			vignettes: ["外婆寄了粽子"],
+			items: [{ kind: "vignette", text: "外婆寄了粽子" }],
 		});
 		await mem.rollupIfNeeded!({
 			userId: "u1",
@@ -432,7 +522,7 @@ describe("SqliteMemoryPort", () => {
 			transcript: null,
 			endedAt: "2026-05-10T12:00:00.000Z",
 			summaryText: "五月聊了春游",
-			vignettes: ["去了植物园"],
+			items: [{ kind: "vignette", text: "去了植物园" }],
 		});
 
 		const before = await mem.projectForCall({

@@ -8,7 +8,7 @@ import {
 } from "@airpc/rpg-engine";
 import type { EntryRow, SqlDb } from "../db/types";
 
-/** 热投影：稳定 semantic 优先，再补最近 call_summary / vignette / rollup。 */
+/** 热投影：稳定 semantic 优先，再补最近摘要、共同经历、情绪、承诺、身份 note 与 rollup。 */
 export async function projectForCall(
 	db: SqlDb,
 	input: { userId: string; agentId: string },
@@ -34,6 +34,36 @@ export async function projectForCall(
 			"SELECT id, layer, kind, text, at, created_at FROM memory_entries WHERE user_id = ? AND agent_id = ? AND kind = 'semantic' ORDER BY at DESC LIMIT ?",
 		)
 		.all(input.userId, input.agentId, maxSemantic) as EntryRow[];
+
+	const sharedEvents = db
+		.prepare(
+			"SELECT id, layer, kind, text, at, created_at FROM memory_entries WHERE user_id = ? AND agent_id = ? AND kind = 'shared_event' ORDER BY at DESC LIMIT ?",
+		)
+		.all(input.userId, input.agentId, maxVignettes) as EntryRow[];
+
+	const emotions = db
+		.prepare(
+			"SELECT id, layer, kind, text, at, created_at FROM memory_entries WHERE user_id = ? AND agent_id = ? AND kind = 'emotion' ORDER BY at DESC LIMIT ?",
+		)
+		.all(input.userId, input.agentId, 2) as EntryRow[];
+
+	const identityNotes = db
+		.prepare(
+			"SELECT id, layer, kind, text, at, created_at FROM memory_entries WHERE user_id = ? AND agent_id = ? AND kind = 'identity_note' ORDER BY at DESC LIMIT ?",
+		)
+		.all(input.userId, input.agentId, 2) as EntryRow[];
+
+	const promises = db
+		.prepare(
+			"SELECT id, layer, kind, text, at, created_at FROM memory_entries WHERE user_id = ? AND agent_id = ? AND kind = 'promise' ORDER BY at DESC LIMIT ?",
+		)
+		.all(input.userId, input.agentId, 2) as EntryRow[];
+
+	const socialShares = db
+		.prepare(
+			"SELECT id, layer, kind, text, at, created_at FROM memory_entries WHERE user_id = ? AND agent_id = ? AND kind = 'social_share' ORDER BY at DESC LIMIT ?",
+		)
+		.all(input.userId, input.agentId, 2) as EntryRow[];
 
 	const rollups = db
 		.prepare(
@@ -88,6 +118,21 @@ export async function projectForCall(
 	}
 	for (const row of vignettes) {
 		pushChunk("vignette", row.id, row.text, row.at, row.created_at, row.layer, false);
+	}
+	for (const row of sharedEvents) {
+		pushChunk("shared_event", row.id, row.text, row.at, row.created_at, row.layer, false);
+	}
+	for (const row of emotions) {
+		pushChunk("emotion", row.id, row.text, row.at, row.created_at, row.layer, false);
+	}
+	for (const row of identityNotes) {
+		pushChunk("identity_note", row.id, row.text, row.at, row.created_at, row.layer, false);
+	}
+	for (const row of promises) {
+		pushChunk("promise", row.id, row.text, row.at, row.created_at, row.layer, false);
+	}
+	for (const row of socialShares) {
+		pushChunk("social_share", row.id, row.text, row.at, row.created_at, row.layer, false);
 	}
 	for (const row of rollups) {
 		pushChunk("rollup", row.id, row.text, row.at, row.created_at, "rollup", true);

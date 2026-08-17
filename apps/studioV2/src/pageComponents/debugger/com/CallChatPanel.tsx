@@ -122,7 +122,7 @@ export const CallChatPanel: FC<CallChatPanelProps> = function CallChatPanel({
 				<div className={styles.speechFooter}>
 					<span>
 						{remoteHangup
-							? "远端挂断来自 Host shell event，点击结束收尾本通。"
+							? "远端挂断来自 Host shell event，正在自动收尾本通。"
 							: "文本会进入 Host session，并由 server LLM 回复。"}
 					</span>
 					{/* 引用了Button组件，用于发送玩家通话文本 */}

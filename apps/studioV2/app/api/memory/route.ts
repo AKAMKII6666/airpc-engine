@@ -5,6 +5,7 @@ import {
 	apiFail,
 	apiOk,
 } from "@studio-v2/src/utils/server/http/apiResponse.server";
+import { clearAgentMemoryForUser } from "@studio-v2/src/utils/server/memory/memoryClear.server";
 import { listMemoryPage } from "@studio-v2/src/utils/server/memory/memoryRead.server";
 
 export async function GET(req: Request): Promise<Response> {
@@ -27,6 +28,31 @@ export async function GET(req: Request): Promise<Response> {
 			pageSize: Number.isFinite(pageSize) ? pageSize : 10,
 		});
 		return apiOk(pageData);
+	} catch (err) {
+		return apiFail(
+			"ENGINE_INTERNAL",
+			err instanceof Error ? err.message : String(err),
+			500,
+		);
+	}
+}
+
+/**
+	* DELETE /api/memory?userId&agentId — 清空该角色对该玩家的记忆与对话惯性。
+	*/
+export async function DELETE(req: Request): Promise<Response> {
+	try {
+		const url = new URL(req.url);
+		const userId = url.searchParams.get("userId")?.trim() ?? "";
+		const agentId = url.searchParams.get("agentId")?.trim() ?? "";
+		if (!userId) {
+			return apiFail("VALIDATION_FAILED", "userId required");
+		}
+		if (!agentId) {
+			return apiFail("VALIDATION_FAILED", "agentId required");
+		}
+		const result = await clearAgentMemoryForUser(userId, agentId);
+		return apiOk(result);
 	} catch (err) {
 		return apiFail(
 			"ENGINE_INTERNAL",

@@ -15,7 +15,7 @@ alwaysApply: false
 - **EngineHost 单例**由 server/壳持有；本包提供 create/host API。
 - **CallSession** 在 Host 内存；`frozenCard`；同 user 通话互斥。
 - Composer 只读；EffectExecutor 仅出口/Free 管线；工具只登记 candidate。
-- **FreeCallPostPipeline** 为 Free 挂机唯一总入口（可注入）；v1 = 有效门闩 + MemoryCommit +（有 candidate 则 ExitSelector）；禁 transcript 隐式扫描。
+- **FreeCallPostPipeline** 为 Free 挂机唯一总入口（可注入）；v1 = 有效门闩 + MemoryCommit +（有 candidate 则 ExitSelector）；禁 transcript 隐式扫描。Engine 填 `MemoryCommitInput.commitContext`，**禁止**在本包做 LLM 抽取。
 - Free Session.`packageId === "__free__"`；禁止 load 该哨兵为故事目录。
 - 媒介经 **EffectSink**；逻辑写 Profile 在 Executor。
 - **存取：** 经 Port 注入（Content / Profile / Memory / EngineLog，见技术设计 [23](../../docs/AI和人类/技术设计文档/23-引擎存取Port与IO适配.md)）；**禁止**本包内长期保留 `node:fs` / `better-sqlite3` 实现。本机实现落在 `apps/studioV2/engineIOModule/`。磁盘布局约定见 [19](../../docs/AI和人类/技术设计文档/19-引擎宿主与会话模型.md)，由 IO 模块解释路径。

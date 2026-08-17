@@ -26,7 +26,7 @@ alwaysApply: true
 - **Studio 客户端 = Zustand + bis + shell**（见技术设计 [21](../../docs/AI和人类/技术设计文档/21-Studio客户端分层.md)；V2 细则 [studio-v2-client-layering.mdc](./studio-v2-client-layering.mdc)；硬门禁 STRUCT-021～024）。
 - **经历态**：薄 Profile JSON + Memory SQLite；**CallSession** 在 Host 内存（默认不进 SaveGame）。
 - **持久化 v1** = Content/薄 Profile JSON + Memory SQLite + `logs/*.jsonl`（布局见 18/19/20；**读写经 Port**，本机实现 = `apps/studioV2/engineIOModule/`，协议见 [23](../../docs/AI和人类/技术设计文档/23-引擎存取Port与IO适配.md)）。
-- **Story**：Outcome → ExitSelector → Effect (+ Sink)。**Free**：`FreeCallPostPipeline`（MemoryCommit；有 candidate 再 Exit）；`packageId=__free__`。
+- **Story**：Outcome → ExitSelector → Effect (+ Sink)。**Free**：`FreeCallPostPipeline`（MemoryCommit；有 candidate 再 Exit）；`packageId=__free__`。Memory 抽取在 Studio Orchestrator，引擎只交 `MemoryCommitInput`。
 - **可拨**：`effectiveDialable = dialable || unlocked`；解锁经 `set_character_unlocked`。
 - **通话中**工具只登记 `RuntimeExitCandidate`；禁直接 Effect；禁 onConnect 写记忆；禁 Free 隐式扫 transcript 写 Profile。
 - **调试与编辑分离**：调试不改卡；本通 `frozenCard`。

@@ -59,7 +59,7 @@ import {
 |------|--------|
 | 读故事包 / 角色 / 卡 | Content / Workspace Port |
 | 读写信 Profile | Profile Port |
-| 记忆投影与 commit | Memory Port |
+| 记忆投影与 commit | Memory Port（引擎只交 `MemoryCommitInput`；Studio Orchestrator 做 LLM 抽取，见需求 [12](../../docs/AI和人类/需求/12-记忆模型.md)） |
 | 引擎旁路日志 | EngineLog Port（可选，视宿主） |
 
 测试里可全部换成内存假实现，不必落盘。

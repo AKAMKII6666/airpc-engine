@@ -140,6 +140,9 @@ describe("compute_bazi_chart character capability", () => {
         behavior: "session_local",
         status: "ok",
         hourKnown: false,
+        resultSeeds: [
+          expect.stringContaining("八字排盘"),
+        ],
       }),
     ]);
   });

@@ -6,6 +6,8 @@ import { parseStudioApiJson } from "@studio-v2/src/utils/ajaxHelper/studioApiCli
 import type {
 	DebuggerCallEndResponse,
 	DebuggerCallEndView,
+	DebuggerMemoryCommitTraceDetailView,
+	DebuggerMemoryTraceResponse,
 	DebuggerIncomingCallCommandBody,
 	DebuggerIncomingCallsResponse,
 	DebuggerIncomingCallView,
@@ -57,6 +59,17 @@ export async function postDebuggerCallEnd(
 	});
 	const data = await parseStudioApiJson<DebuggerCallEndResponse>(res);
 	return data.end;
+}
+
+/** GET /api/debug/call/memory-trace?dtoId= */
+export async function fetchDebuggerMemoryTrace(
+	dtoId: string,
+): Promise<DebuggerMemoryCommitTraceDetailView> {
+	const res = await fetch(
+		`/api/debug/call/memory-trace?dtoId=${encodeURIComponent(dtoId)}`,
+	);
+	const data = await parseStudioApiJson<DebuggerMemoryTraceResponse>(res);
+	return data.trace;
 }
 
 /** GET /api/debug/call/roles */

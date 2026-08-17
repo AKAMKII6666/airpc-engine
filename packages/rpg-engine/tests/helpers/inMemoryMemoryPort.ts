@@ -72,6 +72,27 @@ function summaryFromTranscript(value: unknown): string | null {
   return summarizeUserFactTranscript(value);
 }
 
+function commitItemLayerKind(
+  kind: string,
+): { layer: string; kind: string } | null {
+  switch (kind) {
+    case "vignette":
+      return { layer: "episodic", kind: "vignette" };
+    case "user_fact":
+      return { layer: "semantic", kind: "semantic" };
+    case "shared_event":
+      return { layer: "relational", kind: "shared_event" };
+    case "social_share":
+      return { layer: "relational", kind: "social_share" };
+    case "emotion":
+      return { layer: "affect", kind: "emotion" };
+    case "promise":
+      return { layer: "commitments", kind: "promise" };
+    default:
+      return null;
+  }
+}
+
 function entryMatchesQuery(
   e: MemEntry,
   input: MemorySearchQuery,
@@ -137,22 +158,33 @@ function commitCall(
       input.endedAt,
     ),
   ];
-  for (const raw of input.vignettes ?? []) {
-    const text = typeof raw === "string" ? raw.trim() : "";
+  const writtenLayers = new Set<string>(["episodic"]);
+  const writtenEpisodicIds: string[] = [ids[0]!];
+  for (const item of input.items ?? []) {
+    const text = item.text.trim();
     if (!text) continue;
+    const mapping = commitItemLayerKind(item.kind);
+    if (!mapping) continue;
     ids.push(
       insertEntry(
         entries,
         input.userId,
         input.agentId,
-        "episodic",
-        "vignette",
+        mapping.layer,
+        mapping.kind,
         text,
         input.endedAt,
       ),
     );
+    writtenLayers.add(mapping.layer);
+    if (mapping.layer === "episodic") writtenEpisodicIds.push(ids[ids.length - 1]!);
   }
-  return { ok: true, writtenLayers: ["episodic"], writtenEpisodicIds: ids };
+  return {
+    ok: true,
+    writtenLayers: Array.from(writtenLayers) as MemoryCommitResult["writtenLayers"],
+    writtenEntryIds: ids,
+    writtenEpisodicIds,
+  };
 }
 
 function patchEntry(

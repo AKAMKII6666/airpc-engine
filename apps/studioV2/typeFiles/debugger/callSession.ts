@@ -77,6 +77,10 @@ export type DebuggerToolTraceView = {
 	behavior: string;
 	/** register_exit 时的候选 id；其他工具为空 */
 	candidateId: string | null;
+	/** search_memory 等工具返回的 entry ids；用于核对 MemoryCommit 排除来源 */
+	resultEntryIds: string[];
+	/** 工具结果短 seed；挂机记忆抽取会纳入 exclusionSeeds */
+	resultSeeds: string[];
 };
 
 /** 表示通话中登记的候选出口，挂机后才会由引擎正式选择和执行 Effect */
@@ -361,6 +365,26 @@ export type DebuggerCallEndView = {
 	planStatus: string | null;
 	/** Free pipeline 是否提交记忆；Story 为 null */
 	freeCommitted: boolean | null;
+	/** 挂机记忆提交摘要；供 UI/console 展示 Memory Trace */
+	memoryTrace: DebuggerMemoryCommitTraceView | null;
+};
+
+/** 表示挂机记忆提交的可读 trace 摘要 */
+export type DebuggerMemoryCommitTraceView = {
+	/** DTO trace id；对应 debug-dto indexes/by-trace */
+	traceId: string;
+	/** DTO id；对应 debug-dto/memory-commits/<dtoId>.json */
+	dtoId: string;
+	/** 记忆提交策略来源 */
+	policy: "free_post_pipeline" | "story_call";
+	/** 是否提交成功 */
+	committed: boolean;
+	/** 本次提交写入/命中的 entry ids */
+	entryIds: string[];
+	/** 跳过原因；无则为 null */
+	skippedReason: string | null;
+	/** 提交错误；无则为 null */
+	error: string | null;
 };
 
 /** 表示调试通话 API 的统一响应包，session 为最新 Host 投影 */
@@ -379,4 +403,67 @@ export type DebuggerIncomingCallsResponse = {
 export type DebuggerCallEndResponse = {
 	/** Host endCall 投影；浏览器展示用，不持久化 */
 	end: DebuggerCallEndView;
+};
+
+/** 表示 MemoryCommit Trace 的 UI 预览块 */
+export type DebuggerMemoryTraceBlockView = {
+	/** 块标题 */
+	title: string;
+	/** 裁剪后的文本内容 */
+	text: string;
+	/** 原始字符数 */
+	charCount: number;
+	/** 是否被裁剪 */
+	truncated: boolean;
+};
+
+/** 表示 MemoryCommit Trace 的可读摘要 */
+export type DebuggerMemoryCommitTraceDetailView = {
+	/** DTO id；对应 debug-dto/memory-commits/<dtoId>.json */
+	dtoId: string;
+	/** DTO trace id */
+	traceId: string | null;
+	/** DTO 写入时间 */
+	at: string | null;
+	/** 所属 session */
+	sessionId: string;
+	/** 所属 user */
+	userId: string | null;
+	/** 角色 */
+	agentId: string | null;
+	/** 存储是否成功 */
+	ok: boolean;
+	/** 写入层 */
+	writtenLayers: string[];
+	/** 写入 entry 数 */
+	writtenEntryCount: number;
+	/** LLM 抽取前字段计数 */
+	rawCounts: Record<string, number>;
+	/** 字段级清洗后计数 */
+	sanitizedCounts: Record<string, number>;
+	/** 被过滤计数 */
+	filteredCounts: Record<string, number>;
+	/** exclusion seed 数 */
+	exclusionSeedCount: number;
+	/** 写入错误；无则 null */
+	error: string | null;
+	/** 本通摘要预览 */
+	summaryText: string | null;
+	/** 结构化字段预览 */
+	structured: {
+		userFacts: string[];
+		sharedEvents: string[];
+		promises: string[];
+		socialShareCandidates: string[];
+		emotion: string | null;
+		identityNote: string | null;
+	};
+	/** LLM 输入/输出/落库等预览块 */
+	blocks: DebuggerMemoryTraceBlockView[];
+};
+
+/** 表示 MemoryCommit Trace 读取 API 响应 */
+export type DebuggerMemoryTraceResponse = {
+	/** MemoryCommit Trace 详情 */
+	trace: DebuggerMemoryCommitTraceDetailView;
 };

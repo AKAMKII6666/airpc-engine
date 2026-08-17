@@ -231,6 +231,8 @@ export type {
   MemorySearchHit,
   MemorySearchQuery,
   MemoryCommitInput,
+  MemoryCommitItem,
+  MemoryCommitItemKind,
   MemoryCallTranscript,
   MemoryCommitResult,
   MemoryPatchKind,

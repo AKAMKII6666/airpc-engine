@@ -4,6 +4,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, type FC } from "react";
+import { Alert, Snackbar } from "@mui/material";
 import { useDebuggerDialableRolesBis } from "@studio-v2/src/bis/pageBis/debugger/dialableRoles.bis";
 import { useDebuggerLlmStatusBis } from "@studio-v2/src/bis/pageBis/debugger/llmStatus.bis";
 import { useDebuggerIncomingCallsBis } from "@studio-v2/src/bis/pageBis/debugger/incomingCalls.bis";
@@ -14,6 +15,7 @@ import { DebuggerContextPanel } from "@studio-v2/src/pageComponents/debugger/com
 import { DebuggerTopBar } from "@studio-v2/src/pageComponents/debugger/com/DebuggerTopBar";
 import { IdlePhonePanel } from "@studio-v2/src/pageComponents/debugger/com/IdlePhonePanel";
 import { IncomingCallModal } from "@studio-v2/src/pageComponents/debugger/com/IncomingCallModal";
+import { PostCallEffectOverlay } from "@studio-v2/src/pageComponents/debugger/com/PostCallEffectOverlay";
 import { useDebuggerPrototypeSession } from "@studio-v2/src/pageComponents/debugger/hooks/useDebuggerPrototypeSession";
 import {
 	phoneStatusLabel,
@@ -112,6 +114,24 @@ export const DebuggerShell: FC<DebuggerShellProps> = function DebuggerShell({
 				onAccept={incomingBis.acceptIncomingCall}
 				onReject={incomingBis.rejectIncomingCall}
 			/>
+
+			<PostCallEffectOverlay state={session.postCallEffectOverlay} />
+
+			<Snackbar
+				key={session.hangupToast?.id}
+				open={session.hangupToast !== null}
+				autoHideDuration={2200}
+				onClose={session.dismissHangupToast}
+				anchorOrigin={{ vertical: "top", horizontal: "center" }}
+			>
+				<Alert
+					severity="info"
+					variant="filled"
+					onClose={session.dismissHangupToast}
+				>
+					{session.hangupToast?.message}
+				</Alert>
+			</Snackbar>
 		</main>
 	);
 };

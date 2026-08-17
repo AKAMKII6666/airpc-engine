@@ -12,7 +12,16 @@ export interface MemorySearchQuery {
   fromIso?: string;
   toIso?: string;
   kinds?: Array<
-    "call_summary" | "vignette" | "beat" | "semantic" | "rollup"
+    | "call_summary"
+    | "vignette"
+    | "beat"
+    | "semantic"
+    | "rollup"
+    | "shared_event"
+    | "emotion"
+    | "identity_note"
+    | "promise"
+    | "social_share"
   >;
   maxResults: number;
 }
@@ -52,6 +61,20 @@ export interface MemoryCallTranscript {
   turns: ChatTurn[];
 }
 
+export type MemoryCommitItemKind =
+  | "vignette"
+  | "user_fact"
+  | "shared_event"
+  | "emotion"
+  | "social_share"
+  | "promise";
+
+/** 一条已经过抽取与证据校验、只待落库的记忆条目。 */
+export interface MemoryCommitItem {
+  kind: MemoryCommitItemKind;
+  text: string;
+}
+
 export interface MemoryCommitInput {
   userId: string;
   agentId: string;
@@ -68,11 +91,23 @@ export interface MemoryCommitInput {
     cardId: string;
     selectedExitId?: string;
     planStatus?: string;
+    promptTraceRefs?: {
+      providerIds?: string[];
+      matchedLayerIds?: string[];
+    };
+    toolTraceRefs?: {
+      traceCount?: number;
+      toolIds?: string[];
+      resultEntryIds?: string[];
+      candidateIds?: string[];
+      resultSeeds?: string[];
+    };
+    exclusionSeeds?: string[];
   };
   /** Manual / 无 LLM 时的摘要文本 */
   summaryText?: string;
-  /** 生活边角碎片；写入 kind=vignette（可选） */
-  vignettes?: string[];
+  /** Studio MemoryCommit Orchestrator 产出的结构化条目；Port 只负责按 kind 落库。 */
+  items?: MemoryCommitItem[];
 }
 
 export interface MemoryCommitResult {
@@ -85,6 +120,9 @@ export interface MemoryCommitResult {
     | "relational"
     | "profileNotes"
   >;
+  /** 所有本次提交落库 entry id；新代码优先使用此字段。 */
+  writtenEntryIds?: string[];
+  /** @deprecated 旧字段名只代表早期 episodic 写入；为兼容保留。 */
   writtenEpisodicIds?: string[];
   error?: string;
 }

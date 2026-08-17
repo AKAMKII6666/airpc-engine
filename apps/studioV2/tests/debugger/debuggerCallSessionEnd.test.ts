@@ -72,7 +72,12 @@ describe("endDebuggerCallSession", () => {
 					session: callSessionFixture(),
 					selectedExitId: "exit_ok",
 					effectPlanResult: { status: "completed", aborted: false, results: [] },
-					freePipeline: { committed: true, skippedExit: true, steps: [] },
+					freePipeline: {
+						committed: true,
+						commitEntryIds: ["mem_summary", "mem_fact"],
+						skippedExit: true,
+						steps: [],
+					},
 				} satisfies EndCallResult;
 			},
 		} as unknown as EngineHost;
@@ -97,6 +102,15 @@ describe("endDebuggerCallSession", () => {
 			selectedExitId: "exit_ok",
 			planStatus: "completed",
 			freeCommitted: true,
+			memoryTrace: {
+				traceId: "memory_commit:session_1",
+				dtoId: "session_1",
+				policy: "free_post_pipeline",
+				committed: true,
+				entryIds: ["mem_summary", "mem_fact"],
+				skippedReason: null,
+				error: null,
+			},
 		});
 	});
 });

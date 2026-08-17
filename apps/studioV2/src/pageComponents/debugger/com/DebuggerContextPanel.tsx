@@ -209,8 +209,20 @@ const RuntimeTraceList: FC<RuntimeTraceListProps> = function RuntimeTraceList({
 					<small>
 						{behaviorLabel(trace.behavior)}
 						{trace.candidateId ? ` · ${trace.candidateId}` : ""}
+						{trace.resultEntryIds.length > 0
+							? ` · entries ${trace.resultEntryIds.length}`
+							: ""}
+						{trace.resultSeeds.length > 0
+							? ` · seeds ${trace.resultSeeds.length}`
+							: ""}
 						{trace.at ? ` · ${trace.at}` : ""}
 					</small>
+					{trace.resultSeeds.length > 0 ? (
+						<div className={styles.toolPreviewBlock}>
+							<span>记忆排除 seed</span>
+							<code>{trace.resultSeeds.join("\n")}</code>
+						</div>
+					) : null}
 				</li>
 			))}
 		</ol>
