@@ -38,6 +38,7 @@ function summary(agentId: string, displayName = agentId): CharacterSummary {
 			exampleLines: [],
 			voiceId: "",
 			voiceNotes: "",
+			attitudeHistoryLimit: 5,
 		},
 		socialSummary: "",
 		meta: { phoneNumber: "", avatarAssetId: "" },

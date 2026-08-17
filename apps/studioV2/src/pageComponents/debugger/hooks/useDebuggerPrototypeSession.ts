@@ -53,6 +53,13 @@ export type HangupToastState = {
 	message: string;
 } | null;
 
+export type LastMemoryTraceState = {
+	/** DTO id；用于面板标题与 trace 定位 */
+	dtoId: string;
+	/** 已读取并裁剪的 trace 详情 */
+	detail: DebuggerMemoryCommitTraceDetailView;
+} | null;
+
 export type DebuggerPrototypeSession = {
 	/** 纯前端通话态；控制聊天/待机两种 UI */
 	callState: CallState;
@@ -70,6 +77,8 @@ export type DebuggerPrototypeSession = {
 	postCallEffectOverlay: PostCallEffectOverlayState;
 	/** 挂断反馈 toast */
 	hangupToast: HangupToastState;
+	/** 最近一次挂机 Memory Trace 详情；待机态供右侧面板回看 */
+	lastMemoryTrace: LastMemoryTraceState;
 	/** 更新玩家输入草稿 */
 	setDraft: (value: string) => void;
 	/** 关闭挂断 toast */
@@ -216,6 +225,11 @@ function formatMemoryTraceLines(
 		lines.push(`Memory promises：${trace.structured.promises.join(" / ")}`);
 	}
 	if (trace.structured.emotion) lines.push(`Memory emotion：${trace.structured.emotion}`);
+	if (trace.structured.attitude) {
+		lines.push(
+			`Memory attitude：${trace.structured.attitude.stance} · ${trace.structured.attitude.summary}`,
+		);
+	}
 	for (const block of trace.blocks.slice(0, 3)) {
 		const preview = block.text.replace(/\s+/g, " ").slice(0, 260);
 		lines.push(
@@ -229,18 +243,20 @@ function formatMemoryTraceLines(
 async function appendMemoryTraceDetail(
 	end: DebuggerCallEndView,
 	appendLine: (line: string, detail?: unknown) => void,
-): Promise<void> {
-	if (!end.memoryTrace) return;
+): Promise<DebuggerMemoryCommitTraceDetailView | null> {
+	if (!end.memoryTrace) return null;
 	appendLine("正在读取 Memory Trace DTO...");
 	try {
 		const trace = await fetchDebuggerMemoryTrace(end.memoryTrace.dtoId);
 		for (const line of formatMemoryTraceLines(trace)) {
 			appendLine(line, trace);
 		}
+		return trace;
 	} catch (err) {
 		appendLine(
 			`Memory Trace DTO 读取失败：${err instanceof Error ? err.message : String(err)}`,
 		);
+		return null;
 	}
 }
 
@@ -267,6 +283,8 @@ function createPhoneCommands(input: {
 	finishPostCallRun: () => void;
 	/** 展示挂断 toast */
 	showHangupToast: (message: string) => void;
+	/** 记录最近一次 Memory Trace 详情，供待机态回看 */
+	setLastMemoryTrace: (value: LastMemoryTraceState) => void;
 	/** 电话 UI setter */
 	setPhoneUi: PhoneSetter;
 	/** 输入草稿 setter */
@@ -373,7 +391,13 @@ async function resetPhoneAfterEnd(
 		for (const line of formatEndResultLines(end)) {
 			input.appendPostCallRunLine(line, end);
 		}
-		await appendMemoryTraceDetail(end, input.appendPostCallRunLine);
+		const trace = await appendMemoryTraceDetail(
+			end,
+			input.appendPostCallRunLine,
+		);
+		if (trace && end.memoryTrace) {
+			input.setLastMemoryTrace({ dtoId: end.memoryTrace.dtoId, detail: trace });
+		}
 	} else {
 		input.appendPostCallRunLine("挂机后副作用未正常完成，请查看控制台或接口错误");
 	}
@@ -436,6 +460,8 @@ export function useDebuggerPrototypeSession(
 			lines: [],
 		});
 	const [hangupToast, setHangupToast] = useState<HangupToastState>(null);
+	const [lastMemoryTrace, setLastMemoryTrace] =
+		useState<LastMemoryTraceState>(null);
 	const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const dialingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const postCallCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
@@ -505,6 +531,7 @@ export function useDebuggerPrototypeSession(
 		appendPostCallRunLine,
 		finishPostCallRun,
 		showHangupToast,
+		setLastMemoryTrace,
 		setPhoneUi,
 		setDraft,
 		setLocalError,
@@ -537,7 +564,16 @@ export function useDebuggerPrototypeSession(
 				for (const line of formatEndResultLines(end)) {
 					appendPostCallRunLine(line, end);
 				}
-				await appendMemoryTraceDetail(end, appendPostCallRunLine);
+				const trace = await appendMemoryTraceDetail(
+					end,
+					appendPostCallRunLine,
+				);
+				if (trace && end.memoryTrace) {
+					setLastMemoryTrace({
+						dtoId: end.memoryTrace.dtoId,
+						detail: trace,
+					});
+				}
 			} else {
 				appendPostCallRunLine("挂机后副作用未正常完成，请查看控制台或接口错误");
 			}
@@ -556,6 +592,7 @@ export function useDebuggerPrototypeSession(
 		hasUnreadVoicemail,
 		postCallEffectOverlay,
 		hangupToast,
+		lastMemoryTrace,
 		setDraft,
 		dismissHangupToast,
 		resetDebugger: commands.resetDebugger,

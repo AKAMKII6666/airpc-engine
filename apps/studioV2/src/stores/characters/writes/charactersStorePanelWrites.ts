@@ -83,6 +83,7 @@ function createMemoryPanelActions(
 					memoryLoading: false,
 					memoryError: result.message,
 					memoryItems: [],
+					memoryAttitudes: [],
 					memoryTotal: 0,
 				});
 				return;
@@ -91,6 +92,7 @@ function createMemoryPanelActions(
 				memoryLoading: false,
 				memoryError: undefined,
 				memoryItems: [...result.items],
+				memoryAttitudes: [...result.attitudes],
 				memoryTotal: result.total,
 				memoryPage: result.page,
 			});
@@ -99,6 +101,7 @@ function createMemoryPanelActions(
 		clearMemoryList() {
 			set({
 				memoryItems: [],
+				memoryAttitudes: [],
 				memoryTotal: 0,
 				memoryPage: 1,
 				memoryLoading: false,

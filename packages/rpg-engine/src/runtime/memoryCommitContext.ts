@@ -2,6 +2,7 @@
  * MemoryCommit 上下文投影：从 CallSession 收集 prompt/tool 污染源。
  */
 import type { CallSession } from "../host/types.js";
+import type { MemoryCharacterAttitudeContext } from "../memory/types.js";
 
 const MAX_SEED_CHARS = 180;
 const MAX_PROMPT_SEEDS = 24;
@@ -126,4 +127,26 @@ export function memoryExclusionSeeds(session: CallSession): string[] {
     return typeof text === "string" && text.trim().length > 0;
   });
   return Array.from(new Set(seeds.map(compactSeed)));
+}
+
+/** 从 frozenCharacter 提取态度抽取所需的角色视角；不做任何事实性身份注入。 */
+export function memoryCharacterAttitudeContext(
+  session: CallSession,
+): MemoryCharacterAttitudeContext | undefined {
+  const character = session.frozenCharacter;
+  if (!character) return undefined;
+  const persona = character.persona;
+  const limit = persona?.attitudeHistoryLimit;
+  return {
+    displayName: character.displayName ?? character.agentId,
+    persona: {
+      systemPrompt: persona?.systemPrompt?.trim() || undefined,
+      personalityCode: persona?.personalityCode?.trim() || undefined,
+      speakingStyle: persona?.speakingStyle?.trim() || undefined,
+      attitudeHistoryLimit:
+        typeof limit === "number" && Number.isInteger(limit) && limit >= 1
+          ? limit
+          : undefined,
+    },
+  };
 }

@@ -14,7 +14,7 @@ export type ServerLlmRuntimeConfig = {
 	provider: ServerLlmProvider;
 	/** OpenAI-compatible base URL；不包含鉴权信息 */
 	baseUrl: string;
-	/** 模型名，例如 qwen-plus */
+	/** 模型名，例如 qwen3.5-flash */
 	model: string;
 	/** 仅 server 消费的密钥；禁止透出给浏览器 */
 	apiKey: string | null;
@@ -40,7 +40,7 @@ type LlmEnv = Record<string, string | undefined>;
 
 const DEFAULT_QWEN_BASE_URL =
 	"https://dashscope.aliyuncs.com/compatible-mode/v1";
-const DEFAULT_QWEN_MODEL = "qwen-plus";
+const DEFAULT_QWEN_MODEL = "qwen3.5-flash";
 
 function trimEnv(
 	env: LlmEnv,

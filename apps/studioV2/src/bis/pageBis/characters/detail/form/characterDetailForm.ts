@@ -69,6 +69,7 @@ export function toCharacterDetailFormValues(
 			speakingStyle: character.persona.speakingStyle,
 			exampleLines: character.persona.exampleLines.slice(),
 			profession: character.persona.profession,
+			attitudeHistoryLimit: character.persona.attitudeHistoryLimit,
 		},
 		callFlowPrompts: {
 			longSilence: character.callFlowPrompts.longSilence.map((v) => ({ ...v })),
@@ -129,6 +130,10 @@ export function applyCharacterDetailForm(
 			exampleLines: values.persona.exampleLines.map((l) => l.trim()),
 			voiceId: values.persona.voiceId,
 			voiceNotes: values.persona.voiceNotes.trim(),
+			attitudeHistoryLimit:
+				values.persona.attitudeHistoryLimit === ""
+					? 5
+					: values.persona.attitudeHistoryLimit,
 		},
 		callFlowPrompts: {
 			longSilence: values.callFlowPrompts.longSilence.map((v) => ({
@@ -195,6 +200,7 @@ export function createEmptyCharacterDetailSlots(): Pick<
 			exampleLines: [],
 			voiceId: REALTIME_VOICE_OPTIONS[0]?.value ?? "",
 			voiceNotes: "",
+			attitudeHistoryLimit: 5,
 		},
 		meta: {
 			phoneNumber: "",

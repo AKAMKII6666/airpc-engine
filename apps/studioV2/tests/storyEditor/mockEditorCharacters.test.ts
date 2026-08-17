@@ -50,6 +50,7 @@ function sampleSummary(): CharacterSummary {
 			exampleLines: [],
 			voiceId: "",
 			voiceNotes: "",
+			attitudeHistoryLimit: 5,
 		},
 		meta: {
 			phoneNumber: "",

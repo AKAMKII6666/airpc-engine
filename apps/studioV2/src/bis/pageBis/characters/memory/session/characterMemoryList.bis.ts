@@ -9,7 +9,10 @@ import {
 	loadCharacterMemoryPage,
 } from "@studio-v2/src/bis/pageBis/characters/memory/loadCharacterMemoryPage.bis";
 import { useCharactersStore } from "@studio-v2/src/stores/characters/charactersStore";
-import type { MemoryListItemDto } from "@studio-v2/typeFiles/library/characters/memory/memoryReadModel";
+import type {
+	MemoryAttitudeListItemDto,
+	MemoryListItemDto,
+} from "@studio-v2/typeFiles/library/characters/memory/memoryReadModel";
 
 function errorMessage(error: unknown, fallback: string): string {
 	if (error instanceof Error && error.message.trim() !== "") {
@@ -27,6 +30,8 @@ export type CharacterMemoryListBis = {
 	page: number;
 	/** 本页条目投影；空数组表示无数据 */
 	items: MemoryListItemDto[];
+	/** 最近态度记忆投影；空数组表示暂无 */
+	attitudes: MemoryAttitudeListItemDto[];
 	/** 满足条件的总条数；非本页长度 */
 	total: number;
 	/** 分页 GET 进行中 */
@@ -48,6 +53,9 @@ export function useCharacterMemoryListBis(
 ): CharacterMemoryListBis {
 	const items = useCharactersStore(function (s) {
 		return s.memoryItems;
+	});
+	const attitudes = useCharactersStore(function (s) {
+		return s.memoryAttitudes;
 	});
 	const total = useCharactersStore(function (s) {
 		return s.memoryTotal;
@@ -88,6 +96,7 @@ export function useCharacterMemoryListBis(
 				applyMemoryLoadResult({
 					ok: true,
 					items: data.items,
+					attitudes: data.attitudes,
 					total: data.total,
 					page: data.page,
 				});
@@ -120,6 +129,7 @@ export function useCharacterMemoryListBis(
 	return {
 		page,
 		items,
+		attitudes,
 		total,
 		loading,
 		error,

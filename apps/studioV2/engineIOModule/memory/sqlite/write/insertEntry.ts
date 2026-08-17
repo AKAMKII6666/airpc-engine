@@ -12,6 +12,7 @@ export type InsertEntryInput = {
 	text: string;
 	at: string;
 	callId?: string;
+	payload?: unknown;
 };
 
 function normalizeForHash(value: string): string {
@@ -20,6 +21,8 @@ function normalizeForHash(value: string): string {
 
 function contentHash(input: InsertEntryInput): string | null {
 	if (!input.callId) return null;
+	const payloadMaterial =
+		input.payload === undefined ? "" : JSON.stringify(input.payload);
 	const material = [
 		input.userId,
 		input.agentId,
@@ -27,6 +30,7 @@ function contentHash(input: InsertEntryInput): string | null {
 		input.layer,
 		input.kind,
 		normalizeForHash(input.text),
+		normalizeForHash(payloadMaterial),
 	].join("\n");
 	return createHash("sha256").update(material).digest("hex");
 }
@@ -55,7 +59,7 @@ export function createInsertEntry(
 		const now = input.at;
 		const hash = contentHash(input);
 		const result = db.prepare(
-			"INSERT OR IGNORE INTO memory_entries (id, user_id, agent_id, layer, kind, text, at, created_at, updated_at, call_id, content_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+			"INSERT OR IGNORE INTO memory_entries (id, user_id, agent_id, layer, kind, text, at, created_at, updated_at, call_id, content_hash, payload_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
 		).run(
 			id,
 			input.userId,
@@ -68,6 +72,7 @@ export function createInsertEntry(
 			now,
 			input.callId ?? null,
 			hash,
+			input.payload === undefined ? null : JSON.stringify(input.payload),
 		);
 		if (result.changes === 0 && hash) {
 			const existing = db.prepare(

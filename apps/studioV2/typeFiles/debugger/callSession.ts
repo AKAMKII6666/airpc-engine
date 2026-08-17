@@ -417,6 +417,20 @@ export type DebuggerMemoryTraceBlockView = {
 	truncated: boolean;
 };
 
+/** 表示态度记忆结构化预览 */
+export type DebuggerMemoryAttitudeView = {
+	/** 短态度标签，如“亲近”“防备” */
+	stance: string;
+	/** 一句人话摘要 */
+	summary: string;
+	/** 本通依据 */
+	evidence: string;
+	/** 抽象感觉标签；用于展示 NPC 当前感觉 */
+	feel: string[];
+	/** 用于后续记忆溯源的关键词 */
+	keywords: string[];
+};
+
 /** 表示 MemoryCommit Trace 的可读摘要 */
 export type DebuggerMemoryCommitTraceDetailView = {
 	/** DTO id；对应 debug-dto/memory-commits/<dtoId>.json */
@@ -457,6 +471,7 @@ export type DebuggerMemoryCommitTraceDetailView = {
 		socialShareCandidates: string[];
 		emotion: string | null;
 		identityNote: string | null;
+		attitude: DebuggerMemoryAttitudeView | null;
 	};
 	/** LLM 输入/输出/落库等预览块 */
 	blocks: DebuggerMemoryTraceBlockView[];

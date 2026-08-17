@@ -99,6 +99,7 @@ export const DebuggerShell: FC<DebuggerShellProps> = function DebuggerShell({
 				{/* 引用了DebuggerContextPanel组件，用于展示右侧运行时上下文 */}
 				<DebuggerContextPanel
 					callState={session.callState}
+					memoryTrace={session.lastMemoryTrace}
 					roles={roleRows}
 					rolesLoading={roleBis.loading}
 					rolesError={roleBis.error}

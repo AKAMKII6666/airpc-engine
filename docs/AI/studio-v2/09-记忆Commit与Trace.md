@@ -11,6 +11,7 @@ endCall
        memoryCommitContext() 收集 exclusionSeeds / prompt·tool refs
   → Studio Orchestrator（包在 MemoryPort 外）
        完整 transcript → LLM 结构化 JSON → verifier
+       态度抽取另起一次 LLM，带角色视角 + 最近态度参考
        写 debug-dto/memory-commits/<sessionId>.json
   → SqliteMemoryPort.commitAfterCall
        transaction + content_hash 幂等
@@ -45,6 +46,7 @@ endCall
 | promises | commitments / promise |
 | identityNote | profileNotes / identity_note |
 | socialShareCandidates | relational / social_share |
+| attitude | relational / attitude（text 人话 + payload_json 结构化） |
 
 没有 userFacts 也要写 `call_summary`。NPC 自述 / 命理工具结果不得进 userFacts。
 
@@ -56,9 +58,7 @@ endCall
 - 根 `npm run typecheck` 可能因 `packages/rpg-engine/dist` 权限 `EACCES` 失败，不代表类型错误。
 - `data/users/demo-user/profile.save.json`、`data/debug-dto/`、`data/memory/*.sqlite` 是运行态，不要当功能 diff 提交。
 
-## 5. 故意未做
+## 5. 已完成
 
-详见开工单：[10-下一步-态度记忆与MemoryTrace面板.md](./10-下一步-态度记忆与MemoryTrace面板.md)
-
-- 态度记忆（NPC 对玩家的态度轴）
-- 独立 Memory Trace 成品页（现有：挂机 overlay 短预览 + DTO 文件）
+- 态度记忆：`relational/attitude`，每次通话追加；带 `stance/summary/evidence/keywords` payload，供溯源。
+- 独立 Memory Trace 成品面板：调试器右侧待机态「上下文 / Memory Trace」双 Tab，复用 DTO 与 API。

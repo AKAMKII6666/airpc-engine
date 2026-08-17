@@ -127,6 +127,26 @@ export async function readDebuggerMemoryTrace(
 			})
 			.filter(Boolean);
 	};
+	const attitudeItem = items
+		.map(function (item) {
+			return asRecord(item);
+		})
+		.find(function (item) {
+			return item.kind === "attitude";
+		});
+	const attitudePayload = asRecord(attitudeItem?.payload);
+	const attitude =
+		firstString(attitudePayload.stance) ||
+		firstString(attitudePayload.summary) ||
+		firstString(attitudePayload.evidence)
+			? {
+					stance: firstString(attitudePayload.stance) ?? "",
+					summary: firstString(attitudePayload.summary) ?? "",
+					evidence: firstString(attitudePayload.evidence) ?? "",
+					feel: asStringArray(attitudePayload.feel),
+					keywords: asStringArray(attitudePayload.keywords),
+				}
+			: null;
 
 	return {
 		dtoId,
@@ -157,6 +177,7 @@ export async function readDebuggerMemoryTrace(
 			socialShareCandidates: itemsOfKind("social_share"),
 			emotion: itemsOfKind("emotion")[0] ?? null,
 			identityNote: null,
+			attitude,
 		},
 		blocks: [
 			previewBlock("LLM 输入", llmInput ?? "无 LLM 输入，可能走了 fallback。"),

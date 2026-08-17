@@ -51,6 +51,17 @@ describe("readDebuggerMemoryTrace", () => {
 						{ kind: "shared_event", text: "一起聊了生日蛋糕" },
 						{ kind: "promise", text: "下次继续问生日" },
 						{ kind: "emotion", text: "开心" },
+						{
+							kind: "attitude",
+							text: "态度：亲近；觉得用户很温柔（依据：用户分享生日蛋糕）",
+							payload: {
+								stance: "亲近",
+								summary: "觉得用户很温柔",
+								evidence: "用户分享生日蛋糕",
+								feel: ["亲近"],
+								keywords: ["生日蛋糕", "温柔"],
+							},
+						},
 					],
 				},
 				extraction: {
@@ -92,6 +103,13 @@ describe("readDebuggerMemoryTrace", () => {
 				sharedEvents: ["一起聊了生日蛋糕"],
 				promises: ["下次继续问生日"],
 				emotion: "开心",
+				attitude: {
+					stance: "亲近",
+					summary: "觉得用户很温柔",
+					evidence: "用户分享生日蛋糕",
+					feel: ["亲近"],
+					keywords: ["生日蛋糕", "温柔"],
+				},
 			},
 		});
 		expect(trace.blocks.map((block) => block.title)).toEqual([

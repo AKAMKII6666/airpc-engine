@@ -14,6 +14,7 @@ import {
 	getMemoryById,
 } from "./sqlite/write/mutations";
 import { openSqliteMemoryDb } from "./sqlite/db/openDb";
+import { listRecentAttitudes } from "./sqlite/query/listRecentAttitudes";
 import { projectForCall } from "./sqlite/query/projectForCall";
 import { rollupIfNeeded } from "./sqlite/write/rollup";
 import { searchMemory } from "./sqlite/query/search";
@@ -33,6 +34,9 @@ export function createSqliteMemoryPort(dbPath: string): MemoryPort {
 	return {
 		async projectForCall(input) {
 			return projectForCall(db, input);
+		},
+		async listRecentAttitudes(input) {
+			return listRecentAttitudes(db, input);
 		},
 		async search(input) {
 			return searchMemory(db, ftsReady, input);

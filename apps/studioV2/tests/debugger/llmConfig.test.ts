@@ -15,7 +15,7 @@ describe("debugger llmConfig.server", () => {
 		expect(config.baseUrl).toBe(
 			"https://dashscope.aliyuncs.com/compatible-mode/v1",
 		);
-		expect(config.model).toBe("qwen-plus");
+		expect(config.model).toBe("qwen3.5-flash");
 		expect(config.apiKey).toBeNull();
 		expect(config.missing).toEqual(["AIRPC_LLM_API_KEY"]);
 

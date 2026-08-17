@@ -3,7 +3,10 @@
 	* 非 CharacterDef / Memory 真源；shell 灌列表；UI 经 feature bis 读。
 	*/
 import type { CharacterSummary } from "@studio-v2/typeFiles/library/characters/form/characterSummary";
-import type { MemoryListItemDto } from "@studio-v2/typeFiles/library/characters/memory/memoryReadModel";
+import type {
+	MemoryAttitudeListItemDto,
+	MemoryListItemDto,
+} from "@studio-v2/typeFiles/library/characters/memory/memoryReadModel";
 import type { DiskUserSummaryDto } from "@studio-v2/typeFiles/library/users/diskUserSummary";
 import type { ScheduledIntent } from "@studio-v2/typeFiles/library/schedule/engineScheduledIntent";
 
@@ -53,6 +56,8 @@ export type CharactersMemoryLoadResult =
 			ok: true;
 			/** 本页条目 */
 			items: readonly MemoryListItemDto[];
+			/** 最近态度条目 */
+			attitudes: readonly MemoryAttitudeListItemDto[];
 			/** 总条数 */
 			total: number;
 			/** 1-based 页码 */

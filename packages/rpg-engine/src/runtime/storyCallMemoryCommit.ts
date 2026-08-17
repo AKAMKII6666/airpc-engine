@@ -6,6 +6,7 @@ import type { Outcome } from "../schema/outcome.js";
 import type { MemoryCallTranscript, MemoryPort } from "../memory/types.js";
 import { summarizeUserFactTranscript } from "../memory/factMemoryTranscript.js";
 import {
+  memoryCharacterAttitudeContext,
   memoryExclusionSeeds,
   memoryPromptTraceRefs,
   memoryToolTraceRefs,
@@ -72,6 +73,7 @@ export async function commitStoryCallMemory(input: {
       promptTraceRefs: memoryPromptTraceRefs(input.session),
       toolTraceRefs: memoryToolTraceRefs(input.session),
       exclusionSeeds: memoryExclusionSeeds(input.session),
+      character: memoryCharacterAttitudeContext(input.session),
     },
   });
   if (input.memory.rollupIfNeeded) {

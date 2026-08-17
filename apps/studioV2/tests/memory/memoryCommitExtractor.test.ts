@@ -10,12 +10,16 @@ import type {
   MemorySearchHit,
 } from "@airpc/rpg-engine";
 import {
+  extractAttitudeFromTranscript,
   extractMemoryCommitFromTranscript,
   parseMemoryCommitExtraction,
   sanitizeMemoryCommitExtractionForFacts,
   type MemoryCallTranscriptLike,
 } from "@studio-v2/src/utils/server/memory/memoryCommitExtractor.server";
-import { createMemoryCommitExtractingPort } from "@studio-v2/src/utils/server/memory/memoryCommitMemoryPort.server";
+import {
+	createMemoryCommitExtractingPort,
+	createMemoryCommitOrchestrator,
+} from "@studio-v2/src/utils/server/memory/memoryCommitMemoryPort.server";
 
 function transcript(): MemoryCallTranscriptLike {
   return {
@@ -216,6 +220,14 @@ describe("memory commit LLM extractor", () => {
             { kind: "user_fact", text: "用户喜欢妈妈做的生日蛋糕", evidenceTurnIndexes: [1] },
             { kind: "shared_event", text: "共同确认明天见面", evidenceTurnIndexes: [3, 4] },
           ],
+          attitude: {
+            stance: "亲近",
+            summary: "觉得用户很温柔",
+            evidence: "用户分享生日蛋糕，我回应很温柔",
+            feel: ["亲近", "被信任"],
+            keywords: ["生日蛋糕", "温柔"],
+            evidenceTurnIndexes: [1, 2],
+          },
         };
       },
     });
@@ -226,6 +238,17 @@ describe("memory commit LLM extractor", () => {
     expect(records[0]?.items).toEqual([
       { kind: "user_fact", text: "用户喜欢妈妈做的生日蛋糕" },
       { kind: "shared_event", text: "共同确认明天见面" },
+      {
+        kind: "attitude",
+        text: "态度：亲近；觉得用户很温柔（依据：用户分享生日蛋糕，我回应很温柔）｜感觉：亲近 / 被信任｜关键词：生日蛋糕 / 温柔",
+        payload: {
+          stance: "亲近",
+          summary: "觉得用户很温柔",
+          evidence: "用户分享生日蛋糕，我回应很温柔",
+          feel: ["亲近", "被信任"],
+          keywords: ["生日蛋糕", "温柔"],
+        },
+      },
     ]);
   });
 
@@ -244,7 +267,7 @@ describe("memory commit LLM extractor", () => {
     expect(records[0]?.items).toBeUndefined();
   });
 
-  it("writes structured MemoryCommit trace DTO with items", async () => {
+	it("writes structured MemoryCommit trace DTO with items", async () => {
     const records: MemoryCommitInput[] = [];
     const traces: unknown[] = [];
     const port = createMemoryCommitExtractingPort(recordingMemoryPort(records), {
@@ -279,7 +302,279 @@ describe("memory commit LLM extractor", () => {
           summaryText: "LLM 摘要：用户聊到生日蛋糕。",
           items: [{ kind: "user_fact", text: "用户喜欢妈妈做的生日蛋糕" }],
         },
-      },
-    });
-  });
+			},
+		});
+	});
+
+	it("extracts a grounded attitude with persona and history only as reference", async () => {
+		const seen: string[] = [];
+		const result = await extractAttitudeFromTranscript({
+			transcript: transcript(),
+			character: {
+				displayName: "澜星",
+				persona: {
+					personalityCode: "ENFP",
+					speakingStyle: "温柔但直接",
+					attitudeHistoryLimit: 2,
+				},
+			},
+			historyAttitudes: [
+				{
+					id: "att_old",
+					text: "态度：亲近；之前聊得开心",
+					at: "2026-08-10T00:00:00.000Z",
+					payload: {
+						stance: "亲近",
+						summary: "之前聊得开心",
+						evidence: "聊了兴趣",
+						feel: ["亲近"],
+						keywords: ["兴趣"],
+					},
+				},
+			],
+			llmRunner: async function (input) {
+				seen.push(input.messages.map((m) => m.content).join("\n"));
+				return {
+					text: JSON.stringify({
+						attitude: {
+							stance: "亲近",
+							summary: "觉得用户很温柔",
+							evidence: "用户分享生日蛋糕，我回应很温柔",
+							feel: ["亲近", "被信任"],
+							keywords: ["生日蛋糕", "温柔"],
+							evidenceTurnIndexes: [1, 2],
+						},
+					}),
+					toolCalls: [],
+					finishReason: "stop",
+					responseId: "attitude_1",
+					model: "test",
+				};
+			},
+		});
+
+		const promptText = seen.join("\n");
+		expect(promptText).toContain("澜星");
+		expect(promptText).toContain("ENFP");
+		expect(promptText).toContain("之前聊得开心");
+		expect(promptText).toContain("妈妈给我做了生日蛋糕");
+		expect(result.attitude).toMatchObject({
+			stance: "亲近",
+			summary: "觉得用户很温柔",
+			evidence: "用户分享生日蛋糕，我回应很温柔",
+			feel: ["亲近", "被信任"],
+			keywords: ["生日蛋糕", "温柔"],
+			evidenceTurnIndexes: [1, 2],
+		});
+	});
+
+	it("drops attitude that lacks user and assistant grounding", async () => {
+		const result = await extractAttitudeFromTranscript({
+			transcript: transcript(),
+			llmRunner: async function () {
+				return {
+					text: JSON.stringify({
+						attitude: {
+							stance: "亲近",
+							summary: "觉得用户很温柔",
+							evidence: "澜星自己说的月光比喻",
+							feel: ["亲近"],
+							keywords: ["月光"],
+							evidenceTurnIndexes: [2],
+						},
+					}),
+					toolCalls: [],
+					finishReason: "stop",
+					responseId: "attitude_2",
+					model: "test",
+				};
+			},
+		});
+
+		expect(result.attitude).toBeNull();
+	});
+
+	it("accepts assistant-reaction attitude when evidence text also hits user turn", async () => {
+		const result = await extractAttitudeFromTranscript({
+			transcript: transcript(),
+			llmRunner: async function () {
+				return {
+					text: JSON.stringify({
+						attitude: {
+							stance: "关切支持",
+							summary: "因为用户分享生日蛋糕而觉得温柔",
+							evidence: "用户聊到生日蛋糕，我回应很温柔",
+							feel: ["关切支持"],
+							keywords: ["生日蛋糕", "温柔"],
+							evidenceTurnIndexes: [2],
+						},
+					}),
+					toolCalls: [],
+					finishReason: "stop",
+					responseId: "attitude_3",
+					model: "test",
+				};
+			},
+		});
+
+		expect(result.attitude).toMatchObject({
+			stance: "关切支持",
+			summary: "因为用户分享生日蛋糕而觉得温柔",
+		});
+	});
+
+	it("drops abstract keywords that are not present in transcript", async () => {
+		const result = await extractAttitudeFromTranscript({
+			transcript: transcript(),
+			llmRunner: async function () {
+				return {
+					text: JSON.stringify({
+						attitude: {
+							stance: "欣赏与信赖",
+							summary: "因为用户分享而觉得亲近",
+							evidence: "用户聊到生日蛋糕，我回应很温柔",
+							feel: ["欣赏与信赖"],
+							keywords: ["项目共鸣", "情感支持"],
+							evidenceTurnIndexes: [1, 2],
+						},
+					}),
+					toolCalls: [],
+					finishReason: "stop",
+					responseId: "attitude_4",
+					model: "test",
+				};
+			},
+		});
+
+		expect(result.attitude).toBeNull();
+	});
+
+	it("accepts abstract feel tags with verbatim keywords", async () => {
+		const result = await extractAttitudeFromTranscript({
+			transcript: transcript(),
+			llmRunner: async function () {
+				return {
+					text: JSON.stringify({
+						attitude: {
+							stance: "欣赏与信赖",
+							summary: "因为用户分享而觉得亲近",
+							evidence: "用户聊到生日蛋糕，我回应很温柔",
+							feel: ["项目共鸣", "情感支持"],
+							keywords: ["生日蛋糕", "温柔"],
+							evidenceTurnIndexes: [1, 2],
+						},
+					}),
+					toolCalls: [],
+					finishReason: "stop",
+					responseId: "attitude_5",
+					model: "test",
+				};
+			},
+		});
+
+		expect(result.attitude).toMatchObject({
+			stance: "欣赏与信赖",
+			feel: ["项目共鸣", "情感支持"],
+			keywords: ["生日蛋糕", "温柔"],
+		});
+	});
+
+	it("default orchestrator reads configured history limit and appends attitude item", async () => {
+		const records: MemoryCommitInput[] = [];
+		const historyCalls: Array<{
+			userId: string;
+			agentId: string;
+			limit: number;
+		}> = [];
+		const orchestrator = createMemoryCommitOrchestrator(
+			{
+				async commitAfterCall(input) {
+					records.push(input);
+					return {
+						ok: true,
+						writtenLayers: ["episodic", "relational"],
+						writtenEntryIds: ["mem_summary", "mem_attitude"],
+					};
+				},
+			},
+			{
+				logErrors: false,
+				traceWriter: async function () {},
+				listRecentAttitudes: async function (input) {
+					historyCalls.push(input);
+					return [];
+				},
+				llmRunner: async function (input) {
+					const prompt = input.messages.map((m) => m.content).join("\n");
+					if (prompt.includes("态度记忆抽取器")) {
+						return {
+							text: JSON.stringify({
+								attitude: {
+									stance: "亲近",
+									summary: "觉得用户很温柔",
+									evidence: "用户分享生日蛋糕，我回应很温柔",
+									feel: ["亲近"],
+									keywords: ["生日蛋糕", "温柔"],
+									evidenceTurnIndexes: [1, 2],
+								},
+							}),
+							toolCalls: [],
+							finishReason: "stop",
+							responseId: "attitude_default_1",
+							model: "test",
+						};
+					}
+					return {
+						text: JSON.stringify({
+							summaryText: "用户聊到生日蛋糕。",
+							items: [
+								{
+									kind: "user_fact",
+									text: "用户喜欢妈妈做的生日蛋糕",
+									evidenceTurnIndexes: [1],
+								},
+							],
+						}),
+						toolCalls: [],
+						finishReason: "stop",
+						responseId: "facts_default_1",
+						model: "test",
+					};
+				},
+			},
+		);
+
+		await orchestrator.commitAfterCall({
+			...baseInput(),
+			commitContext: {
+				callKind: "free",
+				policy: "free_post_pipeline",
+				source: "free",
+				chapterId: "__free__",
+				cardId: "lanxing_free",
+				character: {
+					displayName: "澜星",
+					persona: {
+						personalityCode: "ENFP",
+						attitudeHistoryLimit: 3,
+					},
+				},
+			},
+		});
+
+		expect(historyCalls).toEqual([
+			{ userId: "demo-user", agentId: "lanxing", limit: 3 },
+		]);
+		expect(records[0]?.items).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({
+					kind: "attitude",
+					payload: expect.objectContaining({
+						stance: "亲近",
+						summary: "觉得用户很温柔",
+					}),
+				}),
+			]),
+		);
+	});
 });

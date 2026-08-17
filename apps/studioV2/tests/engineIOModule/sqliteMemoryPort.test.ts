@@ -547,4 +547,68 @@ describe("SqliteMemoryPort", () => {
 		expect((after.rollupIds ?? []).length).toBeGreaterThan(0);
 		expect(after.softText).toMatch(/2026-Q2|春游|植物园/);
 	});
+
+	it("persists attitude payload, lists recent attitudes, and projects them", async () => {
+		const mem = await setup();
+		const card = CallCardDefinitionSchema.parse({
+			cardId: "c",
+			ownerAgentId: "a",
+			exits: [],
+		});
+		const commit = await mem.commitAfterCall({
+			userId: "u1",
+			agentId: "a1",
+			sessionId: "s-attitude",
+			transcript: null,
+			endedAt: "2026-08-17T10:00:00.000Z",
+			summaryText: "聊了生日与近况",
+			items: [
+				{
+					kind: "attitude",
+					text: "态度：亲近；觉得用户很温柔（依据：用户分享生日）",
+					payload: {
+						stance: "亲近",
+						summary: "觉得用户很温柔",
+						evidence: "用户分享生日",
+						feel: ["亲近"],
+						keywords: ["生日", "温柔"],
+					},
+				},
+			],
+		});
+		expect(commit.ok).toBe(true);
+
+		const attitudes = await mem.listRecentAttitudes?.({
+			userId: "u1",
+			agentId: "a1",
+			limit: 5,
+		});
+		expect(attitudes).toHaveLength(1);
+		expect(attitudes?.[0]).toMatchObject({
+			text: "态度：亲近；觉得用户很温柔（依据：用户分享生日）",
+			payload: {
+				stance: "亲近",
+				summary: "觉得用户很温柔",
+				evidence: "用户分享生日",
+				feel: ["亲近"],
+				keywords: ["生日", "温柔"],
+			},
+		});
+
+		const hits = await mem.search({
+			userId: "u1",
+			agentId: "a1",
+			textQuery: "温柔",
+			kinds: ["attitude"],
+			maxResults: 5,
+		});
+		expect(hits.some((hit) => hit.kind === "attitude")).toBe(true);
+
+		const proj = await mem.projectForCall({
+			userId: "u1",
+			agentId: "a1",
+			card,
+		});
+		expect(proj.softText).toContain("attitude");
+	});
 });

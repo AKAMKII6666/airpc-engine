@@ -33,6 +33,8 @@ export type CharacterDetailFormValues = {
 		speakingStyle: string;
 		exampleLines: string[];
 		profession: string;
+		/** 挂机态度抽取参考的历史态度条数；空串表示未填 */
+		attitudeHistoryLimit: number | "";
 	};
 	callFlowPrompts: {
 		longSilence: PromptVariantForm[];

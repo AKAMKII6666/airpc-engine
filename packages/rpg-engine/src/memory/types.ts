@@ -22,6 +22,7 @@ export interface MemorySearchQuery {
     | "identity_note"
     | "promise"
     | "social_share"
+    | "attitude"
   >;
   maxResults: number;
 }
@@ -67,12 +68,44 @@ export type MemoryCommitItemKind =
   | "shared_event"
   | "emotion"
   | "social_share"
-  | "promise";
+  | "promise"
+  | "attitude";
+
+/** 态度记忆结构化 payload；text 负责人话展示，payload 负责程序溯源。 */
+export interface MemoryAttitudePayload {
+  stance: string;
+  summary: string;
+  evidence: string;
+  /** 抽象感觉标签；LLM 归纳，用于展示 NPC 当前感觉。 */
+  feel: string[];
+  /** 从原文抽出的可溯源关键词；用于 search_memory。 */
+  keywords: string[];
+}
+
+/** 最近态度条目；供抽取器做历史参考，也供调试/投影使用。 */
+export interface MemoryAttitudeEntry {
+  id: string;
+  text: string;
+  at: string;
+  payload?: MemoryAttitudePayload;
+}
+
+/** Host 从 frozenCharacter 传给 Studio 抽取器的角色视角上下文。 */
+export interface MemoryCharacterAttitudeContext {
+  displayName?: string;
+  persona?: {
+    systemPrompt?: string;
+    personalityCode?: string;
+    speakingStyle?: string;
+    attitudeHistoryLimit?: number;
+  };
+}
 
 /** 一条已经过抽取与证据校验、只待落库的记忆条目。 */
 export interface MemoryCommitItem {
   kind: MemoryCommitItemKind;
   text: string;
+  payload?: MemoryAttitudePayload;
 }
 
 export interface MemoryCommitInput {
@@ -103,6 +136,8 @@ export interface MemoryCommitInput {
       resultSeeds?: string[];
     };
     exclusionSeeds?: string[];
+    /** 态度抽取专用角色视角；人设只用于判断视角，禁止当事实写进记忆。 */
+    character?: MemoryCharacterAttitudeContext;
   };
   /** Manual / 无 LLM 时的摘要文本 */
   summaryText?: string;
@@ -144,6 +179,13 @@ export interface MemoryPort {
   }): Promise<MemoryProjection>;
 
   search(input: MemorySearchQuery): Promise<MemorySearchHit[]>;
+
+  /** 读取该用户×角色最近的 attitude 条目；用于抽取时积累参考。 */
+  listRecentAttitudes?(input: {
+    userId: string;
+    agentId: string;
+    limit: number;
+  }): Promise<MemoryAttitudeEntry[]>;
 
   getById(input: {
     userId: string;

@@ -113,6 +113,13 @@ export const CHARACTER_PROMPT_ITEMS: AutoFormItem[] = [
 		required: true,
 	},
 	{
+		label: "态度记忆参考条数",
+		name: "persona.attitudeHistoryLimit",
+		comType: "IntegerInput",
+		required: true,
+		helperText: "最近几条态度作为参考，最低 1，无上限",
+	},
+	{
 		label: "长静默话术",
 		name: "callFlowPrompts.longSilence",
 		comType: "PromptVariantListEditor",

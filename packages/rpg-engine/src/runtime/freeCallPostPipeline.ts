@@ -11,6 +11,7 @@ import { executeEffects } from "./effectExecutor.js";
 import type { EffectSink } from "./effectSink.js";
 import type { ScheduledCardLookup } from "../schedule/scheduleCardReferenceResolver.js";
 import {
+  memoryCharacterAttitudeContext,
   memoryExclusionSeeds,
   memoryPromptTraceRefs,
   memoryToolTraceRefs,
@@ -105,6 +106,7 @@ export async function runFreeCallPostPipeline(input: {
           promptTraceRefs: memoryPromptTraceRefs(input.session),
           toolTraceRefs: memoryToolTraceRefs(input.session),
           exclusionSeeds: memoryExclusionSeeds(input.session),
+          character: memoryCharacterAttitudeContext(input.session),
         },
       });
       committed = commit.ok;

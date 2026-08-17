@@ -4,7 +4,10 @@
 import { useCallback, useState } from "react";
 import type { SelectChangeEvent } from "@mui/material/Select";
 import { clearCharacterMemory } from "@studio-v2/src/bis/pageBis/characters/memory/clearCharacterMemory.bis";
-import type { MemoryListItemDto } from "@studio-v2/typeFiles/library/characters/memory/memoryReadModel";
+import type {
+	MemoryAttitudeListItemDto,
+	MemoryListItemDto,
+} from "@studio-v2/typeFiles/library/characters/memory/memoryReadModel";
 import type { DiskUserSummaryDto } from "@studio-v2/typeFiles/library/users/diskUserSummary";
 import { useCharacterMemoryList } from "./useCharacterMemoryList";
 import { useCharacterMemoryUsers } from "./useCharacterMemoryUsers";
@@ -17,6 +20,7 @@ export type UseCharacterMemoryPanelResult = {
 	onUserChange: (event: SelectChangeEvent<string>) => void;
 	page: number;
 	items: MemoryListItemDto[];
+	attitudes: MemoryAttitudeListItemDto[];
 	total: number;
 	loading: boolean;
 	error: string | undefined;
@@ -74,6 +78,7 @@ export function useCharacterMemoryPanel(
 		onUserChange: usersState.onUserChange,
 		page: listState.page,
 		items: listState.items,
+		attitudes: listState.attitudes,
 		total: listState.total,
 		loading: listState.loading,
 		error: listState.error,

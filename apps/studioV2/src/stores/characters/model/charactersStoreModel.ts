@@ -3,7 +3,10 @@
 	* 与 writes / create 分离，避免循环 import。
 	*/
 import type { CharacterSummary } from "@studio-v2/typeFiles/library/characters/form/characterSummary";
-import type { MemoryListItemDto } from "@studio-v2/typeFiles/library/characters/memory/memoryReadModel";
+import type {
+	MemoryAttitudeListItemDto,
+	MemoryListItemDto,
+} from "@studio-v2/typeFiles/library/characters/memory/memoryReadModel";
 import type { DiskUserSummaryDto } from "@studio-v2/typeFiles/library/users/diskUserSummary";
 import type { ScheduledIntent } from "@studio-v2/typeFiles/library/schedule/engineScheduledIntent";
 import type {
@@ -60,6 +63,8 @@ export type CharactersStoreState = {
 
 	/** 记忆分页条目 */
 	memoryItems: MemoryListItemDto[];
+	/** 最近态度记忆条目 */
+	memoryAttitudes: MemoryAttitudeListItemDto[];
 	/** 记忆总条数 */
 	memoryTotal: number;
 	/** 记忆 1-based 页码 */
@@ -133,6 +138,7 @@ export function createCharactersSessionSlice(): Pick<
 	| "panelUsersError"
 	| "panelUserId"
 	| "memoryItems"
+	| "memoryAttitudes"
 	| "memoryTotal"
 	| "memoryPage"
 	| "memoryLoading"
@@ -153,6 +159,7 @@ export function createCharactersSessionSlice(): Pick<
 		panelUsersError: undefined,
 		panelUserId: "",
 		memoryItems: [],
+		memoryAttitudes: [],
 		memoryTotal: 0,
 		memoryPage: 1,
 		memoryLoading: false,

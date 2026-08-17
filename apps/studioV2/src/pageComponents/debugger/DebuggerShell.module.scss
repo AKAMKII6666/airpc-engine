@@ -144,6 +144,12 @@
 	margin-bottom: 12px;
 }
 
+.memoryTraceTabs {
+	display: flex;
+	gap: 8px;
+	margin-bottom: 12px;
+}
+
 .panelTitle,
 .contextTitle,
 .subTitle {
@@ -884,6 +890,125 @@
 	flex-direction: column;
 	gap: 10px;
 	margin-top: 10px;
+}
+
+.memoryTrace {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin-top: 10px;
+}
+
+.memoryTraceStats {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 6px;
+}
+
+.memoryTraceStats span {
+	padding: 7px 8px;
+	border: 1px solid t.$border-subtle;
+	border-radius: 6px;
+	background: t.$bg-input;
+	color: t.$text-secondary;
+	font-size: 11px;
+	font-weight: 700;
+	text-align: center;
+	white-space: nowrap;
+}
+
+.memoryTraceMeta {
+	padding: 9px;
+	border: 1px solid t.$border-subtle;
+	border-radius: 8px;
+	background: t.$bg-input;
+}
+
+.memoryTraceMeta dl {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	gap: 4px 8px;
+	margin: 0;
+	font-size: 12px;
+}
+
+.memoryTraceMeta dt {
+	color: t.$text-muted;
+	font-weight: 700;
+}
+
+.memoryTraceMeta dd {
+	margin: 0;
+	overflow-wrap: anywhere;
+	color: t.$text-secondary;
+}
+
+.memoryTraceError {
+	margin: 8px 0 0;
+	color: t.$state-danger;
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+.memoryTraceCard {
+	padding: 10px;
+	border: 1px solid t.$border-subtle;
+	border-radius: 8px;
+	background: t.$bg-input;
+}
+
+.memoryTraceLine {
+	margin: 6px 0 0;
+	color: t.$text-secondary;
+	font-size: 12px;
+	line-height: 1.6;
+	overflow-wrap: anywhere;
+}
+
+.memoryTraceBlocks {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin-top: 8px;
+}
+
+.memoryTraceBlock {
+	border: 1px solid t.$border-subtle;
+	border-radius: 8px;
+	background: t.$bg-panel-elevated;
+	overflow: hidden;
+}
+
+.memoryTraceBlock summary {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 8px 9px;
+	cursor: pointer;
+}
+
+.memoryTraceBlock summary strong {
+	color: t.$text-primary;
+	font-size: 12px;
+}
+
+.memoryTraceBlock summary small {
+	color: t.$text-muted;
+	font-size: 11px;
+}
+
+.memoryTraceBlock pre {
+	margin: 0;
+	padding: 9px;
+	border-top: 1px solid t.$border-subtle;
+	background: rgba(7, 13, 22, 0.72);
+	color: t.$text-secondary;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+	font-size: 11px;
+	line-height: 1.55;
+	white-space: pre-wrap;
+	word-break: break-word;
 }
 
 .promptTraceStats {

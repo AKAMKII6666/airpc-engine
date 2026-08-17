@@ -92,6 +92,14 @@ function validatePersona(
 		"请填写职业",
 	);
 	if (professionErr) personaErrors.profession = professionErr;
+	if (
+		values.persona.attitudeHistoryLimit === "" ||
+		typeof values.persona.attitudeHistoryLimit !== "number" ||
+		!Number.isInteger(values.persona.attitudeHistoryLimit) ||
+		values.persona.attitudeHistoryLimit < 1
+	) {
+		personaErrors.attitudeHistoryLimit = "态度记忆参考条数须为不小于 1 的整数";
+	}
 	if (values.persona.exampleLines.length === 0) {
 		personaErrors.exampleLines = "请至少添加一句样例句";
 	} else if (values.persona.exampleLines.some((l) => l.trim().length === 0)) {

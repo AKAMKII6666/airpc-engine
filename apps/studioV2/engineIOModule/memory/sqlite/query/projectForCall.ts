@@ -65,6 +65,12 @@ export async function projectForCall(
 		)
 		.all(input.userId, input.agentId, 2) as EntryRow[];
 
+	const attitudes = db
+		.prepare(
+			"SELECT id, layer, kind, text, at, created_at FROM memory_entries WHERE user_id = ? AND agent_id = ? AND kind = 'attitude' ORDER BY at DESC LIMIT 3",
+		)
+		.all(input.userId, input.agentId) as EntryRow[];
+
 	const rollups = db
 		.prepare(
 			"SELECT id, summary as text, range_to as at, created_at FROM memory_rollups WHERE user_id = ? AND agent_id = ? ORDER BY range_to DESC LIMIT ?",
@@ -133,6 +139,9 @@ export async function projectForCall(
 	}
 	for (const row of socialShares) {
 		pushChunk("social_share", row.id, row.text, row.at, row.created_at, row.layer, false);
+	}
+	for (const row of attitudes) {
+		pushChunk("attitude", row.id, row.text, row.at, row.created_at, row.layer, false);
 	}
 	for (const row of rollups) {
 		pushChunk("rollup", row.id, row.text, row.at, row.created_at, "rollup", true);

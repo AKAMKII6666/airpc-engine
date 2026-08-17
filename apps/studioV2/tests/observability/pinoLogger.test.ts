@@ -37,7 +37,7 @@ describe("pinoLogger.server", () => {
 			userId: "demo-user",
 			sessionId: "session_1",
 			message: "request",
-			payload: { model: "qwen-plus" },
+			payload: { model: "qwen3.5-flash" },
 		}, { dataRoot, now, sync: true });
 		writeStudioLog("tools", "warn", {
 			event: "engine.invoke_tool.engine_error",

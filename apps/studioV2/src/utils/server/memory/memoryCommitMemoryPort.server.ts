@@ -3,6 +3,7 @@
  * 证据校验后把统一 items 写回输入，由底层 MemoryPort 按 kind 落库。
  */
 import type {
+  MemoryAttitudeEntry,
   MemoryCommitInput,
   MemoryCommitResult,
   MemoryPort,
@@ -11,6 +12,7 @@ import { writeStudioLog } from "@studio-v2/src/utils/server/observability/logger
 import { writeDtoLog } from "@studio-v2/src/utils/server/observability/dto/dtoLogStore.server";
 import type { WriteDtoLogInput } from "@studio-v2/src/utils/server/observability/dto/dtoLogTypes.server";
 import {
+  extractAttitudeFromTranscript,
   extractMemoryCommitFromTranscript,
   isMemoryCallTranscript,
   type MemoryCommitExtraction,
@@ -18,6 +20,7 @@ import {
 } from "@studio-v2/src/utils/server/memory/memoryCommitExtractor.server";
 
 type MemoryCommitExtractor = (input: {
+  userId: string;
   agentId: string;
   sessionId: string;
   transcript: Parameters<typeof extractMemoryCommitFromTranscript>[0]["transcript"];
@@ -26,11 +29,42 @@ type MemoryCommitExtractor = (input: {
 
 type MemoryCommitTraceWriter = (input: WriteDtoLogInput) => void | Promise<void>;
 
+type MemoryCommitHistoryReader = (input: {
+  userId: string;
+  agentId: string;
+  limit: number;
+}) => Promise<MemoryAttitudeEntry[]>;
+
 type EnrichedMemoryCommit = {
   input: MemoryCommitInput;
   extraction: MemoryCommitExtraction | null;
   fallbackReason?: string;
 };
+
+function attitudeItemText(
+  attitude: NonNullable<MemoryCommitExtraction["attitude"]>,
+): string {
+  const evidence = attitude.evidence ? `（依据：${attitude.evidence}）` : "";
+  const feel = attitude.feel.length > 0 ? `｜感觉：${attitude.feel.join(" / ")}` : "";
+  const keywords =
+    attitude.keywords.length > 0
+      ? `｜关键词：${attitude.keywords.join(" / ")}`
+      : "";
+  return `态度：${attitude.stance}；${attitude.summary}${evidence}${feel}${keywords}`;
+}
+
+function sameAttitude(
+  left: NonNullable<MemoryCommitExtraction["attitude"]>,
+  right: MemoryAttitudeEntry,
+): boolean {
+  const payload = right.payload;
+  if (!payload) return false;
+  return (
+    left.stance === payload.stance &&
+    left.summary === payload.summary &&
+    left.evidence === payload.evidence
+  );
+}
 
 async function enrichCommitInput(
   input: MemoryCommitInput,
@@ -45,6 +79,7 @@ async function enrichCommitInput(
   };
   try {
     const extracted = await extractor({
+      userId: input.userId,
       agentId: input.agentId,
       sessionId: input.sessionId,
       transcript: input.transcript,
@@ -74,9 +109,26 @@ async function enrichCommitInput(
       input: {
         ...input,
         summaryText: extracted.summaryText,
-        items: extracted.items.map(function (item) {
-          return { kind: item.kind, text: item.text };
-        }),
+        items: [
+          ...extracted.items.map(function (item) {
+            return { kind: item.kind, text: item.text };
+          }),
+          ...(extracted.attitude
+            ? [
+                {
+                  kind: "attitude" as const,
+                  text: attitudeItemText(extracted.attitude),
+                  payload: {
+                    stance: extracted.attitude.stance,
+                    summary: extracted.attitude.summary,
+                    evidence: extracted.attitude.evidence,
+                    feel: extracted.attitude.feel,
+                    keywords: extracted.attitude.keywords,
+                  },
+                },
+              ]
+            : []),
+        ],
       },
       extraction: extracted,
     };
@@ -120,6 +172,8 @@ function compactExtraction(
   return {
     summaryText: extraction.summaryText,
     items: extraction.items,
+    attitude: extraction.attitude ?? null,
+    attitudeDebug: extraction.attitudeDebug,
     debug: extraction.debug,
   };
 }
@@ -165,6 +219,7 @@ export function createMemoryCommitOrchestrator(
   storage: Pick<MemoryPort, "commitAfterCall">,
   options: {
     llmRunner?: MemoryCommitLlmRunner;
+    listRecentAttitudes?: MemoryCommitHistoryReader;
     extractor?: MemoryCommitExtractor;
     logErrors?: boolean;
     traceWriter?: MemoryCommitTraceWriter;
@@ -173,10 +228,37 @@ export function createMemoryCommitOrchestrator(
   const logErrors = options.logErrors !== false;
   const traceWriter = options.traceWriter ?? writeDtoLog;
   const extractor = options.extractor ?? async function (input) {
-    return extractMemoryCommitFromTranscript({
+    const facts = await extractMemoryCommitFromTranscript({
       ...input,
       llmRunner: options.llmRunner,
     });
+    const limit = input.commitContext?.character?.persona?.attitudeHistoryLimit ?? 5;
+    const historyAttitudes = options.listRecentAttitudes
+      ? await options.listRecentAttitudes({
+          userId: input.userId,
+          agentId: input.agentId,
+          limit,
+        })
+      : [];
+    const attitude = await extractAttitudeFromTranscript({
+      transcript: input.transcript,
+      character: input.commitContext?.character,
+      historyAttitudes,
+      commitContext: input.commitContext,
+      llmRunner: options.llmRunner,
+    });
+    const uniqueAttitude =
+      attitude.attitude &&
+      historyAttitudes.some(function (entry) {
+        return sameAttitude(attitude.attitude!, entry);
+      })
+        ? null
+        : attitude.attitude;
+    return {
+      ...facts,
+      attitude: uniqueAttitude,
+      attitudeDebug: attitude.debug,
+    };
   };
   return {
     async commitAfterCall(input) {
@@ -245,7 +327,16 @@ export function createMemoryCommitOrchestratingPort(
   base: MemoryPort,
   options: Parameters<typeof createMemoryCommitOrchestrator>[1] = {},
 ): MemoryPort {
-  const orchestrator = createMemoryCommitOrchestrator(base, options);
+  const orchestrator = createMemoryCommitOrchestrator(base, {
+    ...options,
+    listRecentAttitudes:
+      options.listRecentAttitudes ??
+      (base.listRecentAttitudes
+        ? function (input) {
+            return base.listRecentAttitudes!(input);
+          }
+        : undefined),
+  });
   return {
     projectForCall(input) {
       return base.projectForCall(input);
@@ -253,6 +344,11 @@ export function createMemoryCommitOrchestratingPort(
     search(input) {
       return base.search(input);
     },
+    listRecentAttitudes: base.listRecentAttitudes
+      ? function (input) {
+          return base.listRecentAttitudes!(input);
+        }
+      : undefined,
     getById(input) {
       return base.getById(input);
     },

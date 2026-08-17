@@ -51,6 +51,8 @@ export const CharacterDefSchema = z
         profession: z.string().optional(),
         voiceId: z.string().optional(),
         voiceNotes: z.string().optional(),
+        /** 挂机态度抽取时参考的最近态度条数；最小 1，无上限。 */
+        attitudeHistoryLimit: z.number().int().min(1).optional(),
       })
       .passthrough()
       .optional(),

@@ -81,7 +81,7 @@ function sampleCall(): DebuggerCallSessionView {
 		llm: {
 			text: "喂？",
 			responseId: "chat_1",
-			model: "qwen-plus",
+			model: "qwen3.5-flash",
 			finishReason: "stop",
 		},
 		availableTools: [],

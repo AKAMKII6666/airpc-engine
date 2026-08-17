@@ -207,6 +207,12 @@ export function characterDefToSummary(def: CharacterDef): CharacterSummary {
 				: [],
 			voiceId,
 			voiceNotes: asString(persona.voiceNotes),
+			attitudeHistoryLimit:
+				typeof persona.attitudeHistoryLimit === "number" &&
+				Number.isInteger(persona.attitudeHistoryLimit) &&
+				persona.attitudeHistoryLimit >= 1
+					? persona.attitudeHistoryLimit
+					: 5,
 		},
 		callFlowPrompts: {
 			longSilence: mapVariants(def.callFlowPrompts?.longSilence, "silence"),
@@ -301,6 +307,10 @@ export function mergeDetailFormIntoCharacterDef(
 			}),
 			voiceId: values.persona.voiceId,
 			voiceNotes: values.persona.voiceNotes.trim(),
+			attitudeHistoryLimit:
+				values.persona.attitudeHistoryLimit === ""
+					? 5
+					: values.persona.attitudeHistoryLimit,
 		},
 		callFlowPrompts: {
 			...(previous.callFlowPrompts ?? {}),
@@ -363,6 +373,7 @@ export function buildCreateCharacterDef(input: {
 			profession: "",
 			voiceId: REALTIME_VOICE_OPTIONS[0]?.value ?? "",
 			voiceNotes: "",
+			attitudeHistoryLimit: 5,
 		},
 		callFlowPrompts: {
 			longSilence: [{ variantId: createStudioId("variant"), text: "" }],

@@ -21,7 +21,10 @@ import {
 } from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material/Select";
 import { FrontendPagination } from "@studio-v2/src/commonUiComponents/pagination/FrontendPagination";
-import type { MemoryListItemDto } from "@studio-v2/typeFiles/library/characters/memory/memoryReadModel";
+import type {
+	MemoryAttitudeListItemDto,
+	MemoryListItemDto,
+} from "@studio-v2/typeFiles/library/characters/memory/memoryReadModel";
 import type { DiskUserSummaryDto } from "@studio-v2/typeFiles/library/users/diskUserSummary";
 import styles from "@studio-v2/src/pageComponents/library/LibrarySplit.module.scss";
 import { CHARACTER_MEMORY_PAGE_SIZE } from "@studio-v2/src/bis/pageBis/characters/memory/loadCharacterMemoryPage.bis";
@@ -40,6 +43,8 @@ export type CharacterMemoryMainBodyProps = {
 	loading: boolean;
 	/** 本页记忆条目 */
 	items: MemoryListItemDto[];
+	/** 最近态度记忆条目 */
+	attitudes: MemoryAttitudeListItemDto[];
 	/** 当前页码（1-based） */
 	page: number;
 	/** 满足条件的总条数 */
@@ -69,6 +74,8 @@ export const CharacterMemoryMainBody: FC<
 	loading,
 	// items 是本页记忆条目，用于列表渲染
 	items,
+	// attitudes 是最近态度记忆，用于态度记忆区展示
+	attitudes,
 	// page 是当前页码（1-based），用于分页控件
 	page,
 	// total 是满足条件的总条数，用于分页计算
@@ -143,6 +150,42 @@ export const CharacterMemoryMainBody: FC<
 					{error}
 				</Alert>
 			) : null}
+
+			<section className={styles.attitudeSection}>
+				<h4 className={styles.sectionTitle}>态度记忆</h4>
+				{attitudes.length === 0 ? (
+					// 引用了Typography组件，用于无态度记忆空态
+					<Typography variant="body2" color="text.secondary">
+						暂无态度记忆。
+					</Typography>
+				) : (
+					<ul className={styles.attitudeList}>
+						{attitudes.map((attitude) => (
+							<li key={attitude.id} className={styles.attitudeItem}>
+								<div className={styles.attitudeItemHead}>
+									<strong>{attitude.stance}</strong>
+									<small>{attitude.at}</small>
+								</div>
+								<p className={styles.attitudeSummary}>{attitude.summary}</p>
+								<p className={styles.attitudeEvidence}>
+									依据：{attitude.evidence}
+								</p>
+								<div className={styles.attitudeKeywords}>
+									{attitude.feel.map((tag) => (
+										<span key={`feel_${tag}`}>{tag}</span>
+									))}
+								</div>
+								<p className={styles.attitudeKeywordLabel}>可溯源关键词</p>
+								<div className={styles.attitudeKeywords}>
+									{attitude.keywords.map((keyword) => (
+										<span key={`keyword_${keyword}`}>{keyword}</span>
+									))}
+								</div>
+							</li>
+						))}
+					</ul>
+				)}
+			</section>
 
 			{loading ? (
 				// 引用了Typography组件，用于加载态

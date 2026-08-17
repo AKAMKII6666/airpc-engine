@@ -73,6 +73,8 @@ export type CharacterPersonaProjection = {
 	voiceId: string;
 	/** 音色备注；空串表示无备注，仅创作侧提示 */
 	voiceNotes: string;
+	/** 挂机态度抽取参考的历史态度条数；最小 1，无上限 */
+	attitudeHistoryLimit: number;
 };
 
 /** 通话过程话术投影；与 CharacterDef.callFlowPrompts 同构 */

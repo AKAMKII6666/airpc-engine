@@ -74,6 +74,8 @@ export type CharacterDef = {
 		profession?: string;
 		voiceId?: string;
 		voiceNotes?: string;
+		/** 挂机态度抽取参考的历史态度条数；最小 1，无上限 */
+		attitudeHistoryLimit?: number;
 		[key: string]: unknown;
 	};
 	/** 关联的 FreeCard id；缺省表示未绑定 */

@@ -47,6 +47,7 @@ export const CharacterMemoryPanel: FC<CharacterMemoryPanelProps> =
 				error={memory.error}
 				loading={memory.loading}
 				items={memory.items}
+				attitudes={memory.attitudes}
 				page={memory.page}
 				total={memory.total}
 				onPageChange={memory.onPageChange}

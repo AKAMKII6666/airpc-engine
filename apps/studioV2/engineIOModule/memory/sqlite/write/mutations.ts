@@ -33,6 +33,8 @@ function commitItemLayerKind(
 			return { layer: "relational", kind: "social_share" };
 		case "emotion":
 			return { layer: "affect", kind: "emotion" };
+		case "attitude":
+			return { layer: "relational", kind: "attitude" };
 		case "promise":
 			return { layer: "commitments", kind: "promise" };
 		default:
@@ -130,6 +132,7 @@ export async function commitMemoryAfterCall(
 						text,
 						at: input.endedAt,
 						callId: input.sessionId,
+						payload: item.payload,
 					}),
 				);
 				writtenLayers.add(mapping.layer as MemoryCommitResult["writtenLayers"][number]);

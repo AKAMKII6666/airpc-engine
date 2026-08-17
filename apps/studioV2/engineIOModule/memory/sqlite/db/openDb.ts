@@ -64,6 +64,9 @@ export function openSqliteMemoryDb(dbPath: string): OpenedMemoryDb {
 	if (!entryColumns.has("content_hash")) {
 		db.exec("ALTER TABLE memory_entries ADD COLUMN content_hash TEXT");
 	}
+	if (!entryColumns.has("payload_json")) {
+		db.exec("ALTER TABLE memory_entries ADD COLUMN payload_json TEXT");
+	}
 	db.exec(`
 		CREATE UNIQUE INDEX IF NOT EXISTS idx_mem_commit_idempotency
 			ON memory_entries(user_id, agent_id, call_id, layer, kind, content_hash)
