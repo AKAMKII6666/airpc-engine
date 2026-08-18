@@ -12,6 +12,7 @@ endCall
   → Studio Orchestrator（包在 MemoryPort 外）
        完整 transcript → LLM 结构化 JSON → verifier
        态度抽取另起一次 LLM，带角色视角 + 最近态度参考
+       两条抽取 LLM 均显式 `enable_thinking: false`，避免 qwen3.5-flash 思考拖慢挂机收尾
        写 debug-dto/memory-commits/<sessionId>.json
   → SqliteMemoryPort.commitAfterCall
        transaction + content_hash 幂等

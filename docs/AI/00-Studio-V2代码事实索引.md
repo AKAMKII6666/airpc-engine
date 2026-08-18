@@ -49,6 +49,12 @@
 
 T3-8 之后调试器真会话 / Host 已接通。记忆加强已落地：完整 transcript 结构化抽取、Orchestrator 与 Port 分层、exclusionSeeds 污染过滤、Memory Trace DTO + 挂机 overlay。细节见 [09](./studio-v2/09-记忆Commit与Trace.md)。态度记忆仍后置。
 
+### 3.2 增量（2026-08-18）
+
+- 调试器文本聊天新增 SSE 流式回复：`POST /api/debug/call/message/stream`；原非流式接口保留。
+- 聊天流补齐思考收折、Markdown、工具事件卡片、自动吸底/回到底部、失败重试、中断回复、长会话虚拟滚动。
+- 挂机事实/态度抽取显式关闭 Qwen 思考，降低收尾延迟；细节见 [08](./studio-v2/08-调试器人工E2E清单.md) 与 [09](./studio-v2/09-记忆Commit与Trace.md)。
+
 ## 4. 真源接通（里程碑）
 
 - [第三步需求](../AI和人类/里程碑/v2.0/第三步需求.md)  

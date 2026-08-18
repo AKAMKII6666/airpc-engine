@@ -10,7 +10,7 @@
 - 态度字段拆成 `feel`（抽象感觉标签）和 `keywords`（从原文原样抽出的溯源关键词），避免用归纳词冒充搜索词。
 - 角色编辑：`persona.attitudeHistoryLimit` 配置历史态度参考条数，最小 1、无上限，缺省 5。
 - 角色库记忆区：在通用记忆列表上方展示最近 5 条态度卡片，含 stance/summary/evidence/keywords。
-- 模型：全库文本模型统一 `qwen3.5-flash`，事实与态度抽取同走该模型。
+- 模型：全库文本模型统一 `qwen3.5-flash`，事实与态度抽取同走该模型；抽取请求显式 `enable_thinking: false`，避免思考拖慢挂机收尾。
 
 ## 2. 关键约束
 
