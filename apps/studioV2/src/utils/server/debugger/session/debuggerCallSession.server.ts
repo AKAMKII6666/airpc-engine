@@ -37,8 +37,11 @@ import {
 } from "@studio-v2/src/utils/server/debugger/session/projectors/availableToolsProject.server";
 import {
 	runDebuggerLlmWithTools,
+	runDebuggerLlmWithToolsStream,
+	type DebuggerLlmStreamEmitter,
 	type DebuggerLlmToolEvent,
 } from "@studio-v2/src/utils/server/debugger/session/debuggerToolCalling.server";
+import { randomUUID } from "node:crypto";
 import { writeDtoLog } from "@studio-v2/src/utils/server/observability/dto/dtoLogStore.server";
 import { writeStudioLog } from "@studio-v2/src/utils/server/observability/logger/pinoLogger.server";
 
@@ -493,6 +496,90 @@ export async function sendDebuggerCallMessage(
 		result.llm,
 		result.toolEvents,
 	);
+}
+
+export type DebuggerMessageStreamEmitter = DebuggerLlmStreamEmitter & {
+	/** 系统消息流开始 */
+	messageStart: (messageId: string) => void;
+	/** 最终权威会话快照 */
+	sessionSnapshot: (session: DebuggerCallSessionView) => void;
+	/** 流错误 */
+	error: (code: string, message: string) => void;
+	/** 流结束；错误后也会发送 */
+	done: () => void;
+};
+
+/**
+ * 流式文本轮次：登记玩家输入，运行带工具循环的流式 LLM，再回传最终会话快照。
+ * 原非流式 sendDebuggerCallMessage 保留，供兼容与测试使用。
+ */
+export async function sendDebuggerCallMessageStream(
+	input: SendDebuggerMessageInput,
+	emitter: DebuggerMessageStreamEmitter,
+	host?: EngineHost,
+): Promise<void> {
+	const activeHost = host ?? await getStudioV2EngineHost();
+	const session = activeHost.getSession(input.sessionId);
+	if (!session) {
+		throw Object.assign(new Error("session not found"), {
+			code: "NOT_FOUND",
+			status: 404,
+		});
+	}
+	const userTurn = activeHost.recordChatTurn(input.sessionId, {
+		role: "user",
+		text: input.text,
+	});
+	if (isEngineError(userTurn)) throw userTurn;
+	writeStudioLog("debugger", "info", {
+		event: "debugger.call.user_message_stream",
+		userId: userTurn.userId,
+		sessionId: userTurn.sessionId,
+		chapterId: userTurn.chapterId,
+		cardId: userTurn.resolve.cardId,
+		agentId: userTurn.resolve.agentId,
+		message: "debugger streaming user message recorded",
+		payload: { textLength: input.text.length },
+	});
+	const messageId = randomUUID();
+	emitter.messageStart(messageId);
+	try {
+		const result = await runDebuggerLlmWithToolsStream({
+			host: activeHost,
+			session: userTurn,
+			messages: buildTurnLlmMessages(userTurn),
+			temperature: 0.7,
+			messageId,
+			emitter,
+		});
+		const withAssistant = await appendAssistantTurn(
+			activeHost,
+			result.session,
+			result.llm,
+		);
+		writeCallSessionDto({
+			event: "debugger.call.message_stream_turn",
+			session: withAssistant,
+			llm: result.llm,
+			toolEvents: result.toolEvents,
+		});
+		emitter.sessionSnapshot(
+			projectDebuggerCallSession(
+				withAssistant,
+				result.llm,
+				result.toolEvents,
+			),
+		);
+		emitter.done();
+	} catch (err) {
+		const coded = err as { code?: unknown; message?: unknown; status?: unknown };
+		emitter.error(
+			typeof coded.code === "string" ? coded.code : "ENGINE_INTERNAL",
+			typeof coded.message === "string" ? coded.message : String(err),
+		);
+		emitter.done();
+		throw err;
+	}
 }
 
 function projectMemoryTrace(

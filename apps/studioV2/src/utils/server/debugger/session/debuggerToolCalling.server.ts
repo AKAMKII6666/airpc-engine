@@ -11,6 +11,7 @@ import {
 } from "@airpc/rpg-engine";
 import {
 	runServerLlmChat,
+	runServerLlmChatStream,
 	ServerLlmError,
 	type ServerLlmChatMessage,
 	type ServerLlmChatResult,
@@ -26,6 +27,14 @@ import { writeStudioLog } from "@studio-v2/src/utils/server/observability/logger
 
 const MAX_TOOL_ROUNDS = 4;
 
+function previewUnknown(value: unknown, emptyText: string): string {
+	if (value === undefined || value === null) return emptyText;
+	const text =
+		typeof value === "string" ? value : JSON.stringify(value, null, 2);
+	if (!text) return emptyText;
+	return text.length > 320 ? `${text.slice(0, 317)}...` : text;
+}
+
 export type DebuggerLlmWithToolsResult = {
 	/** 工具循环后的最新 Host session；invokeTool 会原地更新 session */
 	session: CallSession;
@@ -36,6 +45,38 @@ export type DebuggerLlmWithToolsResult = {
 };
 
 export type DebuggerLlmRunner = typeof runServerLlmChat;
+
+export type DebuggerLlmStreamEmitter = {
+	/** 一轮思考开始；text 可为合成提示 */
+	thinkingStart: (messageId: string, text: string) => void;
+	/** 模型 reasoning/thinking 增量；供应商不支持时不会触发 */
+	thinkingDelta: (messageId: string, text: string) => void;
+	/** 本轮思考结束，开始正文或进入工具执行 */
+	thinkingEnd: (messageId: string) => void;
+	/** 最终正文增量 */
+	textDelta: (messageId: string, text: string) => void;
+	/** 工具执行开始 */
+	toolStart: (
+		messageId: string,
+		input: {
+			toolCallId: string;
+			toolId: string;
+			round: number;
+			argumentsPreview: string;
+		},
+	) => void;
+	/** 工具执行结束 */
+	toolEnd: (
+		messageId: string,
+		input: {
+			toolCallId: string;
+			toolId: string;
+			round: number;
+			resultPreview: string;
+			ok: boolean;
+		},
+	) => void;
+};
 
 export type DebuggerLlmToolEvent = {
 	/** 模型发出的 tool_call id；回放排查时对齐供应商响应 */
@@ -306,6 +347,12 @@ async function appendToolResults(input: {
 	round: number;
 	/** 本次 LLM 回复的工具事件收集器 */
 	toolEvents: DebuggerLlmToolEvent[];
+	/** 可选流式工具事件回调；非流式路径不传 */
+	onToolStart?: (
+		call: ServerLlmToolCall,
+		round: number,
+	) => void;
+	onToolEnd?: (event: DebuggerLlmToolEvent) => void;
 }): Promise<void> {
 	input.messages.push({
 		role: "assistant",
@@ -313,20 +360,23 @@ async function appendToolResults(input: {
 		toolCalls: input.llm.toolCalls,
 	});
 	for (const call of input.llm.toolCalls) {
+		input.onToolStart?.(call, input.round);
 		const resultContent = await invokeToolCall(input.host, input.sessionId, call);
 		input.messages.push({
 			role: "tool",
 			toolCallId: call.id,
 			content: resultContent,
 		});
-		input.toolEvents.push({
+		const event: DebuggerLlmToolEvent = {
 			toolCallId: call.id,
 			toolId: call.name,
 			round: input.round,
 			argumentsJson: call.argumentsJson,
 			resultContent,
 			ok: resultContent.includes("\"ok\":true"),
-		});
+		};
+		input.toolEvents.push(event);
+		input.onToolEnd?.(event);
 	}
 }
 
@@ -386,6 +436,99 @@ export async function runDebuggerLlmWithTools(input: {
 			llm,
 			round: round + 1,
 			toolEvents,
+		});
+	}
+	throw new ServerLlmError("LLM_TOOL_LOOP_ABORTED", "工具循环异常中止", 502);
+}
+
+/** 流式调用模型并执行工具循环，供 SSE route 输出可展示过程。 */
+export async function runDebuggerLlmWithToolsStream(input: {
+	/** Host 单例；用于 invokeTool 与取最新 session */
+	host: EngineHost;
+	/** 工具执行前的 Host session */
+	session: CallSession;
+	/** 初始 LLM 消息栈 */
+	messages: ServerLlmChatMessage[];
+	/** 温度；传给模型请求 */
+	temperature: number;
+	/** 本轮流式系统消息 id；用于 SSE 事件归属 */
+	messageId: string;
+	/** SSE 过程事件出口 */
+	emitter: DebuggerLlmStreamEmitter;
+	/** 测试可注入 LLM stream runner；正式路径使用 runServerLlmChatStream */
+	llmStreamRunner?: typeof runServerLlmChatStream;
+}): Promise<DebuggerLlmWithToolsResult> {
+	const messages = [...input.messages];
+	const llmStreamRunner = input.llmStreamRunner ?? runServerLlmChatStream;
+	const toolEvents: DebuggerLlmToolEvent[] = [];
+	const tools = toolDefinitionsToOpenAiTools(listLlmToolsForSession(input.session));
+	for (let round = 0; round <= MAX_TOOL_ROUNDS; round += 1) {
+		let hasText = false;
+		let hasEndedThinking = false;
+		input.emitter.thinkingStart(input.messageId, "模型正在思考...");
+		const llm = await llmStreamRunner(
+			{
+				messages,
+				temperature: input.temperature,
+				tools,
+				toolChoice: tools.length > 0 ? "auto" : undefined,
+			},
+			{},
+			{
+				onThinkingDelta: function (chunk) {
+					input.emitter.thinkingDelta(input.messageId, chunk);
+				},
+				onTextDelta: function (chunk) {
+					if (!hasEndedThinking) {
+						input.emitter.thinkingEnd(input.messageId);
+						hasEndedThinking = true;
+					}
+					hasText = true;
+					input.emitter.textDelta(input.messageId, chunk);
+				},
+			},
+		);
+		if (!hasEndedThinking) {
+			input.emitter.thinkingEnd(input.messageId);
+		}
+		if (llm.toolCalls.length === 0) {
+			return {
+				session: latestSessionOrThrow(input.host, input.session.sessionId),
+				llm,
+				toolEvents,
+			};
+		}
+		if (round === MAX_TOOL_ROUNDS) {
+			throw new ServerLlmError(
+				"LLM_TOOL_ROUNDS_EXCEEDED",
+				"模型连续调用工具过多，已中止本轮回复",
+				502,
+			);
+		}
+		await appendToolResults({
+			host: input.host,
+			sessionId: input.session.sessionId,
+			messages,
+			llm,
+			round: round + 1,
+			toolEvents,
+			onToolStart: function (call, toolRound) {
+				input.emitter.toolStart(input.messageId, {
+					toolCallId: call.id,
+					toolId: call.name,
+					round: toolRound,
+					argumentsPreview: previewUnknown(call.argumentsJson, "{}"),
+				});
+			},
+			onToolEnd: function (event) {
+				input.emitter.toolEnd(input.messageId, {
+					toolCallId: event.toolCallId,
+					toolId: event.toolId,
+					round: event.round,
+					resultPreview: previewUnknown(event.resultContent, "无结果"),
+					ok: event.ok,
+				});
+			},
 		});
 	}
 	throw new ServerLlmError("LLM_TOOL_LOOP_ABORTED", "工具循环异常中止", 502);

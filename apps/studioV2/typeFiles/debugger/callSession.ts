@@ -345,6 +345,69 @@ export type SendDebuggerMessageBody = {
 	text: string;
 };
 
+export type DebuggerMessageStreamToolStart = {
+	messageId: string;
+	toolCallId: string;
+	toolId: string;
+	round: number;
+	argumentsPreview: string;
+};
+
+export type DebuggerMessageStreamToolEnd = {
+	messageId: string;
+	toolCallId: string;
+	toolId: string;
+	round: number;
+	resultPreview: string;
+	ok: boolean;
+};
+
+export type DebuggerMessageStreamEvent =
+	| {
+			event: "message_start";
+			data: {
+				sessionId: string;
+				messageId: string;
+				role: "assistant";
+			};
+		}
+	| {
+			event: "thinking_start";
+			data: { messageId: string; text: string };
+		}
+	| {
+			event: "thinking_delta";
+			data: { messageId: string; text: string };
+		}
+	| {
+			event: "thinking_end";
+			data: { messageId: string };
+		}
+	| {
+			event: "text_delta";
+			data: { messageId: string; text: string };
+		}
+	| {
+			event: "tool_start";
+			data: DebuggerMessageStreamToolStart;
+		}
+	| {
+			event: "tool_end";
+			data: DebuggerMessageStreamToolEnd;
+		}
+	| {
+			event: "session_snapshot";
+			data: { session: DebuggerCallSessionView };
+		}
+	| {
+			event: "error";
+			data: { code: string; message: string };
+		}
+	| {
+			event: "done";
+			data: Record<string, never>;
+		};
+
 /** 表示挂断当前 Host session 的请求，生命周期仅覆盖当前通话 */
 export type EndDebuggerCallBody = {
 	/** Host CallSession id；server 用它执行 endCall */

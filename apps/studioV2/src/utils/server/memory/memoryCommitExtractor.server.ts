@@ -388,6 +388,7 @@ function buildExtractionMessages(
 	});
 	return {
 		temperature: 0.3,
+		enableThinking: false,
 		toolChoice: "none",
 		messages: [
 			{ role: "system", content: SYSTEM_PROMPT },
@@ -448,6 +449,7 @@ function buildAttitudeMessages(
 	});
 	return {
 		temperature: 0.3,
+		enableThinking: false,
 		toolChoice: "none",
 		messages: [
 			{ role: "system", content: buildAttitudeSystemPrompt(character, history) },

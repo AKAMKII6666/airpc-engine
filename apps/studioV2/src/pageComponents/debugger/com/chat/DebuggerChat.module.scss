@@ -1,0 +1,246 @@
+.chatFlow {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	flex: 1;
+	gap: 12px;
+}
+
+.chatStage {
+	position: relative;
+	flex: 1;
+	min-height: 0;
+	border: 1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.08));
+	border-radius: 10px;
+	background: rgba(12, 20, 34, 0.7);
+	overflow: hidden;
+}
+
+.scrollViewport {
+	height: 100%;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	padding: 16px;
+}
+
+.topGradient,
+.bottomGradient {
+	position: absolute;
+	left: 0;
+	right: 0;
+	z-index: 2;
+	pointer-events: none;
+}
+
+.topGradient {
+	top: 0;
+	height: 36px;
+	background: linear-gradient(180deg, rgba(12, 20, 34, 0.95), transparent);
+}
+
+.bottomGradient {
+	bottom: 0;
+	height: 48px;
+	background: linear-gradient(0deg, rgba(12, 20, 34, 0.95), transparent);
+}
+
+.spacer {
+	width: 1px;
+}
+
+.backToBottom {
+	position: absolute;
+	right: 16px;
+	bottom: 16px;
+	z-index: 5;
+	border: 1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.08));
+	background: rgba(20, 30, 48, 0.92);
+	color: var(--color-text-primary, #fff);
+	box-shadow: 0 0 14px rgba(0, 0, 0, 0.28);
+}
+
+.messageRow {
+	display: flex;
+	width: 100%;
+	margin-bottom: 14px;
+}
+
+.messageRowPlayer {
+	justify-content: flex-end;
+}
+
+.messageRowNpc {
+	justify-content: flex-start;
+	gap: 10px;
+}
+
+.avatar {
+	display: grid;
+	place-items: center;
+	flex: 0 0 34px;
+	width: 34px;
+	height: 34px;
+	border-radius: 10px;
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	background: rgba(50, 214, 255, 0.16);
+	color: #31d4ff;
+	font-weight: 700;
+}
+
+.messageContent {
+	min-width: 0;
+	max-width: min(78%, 540px);
+}
+
+.messageHead {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+	margin-bottom: 4px;
+}
+
+.messageName {
+	font-size: 13px;
+	font-weight: 700;
+}
+
+.messageRole,
+.messageTime {
+	font-size: 11px;
+	opacity: 0.62;
+}
+
+.bubble {
+	padding: 10px 12px;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 12px;
+	background: rgba(20, 30, 48, 0.9);
+	line-height: 1.55;
+	font-size: 14px;
+}
+
+.messageRowPlayer .bubble {
+	border-color: rgba(37, 208, 162, 0.34);
+	background: rgba(37, 208, 162, 0.14);
+}
+
+.bubbleFailed {
+	border-color: rgba(255, 99, 99, 0.5);
+	background: rgba(255, 99, 99, 0.1);
+}
+
+.thinkingBlock {
+	margin-bottom: 8px;
+	padding: 8px 10px;
+	border-radius: 8px;
+	background: rgba(255, 255, 255, 0.04);
+	color: rgba(255, 255, 255, 0.72);
+	font-size: 12px;
+}
+
+.thinkingTitle {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	cursor: pointer;
+	font-weight: 700;
+}
+
+.thinkingBody {
+	margin-top: 6px;
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.toolCard {
+	margin-top: 8px;
+	padding: 8px 10px;
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	border-radius: 8px;
+	background: rgba(255, 255, 255, 0.035);
+	font-size: 12px;
+}
+
+.toolHead {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.toolName {
+	font-weight: 700;
+}
+
+.toolOk {
+	color: #43d17a;
+}
+
+.toolFail {
+	color: #ff8f86;
+}
+
+.toolPreview {
+	margin-top: 4px;
+	white-space: pre-wrap;
+	word-break: break-word;
+	opacity: 0.78;
+}
+
+.composer {
+	margin-top: 12px;
+	padding: 12px;
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	border-radius: 10px;
+	background: rgba(20, 30, 48, 0.8);
+}
+
+.composerRow {
+	display: flex;
+	align-items: flex-end;
+	gap: 10px;
+}
+
+.input {
+	flex: 1;
+}
+
+.footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-top: 8px;
+	color: rgba(255, 255, 255, 0.62);
+	font-size: 12px;
+}
+
+.errorBlock {
+	margin-top: 10px;
+	padding: 10px 12px;
+	border: 1px solid rgba(255, 99, 99, 0.36);
+	border-radius: 8px;
+	background: rgba(255, 99, 99, 0.1);
+	color: #ffb3b3;
+	font-size: 12px;
+}
+
+.errorRow {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.retryButton {
+	flex: 0 0 auto;
+}
+
+.loadingLine {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 10px 0;
+	font-size: 12px;
+	opacity: 0.72;
+}

@@ -27,6 +27,7 @@ type CallCommandActions = Pick<
 	| "applyCallCommandStarted"
 	| "applyCallCommandResult"
 	| "applyCallCommandFailed"
+	| "applyCallCommandAborted"
 	| "resetActiveCall"
 >;
 
@@ -95,6 +96,13 @@ function createCallCommandActions(set: DebuggerSet): CallCommandActions {
 			set({
 				callBusy: false,
 				callError: message,
+			});
+		},
+
+		applyCallCommandAborted() {
+			set({
+				callBusy: false,
+				callError: undefined,
 			});
 		},
 
@@ -182,6 +190,7 @@ export function createDebuggerSessionActions(
 	| "applyCallCommandStarted"
 	| "applyCallCommandResult"
 	| "applyCallCommandFailed"
+	| "applyCallCommandAborted"
 	| "resetActiveCall"
 	| "setMailboxUserId"
 	| "applyMailboxLoadStarted"

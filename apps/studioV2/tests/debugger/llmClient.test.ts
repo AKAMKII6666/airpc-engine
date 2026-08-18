@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
 	ServerLlmError,
 	runServerLlmChat,
+	runServerLlmChatStream,
 	type ServerLlmChatMessage,
 } from "@studio-v2/src/utils/server/debugger/llm/llmClient.server";
 import { resolveServerLlmRuntimeConfig } from "@studio-v2/src/utils/server/debugger/llm/llmConfig.server";
@@ -181,5 +182,117 @@ describe("debugger llmClient.server", () => {
 			status: 503,
 		});
 		expect(called).toBe(false);
+	});
+
+	it("streams reasoning and text deltas and buffers tool_calls", async () => {
+		const chunks = [
+			{
+				choices: [{ delta: { reasoning_content: "先" }, finish_reason: null }],
+			},
+			{
+				choices: [{ delta: { content: "你" }, finish_reason: null }],
+			},
+			{
+				choices: [{ delta: { content: "好" }, finish_reason: null }],
+			},
+			{
+				choices: [{
+					delta: {
+						tool_calls: [{
+							index: 0,
+							id: "call_1",
+							function: {
+								name: "search_memory",
+								arguments: "{\"text_query\":\"露营\"}",
+							},
+						}],
+					},
+					finish_reason: "tool_calls",
+				}],
+			},
+			"[DONE]",
+		].map(function (chunk) {
+			return `data: ${typeof chunk === "string" ? chunk : JSON.stringify(chunk)}\n\n`;
+		});
+		const fetcher = async function () {
+			return new Response(
+				new ReadableStream({
+					start(controller) {
+						for (const chunk of chunks) {
+							controller.enqueue(new TextEncoder().encode(chunk));
+						}
+						controller.close();
+					},
+				}),
+				{ status: 200 },
+			);
+		};
+		const thinking: string[] = [];
+		const text: string[] = [];
+
+		const result = await runServerLlmChatStream(
+			{
+				messages: [{ role: "user", content: "记得露营吗" }],
+				tools: [{
+					type: "function",
+					function: {
+						name: "search_memory",
+						description: "搜索记忆",
+						parameters: { type: "object" },
+					},
+				}],
+			},
+			{
+				config: readyConfig(),
+				fetcher: fetcher as typeof fetch,
+			},
+			{
+				onThinkingDelta: function (chunk) {
+					thinking.push(chunk);
+				},
+				onTextDelta: function (chunk) {
+					text.push(chunk);
+				},
+			},
+		);
+
+		expect(thinking.join("")).toBe("先");
+		expect(text.join("")).toBe("你好");
+		expect(result).toMatchObject({
+			text: "你好",
+			finishReason: "tool_calls",
+			toolCalls: [{
+				id: "call_1",
+				name: "search_memory",
+				argumentsJson: "{\"text_query\":\"露营\"}",
+			}],
+		});
+	});
+
+	it("passes enable_thinking=false when requested", async () => {
+		const captured: RequestInit[] = [];
+		const fetcher = async function (_url: string | URL | Request, init?: RequestInit) {
+			captured.push(init ?? {});
+			return new Response(
+				JSON.stringify({
+					id: "chatcmpl_no_think",
+					model: "qwen-test",
+					choices: [{ message: { content: "{}" } }],
+				}),
+				{ status: 200 },
+			);
+		};
+
+		await runServerLlmChat({
+			messages: [{ role: "user", content: "抽取" }],
+			enableThinking: false,
+		}, {
+			config: readyConfig(),
+			fetcher: fetcher as typeof fetch,
+		});
+
+		expect(JSON.parse(String(captured[0]?.body))).toMatchObject({
+			enable_thinking: false,
+		});
 	});
 });

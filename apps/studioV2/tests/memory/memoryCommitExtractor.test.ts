@@ -102,6 +102,7 @@ describe("memory commit LLM extractor", () => {
       },
       llmRunner: async function (input) {
         seen.push(input.messages.map((m) => m.content).join("\n"));
+        expect(input.enableThinking).toBe(false);
         return {
           text: JSON.stringify({
             summaryText: "用户聊到生日蛋糕。",

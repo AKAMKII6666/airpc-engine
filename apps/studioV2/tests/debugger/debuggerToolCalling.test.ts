@@ -12,7 +12,10 @@ import type {
 	ServerLlmChatInput,
 	ServerLlmChatResult,
 } from "@studio-v2/src/utils/server/debugger/llm/llmClient.server";
-import { runDebuggerLlmWithTools } from "@studio-v2/src/utils/server/debugger/session/debuggerToolCalling.server";
+import {
+	runDebuggerLlmWithTools,
+	runDebuggerLlmWithToolsStream,
+} from "@studio-v2/src/utils/server/debugger/session/debuggerToolCalling.server";
 import { projectDebuggerCallSession } from "@studio-v2/src/utils/server/debugger/session/debuggerCallSession.server";
 
 function sessionFixture(): CallSession {
@@ -601,5 +604,59 @@ describe("runDebuggerLlmWithTools", () => {
 			return event.toolId;
 		})).toEqual(["schedule_reminder_call", "request_hangup"]);
 		expect(result.llm.text).toBe("好，两分钟后我再打来。我先挂啦。");
+	});
+
+	it("streams tool round events and final text deltas", async () => {
+		const session = sessionFixture();
+		const events: string[] = [];
+		const host = {
+			getSession() {
+				return session;
+			},
+		} as unknown as EngineHost;
+
+		const result = await runDebuggerLlmWithToolsStream({
+			host,
+			session,
+			messages: [{ role: "user", content: "帮我找一下" }],
+			temperature: 0.1,
+			messageId: "stream_1",
+			llmStreamRunner: async function (_input, _opts, callbacks) {
+				callbacks?.onThinkingDelta?.("先思考");
+				callbacks?.onTextDelta?.("正在");
+				return {
+					text: "正在",
+					toolCalls: [],
+					finishReason: null,
+					responseId: "stream_resp",
+					model: "qwen-test",
+				};
+			},
+			emitter: {
+				thinkingStart: function (_messageId, text) {
+					events.push(`thinking_start:${text}`);
+				},
+				thinkingDelta: function (_messageId, text) {
+					events.push(`thinking_delta:${text}`);
+				},
+				thinkingEnd: function () {
+					events.push("thinking_end");
+				},
+				textDelta: function (_messageId, text) {
+					events.push(`text:${text}`);
+				},
+				toolStart: function () {
+					events.push("tool_start");
+				},
+				toolEnd: function () {
+					events.push("tool_end");
+				},
+			},
+		});
+
+		expect(result.llm.text).toBe("正在");
+		expect(events).toContain("thinking_start:模型正在思考...");
+		expect(events).toContain("thinking_delta:先思考");
+		expect(events).toContain("text:正在");
 	});
 });

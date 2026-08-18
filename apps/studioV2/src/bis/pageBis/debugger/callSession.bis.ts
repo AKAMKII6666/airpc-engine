@@ -8,6 +8,7 @@ import { useCallback } from "react";
 import {
 	postDebuggerCallEnd,
 	postDebuggerCallMessage,
+	postDebuggerCallMessageStream,
 	postDebuggerCallStart,
 } from "@studio-v2/src/utils/ajaxProxy/debugger/api/callSessionApi";
 import { isStudioApiErrorCode } from "@studio-v2/src/utils/ajaxHelper/studioApiClient";
@@ -15,6 +16,7 @@ import { useDebuggerStore } from "@studio-v2/src/stores/debugger/debuggerStore";
 import type {
 	DebuggerCallEndView,
 	DebuggerCallSessionView,
+	DebuggerMessageStreamEvent,
 } from "@studio-v2/typeFiles/debugger/callSession";
 
 export type DebuggerEndCallInput = {
@@ -47,6 +49,14 @@ export type DebuggerCallSessionBis = {
 	) => Promise<DebuggerCallSessionView | null>;
 	/** 发送玩家文本并等待模型回复 */
 	sendMessage: (text: string) => Promise<DebuggerCallSessionView | null>;
+	/** 发送玩家文本并订阅流式事件；返回 AbortController */
+	sendMessageStream: (
+		text: string,
+		handlers: {
+			onEvent: (event: DebuggerMessageStreamEvent) => void;
+			onClose?: () => void;
+		},
+	) => AbortController | null;
 	/** 挂断当前通话：立即清 UI 投影，再后台执行 Host endCall */
 	endCall: (input?: DebuggerEndCallInput) => Promise<DebuggerCallEndView | null>;
 	/** 清空当前通话 UI 投影；仅无 session 或错误恢复时使用 */
@@ -60,6 +70,8 @@ type CallCommandActions = {
 	applyResult: (session: DebuggerCallSessionView) => void;
 	/** 写入命令失败信息 */
 	applyFailed: (message: string) => void;
+	/** 流式请求被用户中断 */
+	applyCallCommandAborted: () => void;
 	/** 清空当前通话投影 */
 	resetActiveCall: () => void;
 };
@@ -169,6 +181,38 @@ async function runSendMessage(
 	}
 }
 
+function runSendMessageStream(
+	actions: CallCommandActions,
+	activeCall: DebuggerCallSessionView | null,
+	text: string,
+	handlers: {
+		onEvent: (event: DebuggerMessageStreamEvent) => void;
+		onClose?: () => void;
+	},
+): AbortController | null {
+	if (!activeCall) return null;
+	actions.applyStarted();
+	return postDebuggerCallMessageStream(
+		{
+			sessionId: activeCall.sessionId,
+			text,
+		},
+		{
+			onEvent: function (event) {
+				if (event.event === "session_snapshot") {
+					actions.applyResult(event.data.session);
+				}
+				if (event.event === "error") {
+					actions.applyFailed(event.data.message);
+				}
+				handlers.onEvent(event);
+			},
+			onClose: handlers.onClose,
+			onAbort: actions.applyCallCommandAborted,
+		},
+	);
+}
+
 async function runEndCall(
 	actions: CallCommandActions,
 	activeCall: DebuggerCallSessionView | null,
@@ -224,11 +268,15 @@ export function useDebuggerCallSessionBis(): DebuggerCallSessionBis {
 	const resetActiveCall = useDebuggerStore(function (s) {
 		return s.resetActiveCall;
 	});
+	const applyCallCommandAborted = useDebuggerStore(function (s) {
+		return s.applyCallCommandAborted;
+	});
 	const actions = {
 		applyStarted,
 		applyResult,
 		applyFailed,
 		resetActiveCall,
+		applyCallCommandAborted,
 	};
 
 	const startFreeCall = useCallback(
@@ -259,6 +307,19 @@ export function useDebuggerCallSessionBis(): DebuggerCallSessionBis {
 		[activeCall, applyStarted, applyResult, applyFailed, resetActiveCall],
 	);
 
+	const sendMessageStream = useCallback(
+		function (
+			text: string,
+			handlers: {
+				onEvent: (event: DebuggerMessageStreamEvent) => void;
+				onClose?: () => void;
+			},
+		) {
+			return runSendMessageStream(actions, activeCall, text, handlers);
+		},
+		[activeCall, applyStarted, applyResult, applyFailed, applyCallCommandAborted],
+	);
+
 	const endCall = useCallback(
 		async function (input?: DebuggerEndCallInput) {
 			return runEndCall(actions, activeCall, input);
@@ -275,6 +336,7 @@ export function useDebuggerCallSessionBis(): DebuggerCallSessionBis {
 		startSimulateCall,
 		startSimulateChapterCall,
 		sendMessage,
+		sendMessageStream,
 		endCall,
 		resetCall: resetActiveCall,
 	};

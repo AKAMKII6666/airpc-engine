@@ -90,6 +90,8 @@ export type DebuggerStoreState = {
 	applyCallCommandResult: (session: DebuggerCallSessionView) => void;
 	/** 真实通话请求失败：保留现有通话并展示错误 */
 	applyCallCommandFailed: (message: string) => void;
+	/** 真实通话流式请求被用户主动中断：清除 busy，不展示错误 */
+	applyCallCommandAborted: () => void;
 	/** 清空当前通话投影；第四轮再接 Host endCall */
 	resetActiveCall: () => void;
 
