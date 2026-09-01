@@ -1,7 +1,7 @@
 /**
  * V1-E1–E3：ScheduleCard schema／recurring 禁裸／物化可 resolve outbound
  */
-import { cp, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -16,7 +16,7 @@ import {
   resolveRecurringCardTarget,
 } from "../../src/index.js";
 import { expandRegisterExitEffects } from "../../src/tools/expandExitEffects.js";
-import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
+import { copyDataTree, createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -51,7 +51,7 @@ describe("ScheduleCard + recurring (V1-E1–E3)", () => {
 
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-sched-load-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
     const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);
     const pre = await host.preloadCard(
@@ -104,7 +104,7 @@ describe("ScheduleCard + recurring (V1-E1–E3)", () => {
 
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-sched-val-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const cardPath = path.join(
       dataRoot,
@@ -138,7 +138,7 @@ describe("ScheduleCard + recurring (V1-E1–E3)", () => {
   it("V1-E2b：Free/Schedule 宿主 recurring 指向 StoryCard → SCHEDULE_CARD_KIND；合法目标通过", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-sched-kind-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const confPath = path.join(
       dataRoot,
@@ -249,7 +249,7 @@ describe("ScheduleCard + recurring (V1-E1–E3)", () => {
   it("V1-E3：物化 → agent_outbound → beginCall frozenCard 为 ScheduleCard", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-sched-e3-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);

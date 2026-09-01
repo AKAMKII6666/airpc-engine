@@ -1,5 +1,5 @@
 /**
-	* 调试器 LLM tools adapter：引擎中性 ToolDefinition → OpenAI-compatible tools。
+	* Server LLM tools adapter：引擎中性 ToolDefinition → OpenAI-compatible tools。
 	*/
 import type { ToolDefinition } from "@airpc/rpg-engine";
 

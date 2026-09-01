@@ -24,6 +24,9 @@ export function useUserLibraryPage() {
 	const [createOpen, setCreateOpen] = useState(false);
 	const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 	const [deleteError, setDeleteError] = useState<string | undefined>();
+	const [createLoreWarning, setCreateLoreWarning] = useState<
+		string | undefined
+	>();
 
 	const deleteTarget =
 		deleteTargetId == null
@@ -31,8 +34,17 @@ export function useUserLibraryPage() {
 			: session.profiles.find((u) => u.userId === deleteTargetId);
 
 	async function onCreateSubmit(values: CreateUserFormValues): Promise<void> {
-		await session.onCreateSubmit(values);
+		const result = await session.onCreateSubmit(values);
 		setCreateOpen(false);
+		setCreateLoreWarning(
+			result.loreWarning && result.loreWarning.trim() !== ""
+				? result.loreWarning
+				: undefined,
+		);
+	}
+
+	function dismissCreateLoreWarning(): void {
+		setCreateLoreWarning(undefined);
 	}
 
 	function onRequestDelete(userId: string): void {
@@ -63,6 +75,8 @@ export function useUserLibraryPage() {
 		setCreateOpen,
 		deleteTarget,
 		deleteError,
+		createLoreWarning,
+		dismissCreateLoreWarning,
 		loadError: session.loadError,
 		loading: session.loading,
 		setSelectedId: session.setSelectedId,

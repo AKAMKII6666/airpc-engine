@@ -39,6 +39,7 @@ export function httpStatusForCode(code: string): number {
 		case "CONFLICT_ACTIVE_CALL":
 		case "CHARACTER_NOT_DIALABLE":
 		case "STORY_LOCKED":
+		case "AGENT_POST_CALL_BUSY":
 			return 409;
 		case "NO_EXIT_MATCHED":
 		case "SCHEMA_UNSUPPORTED":

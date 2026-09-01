@@ -19,6 +19,8 @@ export type CreateUserResult = {
 	userId: string;
 	/** 由写后回读 User 投影的列表项 */
 	summary: UserProfileSummary;
+	/** 自动 bootstrap 的人话提示（fallback／失败）；不挡创建成功 */
+	loreWarning?: string;
 };
 
 /**
@@ -29,6 +31,10 @@ export async function commitCreateUser(
 ): Promise<CreateUserResult> {
 	const draft = buildUserFromForm(values);
 	const saved = await postProfileUser(summaryToUser(draft));
-	const summary = userToSummary(saved);
-	return { userId: summary.userId, summary };
+	const summary = userToSummary(saved.user);
+	return {
+		userId: summary.userId,
+		summary,
+		loreWarning: saved.loreWarning,
+	};
 }

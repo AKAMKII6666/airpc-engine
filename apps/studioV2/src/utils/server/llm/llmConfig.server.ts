@@ -1,12 +1,18 @@
 /**
-	* 调试器文本 LLM 配置解析。
+	* Studio V2 server LLM 配置解析（调试器 / Memory / Lore 共用）。
 	* 只在 server 使用；API Key 不得进入 Client DTO。
 	*/
 
 export type ServerLlmProvider = "qwen" | "openai_compatible";
 
+export type ServerLlmKeySource =
+	| "AIRPC_LLM_API_KEY"
+	| "AIRPC_LORE_LLM_API_KEY"
+	| "OPENAI_API_KEY"
+	| "none";
+
 export type ServerLlmRuntimeConfig = {
-	/** false 时调试器不可消费模型，即使 apiKey 存在 */
+	/** false 时不可消费模型，即使 apiKey 存在 */
 	enabled: boolean;
 	/** false 时禁止发送 tools；用于模型不支持 FC 时显式降级 */
 	toolsEnabled: boolean;
@@ -19,7 +25,7 @@ export type ServerLlmRuntimeConfig = {
 	/** 仅 server 消费的密钥；禁止透出给浏览器 */
 	apiKey: string | null;
 	/** key 来源环境变量；便于调试，不含值 */
-	keySource: "AIRPC_LLM_API_KEY" | "none";
+	keySource: ServerLlmKeySource;
 	/** 缺失的必要项 */
 	missing: string[];
 };
@@ -63,6 +69,20 @@ function parseProvider(value: string | undefined): ServerLlmProvider {
 	return "qwen";
 }
 
+function buildMissingWhenEnabled(
+	enabled: boolean,
+	apiKey: string | null,
+	baseUrl: string,
+	model: string,
+): string[] {
+	const missing: string[] = [];
+	if (!enabled) return missing;
+	if (!apiKey) missing.push("AIRPC_LLM_API_KEY");
+	if (!baseUrl) missing.push("AIRPC_LLM_BASE_URL");
+	if (!model) missing.push("AIRPC_LLM_MODEL");
+	return missing;
+}
+
 export function maskApiKey(apiKey: string | null): string | null {
 	if (!apiKey) return null;
 	if (apiKey.length <= 8) return "********";
@@ -79,10 +99,6 @@ export function resolveServerLlmRuntimeConfig(
 	const baseUrl =
 		trimEnv(env, "AIRPC_LLM_BASE_URL") ?? DEFAULT_QWEN_BASE_URL;
 	const model = trimEnv(env, "AIRPC_LLM_MODEL") ?? DEFAULT_QWEN_MODEL;
-	const missing: string[] = [];
-	if (enabled && !apiKey) missing.push("AIRPC_LLM_API_KEY");
-	if (enabled && !baseUrl) missing.push("AIRPC_LLM_BASE_URL");
-	if (enabled && !model) missing.push("AIRPC_LLM_MODEL");
 
 	return {
 		enabled,
@@ -92,7 +108,46 @@ export function resolveServerLlmRuntimeConfig(
 		model,
 		apiKey,
 		keySource: apiKey ? "AIRPC_LLM_API_KEY" : "none",
-		missing,
+		missing: buildMissingWhenEnabled(enabled, apiKey, baseUrl, model),
+	};
+}
+
+/**
+	* Lore bootstrap 默认复用 AIRPC_LLM_*；显式设置 AIRPC_LORE_LLM_* 时覆盖对应字段。
+	*/
+export function resolveLoreLlmRuntimeConfig(
+	env: LlmEnv = process.env,
+): ServerLlmRuntimeConfig {
+	const base = resolveServerLlmRuntimeConfig(env);
+	const loreEnabledRaw = trimEnv(env, "AIRPC_LORE_LLM_ENABLED");
+	const enabled =
+		loreEnabledRaw !== undefined
+			? parseEnabled(loreEnabledRaw)
+			: base.enabled;
+
+	const loreKey = trimEnv(env, "AIRPC_LORE_LLM_API_KEY");
+	const openAiKey = trimEnv(env, "OPENAI_API_KEY");
+	const apiKey = loreKey ?? openAiKey ?? base.apiKey;
+	let keySource: ServerLlmKeySource = base.keySource;
+	if (loreKey) {
+		keySource = "AIRPC_LORE_LLM_API_KEY";
+	} else if (openAiKey && !base.apiKey) {
+		keySource = "OPENAI_API_KEY";
+	}
+
+	const baseUrl =
+		trimEnv(env, "AIRPC_LORE_LLM_BASE_URL") ?? base.baseUrl;
+	const model = trimEnv(env, "AIRPC_LORE_LLM_MODEL") ?? base.model;
+
+	return {
+		enabled,
+		toolsEnabled: base.toolsEnabled,
+		provider: base.provider,
+		baseUrl,
+		model,
+		apiKey,
+		keySource,
+		missing: buildMissingWhenEnabled(enabled, apiKey, baseUrl, model),
 	};
 }
 

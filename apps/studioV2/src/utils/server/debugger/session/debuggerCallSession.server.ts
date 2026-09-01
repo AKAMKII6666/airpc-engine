@@ -14,7 +14,7 @@ import { getStudioV2EngineHost } from "@studio-v2/src/utils/server/host/engineHo
 import { isValidUserId } from "@studio-v2/src/utils/server/users/usersFs.server";
 import {
 	type ServerLlmChatResult,
-} from "@studio-v2/src/utils/server/debugger/llm/llmClient.server";
+} from "@studio-v2/src/utils/server/llm/llmClient.server";
 import {
 	buildOpeningLlmMessages,
 	buildTurnLlmMessages,
@@ -190,6 +190,8 @@ export type DebuggerCallEndView = {
 	planStatus: string | null;
 	/** Free pipeline 是否执行了记忆 commit；Story 为 null */
 	freeCommitted: boolean | null;
+	/** 挂机后后台副作用 job id */
+	postCallJobId: string;
 	/** 挂机记忆提交摘要；供 UI/console 展示 Memory Trace */
 	memoryTrace: DebuggerMemoryCommitTraceView | null;
 };
@@ -586,26 +588,54 @@ function projectMemoryTrace(
 	result: EndCallResult,
 ): DebuggerMemoryCommitTraceView | null {
 	const traceId = `memory_commit:${result.session.sessionId}`;
+	const jobPending =
+		result.postCallJob &&
+		!["completed", "completed_with_errors", "aborted_non_retryable"].includes(
+			result.postCallJob.status,
+		);
 	if (result.freePipeline) {
+		const pending =
+			jobPending === true && result.freePipeline.committed !== true;
 		return {
 			traceId,
 			dtoId: result.session.sessionId,
 			policy: "free_post_pipeline",
 			committed: result.freePipeline.committed,
 			entryIds: result.freePipeline.commitEntryIds ?? [],
-			skippedReason: result.freePipeline.committed ? null : "not_committed",
+			skippedReason: result.freePipeline.committed
+				? null
+				: pending
+					? "background_pending"
+					: "not_committed",
 			error: null,
 		};
 	}
 	if (result.storyMemoryCommit) {
+		const pending =
+			jobPending === true && result.storyMemoryCommit.committed !== true;
 		return {
 			traceId,
 			dtoId: result.session.sessionId,
 			policy: "story_call",
 			committed: result.storyMemoryCommit.committed,
 			entryIds: result.storyMemoryCommit.commitEntryIds ?? [],
-			skippedReason: result.storyMemoryCommit.skippedReason ?? null,
+			skippedReason: result.storyMemoryCommit.committed
+				? null
+				: pending
+					? "background_pending"
+					: (result.storyMemoryCommit.skippedReason ?? null),
 			error: result.storyMemoryCommit.error ?? null,
+		};
+	}
+	if (jobPending) {
+		return {
+			traceId,
+			dtoId: result.session.sessionId,
+			policy: "free_post_pipeline",
+			committed: false,
+			entryIds: [],
+			skippedReason: "background_pending",
+			error: null,
 		};
 	}
 	return null;
@@ -618,6 +648,7 @@ function projectEndResult(result: EndCallResult): DebuggerCallEndView {
 		selectedExitId: result.selectedExitId ?? null,
 		planStatus: result.effectPlanResult.status,
 		freeCommitted: result.freePipeline?.committed ?? null,
+		postCallJobId: result.postCallJobId,
 		memoryTrace: projectMemoryTrace(result),
 	};
 }

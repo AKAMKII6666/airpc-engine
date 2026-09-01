@@ -3,7 +3,7 @@
 	* 只把 Composer 已产出的公开调试上下文与 chatTurns 送入模型，不读取 Client 状态。
 	*/
 import type { CallSession, RenderedPrompt } from "@airpc/rpg-engine";
-import type { ServerLlmChatMessage } from "@studio-v2/src/utils/server/debugger/llm/llmClient.server";
+import type { ServerLlmChatMessage } from "@studio-v2/src/utils/server/llm/llmClient.server";
 import { buildShellControlInstruction } from "@studio-v2/src/utils/server/debugger/shell/shellControlTools.server";
 
 type TextLlmRole = "system" | "user" | "assistant";

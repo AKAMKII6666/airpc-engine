@@ -3,8 +3,8 @@
   "userId": "demo-user",
   "user": {
     "userId": "demo-user",
-    "nickname": "小明",
-    "fullName": "王小明",
+    "nickname": "廖力",
+    "fullName": "廖力",
     "gender": "male",
     "birthday": "2000-01-15",
     "age": 26,
@@ -14,12 +14,12 @@
     },
     "location": {
       "country": "中国",
-      "province": "广东省",
-      "city": "深圳市",
-      "district": "南山区"
+      "province": "北京市",
+      "city": "昌平区",
+      "district": "北七家"
     },
     "createdAt": "2026-07-13T00:00:00.000Z",
-    "updatedAt": "2026-07-13T00:00:00.000Z"
+    "updatedAt": "2026-09-01T01:01:19.510Z"
   },
   "characters": {
     "lanxing": {
@@ -99,32 +99,57 @@
   "world": {
     "lore": {
       "version": 1,
-      "source": "fallback",
-      "generatedAt": "2026-07-15T05:43:23.063Z",
+      "source": "llm",
+      "generatedAt": "2026-09-01T00:58:30.751Z",
       "location": {
         "country": "中国",
-        "province": "广东省",
-        "city": "深圳市"
+        "province": "北京市",
+        "city": "昌平区",
+        "district": "北七家"
       },
-      "sharedPremise": "世界背景（降级）：用户与角色们的故事发生在「中国·广东省·深圳市」语境下；保持日常电话感，勿剧透未解锁内容。",
+      "sharedPremise": "北七家日常邻里闲聊，大家关心生活琐事和附近变化。",
       "perspectives": {
+        "bai-bansian": [
+          "最近北七家这边风水不错，适合安居。",
+          "听说那边要修新路了，出行会更方便。"
+        ],
         "lanxing": [
-          "你知道用户大致在「中国·广东省·深圳市」附近生活。",
-          "不要编造未提供的地域细节。"
+          "小皮今天又调皮了，不过挺可爱的。",
+          "强叔叔家的孩子最近长高了不少呢。"
+        ],
+        "qiang-shushu": [
+          "张老板的店生意越来越好了。",
+          "北七家这边治安挺好的，晚上散步也放心。"
         ],
         "xiaopi": [
-          "你知道用户大致在「中国·广东省·深圳市」附近生活。",
-          "不要编造未提供的地域细节。"
+          "我喜欢在小区里捉迷藏。",
+          "白半仙爷爷讲的故事最好听了！"
+        ],
+        "zhang-boss": [
+          "感谢各位邻居照顾小店生意。",
+          "希望北七家发展得越来越好。"
         ]
       },
       "characters": {
+        "bai-bansian": {
+          "displayName": "白半仙",
+          "blurb": "喜欢聊风水和邻里八卦的热心长者。"
+        },
         "lanxing": {
-          "displayName": "澜星",
-          "blurb": "澜星是本地可通话的角色。"
+          "displayName": "澜星姐姐",
+          "blurb": "温柔亲切的大姐姐，常照顾孩子们。"
+        },
+        "qiang-shushu": {
+          "displayName": "强叔叔",
+          "blurb": "踏实肯干的中年大叔，熟悉社区情况。"
         },
         "xiaopi": {
           "displayName": "小皮",
-          "blurb": "小皮是本地可通话的角色。"
+          "blurb": "活泼好动的小男孩，充满好奇心。"
+        },
+        "zhang-boss": {
+          "displayName": "张老板",
+          "blurb": "经营小店的老板，待人热情周到。"
         }
       }
     },
@@ -132,7 +157,7 @@
     "knowledge": {}
   },
   "schedule": {
-    "clockMs": 318940152,
+    "clockMs": 1950155714,
     "intents": [
       {
         "kind": "once",
@@ -204,36 +229,64 @@
   },
   "meta": {
     "createdAt": "2026-07-13T00:00:00.000Z",
-    "updatedAt": "2026-08-17T17:40:04.616Z",
+    "updatedAt": "2026-09-01T01:01:19.510Z",
     "note": "记忆明细在 data/memory/memory.sqlite，不在本文件内嵌",
     "repairedAt": "2026-08-11T09:09:51.070Z",
     "repairedReason": "trimmed corrupted appended JSON tail and restored pending reminder intent",
     "conversationInertiaByAgent": {
       "lanxing": {
-        "previousSessionId": "d74135b9-4768-4949-bbdc-e35dc962df0f",
-        "previousEndedAt": "2026-08-17T15:08:44.545Z",
+        "previousSessionId": "724a1858-d28b-4739-8e29-97e1e5a30065",
+        "previousEndedAt": "2026-08-28T06:34:40.154Z",
         "previousCardId": "lanxing_free",
         "previousSource": "free",
         "recentTurns": [
           {
             "role": "user",
-            "text": "行，哈哈哈，那我不多想了。",
-            "at": "2026-08-17T15:08:27.844Z"
+            "text": "没，开玩笑，我串什么门啊，那么远",
+            "at": "2026-08-28T06:33:49.015Z"
           },
           {
             "role": "assistant",
-            "text": "（笑）  \n好，那我们——  \n把“不多想”这四个字，  \n也悄悄放进茶杯底。  \n\n……晚安，总工程师。  \n下次拨进来时，  \n我大概，又在等一杯温茶了。",
-            "at": "2026-08-17T15:08:29.520Z"
+            "text": "哈哈，那倒也是，深圳到北京确实够远的～（笑）\n\n行吧，那就不查户口了。你这会儿是刚忙完？还是准备接着忙？",
+            "at": "2026-08-28T06:33:51.179Z"
           },
           {
             "role": "user",
-            "text": "晚安，明天见",
-            "at": "2026-08-17T15:08:39.741Z"
+            "text": "接着忙吧",
+            "at": "2026-08-28T06:34:00.181Z"
           },
           {
             "role": "assistant",
-            "text": "晚安，廖力。  \n（轻声）  \n明天见。",
-            "at": "2026-08-17T15:08:42.250Z"
+            "text": "嗯，行～（笑）\n\n那你先忙着，要是累着了随时给我来电话，我这电话一直开着呢。",
+            "at": "2026-08-28T06:34:01.825Z"
+          }
+        ]
+      },
+      "bai-bansian": {
+        "previousSessionId": "bf7561cd-5013-4103-a923-8dcc604ee03a",
+        "previousEndedAt": "2026-08-18T05:45:22.826Z",
+        "previousCardId": "bai_bansian_free",
+        "previousSource": "free",
+        "recentTurns": [
+          {
+            "role": "user",
+            "text": "哈哈，暂时没有了，白先生，您先休息吧，我也要去忙了",
+            "at": "2026-08-18T05:45:06.847Z"
+          },
+          {
+            "role": "assistant",
+            "text": "好嘞，廖力，你慢走！\n\n这卦就到此为止，路还长着呢。有需要再拨这个号，我白问山在这儿等着。",
+            "at": "2026-08-18T05:45:09.102Z"
+          },
+          {
+            "role": "user",
+            "text": "再见",
+            "at": "2026-08-18T05:45:17.388Z"
+          },
+          {
+            "role": "assistant",
+            "text": "好嘞，廖力，慢走！有需要再拨这个号，我白问山在这儿等着。",
+            "at": "2026-08-18T05:45:20.654Z"
           }
         ]
       }

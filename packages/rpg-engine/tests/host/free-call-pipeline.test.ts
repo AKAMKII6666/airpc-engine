@@ -1,7 +1,7 @@
 /**
  * 模块名称：Free 管线 + 工具登记集成测
  */
-import { cp, mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,6 +13,7 @@ import {
 } from "../../src/index.js";
 import type { MemoryCommitInput, MemoryPort } from "../../src/memory/types.js";
 import {
+  copyDataTree,
   createInMemoryMemoryPort,
   createTestHostWithMemory,
 } from "../helpers/inMemoryMemoryPort.js";
@@ -22,21 +23,6 @@ const repoRoot = path.resolve(
   "../../../..",
 );
 const dataSrc = path.join(repoRoot, "data");
-
-async function copyStableDataRoot(target: string): Promise<void> {
-  await cp(dataSrc, target, {
-    recursive: true,
-    filter(src) {
-      const rel = path.relative(dataSrc, src);
-      return !(
-        rel === "debug-dto" ||
-        rel.startsWith(`debug-dto${path.sep}`) ||
-        rel === "logs" ||
-        rel.startsWith(`logs${path.sep}`)
-      );
-    },
-  });
-}
 
 describe("free call + tools + memory", () => {
   let tmpRoot: string | undefined;
@@ -70,7 +56,7 @@ describe("free call + tools + memory", () => {
   it("free_call → packageId __free__ → Commit without candidate", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-p5-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await copyStableDataRoot(dataRoot);
+    await copyDataTree(dataSrc, dataRoot);
     const host = createTestHostWithMemory({ persist: true, dataRoot });
     await host.loadWorkspace(dataRoot);
     await host.ensureProfile("demo-user");
@@ -132,7 +118,7 @@ describe("free call + tools + memory", () => {
   it("register_exit candidate → Free Exit Effect (share_expert_number unlock)", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-p5-cand-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await copyStableDataRoot(dataRoot);
+    await copyDataTree(dataSrc, dataRoot);
     const commits: MemoryCommitInput[] = [];
     const baseMemory = createInMemoryMemoryPort();
     const memory: MemoryPort = {
@@ -199,7 +185,7 @@ describe("free call + tools + memory", () => {
   it("passes session_local tool result seeds into MemoryCommit exclusions", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-p5-tool-seed-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await copyStableDataRoot(dataRoot);
+    await copyDataTree(dataSrc, dataRoot);
     const commits: MemoryCommitInput[] = [];
     const baseMemory = createInMemoryMemoryPort();
     const memory: MemoryPort = {
@@ -255,7 +241,7 @@ describe("free call + tools + memory", () => {
   it("loadCard 可经 __free__ 解析角色 FreeCard", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-p5-free-load-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await copyStableDataRoot(dataRoot);
+    await copyDataTree(dataSrc, dataRoot);
     const host = createTestHostWithMemory({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);
     const ok = await host.preloadCard(FREE_CHAPTER_ID, "lanxing_free");

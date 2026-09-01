@@ -1,14 +1,14 @@
 /**
  * Host 外呼调度底层：schedule due → incoming shell event。
  */
-import { cp, mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { isEngineError } from "../../src/index.js";
 import type { EngineHost } from "../../src/index.js";
-import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
+import { copyDataTree, createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
 	path.dirname(fileURLToPath(import.meta.url)),
@@ -37,7 +37,7 @@ async function createScheduledOutboundFixture(
 	const tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-outbound-shell-"));
 	tmpRoots.push(tmpRoot);
 	const dataRoot = path.join(tmpRoot, "data");
-	await cp(dataSrc, dataRoot, { recursive: true });
+	await copyDataTree(dataSrc, dataRoot);
 
 	const host = createTestHost({ persist: opts.persist ?? false, dataRoot });
 	await host.loadWorkspace(dataRoot);

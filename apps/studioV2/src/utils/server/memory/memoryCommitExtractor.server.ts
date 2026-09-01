@@ -14,7 +14,7 @@ import {
 	runServerLlmChat,
 	type ServerLlmChatInput,
 	type ServerLlmChatResult,
-} from "@studio-v2/src/utils/server/debugger/llm/llmClient.server";
+} from "@studio-v2/src/utils/server/llm/llmClient.server";
 
 type MemoryTranscriptTurn = {
 	role: "user" | "assistant" | "system";

@@ -16,6 +16,8 @@ import {
 	readChapterConfFromFs,
 } from "./content/contentReads.js";
 
+export { copyDataTree, createDataCopyFilter } from "./copyDataTree.js";
+
 /** 指向 workspaceKey=dataRoot 的 ContentPort；供 host 集成测注入。 */
 export function createFsContentPort(): ContentPort {
 	return {

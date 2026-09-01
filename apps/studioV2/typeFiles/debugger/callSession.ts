@@ -426,10 +426,44 @@ export type DebuggerCallEndView = {
 	selectedExitId: string | null;
 	/** Effect plan 终态；没有 plan 时为 null */
 	planStatus: string | null;
-	/** Free pipeline 是否提交记忆；Story 为 null */
+	/**
+	 * Free pipeline 记忆是否已提交。
+	 * 后台未完成时为 false（见 memoryTrace.skippedReason=background_pending），勿当最终失败。
+	 */
 	freeCommitted: boolean | null;
-	/** 挂机记忆提交摘要；供 UI/console 展示 Memory Trace */
+	/** 挂机后后台副作用 job id；用于轮询详情与占线状态 */
+	postCallJobId: string;
+	/** 挂机记忆提交摘要；异步未完成时 committed=false 且 skippedReason=background_pending */
 	memoryTrace: DebuggerMemoryCommitTraceView | null;
+};
+
+export type DebuggerPostCallJobView = {
+	jobId: string;
+	userId: string;
+	sessionId: string;
+	primaryAgentId: string;
+	status: string;
+	updatedAt: string;
+	effectPlanStatus: string | null;
+	selectedExitId: string | null;
+	steps: Array<{
+		id: string;
+		status: "pending" | "running" | "done" | "failed" | "skipped";
+		detail?: string;
+	}>;
+	failedSteps: Array<{ stepId: string; error: string }>;
+};
+
+export type DebuggerPostCallJobsResponse = {
+	jobs: DebuggerPostCallJobView[];
+};
+
+export type DebuggerPostCallRetryBody = {
+	jobId: string;
+};
+
+export type DebuggerPostCallRetryResponse = {
+	job: DebuggerPostCallJobView;
 };
 
 /** 表示挂机记忆提交的可读 trace 摘要 */

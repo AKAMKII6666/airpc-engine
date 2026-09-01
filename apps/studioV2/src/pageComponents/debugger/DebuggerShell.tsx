@@ -15,7 +15,7 @@ import { DebuggerContextPanel } from "@studio-v2/src/pageComponents/debugger/com
 import { DebuggerTopBar } from "@studio-v2/src/pageComponents/debugger/com/DebuggerTopBar";
 import { IdlePhonePanel } from "@studio-v2/src/pageComponents/debugger/com/IdlePhonePanel";
 import { IncomingCallModal } from "@studio-v2/src/pageComponents/debugger/com/IncomingCallModal";
-import { PostCallEffectOverlay } from "@studio-v2/src/pageComponents/debugger/com/PostCallEffectOverlay";
+import { PostCallJobTip } from "@studio-v2/src/pageComponents/debugger/com/PostCallJobTip";
 import { useDebuggerPrototypeSession } from "@studio-v2/src/pageComponents/debugger/hooks/useDebuggerPrototypeSession";
 import {
 	phoneStatusLabel,
@@ -116,7 +116,13 @@ export const DebuggerShell: FC<DebuggerShellProps> = function DebuggerShell({
 				onReject={incomingBis.rejectIncomingCall}
 			/>
 
-			<PostCallEffectOverlay state={session.postCallEffectOverlay} />
+			<PostCallJobTip
+				jobs={session.postCallJobs}
+				loading={session.postCallJobsLoading}
+				error={session.postCallJobsError}
+				onRetry={session.retryPostCallJob}
+				retryingJobId={session.postCallRetryingJobId}
+			/>
 
 			<Snackbar
 				key={session.hangupToast?.id}

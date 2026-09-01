@@ -30,8 +30,12 @@ export type UserLibrarySessionBis = {
 	setSelectedId: (userId: string) => void;
 	/** 详情保存成功：单条 upsert，不 bump */
 	onDetailSaved: (next: UserProfileSummary) => void;
-	/** 新建成功：prefer 选中 + bump 重拉 */
-	onCreateSubmit: (values: CreateUserFormValues) => Promise<void>;
+	/**
+		* 新建成功：prefer 选中 + bump 重拉；返回可选 loreWarning 供页级提示。
+		*/
+	onCreateSubmit: (
+		values: CreateUserFormValues,
+	) => Promise<{ loreWarning?: string }>;
 	/** 删除成功：bump 重拉；失败抛错由调用方记 deleteError */
 	onConfirmDelete: (userId: string) => Promise<void>;
 };
@@ -106,7 +110,9 @@ export function useUserLibrarySessionBis(): UserLibrarySessionBis {
 	);
 
 	const onCreateSubmit = useCallback(
-		async function (values: CreateUserFormValues): Promise<void> {
+		async function (
+			values: CreateUserFormValues,
+		): Promise<{ loreWarning?: string }> {
 			const result = await commitCreateUser(values);
 			setPreferSelectedId(result.userId);
 			setCurrentUser({
@@ -114,6 +120,7 @@ export function useUserLibrarySessionBis(): UserLibrarySessionBis {
 				nickname: result.summary.nickname,
 			});
 			bumpUsersRefreshStamp();
+			return { loreWarning: result.loreWarning };
 		},
 		[setPreferSelectedId, bumpUsersRefreshStamp, setCurrentUser],
 	);

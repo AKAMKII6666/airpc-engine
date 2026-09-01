@@ -1,5 +1,6 @@
 /**
 	* GET/POST /api/users — 列出 / 新建 Profile 的 user 段（data/users）。
+	* 新建成功后若有 location 则自动 bootstrapLore（失败不挡 201）。
 	*/
 import {
 	UserSchema,
@@ -11,11 +12,13 @@ import {
 	apiOk,
 	httpStatusForCode,
 } from "@studio-v2/src/utils/server/http/apiResponse.server";
+import { bootstrapLoreAfterCreateUser } from "@studio-v2/src/utils/server/lore/bootstrapLoreAfterCreate.server";
 import {
 	createUserProfile,
 	isValidUserId,
 	listProfileUsers,
 } from "@studio-v2/src/utils/server/users/usersFs.server";
+import { syncHostProfileAfterFsWrite } from "@studio-v2/src/utils/server/users/syncHostProfileAfterFsWrite.server";
 
 export async function GET(): Promise<Response> {
 	try {
@@ -50,7 +53,9 @@ export async function POST(req: Request): Promise<Response> {
 			});
 		}
 		const user = await createUserProfile(parsed.data);
-		return apiOk({ user }, { status: 201 });
+		await syncHostProfileAfterFsWrite(user.userId);
+		const loreWarning = await bootstrapLoreAfterCreateUser(user);
+		return apiOk({ user, loreWarning }, { status: 201 });
 	} catch (err) {
 		if (isEngineError(err)) {
 			return apiFail(err.code, err.message, httpStatusForCode(err.code));

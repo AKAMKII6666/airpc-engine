@@ -11,6 +11,7 @@ import type {
 } from "@studio-v2/typeFiles/debugger/store/debuggerStoreState";
 import type { DebuggerMailboxSnapshot } from "@studio-v2/typeFiles/debugger/mailboxView";
 import type { DebuggerCallSessionView } from "@studio-v2/typeFiles/debugger/callSession";
+import type { DebuggerPostCallJobView } from "@studio-v2/typeFiles/debugger/callSession";
 import type { StoryPackageSummary } from "@studio-v2/typeFiles/story/summary/storyPackageSummary";
 import type { ValidationReport } from "@studio-v2/typeFiles/story/validate/engineValidation";
 
@@ -44,6 +45,13 @@ export type DebuggerStoreState = {
 	callBusy: boolean;
 	/** 真实通话请求失败人话；成功时 undefined */
 	callError: string | undefined;
+
+	/** 挂机后副作用 job 投影；用于右下角 tip 与详情 */
+	postCallJobs: DebuggerPostCallJobView[];
+	/** job 列表轮询中 */
+	postCallJobsLoading: boolean;
+	/** job 列表失败人话 */
+	postCallJobsError: string | undefined;
 
 	/** 信箱当前用户；空串表示未选 */
 	mailboxUserId: string;
@@ -94,6 +102,12 @@ export type DebuggerStoreState = {
 	applyCallCommandAborted: () => void;
 	/** 清空当前通话投影；第四轮再接 Host endCall */
 	resetActiveCall: () => void;
+	/** 开始拉挂机后副作用 job */
+	applyPostCallJobsLoadStarted: () => void;
+	/** 灌 job 列表 */
+	applyPostCallJobsLoadResult: (jobs: DebuggerPostCallJobView[]) => void;
+	/** job 列表拉取失败 */
+	applyPostCallJobsLoadFailed: (message: string) => void;
 
 	/** UI 经 bis 改信箱用户（不发请求；常与 bump 连用） */
 	setMailboxUserId: (userId: string) => void;
@@ -141,6 +155,9 @@ export function createDebuggerSessionSlice(): Pick<
 		| "activeCall"
 		| "callBusy"
 		| "callError"
+		| "postCallJobs"
+		| "postCallJobsLoading"
+		| "postCallJobsError"
 		| "mailboxUserId"
 	| "mailbox"
 	| "mailboxLoading"
@@ -162,6 +179,9 @@ export function createDebuggerSessionSlice(): Pick<
 			activeCall: null,
 			callBusy: false,
 			callError: undefined,
+			postCallJobs: [],
+			postCallJobsLoading: false,
+			postCallJobsError: undefined,
 			mailboxUserId: DEBUGGER_STORE_DEFAULT_MAILBOX_USER_ID,
 		mailbox: null,
 		mailboxLoading: false,

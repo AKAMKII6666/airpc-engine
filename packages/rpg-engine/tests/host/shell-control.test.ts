@@ -1,13 +1,13 @@
 /**
  * Host shell-control FC：LLM 请求电话壳动作，Host 登记事件但不跑剧情出口。
  */
-import { cp, mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { isEngineError } from "../../src/index.js";
-import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
+import { copyDataTree, createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
 	path.dirname(fileURLToPath(import.meta.url)),
@@ -28,7 +28,7 @@ describe("Host shell-control tools", () => {
 	it("request_hangup records a shell event without ending the call", async () => {
 		tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-shell-control-"));
 		const dataRoot = path.join(tmpRoot, "data");
-		await cp(dataSrc, dataRoot, { recursive: true });
+		await copyDataTree(dataSrc, dataRoot);
 
 		const host = createTestHost({ persist: true, dataRoot });
 		await host.loadWorkspace(dataRoot);

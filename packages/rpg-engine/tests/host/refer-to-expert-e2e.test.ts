@@ -1,13 +1,13 @@
 /**
  * E4a：refer_to_expert 整通 — invokeTool → endCall → unlock + schedule／pending
  */
-import { cp, mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { isEngineError } from "../../src/index.js";
-import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
+import { copyDataTree, createTestHost } from "../helpers/inMemoryMemoryPort.js";
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../..");
 const dataSrc = path.join(repoRoot, "data");
 
@@ -24,7 +24,7 @@ describe("E4a refer_to_expert E2E", () => {
   it("invokeTool(refer_to_expert) → endCall → unlock + schedule → advanceClock pending", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-e4a-refer-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const host = createTestHost({ persist: true, dataRoot });
     await host.loadWorkspace(dataRoot);

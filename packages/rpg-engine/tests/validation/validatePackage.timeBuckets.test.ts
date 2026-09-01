@@ -1,13 +1,13 @@
 /**
  * 模块名称：validatePackage 拒载 timeBuckets（从 golden-handoff.validate 拆出以降基线）
  */
-import { cp, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { createEngineHost } from "../../src/index.js";
-import { createFsContentPort } from "../helpers/fsContentPort.js";
+import { copyDataTree, createFsContentPort } from "../helpers/fsContentPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -28,7 +28,7 @@ describe("validatePackage promptScene timeBuckets", () => {
   it("PROMPT_SCENE_TIME_BUCKETS_REMOVED when match has timeBuckets", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-val-buckets-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
     const cardPath = path.join(
       dataRoot,
       "storis-packages/golden_handoff/chapters/golden_handoff/cards/doubao_intro_outbound.s-card.json",

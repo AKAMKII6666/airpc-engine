@@ -12,6 +12,7 @@ export type EngineErrorCode =
   | "INVALID_PACKAGE_ID"
   | "STORY_LOCKED"
   | "NO_EXIT_MATCHED"
+  | "AGENT_POST_CALL_BUSY"
   | "SCHEMA_UNSUPPORTED"
   | "ENGINE_INTERNAL";
 

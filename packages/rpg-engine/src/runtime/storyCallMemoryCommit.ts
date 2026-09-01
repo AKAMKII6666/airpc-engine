@@ -54,6 +54,7 @@ export async function commitStoryCallMemory(input: {
   if (!summaryText) {
     return { committed: false, skippedReason: "empty_transcript" };
   }
+  // rollup 由 PostCallJob 的 rollup_running 阶段单独推进
   const commit = await input.memory.commitAfterCall({
     userId: input.session.userId,
     agentId: input.session.resolve.agentId,
@@ -76,13 +77,6 @@ export async function commitStoryCallMemory(input: {
       character: memoryCharacterAttitudeContext(input.session),
     },
   });
-  if (input.memory.rollupIfNeeded) {
-    await input.memory.rollupIfNeeded({
-      userId: input.session.userId,
-      agentId: input.session.resolve.agentId,
-      endedAt: input.nowIso,
-    });
-  }
   return {
     committed: commit.ok,
     commitEntryIds: commit.writtenEntryIds ?? commit.writtenEpisodicIds,

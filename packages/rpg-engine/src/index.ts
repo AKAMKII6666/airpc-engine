@@ -114,6 +114,10 @@ export type {
   OpeningFirstTurnRuntimeMode,
   OpeningFirstTurnStatus,
   OpeningLlmContextPolicy,
+  PostCallJob,
+  PostCallJobStatus,
+  PostCallJobStep,
+  PostCallJobSummary,
   RenderedPrompt,
   ResolveResult,
   SaveReason,
@@ -258,6 +262,10 @@ export type {
 
 export type { ProfilePort } from "./ports/profilePort.js";
 export type {
+	PostCallJobListFilter,
+	PostCallJobStorePort,
+} from "./ports/postCallJobStorePort.js";
+export type {
   ContentPort,
   WorkspaceSnapshot,
   PackageValidateBundle,
@@ -271,6 +279,9 @@ export {
 } from "./tools/builtinRegistry.js";
 export { resolveToolPolicy, isToolAllowedOnCard, isToolAllowedInSession, listToolsForCard, projectToolResolutionTrace } from "./tools/resolveToolPolicy.js";
 export { buildToolInstructionBlocks } from "./tools/instructions/buildToolInstructionBlocks.js";
+export type { ToolInstructionBlockOpts } from "./tools/instructions/buildToolInstructionBlocks.js";
+export { buildAcquaintanceSoftExtra } from "./host/acquaintanceSoftExtra.js";
+export { buildBeginCallSoftExtras } from "./host/buildBeginCallSoftExtras.js";
 export {
   getToolInputSchema,
   TOOL_INPUT_SCHEMAS,

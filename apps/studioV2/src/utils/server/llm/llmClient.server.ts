@@ -1,12 +1,12 @@
 /**
-	* 调试器文本 LLM Client：server-only OpenAI-compatible chat completions。
+	* Studio V2 server LLM Client：OpenAI-compatible chat completions。
 	* API Key 只从 server runtime config 进入 Authorization，禁止进入响应 DTO。
 	*/
 import {
 	resolveServerLlmRuntimeConfig,
 	type ServerLlmRuntimeConfig,
-} from "@studio-v2/src/utils/server/debugger/llm/llmConfig.server";
-import type { OpenAiCompatibleTool } from "@studio-v2/src/utils/server/debugger/llm/llmToolAdapter.server";
+} from "@studio-v2/src/utils/server/llm/llmConfig.server";
+import type { OpenAiCompatibleTool } from "@studio-v2/src/utils/server/llm/llmToolAdapter.server";
 import { writeDtoLog } from "@studio-v2/src/utils/server/observability/dto/dtoLogStore.server";
 import { writeStudioLog } from "@studio-v2/src/utils/server/observability/logger/pinoLogger.server";
 
@@ -50,6 +50,8 @@ export type ServerLlmChatInput = {
 	temperature?: number;
 	/** Qwen 系模型是否显式开启思考；抽取类任务可传 false */
 	enableThinking?: boolean;
+	/** OpenAI json mode；Lore bootstrap 等单次结构化任务可用 */
+	responseFormat?: "json_object";
 	/** 本轮允许模型调用的 OpenAI-compatible tools；空数组等同不发 tools */
 	tools?: OpenAiCompatibleTool[];
 	/** OpenAI-compatible tool_choice；缺省交给供应商 auto */
@@ -235,6 +237,9 @@ function buildRequestBody(
 		...(input.enableThinking !== undefined
 			? { enable_thinking: input.enableThinking }
 			: {}),
+		...(input.responseFormat === "json_object"
+			? { response_format: { type: "json_object" } }
+			: {}),
 		...(input.tools?.length ? { tools: input.tools } : {}),
 		...(input.tools?.length && input.toolChoice
 			? { tool_choice: input.toolChoice }
@@ -260,6 +265,7 @@ function llmRequestSummary(
 		toolChoice: input.toolChoice ?? null,
 		temperature: input.temperature ?? 0.7,
 		enableThinking: input.enableThinking ?? null,
+		responseFormat: input.responseFormat ?? null,
 	};
 }
 
@@ -278,7 +284,7 @@ export async function runServerLlmChat(
 	const fetcher = opts.fetcher ?? fetch;
 	writeStudioLog("llm", "info", {
 		event: "llm.request",
-		message: "debugger LLM chat completion request",
+		message: "server LLM chat completion request",
 		payload: llmRequestSummary(config, input),
 	});
 	const res = await fetcher(chatCompletionsUrl(config.baseUrl), {
@@ -322,7 +328,7 @@ export async function runServerLlmChat(
 	};
 	writeStudioLog("llm", "info", {
 		event: "llm.response",
-		message: "debugger LLM chat completion response",
+		message: "server LLM chat completion response",
 		payload: {
 			responseId: result.responseId,
 			model: result.model,
@@ -370,7 +376,7 @@ export async function runServerLlmChatStream(
 	const fetcher = opts.fetcher ?? fetch;
 	writeStudioLog("llm", "info", {
 		event: "llm.stream.request",
-		message: "debugger LLM streaming chat completion request",
+		message: "server LLM streaming chat completion request",
 		payload: llmRequestSummary(config, input),
 	});
 	const res = await fetcher(chatCompletionsUrl(config.baseUrl), {
@@ -432,7 +438,7 @@ export async function runServerLlmChatStream(
 		} catch {
 			writeStudioLog("llm", "warn", {
 				event: "llm.stream_chunk_parse_failed",
-				message: "debugger LLM stream chunk JSON parse failed",
+				message: "server LLM stream chunk JSON parse failed",
 				payload: { preview: jsonStr.slice(0, 240) },
 			});
 			return;
@@ -555,7 +561,7 @@ export async function runServerLlmChatStream(
 	};
 	writeStudioLog("llm", "info", {
 		event: "llm.stream.response",
-		message: "debugger LLM streaming chat completion response",
+		message: "server LLM streaming chat completion response",
 		payload: {
 			responseId: result.responseId,
 			model: result.model,

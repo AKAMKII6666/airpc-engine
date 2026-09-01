@@ -16,8 +16,8 @@ import {
 	type ServerLlmChatMessage,
 	type ServerLlmChatResult,
 	type ServerLlmToolCall,
-} from "@studio-v2/src/utils/server/debugger/llm/llmClient.server";
-import { toolDefinitionsToOpenAiTools } from "@studio-v2/src/utils/server/debugger/llm/llmToolAdapter.server";
+} from "@studio-v2/src/utils/server/llm/llmClient.server";
+import { toolDefinitionsToOpenAiTools } from "@studio-v2/src/utils/server/llm/llmToolAdapter.server";
 import {
 	isDebuggerShellControlTool,
 	listDebuggerShellControlTools,

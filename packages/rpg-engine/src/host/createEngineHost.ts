@@ -9,40 +9,29 @@ import type {
   BeginCallOpts,
   CallIntent,
   CallSession,
-  EndCallResult,
   LogRecord,
   OpeningFirstTurnControl,
+  PostCallJob,
   ResolveResult,
   SaveReason,
 } from "./types.js";
 import type { PlayerProfile } from "../schema/profile.js";
-import type { Outcome } from "../schema/outcome.js";
-import { OutcomeSchema } from "../schema/outcome.js";
 import {
   getFreeCard,
-  getChapterConf,
   lookupCharacterSideCard,
   type WorkspaceState,
 } from "../workspace/loadWorkspace.js";
 import { loadCardViaPort } from "../workspace/loadCardViaPort.js";
 import {
+  evictProfileFromHostCache,
   loadProfileViaPort,
+  reloadProfileViaPort,
   saveProfileViaPort,
 } from "./profileViaPort.js";
 import { loadWorkspaceViaPort } from "./contentViaPort.js";
 import { buildComposeScene } from "../runtime/composeScene.js";
 import { composeRenderedPrompt } from "../runtime/composer.js";
 import { buildBeginCallSoftExtras } from "./buildBeginCallSoftExtras.js";
-import { selectExit } from "../runtime/exitSelector.js";
-import { executeEffects } from "../runtime/effectExecutor.js";
-import {
-  runFreeCallPostPipeline,
-  type FreeCallPostPipelineResult,
-} from "../runtime/freeCallPostPipeline.js";
-import {
-  commitStoryCallMemory,
-  type StoryCallMemoryCommitResult,
-} from "../runtime/storyCallMemoryCommit.js";
 import { isEffectiveDialable } from "../schema/character.js";
 import { pickPendingForIntent } from "../runtime/pickPendingForUserDial.js";
 import { resolvePendingStoryCard } from "../runtime/resolvePendingStoryCard.js";
@@ -77,10 +66,15 @@ import {
 import type { ValidationReport } from "../validation/types.js";
 import { createScheduleClockApi } from "./createScheduleClockApi.js";
 import { consumeLinkedOnceIntent } from "../runtime/scheduleTick.js";
-import { createNoopEffectSink, type EffectSink } from "../runtime/effectSink.js";
-import { materializeVoicemailsAfterPlan } from "./materializeVoicemailsAfterPlan.js";
-import { markVoicemailListenedAfterEndCall } from "../runtime/voicemail/markVoicemailListened.js";
+import type { EffectSink } from "../runtime/effectSink.js";
+import { createNoopEffectSink } from "../runtime/effectSink.js";
 import { resolveMailboxOpenIntent } from "../runtime/voicemail/resolveMailboxOpen.js";
+import { createEndCallHandler } from "./endCallWithPostCallJob.js";
+import { createPostCallJobHostApi } from "./postCallJobHostApi.js";
+import {
+  ACTIVE_POST_CALL_STATUSES,
+  createPostCallJobRuntime,
+} from "./postCallJobRuntime.js";
 import {
   redactLogRecord,
   readLogFileSliceViaPort,
@@ -99,7 +93,6 @@ import { bootstrapLoreOntoProfile } from "../lore/bootstrapLore.js";
 import { resolveChapterId } from "../chapter/resolveChapterId.js";
 import {
   buildSessionConversationInertia,
-  persistConversationInertiaToProfile,
   readPersistedConversationInertia,
 } from "./conversationInertiaStore.js";
 
@@ -117,10 +110,6 @@ const ACTIVE_STATUSES = new Set<CallSession["status"]>([
   "selecting_exit",
   "executing_effects",
 ]);
-
-function errorMessage(err: unknown): string {
-  return err instanceof Error ? err.message : String(err);
-}
 
 function buildOpeningFirstTurnControl(
   rendered: NonNullable<CallSession["renderedPrompt"]>,
@@ -265,6 +254,10 @@ export function createEngineHost(
   const profiles = new Map<string, PlayerProfile>();
   const sessions = new Map<string, CallSession>();
   const activeByUser = new Map<string, string>();
+  const postCallJobs = new Map<string, PostCallJob>();
+  const backgroundJobPromises = new Map<string, Promise<void>>();
+  const profileWriteChains = new Map<string, Promise<unknown>>();
+  const postCallJobStore = resolveOptionalPort(options.postCallJob);
   const logs: LogRecord[] = [];
 
   const pushLog = createHostPushLog({
@@ -512,9 +505,51 @@ export function createEngineHost(
 		profiles.clear();
 		sessions.clear();
 		activeByUser.clear();
+		postCallJobs.clear();
+		backgroundJobPromises.clear();
+		profileWriteChains.clear();
 		outboundShellApi.resetIncomingCallEvents();
 	}
 
+	function enqueueProfileWrite<T>(
+		userId: string,
+		fn: () => Promise<T>,
+	): Promise<T> {
+		const previous = profileWriteChains.get(userId) ?? Promise.resolve();
+		const current = previous.then(fn, fn);
+		const queued = current.finally(function () {
+			if (profileWriteChains.get(userId) === queued) {
+				profileWriteChains.delete(userId);
+			}
+		});
+		profileWriteChains.set(userId, queued);
+		return current;
+	}
+
+	const hostRef: { current: EngineHost | null } = { current: null };
+	const postCallRuntime = createPostCallJobRuntime({
+		postCallJobs,
+		backgroundJobPromises,
+		sessions,
+		profiles,
+		postCallJobStore,
+		getMemory() {
+			return memory;
+		},
+		effectSink,
+		lookupCard,
+		voicemailPorts,
+		enqueueProfileWrite,
+		saveProfile(userId, reason) {
+			return hostRef.current!.saveProfile(userId, reason);
+		},
+	});
+	const {
+		mirrorPostCallJob,
+		setPostCallJob,
+		runPostCallBackgroundJob,
+		startPostCallBackgroundJob,
+	} = postCallRuntime;
 	const scheduleClockApi = createScheduleClockApi({
 		profiles,
 		lookupCard,
@@ -527,6 +562,42 @@ export function createEngineHost(
 	const dispatchingScheduleClockApi = createDispatchingScheduleClockApi({
 		scheduleClockApi,
 		outboundShellApi,
+	});
+
+	const endCallHandler = createEndCallHandler({
+		sessions,
+		profiles,
+		activeByUser,
+		postCallJobs,
+		postCallJobStore,
+		getMemory() {
+			return memory;
+		},
+		effectSink,
+		lookupCard,
+		requireWorkspace,
+		enqueueProfileWrite,
+		saveProfile(userId, reason) {
+			return hostRef.current!.saveProfile(userId, reason);
+		},
+		pushLog,
+		onVoicemailUnreadChanged: voicemailPorts.onVoicemailUnreadChanged,
+		preloadExitCandidateScheduleTargets,
+		preloadScheduleCallCardTargets,
+		mirrorPostCallJob,
+		setPostCallJob,
+		startPostCallBackgroundJob,
+		runPostCallBackgroundJob,
+	});
+	const postCallJobHostApi = createPostCallJobHostApi({
+		postCallJobs,
+		sessions,
+		profiles,
+		backgroundJobPromises,
+		postCallJobStore,
+		setPostCallJob,
+		startPostCallBackgroundJob,
+		runPostCallBackgroundJob,
 	});
 
 	const host: EngineHost = {
@@ -582,6 +653,18 @@ export function createEngineHost(
 
 		async ensureProfile(userId: string): Promise<PlayerProfile> {
 			return loadProfileViaPort({
+				userId,
+				profilePort,
+				profiles,
+			});
+		},
+
+		evictProfileCache(userId: string): void {
+			evictProfileFromHostCache({ userId, profiles });
+		},
+
+		async reloadProfileFromPort(userId: string): Promise<PlayerProfile> {
+			return reloadProfileViaPort({
 				userId,
 				profilePort,
 				profiles,
@@ -879,6 +962,20 @@ export function createEngineHost(
           return engineError(
             "CONFLICT_ACTIVE_CALL",
             `user ${userId} already has an active call`,
+          );
+        }
+        const busyJob = Array.from(postCallJobs.values()).find(function (job) {
+          return (
+            job.userId === userId &&
+            job.primaryAgentId === result.agentId &&
+            ACTIVE_POST_CALL_STATUSES.has(job.status)
+          );
+        });
+        if (busyJob) {
+          return engineError(
+            "AGENT_POST_CALL_BUSY",
+            `agent ${result.agentId} is processing post-call effects`,
+            { jobId: busyJob.jobId },
           );
         }
         if (!profiles.has(userId)) {
@@ -1260,329 +1357,8 @@ export function createEngineHost(
       return session;
     },
 
-    async endCall(
-      sessionId: string,
-      outcomeInput: Outcome,
-    ): Promise<EndCallResult | EngineError> {
-      const session = sessions.get(sessionId);
-      if (!session) {
-        return engineError("NOT_FOUND", `session not found: ${sessionId}`);
-      }
-      if (!ACTIVE_STATUSES.has(session.status)) {
-        return engineError(
-          "ENGINE_INTERNAL",
-          `session not endable: ${session.status}`,
-        );
-      }
-
-      const outcome = OutcomeSchema.parse(outcomeInput);
-      session.status = "evaluating";
-      session.outcome = outcome;
-      session.phoneFlags = { ...session.phoneFlags, ...outcome.flags };
-      session.completedBeats = [...outcome.completedBeats];
-      outcome.flags = { ...session.phoneFlags };
-
-      const profile = profiles.get(session.userId);
-      if (!profile) {
-        return engineError("NOT_FOUND", "profile missing for endCall");
-      }
-      // 嵌套函数会冲掉 Map.get 收窄；固定为本通引用
-      const endSession = session;
-      const endProfile = profile;
-
-      const isFree = sessionIsFreeLike({
-        chapterId: endSession.chapterId,
-        cardKind: endSession.frozenCard.cardKind,
-        source: endSession.resolve.source,
-      });
-
-      const nowIso = new Date().toISOString();
-
-      function applyVoicemailListenedSideEffect(): void {
-        markVoicemailListenedAfterEndCall({
-          session: endSession,
-          profile: endProfile,
-          outcome,
-          nowIso,
-          onVoicemailUnreadChanged: voicemailPorts.onVoicemailUnreadChanged,
-        });
-      }
-
-      async function finalizeEndedCall(input: {
-        saveReason: SaveReason;
-        logType?: string;
-        logPayload?: unknown;
-      }): Promise<void> {
-        endSession.endedAt = nowIso;
-        endSession.interactionPhase = "done";
-        persistConversationInertiaToProfile({
-          profile: endProfile,
-          session: endSession,
-        });
-        await host.saveProfile(endSession.userId, input.saveReason);
-        activeByUser.delete(endSession.userId);
-        if (input.logType) {
-          pushLog({
-            at: nowIso,
-            type: input.logType,
-            userId: endSession.userId,
-            sessionId,
-            payload: input.logPayload,
-          });
-        }
-      }
-
-      if (isFree) {
-        session.status = "selecting_exit";
-        await preloadExitCandidateScheduleTargets(session);
-        let pipe = await runFreeCallPostPipeline({
-          session,
-          profile,
-          outcome,
-          memory,
-          nowIso,
-          opts: { minTurns: session.channel === "manual" ? 0 : 2 },
-          effectSink,
-          lookupCard,
-        }).catch(function (err): FreeCallPostPipelineResult {
-          return {
-            committed: false,
-            effectPlanResult: {
-              results: [
-                {
-                  effectId: "free_post_pipeline",
-                  status: "failed",
-                  error: errorMessage(err),
-                },
-              ],
-              aborted: false,
-              status: "completed_with_errors",
-            },
-            skippedExit: true,
-          };
-        });
-        try {
-          await materializeVoicemailsAfterPlan({
-            profile,
-            nowIso,
-            lookupCard,
-            ports: voicemailPorts,
-          });
-        } catch (err) {
-          pipe = {
-            ...pipe,
-            effectPlanResult: {
-              results: [
-                ...pipe.effectPlanResult.results,
-                {
-                  effectId: "materialize_voicemails",
-                  status: "failed",
-                  error: errorMessage(err),
-                },
-              ],
-              aborted: pipe.effectPlanResult.aborted,
-              status: "completed_with_errors",
-            },
-          };
-        }
-        applyVoicemailListenedSideEffect();
-        session.status =
-          pipe.effectPlanResult.status === "aborted"
-            ? "aborted"
-            : pipe.effectPlanResult.status === "completed_with_errors"
-              ? "completed_with_errors"
-              : "completed";
-        await finalizeEndedCall({
-          saveReason: "after_free_pipeline",
-          logType: "call.completed",
-          logPayload: {
-            free: true,
-            committed: pipe.committed,
-            exitId: pipe.selectedExitId,
-            skippedExit: pipe.skippedExit,
-            effectResults: pipe.effectPlanResult.results,
-            planStatus: pipe.effectPlanResult.status,
-          },
-        });
-        const freePipeline = {
-          committed: pipe.committed,
-          commitEntryIds: pipe.commitEntryIds,
-          skippedExit: pipe.skippedExit,
-          selectedExitId: pipe.selectedExitId,
-          steps: [
-            {
-              id: "gate",
-              status: "done" as const,
-              detail: "manual minTurns=0 or candidates/answered",
-            },
-            {
-              id: "memory_commit",
-              status: pipe.committed ? ("done" as const) : ("skipped" as const),
-              detail: pipe.commitEntryIds?.join(",") || undefined,
-            },
-            {
-              id: "exit_select",
-              status: pipe.skippedExit
-                ? ("skipped" as const)
-                : pipe.selectedExitId
-                  ? ("done" as const)
-                  : ("failed" as const),
-              detail: pipe.selectedExitId,
-            },
-            {
-              id: "effect_plan",
-              status:
-                pipe.effectPlanResult.status === "aborted"
-                  ? ("failed" as const)
-                  : ("done" as const),
-              detail: pipe.effectPlanResult.status,
-            },
-          ],
-        };
-        if (pipe.selectedExitId && session.selectedExit) {
-          // pipeline 已写入 selectedExit
-        } else if (pipe.skippedExit) {
-          session.selectedExit = {
-            source: "dynamic",
-            priority: 0,
-            reason: "free:skipped_exit(no_candidates)",
-          };
-        }
-        session.effectPlanResult = pipe.effectPlanResult;
-        return {
-          ok: true,
-          session,
-          selectedExitId: pipe.selectedExitId,
-          effectPlanResult: pipe.effectPlanResult,
-          freePipeline,
-        };
-      }
-
-      session.status = "selecting_exit";
-      const selected = selectExit(
-        session.frozenCard,
-        outcome,
-        session.exitCandidates,
-      );
-      if (!selected) {
-        const storyMemoryCommit = await commitStoryCallMemory({
-          session,
-          outcome,
-          memory,
-          nowIso,
-          planStatus: "aborted",
-        }).catch(function (err): StoryCallMemoryCommitResult {
-          return {
-            committed: false,
-            skippedReason: "commit_failed",
-            error: errorMessage(err),
-          };
-        });
-        applyVoicemailListenedSideEffect();
-        session.status = "aborted";
-        session.effectPlanResult = {
-          results: [],
-          aborted: true,
-          status: "aborted",
-        };
-        await finalizeEndedCall({
-          saveReason: "after_effect",
-          logType: "call.no_exit",
-          logPayload: {
-            memoryCommitted: storyMemoryCommit.committed,
-            memorySkippedReason: storyMemoryCommit.skippedReason,
-            memoryError: storyMemoryCommit.error,
-          },
-        });
-        return engineError("NO_EXIT_MATCHED", "no exit matched outcome");
-      }
-
-      session.selectedExit = {
-        exitId: selected.exit.exitId,
-        source: selected.source,
-        priority: selected.priority,
-        reason: [
-          `source=${selected.source}`,
-          `exitId=${selected.exit.exitId}`,
-          `priority=${selected.priority}`,
-          selected.candidateId ? `candidate=${selected.candidateId}` : null,
-        ]
-          .filter(Boolean)
-          .join("; "),
-      };
-
-      session.status = "executing_effects";
-      await preloadScheduleCallCardTargets(selected.exit.effects);
-      const plan = await executeEffects(selected.exit.effects, {
-        profile,
-        session,
-        nowIso,
-        memory,
-        effectSink,
-        lookupCard,
-        getChapterConf(chapterId) {
-          return getChapterConf(requireWorkspace(), chapterId);
-        },
-      });
-      session.effectPlanResult = plan;
-      const storyMemoryCommit = await commitStoryCallMemory({
-        session,
-        outcome,
-        memory,
-        nowIso,
-        selectedExitId: selected.exit.exitId,
-        planStatus: plan.status,
-      }).catch(function (err): StoryCallMemoryCommitResult {
-        return {
-          committed: false,
-          skippedReason: "commit_failed",
-          error: errorMessage(err),
-        };
-      });
-
-      try {
-        await materializeVoicemailsAfterPlan({
-          profile,
-          nowIso,
-          lookupCard,
-          ports: voicemailPorts,
-        });
-      } catch (err) {
-        plan.results.push({
-          effectId: "materialize_voicemails",
-          status: "failed",
-          error: errorMessage(err),
-        });
-        plan.status = "completed_with_errors";
-      }
-      applyVoicemailListenedSideEffect();
-
-      session.status =
-        plan.status === "aborted"
-          ? "aborted"
-          : plan.status === "completed_with_errors"
-            ? "completed_with_errors"
-            : "completed";
-      await finalizeEndedCall({
-        saveReason: "after_effect",
-        logType: "call.completed",
-        logPayload: {
-          exitId: selected.exit.exitId,
-          memoryCommitted: storyMemoryCommit.committed,
-          memorySkippedReason: storyMemoryCommit.skippedReason,
-          memoryError: storyMemoryCommit.error,
-          effectResults: plan.results,
-          planStatus: plan.status,
-        },
-      });
-
-      return {
-        ok: true,
-        session,
-        selectedExitId: selected.exit.exitId,
-        effectPlanResult: plan,
-        storyMemoryCommit,
-      };
+    async endCall(sessionId, outcomeInput) {
+      return endCallHandler(sessionId, outcomeInput);
     },
 
     getActiveSession(userId: string): CallSession | null {
@@ -1595,7 +1371,9 @@ export function createEngineHost(
       return sessions.get(sessionId) ?? null;
     },
 
-    getRecentLogs(opts): LogRecord[] {
+    ...postCallJobHostApi,
+
+        getRecentLogs(opts): LogRecord[] {
       const limit = opts?.limit ?? 50;
       let items = logs;
       if (opts?.userId) {
@@ -1723,6 +1501,7 @@ export function createEngineHost(
     },
   };
 
+  hostRef.current = host;
   return host;
 }
 

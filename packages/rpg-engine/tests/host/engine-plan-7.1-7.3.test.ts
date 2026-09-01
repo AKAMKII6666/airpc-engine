@@ -4,7 +4,7 @@
  * - 7.2 剧情延迟外呼 schedule_call_card → advanceClock → beginCall
  * - 7.3 提前呼入消费 + 正常 outbound 路径
  */
-import { cp, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -15,7 +15,7 @@ import {
   SCHEDULE_CHAPTER_ID,
 } from "../../src/index.js";
 import { expandRegisterExitEffects } from "../../src/tools/expandExitEffects.js";
-import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
+import { copyDataTree, createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -51,7 +51,7 @@ describe("引擎 §7.1–7.3 回归 (V1-E9)", () => {
     it("Story 卡上裸 recurring → validatePackage blocking error", async () => {
       tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-7.1-val-"));
       const dataRoot = path.join(tmpRoot, "data");
-      await cp(dataSrc, dataRoot, { recursive: true });
+      await copyDataTree(dataSrc, dataRoot);
       const cardPath = path.join(
         dataRoot,
         "storis-packages/golden_handoff/chapters/golden_handoff/cards/doubao_intro_outbound.s-card.json",
@@ -78,7 +78,7 @@ describe("引擎 §7.1–7.3 回归 (V1-E9)", () => {
     it("ScheduleCard recurring 触发后可 resolve(agent_outbound) 并 beginCall", async () => {
       tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-7.1-out-"));
       const dataRoot = path.join(tmpRoot, "data");
-      await cp(dataSrc, dataRoot, { recursive: true });
+      await copyDataTree(dataSrc, dataRoot);
 
       const host = createTestHost({ persist: false, dataRoot });
       await host.loadWorkspace(dataRoot);
@@ -135,7 +135,7 @@ describe("引擎 §7.1–7.3 回归 (V1-E9)", () => {
     it("schedule_call_card → advanceClock → resolve outbound → beginCall frozenCard", async () => {
       tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-7.2-"));
       const dataRoot = path.join(tmpRoot, "data");
-      await cp(dataSrc, dataRoot, { recursive: true });
+      await copyDataTree(dataSrc, dataRoot);
 
       const host = createTestHost({ persist: false, dataRoot });
       await host.loadWorkspace(dataRoot);
@@ -199,7 +199,7 @@ describe("引擎 §7.1–7.3 回归 (V1-E9)", () => {
     async function scheduleXiaoyu() {
       tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-7.3-"));
       const dataRoot = path.join(tmpRoot, "data");
-      await cp(dataSrc, dataRoot, { recursive: true });
+      await copyDataTree(dataSrc, dataRoot);
 
       const host = createTestHost({ persist: false, dataRoot });
       await host.loadWorkspace(dataRoot);

@@ -1,7 +1,7 @@
 /**
  * Story 通话挂机记忆策略：有真实 transcript 才写长期记忆。
  */
-import { cp, mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -9,6 +9,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { isEngineError } from "../../src/index.js";
 import type { MemoryPort } from "../../src/memory/types.js";
 import {
+  copyDataTree,
   createInMemoryMemoryPort,
   createTestHostWithMemory,
 } from "../helpers/inMemoryMemoryPort.js";
@@ -22,7 +23,7 @@ const dataSrc = path.join(repoRoot, "data");
 async function copiedDataRoot(prefix: string): Promise<{ tmpRoot: string; dataRoot: string }> {
   const tmpRoot = await mkdtemp(path.join(os.tmpdir(), prefix));
   const dataRoot = path.join(tmpRoot, "data");
-  await cp(dataSrc, dataRoot, { recursive: true });
+  await copyDataTree(dataSrc, dataRoot);
   return { tmpRoot, dataRoot };
 }
 
@@ -183,14 +184,8 @@ describe("Call hangup resilience", function () {
     });
     expect(isEngineError(end)).toBe(false);
     if (isEngineError(end)) return;
-    expect(end.session.status).toBe("completed_with_errors");
-    expect(end.freePipeline?.steps.find((step) => step.id === "memory_commit")).toMatchObject({
-      status: "skipped",
-    });
-    expect(end.effectPlanResult.results[0]).toMatchObject({
-      effectId: "free_post_pipeline",
-      status: "failed",
-    });
+    expect(end.session.status).toBe("completed");
+    expect(end.postCallJob?.status).toBe("failed_retryable");
     expect(host.getActiveSession("demo-user")).toBeNull();
   });
 });

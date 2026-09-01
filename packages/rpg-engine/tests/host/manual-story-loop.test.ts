@@ -1,7 +1,7 @@
 /**
  * 模块名称：Manual Story 闭环集成测（读 data/，不写回）
  */
-import { cp, mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,7 +10,7 @@ import {
   isEngineError,
   type PlayerProfile,
 } from "../../src/index.js";
-import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
+import { copyDataTree, createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -31,7 +31,7 @@ describe("manual story loop", () => {
   it("simulate_start → Manual Outcome → unlock/attach/redial → saveProfile", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-p1-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const host = createTestHost({ persist: true, dataRoot });
     await host.loadWorkspace(dataRoot);
@@ -94,7 +94,7 @@ describe("manual story loop", () => {
   it("rejects second beginCall while active", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-p1-mutex-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);

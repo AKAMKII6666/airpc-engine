@@ -1,5 +1,5 @@
 /**
-	* 调试器 LLM client：OpenAI-compatible 请求与错误映射。
+	* Server LLM client：OpenAI-compatible 请求与错误映射。
 	*/
 import { describe, expect, it } from "vitest";
 import {
@@ -7,8 +7,8 @@ import {
 	runServerLlmChat,
 	runServerLlmChatStream,
 	type ServerLlmChatMessage,
-} from "@studio-v2/src/utils/server/debugger/llm/llmClient.server";
-import { resolveServerLlmRuntimeConfig } from "@studio-v2/src/utils/server/debugger/llm/llmConfig.server";
+} from "@studio-v2/src/utils/server/llm/llmClient.server";
+import { resolveServerLlmRuntimeConfig } from "@studio-v2/src/utils/server/llm/llmConfig.server";
 
 function readyConfig() {
 	return resolveServerLlmRuntimeConfig({
@@ -18,7 +18,7 @@ function readyConfig() {
 	});
 }
 
-describe("debugger llmClient.server", () => {
+describe("server llmClient.server", () => {
 	it("posts OpenAI-compatible chat completions without exposing key in result", async () => {
 		const captured: { url: string; init: RequestInit }[] = [];
 		const messages: ServerLlmChatMessage[] = [
@@ -293,6 +293,33 @@ describe("debugger llmClient.server", () => {
 
 		expect(JSON.parse(String(captured[0]?.body))).toMatchObject({
 			enable_thinking: false,
+		});
+	});
+
+	it("passes response_format json_object when requested", async () => {
+		const captured: RequestInit[] = [];
+		const fetcher = async function (_url: string | URL | Request, init?: RequestInit) {
+			captured.push(init ?? {});
+			return new Response(
+				JSON.stringify({
+					id: "chatcmpl_json",
+					model: "qwen-test",
+					choices: [{ message: { content: "{}" } }],
+				}),
+				{ status: 200 },
+			);
+		};
+
+		await runServerLlmChat({
+			messages: [{ role: "user", content: "json" }],
+			responseFormat: "json_object",
+		}, {
+			config: readyConfig(),
+			fetcher: fetcher as typeof fetch,
+		});
+
+		expect(JSON.parse(String(captured[0]?.body))).toMatchObject({
+			response_format: { type: "json_object" },
 		});
 	});
 });

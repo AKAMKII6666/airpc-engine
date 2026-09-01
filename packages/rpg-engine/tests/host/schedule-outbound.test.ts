@@ -1,7 +1,7 @@
 /**
  * S3：schedule_call_card → advanceClock → agent_outbound begin
  */
-import { cp, mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -12,7 +12,7 @@ import {
 } from "../../src/index.js";
 import type { RegisterExitContext } from "../../src/tools/expandExitEffects.js";
 import { expandRegisterExitEffects } from "../../src/tools/expandExitEffects.js";
-import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
+import { copyDataTree, createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -70,7 +70,7 @@ describe("schedule → outbound (S3)", () => {
   it("Free 挂机写入 schedule → advanceClock → agent_outbound begin Manual", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-s3-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);
@@ -159,7 +159,7 @@ describe("schedule → outbound (S3)", () => {
   it("专家引荐回电使用 expert_referral 来源，不误判成用户预约提醒", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-s3-expert-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);
@@ -230,7 +230,7 @@ describe("schedule → outbound (S3)", () => {
   it("澜星 Free 玩家呼入使用陌生来电接听，不继承打错电话剧情开场", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-free-opening-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);
@@ -273,7 +273,7 @@ describe("schedule → outbound (S3)", () => {
   it("澜星剧情 opening 留在剧情卡；角色默认兜底不再承载打错电话", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-story-opening-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);
@@ -348,7 +348,7 @@ describe("schedule → outbound (S3)", () => {
   it("Free 提醒忽略模型幻觉目标并写入当前自由卡 pending / once", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-s3-bad-ref-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);

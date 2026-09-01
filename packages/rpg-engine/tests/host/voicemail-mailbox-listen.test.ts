@@ -4,7 +4,7 @@
  * - Outcome 听完 → 槽 status=listened + 未读回调 true→false
  * - 负向：脏 Board 上的 voicemail 不得经 user_dial 接通
  */
-import { cp, mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -14,7 +14,7 @@ import {
 	isEngineError,
 } from "../../src/index.js";
 import { createRecordingUnreadNotifier } from "../../src/runtime/voicemail/voicemailPorts.js";
-import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
+import { copyDataTree, createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
 	path.dirname(fileURLToPath(import.meta.url)),
@@ -25,7 +25,7 @@ const dataSrc = path.join(repoRoot, "data");
 async function copyDataRoot(): Promise<string> {
 	const tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-vm-listen-"));
 	const dataRoot = path.join(tmpRoot, "data");
-	await cp(dataSrc, dataRoot, { recursive: true });
+	await copyDataTree(dataSrc, dataRoot);
 	return tmpRoot;
 }
 

@@ -1,7 +1,7 @@
 /**
  * REST-E7：ScheduleCard begin 不写 stories.__schedule__。
  */
-import { cp, mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -10,7 +10,7 @@ import {
   isEngineError,
   SCHEDULE_CHAPTER_ID,
 } from "../../src/index.js";
-import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
+import { copyDataTree, createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const dataSrc = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -26,7 +26,7 @@ describe("ScheduleCard StorySave gate (REST-E6/E7)", () => {
   it("beginCall 后不存在 profile.stories.__schedule__", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-sched-nosave-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);

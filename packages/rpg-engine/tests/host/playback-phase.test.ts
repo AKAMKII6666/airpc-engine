@@ -1,14 +1,14 @@
 /**
  * S4：playback_only 相位 + completePlayback + 工具策略
  */
-import { cp, mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { isEngineError } from "../../src/index.js";
 import { seedPlaybackStubCard } from "../helpers/chapterTestFixtures.js";
-import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
+import { copyDataTree, createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -29,7 +29,7 @@ describe("playback_only session (S4)", () => {
   it("beginCall → phase=playback；禁 register_exit；completePlayback → endCall", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-s4-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);

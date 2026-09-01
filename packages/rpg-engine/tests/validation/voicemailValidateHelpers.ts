@@ -1,12 +1,12 @@
 /**
  * V2-VM-3 校验单测共用：临时 workspace + 改卡
  */
-import { cp, mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createEngineHost } from "../../src/index.js";
-import { createFsContentPort } from "../helpers/fsContentPort.js";
+import { copyDataTree, createFsContentPort } from "../helpers/fsContentPort.js";
 
 const repoRoot = path.resolve(
 	path.dirname(fileURLToPath(import.meta.url)),
@@ -20,13 +20,6 @@ export const VM_VALIDATE_CARD_REL =
 
 export type VmValidateHost = ReturnType<typeof createEngineHost>;
 
-function isStableDataFile(src: string): boolean {
-	const rel = path.relative(dataSrc, src);
-	if (rel === "debug-dto" || rel.startsWith(`debug-dto${path.sep}`)) return false;
-	if (rel === "logs" || rel.startsWith(`logs${path.sep}`)) return false;
-	return !path.basename(src).includes(".tmp");
-}
-
 export async function prepareVmValidateWorkspace(): Promise<{
 	tmpRoot: string;
 	dataRoot: string;
@@ -34,7 +27,7 @@ export async function prepareVmValidateWorkspace(): Promise<{
 }> {
 	const tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-val-vm-"));
 	const dataRoot = path.join(tmpRoot, "data");
-	await cp(dataSrc, dataRoot, { recursive: true, filter: isStableDataFile });
+	await copyDataTree(dataSrc, dataRoot);
 	const host = createEngineHost({
 		persist: false,
 		content: createFsContentPort(),

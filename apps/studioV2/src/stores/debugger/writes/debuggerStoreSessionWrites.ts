@@ -8,6 +8,7 @@ import type {
 } from "@studio-v2/typeFiles/debugger/store/debuggerStoreState";
 import type { DebuggerMailboxSnapshot } from "@studio-v2/typeFiles/debugger/mailboxView";
 import type { DebuggerCallSessionView } from "@studio-v2/typeFiles/debugger/callSession";
+import type { DebuggerPostCallJobView } from "@studio-v2/typeFiles/debugger/callSession";
 import {
 	createDebuggerSessionSlice,
 	type DebuggerStoreState,
@@ -40,6 +41,13 @@ type MailboxActions = Pick<
 	| "applyMailboxCommandResult"
 	| "applyMailboxCommandFailed"
 	| "bumpMailboxRefreshStamp"
+>;
+
+type PostCallJobActions = Pick<
+	DebuggerStoreState,
+	| "applyPostCallJobsLoadStarted"
+	| "applyPostCallJobsLoadResult"
+	| "applyPostCallJobsLoadFailed"
 >;
 
 function createSessionLoadActions(set: DebuggerSet): SessionLoadActions {
@@ -179,6 +187,32 @@ function createMailboxActions(set: DebuggerSet): MailboxActions {
 	};
 }
 
+function createPostCallJobActions(set: DebuggerSet): PostCallJobActions {
+	return {
+		applyPostCallJobsLoadStarted() {
+			set({
+				postCallJobsLoading: true,
+				postCallJobsError: undefined,
+			});
+		},
+
+		applyPostCallJobsLoadResult(jobs: DebuggerPostCallJobView[]) {
+			set({
+				postCallJobsLoading: false,
+				postCallJobsError: undefined,
+				postCallJobs: jobs,
+			});
+		},
+
+		applyPostCallJobsLoadFailed(message) {
+			set({
+				postCallJobsLoading: false,
+				postCallJobsError: message,
+			});
+		},
+	};
+}
+
 /** 会话灌账、真实通话、信箱读写口、stamp、reset */
 export function createDebuggerSessionActions(
 	set: DebuggerSet,
@@ -199,12 +233,16 @@ export function createDebuggerSessionActions(
 	| "applyMailboxCommandResult"
 	| "applyMailboxCommandFailed"
 	| "bumpMailboxRefreshStamp"
+	| "applyPostCallJobsLoadStarted"
+	| "applyPostCallJobsLoadResult"
+	| "applyPostCallJobsLoadFailed"
 	| "resetDebuggerSession"
 > {
 	return {
 		...createSessionLoadActions(set),
 		...createCallCommandActions(set),
 		...createMailboxActions(set),
+		...createPostCallJobActions(set),
 
 		resetDebuggerSession() {
 			set(function (prev) {

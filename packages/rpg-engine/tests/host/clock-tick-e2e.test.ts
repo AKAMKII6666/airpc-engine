@@ -2,7 +2,7 @@
  * E9：Clock／日常 Tick 模拟器
  * once 到期 → pending；recurring → 可观测 once；双 user 隔离；toNextIntent
  */
-import { cp, mkdir, mkdtemp, writeFile, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, writeFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -12,7 +12,7 @@ import {
   isEngineError,
   PlayerProfileSchema,
 } from "../../src/index.js";
-import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
+import { copyDataTree, createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -91,7 +91,7 @@ describe("E9 clock / daily tick simulator", () => {
   it("once：快进到期 → outbound pending；toNextIntent 推到 fireAt", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-e9-once-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const host = createTestHost({ persist: true, dataRoot });
     await host.loadWorkspace(dataRoot);
@@ -150,7 +150,7 @@ describe("E9 clock / daily tick simulator", () => {
   it("recurring：跨过逻辑日时刻 → ScheduleCard once 可点火", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-e9-rec-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const host = createTestHost({ persist: true, dataRoot });
     await host.loadWorkspace(dataRoot);
@@ -233,7 +233,7 @@ describe("E9 clock / daily tick simulator", () => {
   it("recurring 无卡引用：disabled，不物化 once，不挂 pending", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-e9-obs-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const host = createTestHost({ persist: true, dataRoot });
     await host.loadWorkspace(dataRoot);
@@ -283,7 +283,7 @@ describe("E9 clock / daily tick simulator", () => {
   it("隔离：A 的 Tick 不改 B 的 clock／pending", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-e9-iso-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
     await seedUser(dataRoot, "user-b", "小乙");
 
     const host = createTestHost({ persist: true, dataRoot });

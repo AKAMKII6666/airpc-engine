@@ -12,7 +12,7 @@ import { getStudioV2EngineHost } from "@studio-v2/src/utils/server/host/engineHo
 import { isValidUserId } from "@studio-v2/src/utils/server/users/usersFs.server";
 import {
 	type ServerLlmChatResult,
-} from "@studio-v2/src/utils/server/debugger/llm/llmClient.server";
+} from "@studio-v2/src/utils/server/llm/llmClient.server";
 import { buildOpeningLlmMessages } from "@studio-v2/src/utils/server/debugger/session/debuggerLlmMessages.server";
 import { consumeDebuggerOpeningFirstTurn } from "@studio-v2/src/utils/server/debugger/session/debuggerConsumeOpeningFirstTurn.server";
 import {

@@ -5,34 +5,43 @@
 
 type OpenSet = ReadonlySet<string>;
 
-type BlockBuilder = (open: OpenSet) => string | null;
+/** beginCall 可选上下文；已知名时收紧 record_user_name 剧本。 */
+export type ToolInstructionBlockOpts = {
+	knownNickname?: string;
+};
+
+type BlockBuilder = (
+	open: OpenSet,
+	opts: ToolInstructionBlockOpts,
+) => string | null;
 
 const BLOCK_BUILDERS: BlockBuilder[] = [
-  buildExpertBlockIfOpen,
-  buildReminderBlockIfOpen,
-  buildRecurringBlockIfOpen,
-  buildSharedSecretBlockIfOpen,
-  buildResearchBlockIfOpen,
-  buildUserNameBlockIfOpen,
-  buildMemoryBlockIfOpen,
-  buildBaziBlockIfOpen,
+	buildExpertBlockIfOpen,
+	buildReminderBlockIfOpen,
+	buildRecurringBlockIfOpen,
+	buildSharedSecretBlockIfOpen,
+	buildResearchBlockIfOpen,
+	buildUserNameBlockIfOpen,
+	buildMemoryBlockIfOpen,
+	buildBaziBlockIfOpen,
 ];
 
 export function buildToolInstructionBlocks(
-  allowedToolIds: readonly string[],
+	allowedToolIds: readonly string[],
+	opts: ToolInstructionBlockOpts = {},
 ): string[] {
-  if (allowedToolIds.length === 0) return [];
-  const open: OpenSet = new Set(allowedToolIds);
-  const sections: string[] = [];
-  for (const build of BLOCK_BUILDERS) {
-    const section = build(open);
-    if (section) sections.push(section);
-  }
-  if (sections.length === 0) return [];
-  return [`[tools]\n${sections.join("\n\n")}`];
+	if (allowedToolIds.length === 0) return [];
+	const open: OpenSet = new Set(allowedToolIds);
+	const sections: string[] = [];
+	for (const build of BLOCK_BUILDERS) {
+		const section = build(open, opts);
+		if (section) sections.push(section);
+	}
+	if (sections.length === 0) return [];
+	return [`[tools]\n${sections.join("\n\n")}`];
 }
 
-function buildExpertBlockIfOpen(open: OpenSet): string | null {
+function buildExpertBlockIfOpen(open: OpenSet, _opts: ToolInstructionBlockOpts): string | null {
   const hasShare = open.has("share_expert_number");
   const hasRefer = open.has("refer_to_expert");
   if (!hasShare && !hasRefer) return null;
@@ -69,7 +78,7 @@ function buildExpertBlockIfOpen(open: OpenSet): string | null {
   return lines.join("\n");
 }
 
-function buildReminderBlockIfOpen(open: OpenSet): string | null {
+function buildReminderBlockIfOpen(open: OpenSet, _opts: ToolInstructionBlockOpts): string | null {
   if (!open.has("schedule_reminder_call")) return null;
   const hasRecurring = open.has("schedule_recurring_call");
   const lines = [
@@ -94,7 +103,7 @@ function buildReminderBlockIfOpen(open: OpenSet): string | null {
   return lines.join("\n");
 }
 
-function buildRecurringBlockIfOpen(open: OpenSet): string | null {
+function buildRecurringBlockIfOpen(open: OpenSet, _opts: ToolInstructionBlockOpts): string | null {
   if (!open.has("schedule_recurring_call")) return null;
   const hasReminder = open.has("schedule_reminder_call");
   const lines = [
@@ -117,7 +126,7 @@ function buildRecurringBlockIfOpen(open: OpenSet): string | null {
   return lines.join("\n");
 }
 
-function buildSharedSecretBlockIfOpen(open: OpenSet): string | null {
+function buildSharedSecretBlockIfOpen(open: OpenSet, _opts: ToolInstructionBlockOpts): string | null {
   if (!open.has("record_shared_secret")) return null;
   return [
     "# 共同秘密（Function Calling）",
@@ -130,7 +139,7 @@ function buildSharedSecretBlockIfOpen(open: OpenSet): string | null {
   ].join("\n");
 }
 
-function buildResearchBlockIfOpen(open: OpenSet): string | null {
+function buildResearchBlockIfOpen(open: OpenSet, _opts: ToolInstructionBlockOpts): string | null {
   if (!open.has("create_research_commitment")) return null;
   const expertOpen =
     open.has("share_expert_number") || open.has("refer_to_expert");
@@ -167,20 +176,38 @@ function buildResearchBlockIfOpen(open: OpenSet): string | null {
   return lines.join("\n");
 }
 
-function buildUserNameBlockIfOpen(open: OpenSet): string | null {
-  if (!open.has("record_user_name")) return null;
-  return [
-    "# 记住名字（Function Calling）",
-    "当对方**明确**告诉你叫什么（如「我叫豆豆」），且你已口头确认要记下来时：",
-    "1. 先用口语认真回应（如「好，我记住啦」）；",
-    "2. 调用 `record_user_name`（`nickname` 日常昵称；可选 `full_name` 正式姓名）。",
-    "对方还没说名字、或只是配置的备用称呼时，**不要**调用。",
-    "不要编造名字。",
-    "通话中只登记；挂机后更新用户档案。",
-  ].join("\n");
+function buildUserNameBlockIfOpen(
+	open: OpenSet,
+	opts: ToolInstructionBlockOpts,
+): string | null {
+	if (!open.has("record_user_name")) return null;
+	const known =
+		typeof opts.knownNickname === "string" ? opts.knownNickname.trim() : "";
+	if (known) {
+		return [
+			"# 记住名字（Function Calling）",
+			`你已认识用户日常称呼「${known}」。`,
+			`若对方只是自报/确认同一称呼（如「我是${known}」「我，${known}」）：口头认出即可，**禁止**说「好，我记住啦」类初识剧本，**禁止**再调用 \`record_user_name\`。`,
+			"仅当对方**明确**给出与已知称呼不同的新昵称/姓名，且你已口头确认要改记时：",
+			"1. 自然确认新称呼；",
+			"2. 再调用 `record_user_name`（`nickname`；可选 `full_name`）。",
+			"对方还没说新名字、只是闲聊、或配置备用称呼时，**不要**调用。",
+			"不要编造名字。",
+			"通话中只登记；挂机后更新用户档案。",
+		].join("\n");
+	}
+	return [
+		"# 记住名字（Function Calling）",
+		"当对方**明确**告诉你叫什么（如「我叫豆豆」），且你已口头确认要记下来时：",
+		"1. 先用口语认真回应（如「好，我记住啦」）；",
+		"2. 调用 `record_user_name`（`nickname` 日常昵称；可选 `full_name` 正式姓名）。",
+		"对方还没说名字、或只是配置的备用称呼时，**不要**调用。",
+		"不要编造名字。",
+		"通话中只登记；挂机后更新用户档案。",
+	].join("\n");
 }
 
-function buildMemoryBlockIfOpen(open: OpenSet): string | null {
+function buildMemoryBlockIfOpen(open: OpenSet, _opts: ToolInstructionBlockOpts): string | null {
   const hasSearch = open.has("search_memory");
   const hasGet = open.has("get_memory_by_id");
   if (!hasSearch && !hasGet) return null;
@@ -203,7 +230,7 @@ function buildMemoryBlockIfOpen(open: OpenSet): string | null {
   return lines.join("\n");
 }
 
-function buildBaziBlockIfOpen(open: OpenSet): string | null {
+function buildBaziBlockIfOpen(open: OpenSet, _opts: ToolInstructionBlockOpts): string | null {
   if (!open.has("compute_bazi_chart")) return null;
   return [
     "# 八字排盘（Function Calling · 角色专属）",

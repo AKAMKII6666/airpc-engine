@@ -11,6 +11,7 @@ import type {
 	ContentPort,
 	EngineLogPort,
 	MemoryPort,
+	PostCallJobStorePort,
 	ProfilePort,
 } from "@airpc/rpg-engine";
 // 引用了 Sqlite Memory 工厂，用于本机 memory.sqlite 落盘
@@ -21,6 +22,7 @@ import { createFsProfilePort } from "./profile/fsProfilePort";
 import { createFsContentPort } from "./content/port/fsContentPort";
 // 引用了 Fs EngineLog 工厂，用于本机 jsonl 旁路日志
 import { createFsEngineLogPort } from "./log/fsEngineLogPort";
+import { createFsPostCallJobStorePort } from "./postCallJob/fsPostCallJobStorePort";
 
 /** 本机 Studio 注入 Host 的四 Port 套件（技术设计 23）。 */
 export type EngineIOPorts = {
@@ -28,12 +30,14 @@ export type EngineIOPorts = {
 	profile: ProfilePort;
 	content: ContentPort;
 	engineLog: EngineLogPort;
+	postCallJob: PostCallJobStorePort;
 };
 
 export { createSqliteMemoryPort } from "./memory/sqliteMemoryPort";
 export { createFsProfilePort } from "./profile/fsProfilePort";
 export { createFsContentPort } from "./content/port/fsContentPort";
 export { createFsEngineLogPort } from "./log/fsEngineLogPort";
+export { createFsPostCallJobStorePort } from "./postCallJob/fsPostCallJobStorePort";
 
 /**
 	* 创建指向 `dataRoot` 的本机 Ports。
@@ -52,5 +56,6 @@ export function createEngineIOPorts(dataRoot: string): EngineIOPorts {
 		profile: createFsProfilePort(dataRoot),
 		content: createFsContentPort(),
 		engineLog: createFsEngineLogPort(dataRoot),
+		postCallJob: createFsPostCallJobStorePort(dataRoot),
 	};
 }

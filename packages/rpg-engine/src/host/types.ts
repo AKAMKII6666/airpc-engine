@@ -4,7 +4,7 @@
 import type { CallCardDefinition } from "../schema/callCard.js";
 import type { CharacterDef } from "../schema/character.js";
 import type { ChatTurn } from "../schema/dialogueSession.js";
-import type { Outcome } from "../schema/outcome.js";
+import type { Effect, Outcome } from "../schema/outcome.js";
 import type { ShellControlEvent } from "./shellControl/shellControlTypes.js";
 import type { RuntimeExitCandidate } from "../tools/types.js";
 
@@ -284,16 +284,85 @@ export interface FreePipelineTrace {
   selectedExitId?: string;
   steps: Array<{
     id: string;
-    status: "done" | "skipped" | "failed";
+    status: "done" | "skipped" | "failed" | "pending";
     detail?: string;
   }>;
 }
 
 export interface StoryMemoryCommitTrace {
-  committed: boolean;
+ committed: boolean;
   commitEntryIds?: string[];
   skippedReason?: "memory_disabled" | "empty_transcript" | "commit_failed";
   error?: string;
+}
+
+export type PostCallJobStatus =
+  | "closing"
+  | "committed"
+  | "background_pending"
+  | "memory_committing"
+  | "rollup_running"
+  | "media_running"
+  | "voicemail_running"
+  | "completed"
+  | "completed_with_errors"
+  | "failed_retryable"
+  | "aborted_non_retryable";
+
+export interface PostCallJobStep {
+  id: "memory_commit" | "rollup" | "media" | "voicemail";
+  status: "pending" | "running" | "done" | "failed" | "skipped";
+  detail?: string;
+}
+
+export interface PostCallJob {
+  schemaVersion: 1;
+  jobId: string;
+  sessionId: string;
+  userId: string;
+  primaryAgentId: string;
+  source: ResolveResult["source"];
+  cardId: string;
+  chapterId: string;
+  selectedExitId?: string;
+  exitSource?: "static" | "dynamic";
+  exitPriority?: number;
+  outcomeFlags: Record<string, boolean>;
+  generation: number;
+  attempt: number;
+  status: PostCallJobStatus;
+  updatedAt: string;
+  commitCursor: string[];
+  failedSteps: Array<{ stepId: string; error: string }>;
+  steps: PostCallJobStep[];
+  effectPlanResult: EffectPlanResult;
+  memoryPolicy: "free" | "story" | "none";
+  freePipeline?: FreePipelineTrace;
+  storyMemoryCommit?: StoryMemoryCommitTrace;
+  /** 重启后重放后台阶段所需的最小会话快照。 */
+  sessionSnapshot?: CallSession;
+  /** 尚未在同步段执行的媒介 effect。 */
+  deferredEffects?: Effect[];
+  /** 是否需要后台执行语音留言物化。 */
+  voicemailPending: boolean;
+  /**
+   * 同步段（顺序敏感 Effect + save）是否已成功。
+   * false 时重试不得直接重跑后台；须先处理同步失败。
+   */
+  syncCommitted: boolean;
+}
+
+export interface PostCallJobSummary {
+  jobId: string;
+  userId: string;
+  sessionId: string;
+  primaryAgentId: string;
+  status: PostCallJobStatus;
+  updatedAt: string;
+  effectPlanStatus: EffectPlanStatus;
+  selectedExitId?: string;
+  steps: PostCallJobStep[];
+  failedSteps: Array<{ stepId: string; error: string }>;
 }
 
 export interface EndCallResult {
@@ -305,6 +374,9 @@ export interface EndCallResult {
   freePipeline?: FreePipelineTrace;
   /** Story 挂机记忆提交；Free 为 undefined */
   storyMemoryCommit?: StoryMemoryCommitTrace;
+  /** 挂机后后台副作用 job；宿主据此轮询/查详情。 */
+  postCallJobId: string;
+  postCallJob?: PostCallJobSummary;
 }
 
 export interface LogRecord {

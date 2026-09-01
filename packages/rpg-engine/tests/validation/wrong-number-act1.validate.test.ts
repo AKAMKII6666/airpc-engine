@@ -3,13 +3,13 @@
  *
  * V2-VM-10：样例已迁 cardKind=voicemail + attach；validate 须绿（无 VOICEMAIL_* blocking）。
  */
-import { cp, mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { createEngineHost, hasBlockingErrors } from "../../src/index.js";
-import { createFsContentPort } from "../helpers/fsContentPort.js";
+import { copyDataTree, createFsContentPort } from "../helpers/fsContentPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -30,7 +30,7 @@ describe("validatePackage wrong_number_act1 (S8-3 / V2-VM-10)", () => {
   it("omitted participants ok；迁移后无 create_voicemail / mode 错误", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-val-wna-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const host = createEngineHost({ persist: false, content: createFsContentPort() });
     await host.loadWorkspace(dataRoot);

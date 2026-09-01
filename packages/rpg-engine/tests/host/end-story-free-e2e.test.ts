@@ -1,7 +1,7 @@
 /**
  * V1-E6 / §7.4：end_story 无 next → Host 清场后任意角色 user_dial 命中 Free。
  */
-import { cp, mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -11,7 +11,7 @@ import {
   isEngineError,
   type CallCardDefinition,
 } from "../../src/index.js";
-import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
+import { copyDataTree, createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -32,7 +32,7 @@ describe("end_story no-next → Free (V1-E6 host)", () => {
   it("清场后任意角色 resolve(user_dial) source===free，旧 story pending 不再命中", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-e6-free-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);

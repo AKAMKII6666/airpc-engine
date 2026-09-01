@@ -1,7 +1,7 @@
 /**
  * S1：Content 热重载默认保留 Session / Profile
  */
-import { cp, mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -9,7 +9,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   isEngineError,
 } from "../../src/index.js";
-import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
+import { copyDataTree, createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -30,7 +30,7 @@ describe("content reload preserves runtime", () => {
   it("loadWorkspace 默认不清 sessions / profiles；resetRuntime 才踢", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-s1-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);
@@ -66,7 +66,7 @@ describe("content reload preserves runtime", () => {
   it("loadWorkspace({ resetRuntime: true }) 清空活跃 Session", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-s1-reset-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);

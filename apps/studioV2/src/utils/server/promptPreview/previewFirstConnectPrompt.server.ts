@@ -3,6 +3,7 @@
 	* 仅 Server；Client 经 POST /api/prompt-preview。
 	*/
 import {
+	buildAcquaintanceSoftExtra,
 	buildComposeScene,
 	buildToolInstructionBlocks,
 	composeRenderedPrompt,
@@ -71,12 +72,18 @@ export async function previewFirstConnectPrompt(
 		profile,
 		memory: host.getMemoryPort(),
 	});
+	const knownNickname = profile.user?.nickname?.trim() || undefined;
+	const acquaintance = buildAcquaintanceSoftExtra(knownNickname);
+	if (acquaintance) {
+		softExtras.push(acquaintance);
+	}
 	const toolsForCard = listToolsForCard(v.card, { characterDef });
 	softExtras.push(
 		...buildToolInstructionBlocks(
 			toolsForCard.map(function (t) {
 				return t.toolId;
 			}),
+			{ knownNickname },
 		),
 	);
 

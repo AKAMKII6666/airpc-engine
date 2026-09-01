@@ -2,7 +2,7 @@
  * 模块名称：golden_handoff 双通可测（P2）
  * 模块说明：澜星转介 → 小雨 user_dial；断言按需载入与忽略 layout。
  */
-import { access, cp, mkdtemp, readFile, rm } from "node:fs/promises";
+import { access, mkdtemp, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,7 +13,7 @@ import {
   CharacterDefSchema,
   PlayerProfileSchema,
 } from "../../src/index.js";
-import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
+import { copyDataTree, createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -40,7 +40,7 @@ describe("golden_handoff", () => {
 
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-p2-layout-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
     // 删掉 layout 旁车，引擎仍应能 loadWorkspace + 按需载卡
     await rm(
       path.join(
@@ -65,7 +65,7 @@ describe("golden_handoff", () => {
   it("full handoff: 澜星 success → 小雨 user_dial → meet_ok unmount", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-p2-golden-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const host = createTestHost({ persist: true, dataRoot });
     await host.loadWorkspace(dataRoot);

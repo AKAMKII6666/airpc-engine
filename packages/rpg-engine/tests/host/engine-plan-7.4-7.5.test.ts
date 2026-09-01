@@ -3,7 +3,7 @@
  * - 7.4 章节清场 + next（含无 next / delay 提前呼入）
  * - 7.5 EffectSink 成功/失败/critical/延迟 resolve/reject；endCall 等待 sink
  */
-import { cp, mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -20,7 +20,7 @@ import {
   type EffectSinkResult,
 } from "../../src/index.js";
 import { executeEffects } from "../../src/runtime/effectExecutor.js";
-import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
+import { copyDataTree, createTestHost } from "../helpers/inMemoryMemoryPort.js";
 import { cloneChapter02 } from "../helpers/chapterTestFixtures.js";
 
 const repoRoot = path.resolve(
@@ -126,7 +126,7 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
     it("end_story(next)：completed + 释放 lock + 清旧 pending/once + 挂下一章入口", async () => {
       tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-7.4-next-"));
       const dataRoot = path.join(tmpRoot, "data");
-      await cp(dataSrc, dataRoot, { recursive: true });
+      await copyDataTree(dataSrc, dataRoot);
 
       const host = createTestHost({ persist: false, dataRoot });
       await host.loadWorkspace(dataRoot);
@@ -253,7 +253,7 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
     it("end_story(无 next)：清场后任意角色 user_dial source===free", async () => {
       tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-7.4-free-"));
       const dataRoot = path.join(tmpRoot, "data");
-      await cp(dataSrc, dataRoot, { recursive: true });
+      await copyDataTree(dataSrc, dataRoot);
 
       const host = createTestHost({ persist: false, dataRoot });
       await host.loadWorkspace(dataRoot);
@@ -338,7 +338,7 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
     it("end_story(next delay)：提前呼入消费 linked once，后续 tick 不重复", async () => {
       tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-7.4-delay-"));
       const dataRoot = path.join(tmpRoot, "data");
-      await cp(dataSrc, dataRoot, { recursive: true });
+      await copyDataTree(dataSrc, dataRoot);
 
       const host = createTestHost({ persist: false, dataRoot });
       await host.loadWorkspace(dataRoot);
@@ -579,7 +579,7 @@ describe("引擎 §7.4–7.5 回归 (V1-E10)", () => {
     it("Sink 延迟 resolve：endCall 须等待后才返回", async () => {
       tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-7.5-endcall-"));
       const dataRoot = path.join(tmpRoot, "data");
-      await cp(dataSrc, dataRoot, { recursive: true });
+      await copyDataTree(dataSrc, dataRoot);
 
       const sink = delaySink(50);
       const host = createTestHost({

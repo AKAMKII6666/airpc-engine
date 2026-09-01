@@ -1,13 +1,13 @@
 /**
  * E4b：角色 A（澜星）出口写 B（小雨）的 knowledge 与 memory
  */
-import { cp, mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { isEngineError } from "../../src/index.js";
-import { createTestHostWithMemory } from "../helpers/inMemoryMemoryPort.js";
+import { copyDataTree, createTestHostWithMemory } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -28,7 +28,7 @@ describe("E4b A→B knowledge／memory", () => {
   it("lanxing exit writes xiaopi knowledge + semantic memory", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-e4b-ab-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const host = createTestHostWithMemory({ persist: true, dataRoot });
     await host.loadWorkspace(dataRoot);

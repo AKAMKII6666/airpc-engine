@@ -1,7 +1,7 @@
 /**
  * 模块名称：golden_handoff validatePackage 回归
  */
-import { cp, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -11,7 +11,7 @@ import {
   FREE_CHAPTER_ID,
   hasBlockingErrors,
 } from "../../src/index.js";
-import { createFsContentPort } from "../helpers/fsContentPort.js";
+import { copyDataTree, createFsContentPort } from "../helpers/fsContentPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -32,7 +32,7 @@ describe("validatePackage", () => {
   it("golden_handoff has no blocking errors", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-val-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const host = createEngineHost({ persist: false, content: createFsContentPort() });
     await host.loadWorkspace(dataRoot);
@@ -44,7 +44,7 @@ describe("validatePackage", () => {
   it("rejects __free__ sentinel package", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-val-free-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
     const host = createEngineHost({ persist: false, content: createFsContentPort() });
     await host.loadWorkspace(dataRoot);
     const report = await host.validatePackage(FREE_CHAPTER_ID);
@@ -56,7 +56,7 @@ describe("validatePackage", () => {
   it("CONF_CARD_FILE_MISSING when card file deleted", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-val-miss-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
     await rm(
       path.join(
         dataRoot,
@@ -74,7 +74,7 @@ describe("validatePackage", () => {
   it("PROMPT_SCENE_PATCH_HARD on forbidden in patch", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-val-patch-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
     const cardPath = path.join(
       dataRoot,
       "storis-packages/golden_handoff/chapters/golden_handoff/cards/doubao_intro_outbound.s-card.json",
@@ -104,7 +104,7 @@ describe("validatePackage", () => {
   it("FREE_CARD_MISSING when freeCardId file removed", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-val-free-miss-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
     await rm(
       path.join(dataRoot, "characters/free-cards/xiaopi_free.s-card.json"),
     );
@@ -119,7 +119,7 @@ describe("validatePackage", () => {
   it("SOCIAL_TARGET_UNKNOWN for bad social edge", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-val-social-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
     const charPath = path.join(dataRoot, "characters/lanxing.json");
     const char = JSON.parse(await readFile(charPath, "utf8")) as {
       social: Array<{ targetAgentId: string }>;
@@ -137,7 +137,7 @@ describe("validatePackage", () => {
   it("TOOL_DIRECT_EFFECT when toolPolicy.applyEffectsDuringCall", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-val-direct-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
     const cardPath = path.join(
       dataRoot,
       "storis-packages/golden_handoff/chapters/golden_handoff/cards/doubao_intro_outbound.s-card.json",
@@ -161,7 +161,7 @@ describe("validatePackage", () => {
   it("ASSET_UNKNOWN when playbackClipId has no meta", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-val-asset-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
     const cardPath = path.join(
       dataRoot,
       "storis-packages/golden_handoff/chapters/golden_handoff/cards/doubao_intro_outbound.s-card.json",
@@ -184,7 +184,7 @@ describe("validatePackage", () => {
   it("ASSET_URI_MISSING when meta uri file absent", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-val-uri-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
     await rm(path.join(dataRoot, "assets/files/clip_hello.wav"));
     const host = createEngineHost({ persist: false, content: createFsContentPort() });
     await host.loadWorkspace(dataRoot);
@@ -197,7 +197,7 @@ describe("validatePackage", () => {
   it("ASSET_KIND_MISMATCH when playback refs image", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-val-kind-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
     await writeFile(
       path.join(dataRoot, "assets/meta/clip_hello.json"),
       JSON.stringify({

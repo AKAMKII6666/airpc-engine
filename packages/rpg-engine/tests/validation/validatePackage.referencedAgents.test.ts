@@ -1,7 +1,7 @@
 /**
  * S8-2：validatePackage 派生引用角色校验 + PARTICIPANT_UNKNOWN 降级 warning
  */
-import { cp, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -11,7 +11,7 @@ import {
   hasBlockingErrors,
   type EngineHost,
 } from "../../src/index.js";
-import { createFsContentPort } from "../helpers/fsContentPort.js";
+import { copyDataTree, createFsContentPort } from "../helpers/fsContentPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -34,7 +34,7 @@ async function hostWithPackage(chapterId: string): Promise<{
 }> {
   tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-ref-agents-"));
   const dataRoot = path.join(tmpRoot, "data");
-  await cp(dataSrc, dataRoot, { recursive: true });
+  await copyDataTree(dataSrc, dataRoot);
   const host = createEngineHost({ persist: false, content: createFsContentPort() });
   await host.loadWorkspace(dataRoot);
   return { host, dataRoot };

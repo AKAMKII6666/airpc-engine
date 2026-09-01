@@ -1,13 +1,13 @@
 /**
  * S8-16：故事包内 cardKind=schedule 剧情节点 ≠ characters/schedule-cards 日常卡。
  */
-import { cp, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { createEngineHost } from "../../src/index.js";
-import { createFsContentPort } from "../helpers/fsContentPort.js";
+import { copyDataTree, createFsContentPort } from "../helpers/fsContentPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -96,7 +96,7 @@ describe("schedule package division (S8-16)", () => {
   it("package-local schedule node cannot be recurring target", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-sched-pkg-node-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const host = createEngineHost({ persist: false, content: createFsContentPort() });
     await host.loadWorkspace(dataRoot);

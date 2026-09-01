@@ -73,6 +73,17 @@ export const UserLibraryView: FC = function () {
 				</Alert>
 			) : null}
 
+			{page.createLoreWarning ? (
+				// 引用了Alert组件，用于新建玩家后 lore bootstrap 提示
+				<Alert
+					severity="warning"
+					role="status"
+					onClose={page.dismissCreateLoreWarning}
+				>
+					{page.createLoreWarning}
+				</Alert>
+			) : null}
+
 			<div className={styles.toolbar}>
 				{/* 引用了TextField组件，用于筛选占位 */}
 				<TextField

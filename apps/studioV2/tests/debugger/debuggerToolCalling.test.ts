@@ -11,7 +11,7 @@ import type {
 import type {
 	ServerLlmChatInput,
 	ServerLlmChatResult,
-} from "@studio-v2/src/utils/server/debugger/llm/llmClient.server";
+} from "@studio-v2/src/utils/server/llm/llmClient.server";
 import {
 	runDebuggerLlmWithTools,
 	runDebuggerLlmWithToolsStream,

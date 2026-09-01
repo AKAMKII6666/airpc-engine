@@ -10,6 +10,8 @@ import type {
 	ConsumeOpeningFirstTurnResult,
 	EndCallResult,
 	LogRecord,
+	PostCallJob,
+	PostCallJobSummary,
 	ResolveResult,
 	SaveReason,
 } from "../host/types.js";
@@ -44,6 +46,10 @@ import type { ValidationReport } from "../validation/types.js";
 import type { ContentPort } from "./contentPort.js";
 import type { EngineLogPort } from "./engineLogPort.js";
 import type { ProfilePort } from "./profilePort.js";
+import type {
+	PostCallJobListFilter,
+	PostCallJobStorePort,
+} from "./postCallJobStorePort.js";
 
 export interface LoadWorkspaceOptions {
 	/**
@@ -66,6 +72,13 @@ export interface EngineHost {
 		cardId: string,
 	): Promise<void | EngineError>;
 	ensureProfile(userId: string): Promise<PlayerProfile>;
+	/** 踢单用户 Profile 内存缓存；删档后调用，避免后续 saveProfile 写回幽灵档。 */
+	evictProfileCache(userId: string): void;
+	/**
+	 * 踢缓存后从 ProfilePort 重载。
+	 * Studio 经 usersFs 直写 profile.save.json 后须调用，否则 autosave 会用旧内存覆盖磁盘。
+	 */
+	reloadProfileFromPort(userId: string): Promise<PlayerProfile>;
 	saveProfile(userId: string, reason: SaveReason): Promise<void>;
 	resolve(userId: string, intent: CallIntent): ResolveResult | EngineError;
 	resolveAsync(
@@ -81,6 +94,17 @@ export interface EngineHost {
 		sessionId: string,
 		outcome: Outcome,
 	): Promise<EndCallResult | EngineError>;
+	getPostCallJob(jobId: string): PostCallJob | null;
+	listPostCallJobs(filter?: PostCallJobListFilter): PostCallJob[];
+	recoverPostCallJobs(): Promise<PostCallJobSummary[] | EngineError>;
+	/**
+	 * 仅 `failed_retryable`：自第一个未完成后台步续跑。
+	 * 同步段未 committed 时拒绝（须新通话或人工处理）。
+	 */
+	retryPostCallJob(
+		jobId: string,
+	): Promise<PostCallJobSummary | EngineError>;
+	drainPostCallJobs(): Promise<void>;
 	invokeTool(
 		sessionId: string,
 		toolId: string,
@@ -254,6 +278,11 @@ export interface CreateEngineHostOptions {
 	 * 真源仍为 Profile.telephony.voicemails[]；未注入则跳过回调。
 	 */
 	onVoicemailUnreadChanged?: OnVoicemailUnreadChanged | null;
+	/**
+	 * 挂机后副作用 job 持久化口；未注入时仅 Host 内存态（测试用）。
+	 * 本机实现：engineIOModule 的 createFsPostCallJobStorePort。
+	 */
+	postCallJob?: PostCallJobStorePort | null;
 }
 
 /** undefined 与 null 均视为未注入。 */

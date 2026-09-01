@@ -31,20 +31,12 @@ import type { DebuggerMailboxSessionBis } from "@studio-v2/src/bis/pageBis/debug
 import type {
 	DebuggerCallEndView,
 	DebuggerMemoryCommitTraceDetailView,
+	DebuggerPostCallJobView,
 } from "@studio-v2/typeFiles/debugger/callSession";
 import type { DebuggerVoicemailSlotView } from "@studio-v2/typeFiles/debugger/mailboxView";
 
 type TimeoutRef = MutableRefObject<ReturnType<typeof setTimeout> | null>;
 type PhoneSetter = Dispatch<SetStateAction<PhoneUiState>>;
-
-export type PostCallEffectOverlayState = {
-	/** 是否展示不可关闭的挂机后副作用面板 */
-	open: boolean;
-	/** 面板标题 */
-	title: string;
-	/** 面板滚动日志；同时写入 console */
-	lines: string[];
-};
 
 export type HangupToastState = {
 	/** 用于让同文案 toast 也能重新弹出 */
@@ -73,8 +65,16 @@ export type DebuggerPrototypeSession = {
 	error: string | undefined;
 	/** 是否存在真实未读留言；用于电话灯和 * 键 */
 	hasUnreadVoicemail: boolean;
-	/** 挂机后副作用执行面板状态 */
-	postCallEffectOverlay: PostCallEffectOverlayState;
+	/** 挂机后副作用 job 列表 */
+	postCallJobs: DebuggerPostCallJobView[];
+	/** job 列表轮询中 */
+	postCallJobsLoading: boolean;
+	/** job 列表失败人话 */
+	postCallJobsError: string | undefined;
+	/** 重试 failed_retryable job */
+	retryPostCallJob: (jobId: string) => void;
+	/** 正在重试的 jobId */
+	postCallRetryingJobId: string | null;
 	/** 挂断反馈 toast */
 	hangupToast: HangupToastState;
 	/** 最近一次挂机 Memory Trace 详情；待机态供右侧面板回看 */
@@ -184,23 +184,36 @@ function formatEndResultLines(end: DebuggerCallEndView): string[] {
 	const lines = [`Host endCall 完成：status=${end.status}`];
 	if (end.planStatus) lines.push(`Effect plan：${end.planStatus}`);
 	if (end.selectedExitId) lines.push(`命中出口：${end.selectedExitId}`);
+	if (end.postCallJobId) lines.push(`PostCallJob：${end.postCallJobId}`);
 	if (end.freeCommitted !== null) {
-		lines.push(`Free MemoryCommit：${end.freeCommitted ? "已提交" : "未提交"}`);
+		lines.push(
+			`Free MemoryCommit：${
+				end.freeCommitted
+					? "已提交"
+					: end.memoryTrace?.skippedReason === "background_pending"
+						? "后台进行中"
+						: "未提交"
+			}`,
+		);
 	}
 	if (end.memoryTrace) {
 		lines.push(
 			`Memory Trace：${end.memoryTrace.policy} · ${
-				end.memoryTrace.committed ? "committed" : "skipped"
+				end.memoryTrace.committed
+					? "committed"
+					: end.memoryTrace.skippedReason === "background_pending"
+						? "pending"
+						: "skipped"
 			} · entries=${end.memoryTrace.entryIds.length} · dto=${end.memoryTrace.dtoId}`,
 		);
-		if (end.memoryTrace.skippedReason) {
+		if (
+			end.memoryTrace.skippedReason &&
+			end.memoryTrace.skippedReason !== "background_pending"
+		) {
 			lines.push(`Memory skipped：${end.memoryTrace.skippedReason}`);
 		}
 		if (end.memoryTrace.error) {
 			lines.push(`Memory error：${end.memoryTrace.error}`);
-		}
-		if (end.memoryTrace.entryIds.length > 0) {
-			lines.push(`Memory entries：${end.memoryTrace.entryIds.join(",")}`);
 		}
 	}
 	return lines;
@@ -275,12 +288,6 @@ function createPhoneCommands(input: {
 	mailboxBis: DebuggerMailboxSessionBis;
 	/** 清理电话计时器 */
 	clearPhoneTimers: () => void;
-	/** 开始挂机后副作用面板 */
-	beginPostCallRun: (title: string, firstLine: string) => void;
-	/** 追加挂机后副作用面板日志 */
-	appendPostCallRunLine: (line: string, detail?: unknown) => void;
-	/** 结束挂机后副作用面板 */
-	finishPostCallRun: () => void;
 	/** 展示挂断 toast */
 	showHangupToast: (message: string) => void;
 	/** 记录最近一次 Memory Trace 详情，供待机态回看 */
@@ -384,24 +391,25 @@ async function resetPhoneAfterEnd(
 		return;
 	}
 	input.showHangupToast("您已挂断");
-	input.beginPostCallRun("正在收尾通话", "用户主动挂断，已返回调试器主界面");
-	input.appendPostCallRunLine("正在执行挂机后副作用...");
+	console.info("[StudioV2][post-call]", "用户主动挂断，已返回拨号界面；副作用由 tip 跟踪");
 	const end = await input.callBis.endCall({ sessionId, hangupEarly: false });
 	if (end) {
 		for (const line of formatEndResultLines(end)) {
-			input.appendPostCallRunLine(line, end);
+			console.info("[StudioV2][post-call]", line, end);
 		}
-		const trace = await appendMemoryTraceDetail(
-			end,
-			input.appendPostCallRunLine,
-		);
-		if (trace && end.memoryTrace) {
-			input.setLastMemoryTrace({ dtoId: end.memoryTrace.dtoId, detail: trace });
+		input.callBis.refreshPostCallJobs();
+		// 仅在同步已写出 memory 时立刻拉 DTO；后台 pending 等 tip 完成后再看
+		if (end.memoryTrace?.committed) {
+			const trace = await appendMemoryTraceDetail(end, function (line, detail) {
+				console.info("[StudioV2][post-call]", line, detail);
+			});
+			if (trace && end.memoryTrace) {
+				input.setLastMemoryTrace({ dtoId: end.memoryTrace.dtoId, detail: trace });
+			}
 		}
 	} else {
-		input.appendPostCallRunLine("挂机后副作用未正常完成，请查看控制台或接口错误");
+		console.info("[StudioV2][post-call]", "挂机请求失败，请查看控制台或接口错误");
 	}
-	input.finishPostCallRun();
 }
 
 function roleNameForVoicemail(
@@ -453,60 +461,15 @@ export function useDebuggerPrototypeSession(
 	const [phoneUi, setPhoneUi] = useState<PhoneUiState>(lockedPhoneUi);
 	const [draft, setDraft] = useState("");
 	const [localError, setLocalError] = useState<string | undefined>();
-	const [postCallEffectOverlay, setPostCallEffectOverlay] =
-		useState<PostCallEffectOverlayState>({
-			open: false,
-			title: "",
-			lines: [],
-		});
 	const [hangupToast, setHangupToast] = useState<HangupToastState>(null);
 	const [lastMemoryTrace, setLastMemoryTrace] =
 		useState<LastMemoryTraceState>(null);
 	const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const dialingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-	const postCallCloseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
-		null,
-	);
 	const remoteHangupHandledRef = useRef<string | null>(null);
 
 	function clearPhoneTimers(): void {
 		clearTimerRefs(debounceTimerRef, dialingTimerRef);
-	}
-
-	function appendPostCallRunLine(line: string, detail?: unknown): void {
-		if (detail === undefined) {
-			console.info("[StudioV2][post-call]", line);
-		} else {
-			console.info("[StudioV2][post-call]", line, detail);
-		}
-		setPostCallEffectOverlay(function (previous) {
-			return {
-				...previous,
-				lines: [...previous.lines, line],
-			};
-		});
-	}
-
-	function beginPostCallRun(title: string, firstLine: string): void {
-		if (postCallCloseTimerRef.current) {
-			clearTimeout(postCallCloseTimerRef.current);
-			postCallCloseTimerRef.current = null;
-		}
-		console.info("[StudioV2][post-call]", firstLine);
-		setPostCallEffectOverlay({
-			open: true,
-			title,
-			lines: [firstLine],
-		});
-	}
-
-	function finishPostCallRun(): void {
-		postCallCloseTimerRef.current = setTimeout(function () {
-			setPostCallEffectOverlay(function (previous) {
-				return { ...previous, open: false };
-			});
-			postCallCloseTimerRef.current = null;
-		}, 700);
 	}
 
 	function showHangupToast(message: string): void {
@@ -527,9 +490,6 @@ export function useDebuggerPrototypeSession(
 		callBis,
 		mailboxBis,
 		clearPhoneTimers,
-		beginPostCallRun,
-		appendPostCallRunLine,
-		finishPostCallRun,
 		showHangupToast,
 		setLastMemoryTrace,
 		setPhoneUi,
@@ -542,7 +502,6 @@ export function useDebuggerPrototypeSession(
 	useEffect(function () {
 		return function () {
 			clearPhoneTimers();
-			if (postCallCloseTimerRef.current) clearTimeout(postCallCloseTimerRef.current);
 		};
 	}, []);
 
@@ -556,28 +515,34 @@ export function useDebuggerPrototypeSession(
 		setLocalError(undefined);
 		setPhoneUi(lockedPhoneUi());
 		showHangupToast("对方已挂断");
-		beginPostCallRun("正在收尾通话", "对方已挂断，已返回调试器主界面");
-		appendPostCallRunLine("正在执行挂机后副作用...");
+		console.info(
+			"[StudioV2][post-call]",
+			"对方已挂断，已返回拨号界面；副作用由 tip 跟踪",
+		);
 		void (async function () {
 			const end = await callBis.endCall({ sessionId, hangupEarly: false });
 			if (end) {
 				for (const line of formatEndResultLines(end)) {
-					appendPostCallRunLine(line, end);
+					console.info("[StudioV2][post-call]", line, end);
 				}
-				const trace = await appendMemoryTraceDetail(
-					end,
-					appendPostCallRunLine,
-				);
-				if (trace && end.memoryTrace) {
-					setLastMemoryTrace({
-						dtoId: end.memoryTrace.dtoId,
-						detail: trace,
+				callBis.refreshPostCallJobs();
+				if (end.memoryTrace?.committed) {
+					const trace = await appendMemoryTraceDetail(end, function (line, detail) {
+						console.info("[StudioV2][post-call]", line, detail);
 					});
+					if (trace && end.memoryTrace) {
+						setLastMemoryTrace({
+							dtoId: end.memoryTrace.dtoId,
+							detail: trace,
+						});
+					}
 				}
 			} else {
-				appendPostCallRunLine("挂机后副作用未正常完成，请查看控制台或接口错误");
+				console.info(
+					"[StudioV2][post-call]",
+					"挂机请求失败，请查看控制台或接口错误",
+				);
 			}
-			finishPostCallRun();
 		})();
 	}, [activeRemoteHangupEventId, callState, callBis]);
 
@@ -590,7 +555,11 @@ export function useDebuggerPrototypeSession(
 		busy: callBis.busy || mailboxBis.busy,
 		error: localError ?? callBis.error ?? mailboxBis.error ?? undefined,
 		hasUnreadVoicemail,
-		postCallEffectOverlay,
+		postCallJobs: callBis.postCallJobs,
+		postCallJobsLoading: callBis.postCallJobsLoading,
+		postCallJobsError: callBis.postCallJobsError,
+		retryPostCallJob: callBis.retryPostCallJob,
+		postCallRetryingJobId: callBis.postCallRetryingJobId,
 		hangupToast,
 		lastMemoryTrace,
 		setDraft,

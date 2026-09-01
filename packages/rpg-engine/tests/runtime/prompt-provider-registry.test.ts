@@ -2,7 +2,7 @@
  * Prompt Provider Registry 可替换与可扩展契约。
  */
 import { describe, expect, it } from "vitest";
-import { cp, mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -15,7 +15,7 @@ import {
   type CallCardDefinition,
   type PromptProvider,
 } from "../../src/index.js";
-import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
+import { copyDataTree, createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -92,7 +92,7 @@ describe("prompt provider registry", () => {
     const tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-host-provider-"));
     try {
       const dataRoot = path.join(tmpRoot, "data");
-      await cp(dataSrc, dataRoot, { recursive: true });
+      await copyDataTree(dataSrc, dataRoot);
       const hostProvider: PromptProvider = {
         providerId: "custom.host",
         apply(ctx) {
@@ -129,7 +129,7 @@ describe("prompt provider registry", () => {
     const tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-host-provider-"));
     try {
       const dataRoot = path.join(tmpRoot, "data");
-      await cp(dataSrc, dataRoot, { recursive: true });
+      await copyDataTree(dataSrc, dataRoot);
       const hostProvider: PromptProvider = {
         providerId: "custom.sanitized_opening",
         apply(ctx) {

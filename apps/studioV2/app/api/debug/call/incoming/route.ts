@@ -7,7 +7,7 @@ import {
 	apiOk,
 	httpStatusForCode,
 } from "@studio-v2/src/utils/server/http/apiResponse.server";
-import { ServerLlmError } from "@studio-v2/src/utils/server/debugger/llm/llmClient.server";
+import { ServerLlmError } from "@studio-v2/src/utils/server/llm/llmClient.server";
 import {
 	acceptDebuggerIncomingCall,
 	listDebuggerIncomingCalls,

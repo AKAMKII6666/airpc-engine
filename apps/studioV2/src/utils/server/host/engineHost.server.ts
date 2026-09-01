@@ -17,10 +17,12 @@ import {
 } from "@studio-v2/engineIOModule/createEngineIOPorts";
 import { getStudioV2DataRoot } from "../data/dataRoot.server";
 import { createMemoryCommitOrchestratingPort } from "../memory/memoryCommitMemoryPort.server";
+import { createLlmLoreBootstrapPortFromEnv } from "../lore/loreBootstrapLlm.server";
 
 let ports: EngineIOPorts | null = null;
 let workspaceLoaded = false;
 let workspaceError: { code: string; message: string } | null = null;
+let postCallJobsRecovered = false;
 
 /**
 	* 按 dataRoot 懒建 Ports；Memory 连接须进程内复用，禁止每次 getHost 新开库。
@@ -37,18 +39,38 @@ function ensureEngineIOPorts(dataRoot: string): EngineIOPorts {
 }
 
 /**
+	* 热更后旧 Host 单例可能缺 PostCallJob API；dev 下重建以免 listPostCallJobs 炸。
+	*/
+function hostHasPostCallApi(host: EngineHost): boolean {
+	return typeof host.listPostCallJobs === "function";
+}
+
+function createConfiguredHost(io: EngineIOPorts): EngineHost {
+	return getEngineHost({
+		memory: io.memory,
+		profile: io.profile,
+		content: io.content,
+		engineLog: io.engineLog,
+		postCallJob: io.postCallJob,
+		// 无 Key / 禁用时为 null → Host 内走 fallback lore
+		loreBootstrap: createLlmLoreBootstrapPortFromEnv(),
+	});
+}
+
+/**
 	* 取得已注入本机 Ports 的 Host，并确保 workspace 已 load。
 	* getEngineHost 仅首次创建时吃 options；本函数保证首次即带齐四 Port。
 	*/
 export async function getStudioV2EngineHost(): Promise<EngineHost> {
 	const dataRoot = getStudioV2DataRoot();
 	const io = ensureEngineIOPorts(dataRoot);
-	const host = getEngineHost({
-		memory: io.memory,
-		profile: io.profile,
-		content: io.content,
-		engineLog: io.engineLog,
-	});
+	let host = createConfiguredHost(io);
+	if (!hostHasPostCallApi(host)) {
+		resetEngineHostForTests();
+		workspaceLoaded = false;
+		postCallJobsRecovered = false;
+		host = createConfiguredHost(io);
+	}
 	if (!workspaceLoaded && !workspaceError) {
 		try {
 			await host.loadWorkspace(dataRoot);
@@ -68,6 +90,14 @@ export async function getStudioV2EngineHost(): Promise<EngineHost> {
 	if (workspaceError && !workspaceLoaded) {
 		throw workspaceError;
 	}
+	if (workspaceLoaded && !postCallJobsRecovered && hostHasPostCallApi(host)) {
+		postCallJobsRecovered = true;
+		const recovered = await host.recoverPostCallJobs();
+		if (isEngineError(recovered)) {
+			// 恢复失败不阻断调试；job tip 仍可读内存态
+			console.warn("[studioV2] recoverPostCallJobs failed", recovered);
+		}
+	}
 	return host;
 }
 
@@ -85,12 +115,7 @@ export function getStudioV2WorkspaceLoadError(): {
 export async function reloadStudioV2Workspace(): Promise<void> {
 	const dataRoot = getStudioV2DataRoot();
 	const io = ensureEngineIOPorts(dataRoot);
-	const host = getEngineHost({
-		memory: io.memory,
-		profile: io.profile,
-		content: io.content,
-		engineLog: io.engineLog,
-	});
+	const host = createConfiguredHost(io);
 	await host.loadWorkspace(dataRoot, { resetRuntime: false });
 	workspaceLoaded = true;
 	workspaceError = null;
@@ -128,5 +153,6 @@ export function resetStudioV2EngineHostForTests(): void {
 	ports = null;
 	workspaceLoaded = false;
 	workspaceError = null;
+	postCallJobsRecovered = false;
 	resetEngineHostForTests();
 }

@@ -2,7 +2,7 @@
  * 模块名称：Host Prompt Trace Golden
  * 模块说明：从真实 Host beginCall 锁住 BeginCallContext → Composer Provider 的整线摘要。
  */
-import { cp, mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,7 +13,7 @@ import {
   type CallSession,
   type EngineHost,
 } from "../../src/index.js";
-import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
+import { copyDataTree, createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -42,7 +42,7 @@ async function createHostFixture(
   const tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-prompt-golden-"));
   tmpRoots.push(tmpRoot);
   const dataRoot = path.join(tmpRoot, "data");
-  await cp(dataSrc, dataRoot, { recursive: true });
+  await copyDataTree(dataSrc, dataRoot);
   const host = createTestHost({ persist: opts.persist ?? false, dataRoot });
   await host.loadWorkspace(dataRoot);
   const profile = await host.ensureProfile("demo-user");

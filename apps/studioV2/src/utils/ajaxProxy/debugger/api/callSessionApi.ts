@@ -14,6 +14,8 @@ import type {
 	DebuggerCallSessionResponse,
 	DebuggerCallSessionView,
 	DebuggerMessageStreamEvent,
+	DebuggerPostCallJobView,
+	DebuggerPostCallJobsResponse,
 	EndDebuggerCallBody,
 	SendDebuggerMessageBody,
 	StartDebuggerCallBody,
@@ -247,6 +249,28 @@ export async function fetchDebuggerDialableRoles(): Promise<
 	const res = await fetch("/api/debug/call/roles");
 	const data = await parseStudioApiJson<DebuggerDialableRolesResponse>(res);
 	return data.roles;
+}
+
+/** GET /api/debug/call/post-call */
+export async function fetchDebuggerPostCallJobs(): Promise<
+	DebuggerPostCallJobView[]
+> {
+	const res = await fetch("/api/debug/call/post-call");
+	const data = await parseStudioApiJson<DebuggerPostCallJobsResponse>(res);
+	return data.jobs;
+}
+
+/** POST /api/debug/call/post-call/retry */
+export async function postDebuggerPostCallRetry(
+	jobId: string,
+): Promise<DebuggerPostCallJobView> {
+	const res = await fetch("/api/debug/call/post-call/retry", {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({ jobId }),
+	});
+	const data = await parseStudioApiJson<{ job: DebuggerPostCallJobView }>(res);
+	return data.job;
 }
 
 /** GET /api/debug/call/incoming?userId= */

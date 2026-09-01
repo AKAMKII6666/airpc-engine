@@ -1,6 +1,6 @@
 /**
 	* 玩家详情 Formik 表单体：基本信息 + 地理位置 + 只读时间 + 高级 userId。
-	* 主编排走 AutoForm items[]；提交经 bis 写 Profile.user；无调试偏好主区。
+	* 主编排走 AutoForm items[]；提交经 bis 写 Profile.user；可强制重生成 lore。
 	*/
 "use client";
 
@@ -10,17 +10,28 @@ import type { FormikProps } from "formik";
 // 引用了AutoForm组件，用于声明式字段编排
 import { AutoForm } from "@studio-v2/src/commonUiComponents/form/AutoForm";
 import type { UserProfileSummary } from "@studio-v2/typeFiles/library/users/userProfileSummary";
+import type { LorePreviewDto } from "@studio-v2/typeFiles/library/users/loreBootstrap";
 import {
 	USER_BASIC_ITEMS,
 	USER_LOCATION_ITEMS,
 	USER_OUTBOUND_WINDOW_ITEMS,
 	type UserDetailFormValues,
 } from "@studio-v2/src/bis/pageBis/users/detail/userDetailForm";
+// 引用了UserDetailLoreSection组件，用于世界背景来源与重生成
+import { UserDetailLoreSection } from "@studio-v2/src/pageComponents/users/com/UserDetailLoreSection";
 import styles from "@studio-v2/src/pageComponents/library/LibrarySplit.module.scss";
 
 export type UserDetailEditFormProps = {
 	profile: UserProfileSummary;
 	formik: FormikProps<UserDetailFormValues>;
+	/** 当前 lore 只读预览；无则 null */
+	lorePreview: LorePreviewDto | null;
+	/** lore 相关提示（地点变更建议／bootstrap 结果） */
+	loreNotice?: string;
+	/** 重生成进行中 */
+	loreBusy: boolean;
+	/** 强制重生成世界背景 */
+	onBootstrapLore: () => void | Promise<void>;
 };
 
 function readFormError(
@@ -39,10 +50,18 @@ function readFormError(
 
 export const UserDetailEditForm: FC<UserDetailEditFormProps> =
 	function UserDetailEditForm({
-		// profile 是当前玩家投影，用于只读时间与 userId 展示
+		// profile 表示当前玩家投影，用于只读时间与 userId 展示
 		profile,
-		// formik 是详情页持有的 Formik 实例，用于 AutoForm 字段自动绑
+		// formik 表示详情页持有的 Formik 实例，用于 AutoForm 字段绑定
 		formik,
+		// lorePreview 表示 Profile.world.lore 只读投影，用于展示正文
+		lorePreview,
+		// loreNotice 表示地点变更或 bootstrap 后人话提示，用于 Alert
+		loreNotice,
+		// loreBusy 表示重生成请求进行中，用于禁用按钮
+		loreBusy,
+		// onBootstrapLore 用于强制重生成世界背景，经 bis → API
+		onBootstrapLore,
 	}) {
 		const formError = readFormError(formik.status);
 
@@ -52,6 +71,21 @@ export const UserDetailEditForm: FC<UserDetailEditFormProps> =
 					// 引用了Alert组件，用于展示提交级错误
 					<Alert severity="error" role="alert">
 						{formError}
+					</Alert>
+				) : null}
+
+				{loreNotice ? (
+					// 引用了Alert组件，用于 lore 提示（地点变更／bootstrap）
+					<Alert
+						severity={
+							loreNotice.includes("失败") || loreNotice.includes("跳过")
+								? "warning"
+								: "info"
+						}
+						role="status"
+						sx={{ mb: 1 }}
+					>
+						{loreNotice}
 					</Alert>
 				) : null}
 
@@ -88,6 +122,14 @@ export const UserDetailEditForm: FC<UserDetailEditFormProps> =
 					/>
 				</div>
 
+				{/* 引用了UserDetailLoreSection组件，用于世界背景来源与重生成 */}
+				<UserDetailLoreSection
+					lorePreview={lorePreview}
+					loreBusy={loreBusy}
+					disabled={formik.isSubmitting}
+					onBootstrapLore={onBootstrapLore}
+				/>
+
 				<div className={styles.section}>
 					<h3 className={styles.sectionTitle}>时间信息</h3>
 					{/* 引用了Typography组件，用于只读展示创建时间 */}
@@ -110,7 +152,7 @@ export const UserDetailEditForm: FC<UserDetailEditFormProps> =
 					<Button
 						type="submit"
 						variant="contained"
-						disabled={formik.isSubmitting}
+						disabled={formik.isSubmitting || loreBusy}
 					>
 						保存到玩家档案
 					</Button>

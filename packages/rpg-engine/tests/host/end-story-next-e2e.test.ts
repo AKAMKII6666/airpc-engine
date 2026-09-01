@@ -1,7 +1,7 @@
 /**
  * V1-E7 host：end_story.next 挂入口后，非入口角色走 Free；入口角色可 dial 进下一章。
  */
-import { cp, mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -11,7 +11,7 @@ import {
   isEngineError,
   type CallCardDefinition,
 } from "../../src/index.js";
-import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
+import { copyDataTree, createTestHost } from "../helpers/inMemoryMemoryPort.js";
 import { cloneChapter02 } from "../helpers/chapterTestFixtures.js";
 
 const repoRoot = path.resolve(
@@ -33,7 +33,7 @@ describe("end_story next → chapter entry (V1-E7 host)", () => {
   it("wait_user_dial：入口角色 story_pending；其它角色 Free；无 ActiveStoryLock", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-e7-next-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);

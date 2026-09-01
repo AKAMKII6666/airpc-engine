@@ -1,7 +1,7 @@
 /**
  * 模块名称：ActiveStoryLock Resolver 读闸（T1）
  */
-import { cp, mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -11,7 +11,7 @@ import {
   releaseStoryLock,
   type ActiveStoryLock,
 } from "../../src/index.js";
-import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
+import { copyDataTree, createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -45,7 +45,7 @@ describe("ActiveStoryLock resolver gate", () => {
   it("hard reject_call blocks dial outside allowedAgentIds (STORY_LOCKED)", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-t1-lock-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);
@@ -71,7 +71,7 @@ describe("ActiveStoryLock resolver gate", () => {
   it("releaseStoryLock clears gate so dial can proceed", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-t1-unlock-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);
@@ -109,7 +109,7 @@ describe("ActiveStoryLock resolver gate", () => {
   it("beginCall activates StorySave; simulate_start bypasses lock gate", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-t1-begin-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);

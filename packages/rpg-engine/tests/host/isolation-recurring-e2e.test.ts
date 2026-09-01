@@ -2,7 +2,7 @@
  * E4c：双 userId 隔离 + recurring 意图写入／本仓调试语义
  * 调试语义（E9）：advanceClock 跨过逻辑日时刻 → 生成可观测 once；无 card 不点火
  */
-import { cp, mkdir, mkdtemp, writeFile, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, writeFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -11,7 +11,7 @@ import {
   isEngineError,
   PlayerProfileSchema,
 } from "../../src/index.js";
-import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
+import { copyDataTree, createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -99,7 +99,7 @@ describe("E4c isolation + recurring", () => {
   it("双 userId：A 的 schedule once 点火不影响 B", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-e4c-iso-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
     await seedSecondUser(dataRoot, "user-b", "小乙");
 
     const host = createTestHost({ persist: true, dataRoot });
@@ -176,7 +176,7 @@ describe("E4c isolation + recurring", () => {
   it("recurring：拒绝裸 topicHint；须 schedule_card_id", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-e4c-rec-bare-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const host = createTestHost({ persist: true, dataRoot });
     await host.loadWorkspace(dataRoot);
@@ -208,7 +208,7 @@ describe("E4c isolation + recurring", () => {
   it("recurring：写入 scheduleCardId；Tick 点火 ScheduleCard pending", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-e4c-rec-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const host = createTestHost({ persist: true, dataRoot });
     await host.loadWorkspace(dataRoot);

@@ -78,6 +78,7 @@ describe("endDebuggerCallSession", () => {
 						skippedExit: true,
 						steps: [],
 					},
+					postCallJobId: "job_1",
 				} satisfies EndCallResult;
 			},
 		} as unknown as EngineHost;
@@ -102,6 +103,7 @@ describe("endDebuggerCallSession", () => {
 			selectedExitId: "exit_ok",
 			planStatus: "completed",
 			freeCommitted: true,
+			postCallJobId: "job_1",
 			memoryTrace: {
 				traceId: "memory_commit:session_1",
 				dtoId: "session_1",

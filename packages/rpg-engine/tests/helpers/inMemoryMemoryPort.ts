@@ -27,6 +27,7 @@ import { createFsEngineLogPort } from "./fsEngineLogPort.js";
 export { createFsProfilePort } from "./fsProfilePort.js";
 export { createFsContentPort } from "./fsContentPort.js";
 export { createFsEngineLogPort } from "./fsEngineLogPort.js";
+export { copyDataTree, createDataCopyFilter } from "./copyDataTree.js";
 
 interface MemEntry {
   id: string;

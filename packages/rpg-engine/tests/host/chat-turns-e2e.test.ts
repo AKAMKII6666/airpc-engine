@@ -1,14 +1,14 @@
 /**
  * E7：Story／Free 多轮 chatTurns → endCall（文本调试路径）
  */
-import { cp, mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   isEngineError } from "../../src/index.js";
-import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
+import { copyDataTree, createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -29,7 +29,7 @@ describe("E7 chat turns → endCall", () => {
   it("Story：多轮 recordChatTurn → endCall", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-e7-story-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const host = createTestHost({ persist: true, dataRoot });
     await host.loadWorkspace(dataRoot);
@@ -79,7 +79,7 @@ describe("E7 chat turns → endCall", () => {
   it("Free：多轮 recordChatTurn → endCall（PostPipeline）", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-e7-free-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const host = createTestHost({ persist: true, dataRoot });
     await host.loadWorkspace(dataRoot);
@@ -123,7 +123,7 @@ describe("E7 chat turns → endCall", () => {
   it("同一角色下一通带上上一通对话惯性", async () => {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-e7-inertia-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const host = createTestHost({ persist: true, dataRoot });
     await host.loadWorkspace(dataRoot);

@@ -1,15 +1,11 @@
 /**
- * 模块名称：FreeCallPostPipeline（Commit → 有 candidate 再 Exit）
+ * 模块名称：FreeCallPostPipeline（挂机记忆提交与出口选择）
+ * 说明：同步段只选出口并执行非媒介 effect；记忆提交与媒介 effect 由后台 job 承担。
  */
-import type { CallSession, EffectPlanResult } from "../host/types.js";
-import type { PlayerProfile } from "../schema/profile.js";
+import type { CallSession } from "../host/types.js";
 import type { Outcome } from "../schema/outcome.js";
 import type { MemoryCallTranscript, MemoryPort } from "../memory/types.js";
 import { summarizeUserFactTranscript } from "../memory/factMemoryTranscript.js";
-import { selectExit } from "./exitSelector.js";
-import { executeEffects } from "./effectExecutor.js";
-import type { EffectSink } from "./effectSink.js";
-import type { ScheduledCardLookup } from "../schedule/scheduleCardReferenceResolver.js";
 import {
   memoryCharacterAttitudeContext,
   memoryExclusionSeeds,
@@ -17,18 +13,10 @@ import {
   memoryToolTraceRefs,
 } from "./memoryCommitContext.js";
 
-export interface FreeCallPostPipelineResult {
+export interface FreeCallMemoryCommitResult {
   committed: boolean;
   commitEntryIds?: string[];
-  selectedExitId?: string;
-  effectPlanResult: EffectPlanResult;
-  skippedExit: boolean;
-}
-
-export interface FreeCallPostPipelineOpts {
-  /** 实质轮次门闩；Manual 默认 0（调试直挂） */
-  minTurns?: number;
-  memoryCommitEnabled?: boolean;
+  skippedReason?: "memory_disabled" | "empty_transcript" | "commit_failed";
 }
 
 function countTurns(session: CallSession): number {
@@ -55,122 +43,66 @@ function buildTranscript(session: CallSession): MemoryCallTranscript | null {
   };
 }
 
-function transcriptSummary(transcript: MemoryCallTranscript | null): string | null {
-  return summarizeUserFactTranscript(transcript);
-}
-
 /**
- * Free 挂机总步骤：门闩 → MemoryCommit →（有 candidate）Exit+Effect
- * 禁止从 transcript 隐式扫约定写 Profile。
+ * Free 挂机记忆提交（后台 job 调用）。
+ * 禁止从 transcript 隐式扫约定写 Profile；只写记忆。
  */
-export async function runFreeCallPostPipeline(input: {
+export async function runFreeCallMemoryCommit(input: {
   session: CallSession;
-  profile: PlayerProfile;
   outcome: Outcome;
   memory: MemoryPort | null;
   nowIso: string;
-  opts?: FreeCallPostPipelineOpts;
-  effectSink?: EffectSink | null;
-  /** 动态 recurring 写入前查卡；Host 注入 */
-  lookupCard?: ScheduledCardLookup | null;
-}): Promise<FreeCallPostPipelineResult> {
-  const minTurns = input.opts?.minTurns ?? 2;
-  const commitEnabled = input.opts?.memoryCommitEnabled !== false;
+  minTurns?: number;
+  memoryCommitEnabled?: boolean;
+}): Promise<FreeCallMemoryCommitResult> {
+  const minTurns = input.minTurns ?? 2;
+  const commitEnabled = input.memoryCommitEnabled !== false;
   const turns = countTurns(input.session);
   const gateOk =
     turns >= minTurns ||
     input.outcome.flags.answered_completed === true ||
     input.session.exitCandidates.length > 0;
 
-  let committed = false;
-  let commitEntryIds: string[] | undefined;
-
-  if (gateOk && commitEnabled && input.memory) {
-    const transcript = buildTranscript(input.session);
-    const summary = transcriptSummary(transcript);
-    if (summary) {
-      const commit = await input.memory.commitAfterCall({
-        userId: input.session.userId,
-        agentId: input.session.resolve.agentId,
-        sessionId: input.session.sessionId,
-        transcript,
-        outcome: input.outcome,
-        endedAt: input.nowIso,
-        summaryText: summary,
-        commitContext: {
-          callKind: "free",
-          policy: "free_post_pipeline",
-          source: input.session.resolve.source,
-          chapterId: input.session.chapterId,
-          cardId: input.session.resolve.cardId,
-          promptTraceRefs: memoryPromptTraceRefs(input.session),
-          toolTraceRefs: memoryToolTraceRefs(input.session),
-          exclusionSeeds: memoryExclusionSeeds(input.session),
-          character: memoryCharacterAttitudeContext(input.session),
-        },
-      });
-      committed = commit.ok;
-      commitEntryIds = commit.writtenEntryIds ?? commit.writtenEpisodicIds;
-      if (input.memory.rollupIfNeeded) {
-        await input.memory.rollupIfNeeded({
-          userId: input.session.userId,
-          agentId: input.session.resolve.agentId,
-          endedAt: input.nowIso,
-        });
-      }
-    }
-  }
-
-  if (input.session.exitCandidates.length === 0) {
+  if (!gateOk || !commitEnabled || !input.memory) {
     return {
-      committed,
-      commitEntryIds,
-      effectPlanResult: { results: [], aborted: false, status: "completed" },
-      skippedExit: true,
+      committed: false,
+      skippedReason: !input.memory
+        ? "memory_disabled"
+        : !commitEnabled
+          ? "memory_disabled"
+          : "empty_transcript",
     };
   }
 
-  const selected = selectExit(
-    input.session.frozenCard,
-    input.outcome,
-    input.session.exitCandidates,
-  );
-  if (!selected) {
-    return {
-      committed,
-      commitEntryIds,
-      effectPlanResult: { results: [], aborted: false, status: "completed" },
-      skippedExit: true,
-    };
+  const transcript = buildTranscript(input.session);
+  const summary = transcript ? summarizeUserFactTranscript(transcript) : null;
+  if (!summary) {
+    return { committed: false, skippedReason: "empty_transcript" };
   }
 
-  input.session.selectedExit = {
-    exitId: selected.exit.exitId,
-    source: selected.source,
-    priority: selected.priority,
-    reason: [
-      `free_pipeline`,
-      `source=${selected.source}`,
-      `exitId=${selected.exit.exitId}`,
-      `priority=${selected.priority}`,
-    ].join("; "),
-  };
-
-  const plan = await executeEffects(selected.exit.effects, {
-    profile: input.profile,
-    session: input.session,
-    nowIso: input.nowIso,
-    memory: input.memory,
-    effectSink: input.effectSink,
-    lookupCard: input.lookupCard,
+  // rollup 由 PostCallJob 的 rollup_running 阶段单独推进，避免与 memory 状态粘连
+  const commit = await input.memory.commitAfterCall({
+    userId: input.session.userId,
+    agentId: input.session.resolve.agentId,
+    sessionId: input.session.sessionId,
+    transcript,
+    outcome: input.outcome,
+    endedAt: input.nowIso,
+    summaryText: summary,
+    commitContext: {
+      callKind: "free",
+      policy: "free_post_pipeline",
+      source: input.session.resolve.source,
+      chapterId: input.session.chapterId,
+      cardId: input.session.resolve.cardId,
+      promptTraceRefs: memoryPromptTraceRefs(input.session),
+      toolTraceRefs: memoryToolTraceRefs(input.session),
+      exclusionSeeds: memoryExclusionSeeds(input.session),
+      character: memoryCharacterAttitudeContext(input.session),
+    },
   });
-  input.session.effectPlanResult = plan;
-
   return {
-    committed,
-    commitEntryIds,
-    selectedExitId: selected.exit.exitId,
-    effectPlanResult: plan,
-    skippedExit: false,
+    committed: commit.ok,
+    commitEntryIds: commit.writtenEntryIds ?? commit.writtenEpisodicIds,
   };
 }

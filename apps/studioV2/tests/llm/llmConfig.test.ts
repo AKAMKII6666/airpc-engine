@@ -1,14 +1,14 @@
 /**
-	* 调试器 LLM 配置：server-only env 解析与脱敏公开状态。
+	* Server LLM 配置解析：server-only env 解析与脱敏公开状态。
 	*/
 import { describe, expect, it } from "vitest";
 import {
 	maskApiKey,
 	resolveServerLlmRuntimeConfig,
 	toServerLlmPublicStatus,
-} from "@studio-v2/src/utils/server/debugger/llm/llmConfig.server";
+} from "@studio-v2/src/utils/server/llm/llmConfig.server";
 
-describe("debugger llmConfig.server", () => {
+describe("server llmConfig.server", () => {
 	it("defaults to Qwen compatible endpoint and reports missing key", () => {
 		const config = resolveServerLlmRuntimeConfig({});
 		expect(config.provider).toBe("qwen");

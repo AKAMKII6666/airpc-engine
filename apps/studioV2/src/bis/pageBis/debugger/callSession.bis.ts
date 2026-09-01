@@ -4,12 +4,14 @@
 	*/
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
+	fetchDebuggerPostCallJobs,
 	postDebuggerCallEnd,
 	postDebuggerCallMessage,
 	postDebuggerCallMessageStream,
 	postDebuggerCallStart,
+	postDebuggerPostCallRetry,
 } from "@studio-v2/src/utils/ajaxProxy/debugger/api/callSessionApi";
 import { isStudioApiErrorCode } from "@studio-v2/src/utils/ajaxHelper/studioApiClient";
 import { useDebuggerStore } from "@studio-v2/src/stores/debugger/debuggerStore";
@@ -17,6 +19,7 @@ import type {
 	DebuggerCallEndView,
 	DebuggerCallSessionView,
 	DebuggerMessageStreamEvent,
+	DebuggerPostCallJobView,
 } from "@studio-v2/typeFiles/debugger/callSession";
 
 export type DebuggerEndCallInput = {
@@ -36,6 +39,18 @@ export type DebuggerCallSessionBis = {
 	busy: boolean;
 	/** 真实通话请求失败人话；无则 undefined */
 	error: string | undefined;
+	/** 挂机后副作用 job 列表 */
+	postCallJobs: DebuggerPostCallJobView[];
+	/** job 列表轮询中 */
+	postCallJobsLoading: boolean;
+	/** job 列表拉取失败人话 */
+	postCallJobsError: string | undefined;
+	/** 立即拉取一次 job 列表 */
+	refreshPostCallJobs: () => void;
+	/** 重试 failed_retryable job */
+	retryPostCallJob: (jobId: string) => Promise<void>;
+	/** 正在重试的 jobId；无则为 null */
+	postCallRetryingJobId: string | null;
 	/** 外部电话入口：拨角色 free card */
 	startFreeCall: (agentId: string) => Promise<DebuggerCallSessionView | null>;
 	/** 编辑器入口：定点章节与卡 */
@@ -110,6 +125,10 @@ async function runStartFreeCall(
 		actions.applyResult(session);
 		return session;
 	} catch (err) {
+		if (isStudioApiErrorCode(err, "AGENT_POST_CALL_BUSY")) {
+			actions.applyFailed("该角色正在处理挂机后事务，请稍后再拨");
+			return null;
+		}
 		actions.applyFailed(errorMessage(err));
 		return null;
 	}
@@ -256,6 +275,24 @@ export function useDebuggerCallSessionBis(): DebuggerCallSessionBis {
 	const error = useDebuggerStore(function (s) {
 		return s.callError;
 	});
+	const postCallJobs = useDebuggerStore(function (s) {
+		return s.postCallJobs;
+	});
+	const postCallJobsLoading = useDebuggerStore(function (s) {
+		return s.postCallJobsLoading;
+	});
+	const postCallJobsError = useDebuggerStore(function (s) {
+		return s.postCallJobsError;
+	});
+	const applyPostCallJobsLoadStarted = useDebuggerStore(function (s) {
+		return s.applyPostCallJobsLoadStarted;
+	});
+	const applyPostCallJobsLoadResult = useDebuggerStore(function (s) {
+		return s.applyPostCallJobsLoadResult;
+	});
+	const applyPostCallJobsLoadFailed = useDebuggerStore(function (s) {
+		return s.applyPostCallJobsLoadFailed;
+	});
 	const applyStarted = useDebuggerStore(function (s) {
 		return s.applyCallCommandStarted;
 	});
@@ -327,11 +364,60 @@ export function useDebuggerCallSessionBis(): DebuggerCallSessionBis {
 		[activeCall, applyStarted, applyResult, applyFailed, resetActiveCall],
 	);
 
+	const [postCallRetryingJobId, setPostCallRetryingJobId] = useState<
+		string | null
+	>(null);
+
+	const refreshPostCallJobs = useCallback(
+		function () {
+			applyPostCallJobsLoadStarted();
+			void fetchDebuggerPostCallJobs()
+				.then(applyPostCallJobsLoadResult)
+				.catch(function (err) {
+					applyPostCallJobsLoadFailed(errorMessage(err));
+				});
+		},
+		[
+			applyPostCallJobsLoadStarted,
+			applyPostCallJobsLoadResult,
+			applyPostCallJobsLoadFailed,
+		],
+	);
+
+	const retryPostCallJob = useCallback(
+		async function (jobId: string) {
+			setPostCallRetryingJobId(jobId);
+			try {
+				await postDebuggerPostCallRetry(jobId);
+				refreshPostCallJobs();
+			} catch (err) {
+				applyPostCallJobsLoadFailed(errorMessage(err));
+			} finally {
+				setPostCallRetryingJobId(null);
+			}
+		},
+		[refreshPostCallJobs, applyPostCallJobsLoadFailed],
+	);
+
+	useEffect(function () {
+		refreshPostCallJobs();
+		const timer = setInterval(refreshPostCallJobs, 1500);
+		return function () {
+			clearInterval(timer);
+		};
+	}, [refreshPostCallJobs]);
+
 	return {
 		userId,
 		activeCall,
 		busy,
 		error,
+		postCallJobs,
+		postCallJobsLoading,
+		postCallJobsError,
+		refreshPostCallJobs,
+		retryPostCallJob,
+		postCallRetryingJobId,
 		startFreeCall,
 		startSimulateCall,
 		startSimulateChapterCall,

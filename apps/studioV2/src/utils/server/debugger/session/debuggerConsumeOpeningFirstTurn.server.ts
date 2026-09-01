@@ -1,6 +1,6 @@
 import { isEngineError, type CallSession, type EngineHost } from "@airpc/rpg-engine";
 import type { EngineError } from "@airpc/rpg-engine";
-import type { ServerLlmChatResult } from "@studio-v2/src/utils/server/debugger/llm/llmClient.server";
+import type { ServerLlmChatResult } from "@studio-v2/src/utils/server/llm/llmClient.server";
 
 type OpeningFirstTurnAction =
 	| "emit_assistant_turn"

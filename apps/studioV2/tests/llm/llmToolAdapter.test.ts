@@ -1,9 +1,9 @@
 /**
-	* 调试器 LLM tool adapter：引擎 ToolDefinition → OpenAI-compatible tools。
+	* Server LLM tool adapter：引擎 ToolDefinition → OpenAI-compatible tools。
 	*/
 import { describe, expect, it } from "vitest";
 import type { ToolDefinition } from "@airpc/rpg-engine";
-import { toolDefinitionsToOpenAiTools } from "@studio-v2/src/utils/server/debugger/llm/llmToolAdapter.server";
+import { toolDefinitionsToOpenAiTools } from "@studio-v2/src/utils/server/llm/llmToolAdapter.server";
 
 describe("llmToolAdapter.server", () => {
 	it("maps engine ToolDefinition to function tool schema", () => {

@@ -2,13 +2,13 @@
  * V1-E4 / V1-E5：schedule_call_card 立即挂 pending + linked once；
  * 提前呼入消费；正常外呼 actualEntry；防重复 tick。
  */
-import { cp, mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { isEngineError } from "../../src/index.js";
-import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
+import { copyDataTree, createTestHost } from "../helpers/inMemoryMemoryPort.js";
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../..");
 const dataSrc = path.join(repoRoot, "data");
 
@@ -25,7 +25,7 @@ describe("schedule_call_card linked pending + early dial (V1-E4/E5)", () => {
   async function scheduleXiaoyuFollowup() {
     tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-once-"));
     const dataRoot = path.join(tmpRoot, "data");
-    await cp(dataSrc, dataRoot, { recursive: true });
+    await copyDataTree(dataSrc, dataRoot);
 
     const host = createTestHost({ persist: false, dataRoot });
     await host.loadWorkspace(dataRoot);

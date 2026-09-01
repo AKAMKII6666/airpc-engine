@@ -43,6 +43,27 @@ export async function loadProfileViaPort(input: {
 	return input.profiles.get(input.userId)!;
 }
 
+/** 踢单用户 Host 内存缓存；删档或外部直写 FS 后避免 saveProfile 写回 stale。 */
+export function evictProfileFromHostCache(input: {
+	userId: string;
+	profiles: Map<string, PlayerProfile>;
+}): void {
+	input.profiles.delete(input.userId);
+}
+
+/**
+ * 踢缓存后从 ProfilePort 重载；Studio 经 usersFs 直写 profile.save.json 后须调用，
+ * 否则 schedule autosave 会把旧内存覆盖磁盘。
+ */
+export async function reloadProfileViaPort(input: {
+	userId: string;
+	profilePort: ProfilePort | null;
+	profiles: Map<string, PlayerProfile>;
+}): Promise<PlayerProfile> {
+	evictProfileFromHostCache(input);
+	return loadProfileViaPort(input);
+}
+
 /** 经 Port 整档覆盖写；persist=false 时跳过落盘。 */
 export async function saveProfileViaPort(input: {
 	userId: string;

@@ -1,13 +1,13 @@
 /**
  * 对话惯性持久化：Host 重建后仍能接上一通同角色话茬。
  */
-import { cp, mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
 import { isEngineError } from "../../src/index.js";
-import { createTestHost } from "../helpers/inMemoryMemoryPort.js";
+import { copyDataTree, createTestHost } from "../helpers/inMemoryMemoryPort.js";
 import type { CallSession } from "../../src/host/types.js";
 
 const repoRoot = path.resolve(
@@ -19,7 +19,7 @@ const dataSrc = path.join(repoRoot, "data");
 async function prepareDataRoot(): Promise<{ tmpRoot: string; dataRoot: string }> {
   const tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-inertia-persist-"));
   const dataRoot = path.join(tmpRoot, "data");
-  await cp(dataSrc, dataRoot, { recursive: true });
+  await copyDataTree(dataSrc, dataRoot);
   return { tmpRoot, dataRoot };
 }
 
