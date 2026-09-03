@@ -13,8 +13,8 @@ import {
 	apiOk,
 	httpStatusForCode,
 } from "@studio-v2/src/utils/server/http/apiResponse.server";
-import { isUserLocationChanged } from "@studio-v2/src/utils/server/lore/loreLocationCompare.server";
-import { lorePreviewFromProfile } from "@studio-v2/src/utils/server/lore/lorePreview.server";
+import { isUserLocationChanged } from "@studio-v2/src/utils/server/lore/bootstrap/loreLocationCompare.server";
+import { lorePreviewFromProfile } from "@studio-v2/src/utils/server/lore/preview/lorePreview.server";
 import {
 	deleteUserProfile,
 	readPlayerProfile,

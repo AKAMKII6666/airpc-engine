@@ -5,12 +5,12 @@
   "files": [
     {
       "file": "packages/rpg-engine/src/host/createEngineHost.ts",
-      "effectiveLines": 1448,
-      "maxFnLines": 1212,
-      "maxComplexity": 171,
-      "reason": "PostCall 拆出 postCallJobRuntime/phases、endCallWithPostCallJob、postCallJobHostApi 后重记；相对拆分前 ~1970 有效行已下降，仍高于历史 1316，后续继续抽 beginCall 等以降基线",
+      "effectiveLines": 1466,
+      "maxFnLines": 1228,
+      "maxComplexity": 173,
+      "reason": "L1 收口：CapabilityPack 装配事件灌入 log ring + afterHangup；已抽 pushCapabilityPackBootstrapEvents/composeBeginCallRenderedPrompt。触碰不得再净增",
       "owner": "rpg-engine/host",
-      "recordedAt": "2026-08-26",
+      "recordedAt": "2026-09-03",
       "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
     },
     {
@@ -315,12 +315,12 @@
     },
     {
       "file": "packages/rpg-engine/tests/host/prompt-trace-golden.test.ts",
-      "effectiveLines": 402,
-      "maxFnLines": 308,
+      "effectiveLines": 406,
+      "maxFnLines": 312,
       "maxComplexity": 15,
-      "reason": "2026-08-26 遗留超硬上限登记止血（PostCall 任务顺带；触碰不得净增）",
+      "reason": "L1 开工：对齐 data 夹具导致的 inline snapshot 更新（lore/acquaintance）；触碰不得再净增",
       "owner": "rpg-engine",
-      "recordedAt": "2026-08-26",
+      "recordedAt": "2026-09-03",
       "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
     },
     {

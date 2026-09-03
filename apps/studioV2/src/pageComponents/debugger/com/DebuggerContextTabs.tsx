@@ -6,7 +6,7 @@
 import { useState, type FC } from "react";
 import { Button } from "@mui/material";
 import type { RoleRow } from "@studio-v2/src/pageComponents/debugger/debuggerUiModel";
-import type { LastMemoryTraceState } from "@studio-v2/src/pageComponents/debugger/hooks/useDebuggerPrototypeSession";
+import type { LastMemoryTraceState } from "@studio-v2/src/pageComponents/debugger/hooks/prototype/useDebuggerPrototypeSession";
 import styles from "../DebuggerShell.module.scss";
 import { IdleContextPanel } from "./IdleContextPanel";
 import { MemoryTracePanel } from "./MemoryTracePanel";

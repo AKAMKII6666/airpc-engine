@@ -4,30 +4,28 @@
 	*/
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import {
-	fetchDebuggerPostCallJobs,
-	postDebuggerCallEnd,
-	postDebuggerCallMessage,
-	postDebuggerCallMessageStream,
-	postDebuggerCallStart,
-	postDebuggerPostCallRetry,
-} from "@studio-v2/src/utils/ajaxProxy/debugger/api/callSessionApi";
-import { isStudioApiErrorCode } from "@studio-v2/src/utils/ajaxHelper/studioApiClient";
+import { useCallback } from "react";
+import { fetchDebuggerMemoryTrace } from "@studio-v2/src/utils/ajaxProxy/debugger/api/callSession/http/callSessionApi";
 import { useDebuggerStore } from "@studio-v2/src/stores/debugger/debuggerStore";
 import type {
 	DebuggerCallEndView,
 	DebuggerCallSessionView,
 	DebuggerMessageStreamEvent,
+	DebuggerMemoryCommitTraceDetailView,
 	DebuggerPostCallJobView,
 } from "@studio-v2/typeFiles/debugger/callSession";
+import {
+	runEndCall,
+	runSendMessage,
+	runSendMessageStream,
+	runStartFreeCall,
+	runStartSimulateCall,
+	runStartSimulateChapterCall,
+	type DebuggerEndCallInput,
+} from "./callSessionCommands.bis";
+import { usePostCallJobsControls } from "./callSessionPostCall.bis";
 
-export type DebuggerEndCallInput = {
-	/** 指定 Host session；用于 UI 已先退出通话态后的后台收尾 */
-	sessionId?: string;
-	/** true 表示早挂；false/缺省表示完成接听后挂断 */
-	hangupEarly?: boolean;
-};
+export type { DebuggerEndCallInput };
 
 /** 表示 UI 可消费的真实调试通话命令面；隔离 ajax/store 细节 */
 export type DebuggerCallSessionBis = {
@@ -51,6 +49,10 @@ export type DebuggerCallSessionBis = {
 	retryPostCallJob: (jobId: string) => Promise<void>;
 	/** 正在重试的 jobId；无则为 null */
 	postCallRetryingJobId: string | null;
+	/** 按 dtoId 拉取挂机记忆追踪详情（STRUCT-021：UI 禁直引 ajaxProxy） */
+	fetchMemoryTrace: (
+		dtoId: string,
+	) => Promise<DebuggerMemoryCommitTraceDetailView>;
 	/** 外部电话入口：拨角色 free card */
 	startFreeCall: (agentId: string) => Promise<DebuggerCallSessionView | null>;
 	/** 编辑器入口：定点章节与卡 */
@@ -78,335 +80,30 @@ export type DebuggerCallSessionBis = {
 	resetCall: () => void;
 };
 
-type CallCommandActions = {
-	/** 标记命令开始 */
-	applyStarted: () => void;
-	/** 写入命令成功结果 */
-	applyResult: (session: DebuggerCallSessionView) => void;
-	/** 写入命令失败信息 */
-	applyFailed: (message: string) => void;
-	/** 流式请求被用户中断 */
-	applyCallCommandAborted: () => void;
-	/** 清空当前通话投影 */
-	resetActiveCall: () => void;
-};
-
-function errorMessage(error: unknown): string {
-	if (error instanceof Error && error.message.trim() !== "") {
-		return error.message;
-	}
-	return "调试通话请求失败";
-}
-
-function isStaleCallSessionError(error: unknown): boolean {
-	return (
-		isStudioApiErrorCode(error, "NOT_FOUND") &&
-		error.message.toLowerCase().includes("session not found")
+function useCallSessionStoreSlice() {
+	const userId = useDebuggerStore((s) => s.mailboxUserId);
+	const activeCall = useDebuggerStore((s) => s.activeCall);
+	const busy = useDebuggerStore((s) => s.callBusy);
+	const error = useDebuggerStore((s) => s.callError);
+	const postCallJobs = useDebuggerStore((s) => s.postCallJobs);
+	const postCallJobsLoading = useDebuggerStore((s) => s.postCallJobsLoading);
+	const postCallJobsError = useDebuggerStore((s) => s.postCallJobsError);
+	const applyPostCallJobsLoadStarted = useDebuggerStore(
+		(s) => s.applyPostCallJobsLoadStarted,
 	);
-}
-
-function applyStaleCallSession(actions: CallCommandActions): void {
-	actions.resetActiveCall();
-	actions.applyFailed("通话会话已失效，请重新拨号");
-}
-
-async function runStartFreeCall(
-	actions: CallCommandActions,
-	userId: string,
-	agentId: string,
-): Promise<DebuggerCallSessionView | null> {
-	actions.applyStarted();
-	try {
-		const session = await postDebuggerCallStart({
-			mode: "free_call",
-			userId,
-			agentId,
-		});
-		actions.applyResult(session);
-		return session;
-	} catch (err) {
-		if (isStudioApiErrorCode(err, "AGENT_POST_CALL_BUSY")) {
-			actions.applyFailed("该角色正在处理挂机后事务，请稍后再拨");
-			return null;
-		}
-		actions.applyFailed(errorMessage(err));
-		return null;
-	}
-}
-
-async function runStartSimulateCall(
-	actions: CallCommandActions,
-	userId: string,
-	chapterId: string,
-	cardId: string,
-): Promise<DebuggerCallSessionView | null> {
-	actions.applyStarted();
-	try {
-		const session = await postDebuggerCallStart({
-			mode: "simulate_start",
-			userId,
-			chapterId,
-			cardId,
-		});
-		actions.applyResult(session);
-		return session;
-	} catch (err) {
-		if (isStaleCallSessionError(err)) {
-			applyStaleCallSession(actions);
-			return null;
-		}
-		actions.applyFailed(errorMessage(err));
-		return null;
-	}
-}
-
-async function runStartSimulateChapterCall(
-	actions: CallCommandActions,
-	userId: string,
-	chapterId: string,
-): Promise<DebuggerCallSessionView | null> {
-	actions.applyStarted();
-	try {
-		const session = await postDebuggerCallStart({
-			mode: "simulate_chapter_start",
-			userId,
-			chapterId,
-		});
-		actions.applyResult(session);
-		return session;
-	} catch (err) {
-		actions.applyFailed(errorMessage(err));
-		return null;
-	}
-}
-
-async function runSendMessage(
-	actions: CallCommandActions,
-	activeCall: DebuggerCallSessionView | null,
-	text: string,
-): Promise<DebuggerCallSessionView | null> {
-	if (!activeCall) return null;
-	actions.applyStarted();
-	try {
-		const session = await postDebuggerCallMessage({
-			sessionId: activeCall.sessionId,
-			text,
-		});
-		actions.applyResult(session);
-		return session;
-	} catch (err) {
-		actions.applyFailed(errorMessage(err));
-		return null;
-	}
-}
-
-function runSendMessageStream(
-	actions: CallCommandActions,
-	activeCall: DebuggerCallSessionView | null,
-	text: string,
-	handlers: {
-		onEvent: (event: DebuggerMessageStreamEvent) => void;
-		onClose?: () => void;
-	},
-): AbortController | null {
-	if (!activeCall) return null;
-	actions.applyStarted();
-	return postDebuggerCallMessageStream(
-		{
-			sessionId: activeCall.sessionId,
-			text,
-		},
-		{
-			onEvent: function (event) {
-				if (event.event === "session_snapshot") {
-					actions.applyResult(event.data.session);
-				}
-				if (event.event === "error") {
-					actions.applyFailed(event.data.message);
-				}
-				handlers.onEvent(event);
-			},
-			onClose: handlers.onClose,
-			onAbort: actions.applyCallCommandAborted,
-		},
+	const applyPostCallJobsLoadResult = useDebuggerStore(
+		(s) => s.applyPostCallJobsLoadResult,
 	);
-}
-
-async function runEndCall(
-	actions: CallCommandActions,
-	activeCall: DebuggerCallSessionView | null,
-	input: DebuggerEndCallInput = {},
-): Promise<DebuggerCallEndView | null> {
-	const sessionId = input.sessionId ?? activeCall?.sessionId ?? null;
-	if (!sessionId) {
-		actions.resetActiveCall();
-		return null;
-	}
-	actions.resetActiveCall();
-	actions.applyStarted();
-	try {
-		const end = await postDebuggerCallEnd({
-			sessionId,
-			hangupEarly: input.hangupEarly ?? false,
-		});
-		actions.resetActiveCall();
-		return end;
-	} catch (err) {
-		if (isStaleCallSessionError(err)) {
-			applyStaleCallSession(actions);
-			return null;
-		}
-		actions.applyFailed(errorMessage(err));
-		return null;
-	}
-}
-
-/** 订阅真实通话 store 投影，并提供 start/message/reset 命令 */
-export function useDebuggerCallSessionBis(): DebuggerCallSessionBis {
-	const userId = useDebuggerStore(function (s) {
-		return s.mailboxUserId;
-	});
-	const activeCall = useDebuggerStore(function (s) {
-		return s.activeCall;
-	});
-	const busy = useDebuggerStore(function (s) {
-		return s.callBusy;
-	});
-	const error = useDebuggerStore(function (s) {
-		return s.callError;
-	});
-	const postCallJobs = useDebuggerStore(function (s) {
-		return s.postCallJobs;
-	});
-	const postCallJobsLoading = useDebuggerStore(function (s) {
-		return s.postCallJobsLoading;
-	});
-	const postCallJobsError = useDebuggerStore(function (s) {
-		return s.postCallJobsError;
-	});
-	const applyPostCallJobsLoadStarted = useDebuggerStore(function (s) {
-		return s.applyPostCallJobsLoadStarted;
-	});
-	const applyPostCallJobsLoadResult = useDebuggerStore(function (s) {
-		return s.applyPostCallJobsLoadResult;
-	});
-	const applyPostCallJobsLoadFailed = useDebuggerStore(function (s) {
-		return s.applyPostCallJobsLoadFailed;
-	});
-	const applyStarted = useDebuggerStore(function (s) {
-		return s.applyCallCommandStarted;
-	});
-	const applyResult = useDebuggerStore(function (s) {
-		return s.applyCallCommandResult;
-	});
-	const applyFailed = useDebuggerStore(function (s) {
-		return s.applyCallCommandFailed;
-	});
-	const resetActiveCall = useDebuggerStore(function (s) {
-		return s.resetActiveCall;
-	});
-	const applyCallCommandAborted = useDebuggerStore(function (s) {
-		return s.applyCallCommandAborted;
-	});
-	const actions = {
-		applyStarted,
-		applyResult,
-		applyFailed,
-		resetActiveCall,
-		applyCallCommandAborted,
-	};
-
-	const startFreeCall = useCallback(
-		async function (agentId: string) {
-			return runStartFreeCall(actions, userId, agentId);
-		},
-		[userId, applyStarted, applyResult, applyFailed, resetActiveCall],
+	const applyPostCallJobsLoadFailed = useDebuggerStore(
+		(s) => s.applyPostCallJobsLoadFailed,
 	);
-
-	const startSimulateCall = useCallback(
-		async function (chapterId: string, cardId: string) {
-			return runStartSimulateCall(actions, userId, chapterId, cardId);
-		},
-		[userId, applyStarted, applyResult, applyFailed, resetActiveCall],
+	const applyStarted = useDebuggerStore((s) => s.applyCallCommandStarted);
+	const applyResult = useDebuggerStore((s) => s.applyCallCommandResult);
+	const applyFailed = useDebuggerStore((s) => s.applyCallCommandFailed);
+	const resetActiveCall = useDebuggerStore((s) => s.resetActiveCall);
+	const applyCallCommandAborted = useDebuggerStore(
+		(s) => s.applyCallCommandAborted,
 	);
-
-	const startSimulateChapterCall = useCallback(
-		async function (chapterId: string) {
-			return runStartSimulateChapterCall(actions, userId, chapterId);
-		},
-		[userId, applyStarted, applyResult, applyFailed, resetActiveCall],
-	);
-
-	const sendMessage = useCallback(
-		async function (text: string) {
-			return runSendMessage(actions, activeCall, text);
-		},
-		[activeCall, applyStarted, applyResult, applyFailed, resetActiveCall],
-	);
-
-	const sendMessageStream = useCallback(
-		function (
-			text: string,
-			handlers: {
-				onEvent: (event: DebuggerMessageStreamEvent) => void;
-				onClose?: () => void;
-			},
-		) {
-			return runSendMessageStream(actions, activeCall, text, handlers);
-		},
-		[activeCall, applyStarted, applyResult, applyFailed, applyCallCommandAborted],
-	);
-
-	const endCall = useCallback(
-		async function (input?: DebuggerEndCallInput) {
-			return runEndCall(actions, activeCall, input);
-		},
-		[activeCall, applyStarted, applyResult, applyFailed, resetActiveCall],
-	);
-
-	const [postCallRetryingJobId, setPostCallRetryingJobId] = useState<
-		string | null
-	>(null);
-
-	const refreshPostCallJobs = useCallback(
-		function () {
-			applyPostCallJobsLoadStarted();
-			void fetchDebuggerPostCallJobs()
-				.then(applyPostCallJobsLoadResult)
-				.catch(function (err) {
-					applyPostCallJobsLoadFailed(errorMessage(err));
-				});
-		},
-		[
-			applyPostCallJobsLoadStarted,
-			applyPostCallJobsLoadResult,
-			applyPostCallJobsLoadFailed,
-		],
-	);
-
-	const retryPostCallJob = useCallback(
-		async function (jobId: string) {
-			setPostCallRetryingJobId(jobId);
-			try {
-				await postDebuggerPostCallRetry(jobId);
-				refreshPostCallJobs();
-			} catch (err) {
-				applyPostCallJobsLoadFailed(errorMessage(err));
-			} finally {
-				setPostCallRetryingJobId(null);
-			}
-		},
-		[refreshPostCallJobs, applyPostCallJobsLoadFailed],
-	);
-
-	useEffect(function () {
-		refreshPostCallJobs();
-		const timer = setInterval(refreshPostCallJobs, 1500);
-		return function () {
-			clearInterval(timer);
-		};
-	}, [refreshPostCallJobs]);
-
 	return {
 		userId,
 		activeCall,
@@ -415,15 +112,88 @@ export function useDebuggerCallSessionBis(): DebuggerCallSessionBis {
 		postCallJobs,
 		postCallJobsLoading,
 		postCallJobsError,
-		refreshPostCallJobs,
-		retryPostCallJob,
-		postCallRetryingJobId,
+		applyPostCallJobsLoadStarted,
+		applyPostCallJobsLoadResult,
+		applyPostCallJobsLoadFailed,
+		applyStarted,
+		applyResult,
+		applyFailed,
+		resetActiveCall,
+		applyCallCommandAborted,
+	};
+}
+
+/** 订阅真实通话 store 投影，并提供 start/message/reset 命令 */
+export function useDebuggerCallSessionBis(): DebuggerCallSessionBis {
+	const slice = useCallSessionStoreSlice();
+	const actions = {
+		applyStarted: slice.applyStarted,
+		applyResult: slice.applyResult,
+		applyFailed: slice.applyFailed,
+		resetActiveCall: slice.resetActiveCall,
+		applyCallCommandAborted: slice.applyCallCommandAborted,
+	};
+	const postCall = usePostCallJobsControls({
+		applyPostCallJobsLoadStarted: slice.applyPostCallJobsLoadStarted,
+		applyPostCallJobsLoadResult: slice.applyPostCallJobsLoadResult,
+		applyPostCallJobsLoadFailed: slice.applyPostCallJobsLoadFailed,
+	});
+
+	const startFreeCall = useCallback(
+		(agentId: string) => runStartFreeCall(actions, slice.userId, agentId),
+		[slice.userId, slice.applyStarted, slice.applyResult, slice.applyFailed, slice.resetActiveCall],
+	);
+	const startSimulateCall = useCallback(
+		(chapterId: string, cardId: string) =>
+			runStartSimulateCall(actions, slice.userId, chapterId, cardId),
+		[slice.userId, slice.applyStarted, slice.applyResult, slice.applyFailed, slice.resetActiveCall],
+	);
+	const startSimulateChapterCall = useCallback(
+		(chapterId: string) =>
+			runStartSimulateChapterCall(actions, slice.userId, chapterId),
+		[slice.userId, slice.applyStarted, slice.applyResult, slice.applyFailed, slice.resetActiveCall],
+	);
+	const sendMessage = useCallback(
+		(text: string) => runSendMessage(actions, slice.activeCall, text),
+		[slice.activeCall, slice.applyStarted, slice.applyResult, slice.applyFailed, slice.resetActiveCall],
+	);
+	const sendMessageStream = useCallback(
+		(
+			text: string,
+			handlers: {
+				onEvent: (event: DebuggerMessageStreamEvent) => void;
+				onClose?: () => void;
+			},
+		) => runSendMessageStream(actions, slice.activeCall, text, handlers),
+		[slice.activeCall, slice.applyStarted, slice.applyResult, slice.applyFailed, slice.applyCallCommandAborted],
+	);
+	const endCall = useCallback(
+		(input?: DebuggerEndCallInput) => runEndCall(actions, slice.activeCall, input),
+		[slice.activeCall, slice.applyStarted, slice.applyResult, slice.applyFailed, slice.resetActiveCall],
+	);
+	const fetchMemoryTrace = useCallback(
+		(dtoId: string) => fetchDebuggerMemoryTrace(dtoId),
+		[],
+	);
+
+	return {
+		userId: slice.userId,
+		activeCall: slice.activeCall,
+		busy: slice.busy,
+		error: slice.error,
+		postCallJobs: slice.postCallJobs,
+		postCallJobsLoading: slice.postCallJobsLoading,
+		postCallJobsError: slice.postCallJobsError,
+		refreshPostCallJobs: postCall.refreshPostCallJobs,
+		retryPostCallJob: postCall.retryPostCallJob,
+		postCallRetryingJobId: postCall.postCallRetryingJobId,
+		fetchMemoryTrace,
 		startFreeCall,
 		startSimulateCall,
 		startSimulateChapterCall,
 		sendMessage,
 		sendMessageStream,
 		endCall,
-		resetCall: resetActiveCall,
+		resetCall: slice.resetActiveCall,
 	};
 }

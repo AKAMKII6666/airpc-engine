@@ -41,7 +41,12 @@ async function pathExists(filePath: string): Promise<boolean> {
 async function moveIfAbsent(src: string, dst: string): Promise<void> {
 	if (!(await pathExists(src))) return;
 	if (await pathExists(dst)) return;
-	await rename(src, dst);
+	try {
+		await rename(src, dst);
+	} catch (err) {
+		if (isEacces(err)) return;
+		throw err;
+	}
 }
 
 async function ensureChapterDir(chapterDir: string): Promise<boolean> {
@@ -148,15 +153,20 @@ export async function ensureFlatPackageMigrated(
 		path.join(chapterDir, "canvas.layout.json"),
 	);
 
-	await writeMigratedArtifacts({
-		pkgDir,
-		chapterDir,
-		dirName,
-		chapterId,
-		flatJson,
-		flatConfPath,
-		packageConfPath,
-	});
+	try {
+		await writeMigratedArtifacts({
+			pkgDir,
+			chapterDir,
+			dirName,
+			chapterId,
+			flatJson,
+			flatConfPath,
+			packageConfPath,
+		});
+	} catch (err) {
+		if (isEacces(err)) return;
+		throw err;
+	}
 }
 
 export async function listChapterIds(pkgDir: string): Promise<string[]> {

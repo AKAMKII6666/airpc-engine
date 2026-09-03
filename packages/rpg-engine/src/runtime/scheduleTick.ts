@@ -12,6 +12,7 @@ import { hasRecurringCardRef } from "../schema/schedule.js";
 import type { PlayerProfile } from "../schema/profile.js";
 import type { ScheduledCardLookup } from "../schedule/scheduleCardReferenceResolver.js";
 import { fireDueOnceIntent } from "./scheduleOnceFire.js";
+import type { ScheduleFireOptions } from "./scheduleFireOptions.js";
 import {
 	asOnceIntent,
 	serializeOnce,
@@ -334,6 +335,7 @@ export function tickScheduleOnce(
 	profile: PlayerProfile,
 	nowIso = new Date().toISOString(),
 	lookupCard?: ScheduledCardLookup | null,
+	fireOpts?: ScheduleFireOptions | null,
 ): FiredScheduleItem[] {
 	if (!profile.schedule) {
 		profile.schedule = { clockMs: 0, intents: [] };
@@ -359,6 +361,7 @@ export function tickScheduleOnce(
 			raw,
 			nowIso,
 			lookupCard,
+			fireOpts,
 		);
 		if (result.kind === "defer") {
 			nextIntents.push(serializeOnce(result.once));
@@ -538,6 +541,7 @@ export function advanceProfileClock(
 	deltaMs: number,
 	nowIso = new Date().toISOString(),
 	lookupCard?: ScheduledCardLookup | null,
+	fireOpts?: ScheduleFireOptions | null,
 ): FiredScheduleItem[] {
 	const schedule = ensureSchedule(profile);
 	if (!Number.isFinite(deltaMs) || deltaMs < 0) {
@@ -546,7 +550,7 @@ export function advanceProfileClock(
 	const from = schedule.clockMs ?? 0;
 	schedule.clockMs = from + deltaMs;
 	materializeRecurringOccurrences(profile, from, schedule.clockMs, nowIso);
-	return tickScheduleOnce(profile, nowIso, lookupCard);
+	return tickScheduleOnce(profile, nowIso, lookupCard, fireOpts);
 }
 
 /** 跳到绝对逻辑时刻（仅允许前进）；并物化 recurring + tick once */
@@ -555,6 +559,7 @@ export function setProfileClockMs(
 	toClockMs: number,
 	nowIso = new Date().toISOString(),
 	lookupCard?: ScheduledCardLookup | null,
+	fireOpts?: ScheduleFireOptions | null,
 ): FiredScheduleItem[] {
 	const schedule = ensureSchedule(profile);
 	if (!Number.isFinite(toClockMs) || toClockMs < 0) {
@@ -568,7 +573,7 @@ export function setProfileClockMs(
 	}
 	schedule.clockMs = toClockMs;
 	materializeRecurringOccurrences(profile, from, toClockMs, nowIso);
-	return tickScheduleOnce(profile, nowIso, lookupCard);
+	return tickScheduleOnce(profile, nowIso, lookupCard, fireOpts);
 }
 
 /** 推到下一意图触发点（once 或 recurring occurrence） */
@@ -576,6 +581,7 @@ export function advanceProfileClockToNextIntent(
 	profile: PlayerProfile,
 	nowIso = new Date().toISOString(),
 	lookupCard?: ScheduledCardLookup | null,
+	fireOpts?: ScheduleFireOptions | null,
 ): AdvanceToNextResult {
 	const schedule = ensureSchedule(profile);
 	const fromClockMs = schedule.clockMs ?? 0;
@@ -589,7 +595,13 @@ export function advanceProfileClockToNextIntent(
 			reason: "none",
 		};
 	}
-	const fired = setProfileClockMs(profile, next.fireAtMs, nowIso, lookupCard);
+	const fired = setProfileClockMs(
+		profile,
+		next.fireAtMs,
+		nowIso,
+		lookupCard,
+		fireOpts,
+	);
 	return {
 		fromClockMs,
 		toClockMs: next.fireAtMs,

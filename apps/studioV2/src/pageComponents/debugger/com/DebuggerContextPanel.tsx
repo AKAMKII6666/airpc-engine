@@ -14,7 +14,7 @@ import type {
 	DebuggerToolEventView,
 	DebuggerToolTraceView,
 } from "@studio-v2/typeFiles/debugger/callSession";
-import type { LastMemoryTraceState } from "@studio-v2/src/pageComponents/debugger/hooks/useDebuggerPrototypeSession";
+import type { LastMemoryTraceState } from "@studio-v2/src/pageComponents/debugger/hooks/prototype/useDebuggerPrototypeSession";
 import styles from "../DebuggerShell.module.scss";
 import { PromptTracePanel } from "./PromptTracePanel";
 import { AvailableToolList } from "./AvailableToolList";

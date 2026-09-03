@@ -60,9 +60,11 @@ alwaysApply: true
 
 ```text
 packages/rpg-engine/     # 准 npm；对外 index 门面；Port 契约；tests/ 独立
+  src/capabilityPacks/   # L1 第一方能力包（静态 import；禁裸名 plugins/）
 apps/studio/             # 禁 barrel；bis/store/ajaxHelper…
 apps/studioV2/
   engineIOModule/        # 本机存取 IO（经 Port 注入 Host；禁 Client）
+  src/utils/server/capabilityPacks/  # 第一方包装配（非 server/packages 故事包 IO）
 data/                    # storis-packages/（正式故事包根）+ characters/ + users/ + …
 docs/人类/
 docs/AI和人类/需求/
@@ -72,3 +74,4 @@ docs/AI/
 
 - **故事包根**正式名 = `data/storis-packages/`（不另起 `stories-packages`；全仓改名另立项）。
 - **ToolRegistry v1 真源** = `packages/rpg-engine` 内置 `builtinRegistry`；`data/tools/registry.json` 非运行时真源（预留／导出副本）。
+- **第一方扩展**进 `capabilityPacks` 插槽贡献；**禁止**往 beginCall / effect 中段堆特性；workspace `plugins/` 扫描属 L2（见技术设计 24/25）。

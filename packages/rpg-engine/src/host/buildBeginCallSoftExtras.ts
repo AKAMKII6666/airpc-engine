@@ -1,5 +1,5 @@
 /**
- * beginCall 的 softExtras：memory / lore / 熟人辨认 / 本通 FC 剧本块。
+ * beginCall 的 softExtras：memory / lore / 熟人辨认 / 本通 FC 剧本块 / Pack enrichers。
  * 从 createEngineHost 抽出以降函数行数基线。
  */
 import type { CallCardDefinition } from "../schema/callCard.js";
@@ -12,6 +12,8 @@ import {
 import type { MemoryPort } from "../memory/types.js";
 import { buildToolInstructionBlocks } from "../tools/instructions/buildToolInstructionBlocks.js";
 import { listToolsForCard } from "../tools/resolveToolPolicy.js";
+import type { SoftExtraEnricher } from "../capabilityPacks/contributeTypes.js";
+import { applySoftExtraEnrichers } from "../capabilityPacks/applySoftExtraEnrichers.js";
 import { buildAcquaintanceSoftExtra } from "./acquaintanceSoftExtra.js";
 
 export async function buildBeginCallSoftExtras(input: {
@@ -22,6 +24,8 @@ export async function buildBeginCallSoftExtras(input: {
 	nowIso: string;
 	memory: MemoryPort | null | undefined;
 	profile: PlayerProfile | undefined;
+	/** L1 begin.softExtras Pack 贡献；缺省空 */
+	softExtraEnrichers?: readonly SoftExtraEnricher[];
 }): Promise<string[]> {
 	const softExtras: string[] = [];
 	if (input.memory) {
@@ -58,5 +62,11 @@ export async function buildBeginCallSoftExtras(input: {
 			{ knownNickname },
 		),
 	);
-	return softExtras;
+	return applySoftExtraEnrichers({
+		softExtras,
+		enrichers: input.softExtraEnrichers ?? [],
+		profile: input.profile,
+		userId: input.userId,
+		agentId: input.agentId,
+	});
 }

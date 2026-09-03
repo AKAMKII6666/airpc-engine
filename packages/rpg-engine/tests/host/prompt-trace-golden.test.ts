@@ -136,7 +136,8 @@ describe("Host prompt trace golden", () => {
         "softContextTitles": [
           "conversation.inertia.recent_turns",
           "identity",
-          "lore source=fallback",
+          "lore source=llm",
+          "acquaintance",
           "tools",
         ],
         "source": "free",
@@ -213,7 +214,8 @@ describe("Host prompt trace golden", () => {
         "softContextTitles": [
           "conversation.inertia.recent_turns",
           "identity",
-          "lore source=fallback",
+          "lore source=llm",
+          "acquaintance",
           "tools",
         ],
         "source": "schedule_reminder",
@@ -300,7 +302,8 @@ describe("Host prompt trace golden", () => {
         ],
         "softContextTitles": [
           "identity",
-          "lore source=fallback",
+          "lore source=llm",
+          "acquaintance",
         ],
         "source": "expert_referral",
         "systemHardTitles": [
@@ -394,7 +397,8 @@ describe("Host prompt trace golden", () => {
         ],
         "softContextTitles": [
           "identity",
-          "lore source=fallback",
+          "lore source=llm",
+          "acquaintance",
         ],
         "source": "expert_referral",
         "systemHardTitles": [

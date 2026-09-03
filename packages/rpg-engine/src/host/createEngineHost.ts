@@ -30,8 +30,10 @@ import {
 } from "./profileViaPort.js";
 import { loadWorkspaceViaPort } from "./contentViaPort.js";
 import { buildComposeScene } from "../runtime/composeScene.js";
-import { composeRenderedPrompt } from "../runtime/composer.js";
-import { buildBeginCallSoftExtras } from "./buildBeginCallSoftExtras.js";
+import { composeBeginCallRenderedPrompt } from "./composeBeginCallRenderedPrompt.js";
+import { pushCapabilityPackBootstrapEvents } from "./pushCapabilityPackBootstrapEvents.js";
+import { resolveCapabilityPackHostBindings } from "./resolveCapabilityPackHostBindings.js";
+import { buildBeginCallScheduleHints } from "./buildBeginCallScheduleHints.js";
 import { isEffectiveDialable } from "../schema/character.js";
 import { pickPendingForIntent } from "../runtime/pickPendingForUserDial.js";
 import { resolvePendingStoryCard } from "../runtime/resolvePendingStoryCard.js";
@@ -229,6 +231,12 @@ export function createEngineHost(
   const loreBootstrapPort =
     options.loreBootstrap === undefined ? null : options.loreBootstrap;
   const promptProviderRegistry = resolveOptionalPort(options.promptProviderRegistry);
+	const {
+		afterHangupHooks,
+		packIdByHookId,
+		softExtraEnrichers,
+		capabilityPackEvents,
+	} = resolveCapabilityPackHostBindings(options);
   const voicemailPorts = {
     generateVoicemail:
       options.generateVoicemail === undefined
@@ -269,6 +277,11 @@ export function createEngineHost(
       return engineLogPort;
     },
     redact: redactLogRecord,
+  });
+
+  pushCapabilityPackBootstrapEvents({
+    events: capabilityPackEvents,
+    pushLog,
   });
 
   function requireWorkspace(): WorkspaceState {
@@ -349,29 +362,6 @@ export function createEngineHost(
       intent,
       card: structuredClone(cardOrErr),
     };
-  }
-
-  function readPendingForResolve(
-    profile: PlayerProfile | undefined,
-    result: ResolveResult,
-  ) {
-    if (!profile) return null;
-    const board = profile.callCards.board.byAgent[result.agentId];
-    return board?.pending.find(function (item) {
-      return item.instanceId === result.instanceId;
-    }) ?? null;
-  }
-
-  function readScheduleIntent(
-    profile: PlayerProfile | undefined,
-    intentId: string | undefined,
-  ): Record<string, unknown> | null {
-    if (!profile || !intentId) return null;
-    const hit = profile.schedule?.intents?.find(function (item) {
-      const row = item as { intentId?: unknown };
-      return row.intentId === intentId;
-    });
-    return hit && typeof hit === "object" ? hit as Record<string, unknown> : null;
   }
 
   function classifyBeginContext(input: {
@@ -554,6 +544,8 @@ export function createEngineHost(
 		profiles,
 		lookupCard,
 		pushLog,
+		scheduleGates: options.scheduleGates,
+		packIdByGateId: options.packIdByGateId ?? undefined,
 	});
 	const outboundShellApi = createOutboundShellApi({
 		pushLog,
@@ -588,6 +580,8 @@ export function createEngineHost(
 		setPostCallJob,
 		startPostCallBackgroundJob,
 		runPostCallBackgroundJob,
+		afterHangupHooks,
+		packIdByHookId,
 	});
 	const postCallJobHostApi = createPostCallJobHostApi({
 		postCallJobs,
@@ -1004,47 +998,16 @@ export function createEngineHost(
         const characterDef =
           requireWorkspace().characters.get(result.agentId) ?? null;
         const profileForBegin = profiles.get(userId);
-        const pendingForBegin = readPendingForResolve(profileForBegin, result);
-        const scheduledIntentId = pendingForBegin?.scheduledIntentId;
-        const scheduleIntent = readScheduleIntent(
-          profileForBegin,
-          scheduledIntentId,
-        );
-        const topicHint =
-          typeof scheduleIntent?.topicHint === "string" &&
-          scheduleIntent.topicHint.trim()
-            ? scheduleIntent.topicHint.trim()
-            : undefined;
-        const scheduleOrigin =
-          typeof scheduleIntent?.origin === "string" &&
-          scheduleIntent.origin.trim()
-            ? scheduleIntent.origin.trim()
-            : undefined;
-        const missedOutbound =
-          pendingForBegin?.status === "missed" ||
-          pendingForBegin?.missedOutboundAt
-            ? {
-                at: pendingForBegin.missedOutboundAt,
-                reason: pendingForBegin.missedOutboundReason,
-                eventId: pendingForBegin.missedIncomingEventId,
-              }
-            : undefined;
+        const scheduleHints = buildBeginCallScheduleHints({
+          profile: profileForBegin,
+          result,
+        });
         const conversationInertia = buildConversationInertia({
           userId,
           agentId: result.agentId,
           currentSessionId: sessionId,
         });
-        const beginContext = classifyBeginContext({
-          result,
-          actualEntry,
-          scheduledIntentId,
-          topicHint,
-          scheduleOrigin,
-          missedOutbound,
-          conversationInertia,
-        });
-
-        const softExtras = await buildBeginCallSoftExtras({
+        const composed = await composeBeginCallRenderedPrompt({
           userId,
           agentId: result.agentId,
           card: beginCard,
@@ -1052,21 +1015,24 @@ export function createEngineHost(
           nowIso: now,
           memory,
           profile: profileForBegin,
+          composeScene,
+          promptProviderRegistry,
+          classifyBeginContext,
+          softExtraEnrichers,
+          classifyInput: {
+            result,
+            actualEntry,
+            scheduledIntentId: scheduleHints.scheduledIntentId,
+            topicHint: scheduleHints.topicHint,
+            scheduleOrigin: scheduleHints.scheduleOrigin,
+            missedOutbound: scheduleHints.missedOutbound,
+            conversationInertia,
+          },
         });
-
-        const rendered = composeRenderedPrompt({
-          card: beginCard,
-          characterDef,
-          scene: composeScene,
-          beginContext,
-          allowCharacterOpeningFallback:
-            beginCard.cardKind !== "free" || beginContext.source !== "free",
-          softExtras,
-          promptProviderRegistry: promptProviderRegistry ?? undefined,
-        });
-        if (isEngineError(rendered)) {
-          return rendered;
+        if (isEngineError(composed)) {
+          return composed;
         }
+        const { beginContext, rendered } = composed;
 
         const interactionMode = beginCard.interactionMode;
         const startInPlayback =

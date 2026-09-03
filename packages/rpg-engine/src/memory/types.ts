@@ -138,6 +138,11 @@ export interface MemoryCommitInput {
     exclusionSeeds?: string[];
     /** 态度抽取专用角色视角；人设只用于判断视角，禁止当事实写进记忆。 */
     character?: MemoryCharacterAttitudeContext;
+    /**
+     * L1 CapabilityPack commit.context / commit.extract 合并袋。
+     * 引擎基础字段之外的包贡献；抽取器可只读，不得当剧情推进真源。
+     */
+    packExtras?: Record<string, unknown>;
   };
   /** Manual / 无 LLM 时的摘要文本 */
   summaryText?: string;

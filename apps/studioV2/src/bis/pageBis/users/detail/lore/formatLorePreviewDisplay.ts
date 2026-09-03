@@ -1,6 +1,6 @@
 /**
- * 世界背景只读展示格式化；纯函数，Client/Server 均可复制镜像。
- */
+	* 世界背景只读展示格式化；纯函数，Client/Server 均可复制镜像。
+	*/
 import type { LoreLocationPreviewDto } from "@studio-v2/typeFiles/library/users/loreBootstrap";
 
 /** 地点四段拼成一行；空段跳过。 */

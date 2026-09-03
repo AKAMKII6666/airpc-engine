@@ -26,17 +26,17 @@ export type DebuggerConsumedOpeningFirstTurn =
 			session: CallSession;
 			llm: ServerLlmChatResult;
 			toolEvents: [];
-	  }
+		}
 	| {
 			mode: "llm";
 			session: CallSession;
-	  }
+		}
 	| {
 			mode: "skipped";
 			session: CallSession;
 			llm: null;
 			toolEvents: [];
-	  };
+		};
 
 function directOpeningLlmResult(text: string): ServerLlmChatResult {
 	return {

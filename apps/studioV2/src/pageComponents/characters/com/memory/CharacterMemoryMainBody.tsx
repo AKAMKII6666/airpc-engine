@@ -4,21 +4,7 @@
 "use client";
 
 import { useState, type FC } from "react";
-import {
-	Alert,
-	Box,
-	Button,
-	Dialog,
-	DialogActions,
-	DialogContent,
-	DialogContentText,
-	DialogTitle,
-	FormControl,
-	InputLabel,
-	MenuItem,
-	Select,
-	Typography,
-} from "@mui/material";
+import { Typography } from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material/Select";
 import { FrontendPagination } from "@studio-v2/src/commonUiComponents/pagination/FrontendPagination";
 import type {
@@ -28,7 +14,10 @@ import type {
 import type { DiskUserSummaryDto } from "@studio-v2/typeFiles/library/users/diskUserSummary";
 import styles from "@studio-v2/src/pageComponents/library/LibrarySplit.module.scss";
 import { CHARACTER_MEMORY_PAGE_SIZE } from "@studio-v2/src/bis/pageBis/characters/memory/loadCharacterMemoryPage.bis";
+import { CharacterMemoryAttitudeSection } from "./CharacterMemoryAttitudeSection";
+import { CharacterMemoryClearDialog } from "./CharacterMemoryClearDialog";
 import { CharacterMemorySectionFrame } from "./CharacterMemorySectionFrame";
+import { CharacterMemoryToolbar } from "./CharacterMemoryToolbar";
 
 export type CharacterMemoryMainBodyProps = {
 	/** 可选调试用户列表 */
@@ -90,103 +79,23 @@ export const CharacterMemoryMainBody: FC<
 	onClearMemory,
 }) {
 	const [confirmOpen, setConfirmOpen] = useState(false);
-	const currentUser = users.find((u) => u.userId === userId);
-	const nickname = currentUser?.nickname ?? userId;
+	const nickname = users.find((u) => u.userId === userId)?.nickname ?? userId;
 
 	return (
 		// 引用了CharacterMemorySectionFrame组件，用于记忆区统一标题外壳
 		<CharacterMemorySectionFrame>
-			<Box
-				sx={{
-					display: "flex",
-					alignItems: "flex-start",
-					justifyContent: "space-between",
-					gap: 1.5,
-					mb: 1.5,
-				}}
-			>
-				{/* 引用了FormControl组件，用于选择当前调试 userId */}
-				<FormControl size="small" sx={{ minWidth: 220 }}>
-					{/* 引用了InputLabel组件，用于 userId 下拉标签 */}
-					<InputLabel id="memory-user-label">调试用户</InputLabel>
-					{/* 引用了Select组件，用于切换记忆查询的 userId */}
-					<Select
-						labelId="memory-user-label"
-						label="调试用户"
-						value={userId}
-						onChange={onUserChange}
-					>
-						{users.map((u) => (
-							// 引用了MenuItem组件，用于单个调试用户选项
-							<MenuItem key={u.userId} value={u.userId}>
-								{u.nickname}（{u.userId}）
-							</MenuItem>
-						))}
-					</Select>
-				</FormControl>
-
-				{/* 引用了Button组件，用于打开清空记忆确认框 */}
-				<Button
-					variant="outlined"
-					color="error"
-					size="small"
-					disabled={clearing}
-					onClick={() => setConfirmOpen(true)}
-				>
-					{clearing ? "清空中…" : "清空记忆"}
-				</Button>
-			</Box>
-
-			{clearError ? (
-				// 引用了Alert组件，用于清空失败提示
-				<Alert severity="error" role="alert" sx={{ mb: 1.5 }}>
-					{clearError}
-				</Alert>
-			) : null}
-
-			{error ? (
-				// 引用了Alert组件，用于记忆加载错误
-				<Alert severity="error" role="alert">
-					{error}
-				</Alert>
-			) : null}
-
-			<section className={styles.attitudeSection}>
-				<h4 className={styles.sectionTitle}>态度记忆</h4>
-				{attitudes.length === 0 ? (
-					// 引用了Typography组件，用于无态度记忆空态
-					<Typography variant="body2" color="text.secondary">
-						暂无态度记忆。
-					</Typography>
-				) : (
-					<ul className={styles.attitudeList}>
-						{attitudes.map((attitude) => (
-							<li key={attitude.id} className={styles.attitudeItem}>
-								<div className={styles.attitudeItemHead}>
-									<strong>{attitude.stance}</strong>
-									<small>{attitude.at}</small>
-								</div>
-								<p className={styles.attitudeSummary}>{attitude.summary}</p>
-								<p className={styles.attitudeEvidence}>
-									依据：{attitude.evidence}
-								</p>
-								<div className={styles.attitudeKeywords}>
-									{attitude.feel.map((tag) => (
-										<span key={`feel_${tag}`}>{tag}</span>
-									))}
-								</div>
-								<p className={styles.attitudeKeywordLabel}>可溯源关键词</p>
-								<div className={styles.attitudeKeywords}>
-									{attitude.keywords.map((keyword) => (
-										<span key={`keyword_${keyword}`}>{keyword}</span>
-									))}
-								</div>
-							</li>
-						))}
-					</ul>
-				)}
-			</section>
-
+			{/* 引用了CharacterMemoryToolbar组件，用于用户选择与错误提示 */}
+			<CharacterMemoryToolbar
+				users={users}
+				userId={userId}
+				onUserChange={onUserChange}
+				clearing={clearing}
+				clearError={clearError}
+				error={error}
+				onOpenClear={() => setConfirmOpen(true)}
+			/>
+			{/* 引用了CharacterMemoryAttitudeSection组件，用于态度记忆区 */}
+			<CharacterMemoryAttitudeSection attitudes={attitudes} />
 			{loading ? (
 				// 引用了Typography组件，用于加载态
 				<Typography variant="body2" color="text.secondary">
@@ -210,7 +119,6 @@ export const CharacterMemoryMainBody: FC<
 					))}
 				</ul>
 			)}
-
 			{/* 引用了FrontendPagination组件，用于记忆列表分页 */}
 			<FrontendPagination
 				page={page}
@@ -218,29 +126,14 @@ export const CharacterMemoryMainBody: FC<
 				total={total}
 				onChange={onPageChange}
 			/>
-
-			{/* 引用了Dialog组件，用于清空记忆二次确认 */}
-			<Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
-				<DialogTitle>清空记忆</DialogTitle>
-				<DialogContent>
-					<DialogContentText>
-						将清空玩家「{nickname}」在当前角色下的全部对话惯性与记忆，确定继续？
-					</DialogContentText>
-				</DialogContent>
-				<DialogActions>
-					<Button onClick={() => setConfirmOpen(false)}>取消</Button>
-					<Button
-						color="error"
-						disabled={clearing}
-						onClick={async () => {
-							setConfirmOpen(false);
-							await onClearMemory();
-						}}
-					>
-						确定清空
-					</Button>
-				</DialogActions>
-			</Dialog>
+			{/* 引用了CharacterMemoryClearDialog组件，用于清空记忆确认 */}
+			<CharacterMemoryClearDialog
+				open={confirmOpen}
+				onClose={() => setConfirmOpen(false)}
+				nickname={nickname}
+				clearing={clearing}
+				onConfirm={onClearMemory}
+			/>
 		</CharacterMemorySectionFrame>
 	);
 };

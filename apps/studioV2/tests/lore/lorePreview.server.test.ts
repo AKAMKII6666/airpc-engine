@@ -3,7 +3,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { PlayerProfileSchema } from "@airpc/rpg-engine";
-import { lorePreviewFromProfile } from "../../src/utils/server/lore/lorePreview.server";
+import { lorePreviewFromProfile } from "../../src/utils/server/lore/preview/lorePreview.server";
 
 describe("lorePreviewFromProfile", () => {
 	it("有 lore 时投影 sharedPremise 与 location", function () {

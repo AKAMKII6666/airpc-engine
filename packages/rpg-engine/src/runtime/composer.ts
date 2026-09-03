@@ -90,6 +90,18 @@ export interface ComposeInput {
   softExtras?: string[];
   /** 外部可替换的 provider registry；未传时使用引擎内置默认链。 */
   promptProviderRegistry?: PromptProviderRegistry;
+  /**
+   * 本通只读用户快照（L1 capabilityPacks 用，如 location）。
+   * 由 Host 从 Profile.user 薄投影；Provider 不得当墙钟。
+   */
+  userSnapshot?: {
+    location?: {
+      country: string;
+      province: string;
+      city: string;
+      district?: string;
+    };
+  };
 }
 
 /**

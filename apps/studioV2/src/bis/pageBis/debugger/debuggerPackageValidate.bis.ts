@@ -9,9 +9,9 @@ import {
 	listPackagesForDebuggerValidate,
 	validateDiskPackageForDebugger,
 } from "@studio-v2/src/bis/pageBis/debugger/validateDiskPackage_bis";
-import { useDebuggerStore } from "@studio-v2/src/stores/debugger/debuggerStore";
 import type { ValidationReport } from "@studio-v2/typeFiles/story/validate/engineValidation";
 import type { StoryPackageSummary } from "@studio-v2/typeFiles/story/summary/storyPackageSummary";
+import { useDebuggerPackageValidateStoreSlice } from "./debuggerPackageValidateStore.bis";
 
 function errorMessage(error: unknown, fallback: string): string {
 	if (error instanceof Error && error.message.trim() !== "") {
@@ -51,58 +51,23 @@ export type DebuggerPackageValidateBis = {
 	* 订 validate 切片；挂载拉包列表。
 	*/
 export function useDebuggerPackageValidateBis(): DebuggerPackageValidateBis {
-	const packages = useDebuggerStore(function (s) {
-		return s.validatePackages;
-	});
-	const packageId = useDebuggerStore(function (s) {
-		return s.validatePackageId;
-	});
-	const listLoading = useDebuggerStore(function (s) {
-		return s.validateListLoading;
-	});
-	const listError = useDebuggerStore(function (s) {
-		return s.validateListError;
-	});
-	const validating = useDebuggerStore(function (s) {
-		return s.validating;
-	});
-	const validateError = useDebuggerStore(function (s) {
-		return s.validateError;
-	});
-	const report = useDebuggerStore(function (s) {
-		return s.validateReport;
-	});
-	const applyValidatePackagesLoadStarted = useDebuggerStore(function (s) {
-		return s.applyValidatePackagesLoadStarted;
-	});
-	const applyValidatePackagesLoadResult = useDebuggerStore(function (s) {
-		return s.applyValidatePackagesLoadResult;
-	});
-	const setValidatePackageId = useDebuggerStore(function (s) {
-		return s.setValidatePackageId;
-	});
-	const applyValidateRunStarted = useDebuggerStore(function (s) {
-		return s.applyValidateRunStarted;
-	});
-	const applyValidateRunResult = useDebuggerStore(function (s) {
-		return s.applyValidateRunResult;
-	});
+	const slice = useDebuggerPackageValidateStoreSlice();
 
 	useEffect(
 		function () {
 			let cancelled = false;
-			applyValidatePackagesLoadStarted();
+			slice.applyValidatePackagesLoadStarted();
 			void (async function () {
 				try {
 					const list = await listPackagesForDebuggerValidate();
 					if (cancelled) return;
-					applyValidatePackagesLoadResult({
+					slice.applyValidatePackagesLoadResult({
 						ok: true,
 						packages: list,
 					});
 				} catch (error) {
 					if (cancelled) return;
-					applyValidatePackagesLoadResult({
+					slice.applyValidatePackagesLoadResult({
 						ok: false,
 						message: errorMessage(error, "加载故事包列表失败"),
 					});
@@ -112,44 +77,51 @@ export function useDebuggerPackageValidateBis(): DebuggerPackageValidateBis {
 				cancelled = true;
 			};
 		},
-		[applyValidatePackagesLoadStarted, applyValidatePackagesLoadResult],
+		[
+			slice.applyValidatePackagesLoadStarted,
+			slice.applyValidatePackagesLoadResult,
+		],
 	);
 
 	const runValidate = useCallback(
 		async function () {
-			if (!packageId) return;
-			applyValidateRunStarted();
+			if (!slice.packageId) return;
+			slice.applyValidateRunStarted();
 			try {
-				const next = await validateDiskPackageForDebugger(packageId);
-				applyValidateRunResult({ ok: true, report: next });
+				const next = await validateDiskPackageForDebugger(slice.packageId);
+				slice.applyValidateRunResult({ ok: true, report: next });
 			} catch (error) {
-				applyValidateRunResult({
+				slice.applyValidateRunResult({
 					ok: false,
 					message: errorMessage(error, "读盘校验失败"),
 				});
 			}
 		},
-		[applyValidateRunResult, applyValidateRunStarted, packageId],
+		[
+			slice.applyValidateRunResult,
+			slice.applyValidateRunStarted,
+			slice.packageId,
+		],
 	);
 
 	function onPackageChange(nextId: string): void {
-		setValidatePackageId(nextId);
+		slice.setValidatePackageId(nextId);
 	}
 
 	const selectedTitle =
-		packages.find(function (p) {
-			return p.packageId === packageId;
-		})?.title ?? packageId;
+		slice.packages.find(function (p) {
+			return p.packageId === slice.packageId;
+		})?.title ?? slice.packageId;
 
 	return {
-		packages,
-		packageId,
+		packages: slice.packages,
+		packageId: slice.packageId,
 		selectedTitle,
-		listLoading,
-		listError,
-		validating,
-		validateError,
-		report,
+		listLoading: slice.listLoading,
+		listError: slice.listError,
+		validating: slice.validating,
+		validateError: slice.validateError,
+		report: slice.report,
 		onPackageChange,
 		runValidate,
 	};

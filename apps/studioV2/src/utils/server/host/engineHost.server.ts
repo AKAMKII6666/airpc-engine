@@ -3,6 +3,8 @@
 	* 模块说明：createEngineIOPorts(dataRoot) → getEngineHost({ ports })；
 	* 仅 app/api / *.server.ts / utils/server 可引用；禁止 Client 区 import。
 	* 协议：技术设计 23 §5；需求引擎存取 Port 抽象 §5。
+	* L1：merge 后注入 softExtras / scheduleGates / afterHangup / tasks.register；
+	* commit.* 经 MemoryCommit Orchestrator，不经 Host beginCall。
 	*/
 import {
 	getEngineHost,
@@ -17,7 +19,9 @@ import {
 } from "@studio-v2/engineIOModule/createEngineIOPorts";
 import { getStudioV2DataRoot } from "../data/dataRoot.server";
 import { createMemoryCommitOrchestratingPort } from "../memory/memoryCommitMemoryPort.server";
-import { createLlmLoreBootstrapPortFromEnv } from "../lore/loreBootstrapLlm.server";
+import { createLlmLoreBootstrapPortFromEnv } from "../lore/bootstrap/loreBootstrapLlm.server";
+// 引用了第一方 CapabilityPack 装配，用于 merge 后注入 promptProviderRegistry
+import { assembleFirstPartyCapabilityPacks } from "../capabilityPacks/assembleFirstPartyPacks.server";
 
 let ports: EngineIOPorts | null = null;
 let workspaceLoaded = false;
@@ -26,13 +30,18 @@ let postCallJobsRecovered = false;
 
 /**
 	* 按 dataRoot 懒建 Ports；Memory 连接须进程内复用，禁止每次 getHost 新开库。
+	* commit.* Pack 贡献注入 Orchestrator（非 Host beginCall 路径）。
 	*/
 function ensureEngineIOPorts(dataRoot: string): EngineIOPorts {
 	if (!ports) {
+		const packs = assembleFirstPartyCapabilityPacks();
 		const io = createEngineIOPorts(dataRoot);
 		ports = {
 			...io,
-			memory: createMemoryCommitOrchestratingPort(io.memory),
+			memory: createMemoryCommitOrchestratingPort(io.memory, {
+				commitContextEnrichers: packs.commitContextEnrichers,
+				commitExtractContributors: packs.commitExtractContributors,
+			}),
 		};
 	}
 	return ports;
@@ -46,6 +55,7 @@ function hostHasPostCallApi(host: EngineHost): boolean {
 }
 
 function createConfiguredHost(io: EngineIOPorts): EngineHost {
+	const packs = assembleFirstPartyCapabilityPacks();
 	return getEngineHost({
 		memory: io.memory,
 		profile: io.profile,
@@ -54,6 +64,15 @@ function createConfiguredHost(io: EngineIOPorts): EngineHost {
 		postCallJob: io.postCallJob,
 		// 无 Key / 禁用时为 null → Host 内走 fallback lore
 		loreBootstrap: createLlmLoreBootstrapPortFromEnv(),
+		promptProviderRegistry: packs.promptProviderRegistry,
+		afterHangupHooks: packs.afterHangupHooks,
+		packIdByHookId: packs.packIdByHookId,
+		scheduleGates: packs.scheduleGates,
+		packIdByGateId: packs.packIdByGateId,
+		softExtraEnrichers: packs.softExtraEnrichers,
+		taskRegistrars: packs.taskRegistrars,
+		packIdByTaskId: packs.packIdByTaskId,
+		capabilityPackEvents: packs.events,
 	});
 }
 

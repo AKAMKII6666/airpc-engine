@@ -204,6 +204,64 @@ export {
   createPromptProviderRegistry,
   type PromptProviderRegistry,
 } from "./runtime/promptProviderRegistry.js";
+
+/** L1 第一方 CapabilityPack：槽点名与 Pack 契约（见技术设计 24） */
+export {
+  BACKGROUND_SLOTS,
+  REALTIME_SLOTS,
+  isBackgroundSlot,
+  isRealtimeSlot,
+  type BackgroundSlot,
+  type CapabilityPackDomain,
+  type RealtimeSlot,
+} from "./capabilityPacks/slots.js";
+export type {
+  CapabilityPackApiVersion,
+  FirstPartyPack,
+  FirstPartyPackContribute,
+  FirstPartyPackManifest,
+} from "./capabilityPacks/types.js";
+export {
+  mergeCapabilityPacks,
+  type CapabilityPackLogEvent,
+  type MergeCapabilityPacksInput,
+  type MergeCapabilityPacksResult,
+} from "./capabilityPacks/mergeCapabilityPacks.js";
+export {
+  shouldDeferByScheduleGates,
+  evaluateScheduleGatesDetailed,
+} from "./capabilityPacks/evaluateScheduleGates.js";
+export type {
+  AfterHangupHook,
+  CommitContextEnricher,
+  CommitExtractContributor,
+  ScheduleGate,
+  SoftExtraEnricher,
+  TaskRegistrar,
+  TaskTickHandler,
+  UserLocationSnapshot,
+} from "./capabilityPacks/contributeTypes.js";
+export { runAfterHangupHooks } from "./capabilityPacks/runAfterHangupHooks.js";
+export { applySoftExtraEnrichers } from "./capabilityPacks/applySoftExtraEnrichers.js";
+export { mergePackCommitExtras } from "./capabilityPacks/applyCommitContextEnrichers.js";
+export { bootstrapTaskRegistrars } from "./capabilityPacks/bootstrapTaskRegistrars.js";
+export {
+  CORE_COMPOSE_PACK_ID,
+  coreComposePack,
+} from "./capabilityPacks/_core/coreComposePack.js";
+export {
+  USER_LOCATION_PACK_ID,
+  USER_LOCATION_PROVIDER_ID,
+  userLocationPack,
+  userLocationPromptProvider,
+} from "./capabilityPacks/realtime/user-location/userLocationPack.js";
+export {
+  OUTBOUND_WINDOW_GATE_ID,
+  OUTBOUND_WINDOW_GATE_PACK_ID,
+  outboundWindowGatePack,
+  outboundWindowScheduleGate,
+} from "./capabilityPacks/background/outbound-window-gate/outboundWindowGatePack.js";
+
 export {
   resolveOpeningSituation,
   type OpeningControl,

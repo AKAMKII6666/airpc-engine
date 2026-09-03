@@ -15,7 +15,8 @@ alwaysApply: false
 ## 必须执行
 
 - 公共契约、Port、状态转换、幂等 / 事务 / 时序逻辑必须有意图注释或 JSDoc（解释为什么、约束或副作用，禁止复述代码）。
-- `createEngineHost` / Host 装配层只做装配与会话协调，不新增可独立命名的领域算法；新算法落到 `runtime/`、`schedule/`、`workspace/` 等明确模块。
+- `createEngineHost` / Host 装配层只做装配与会话协调，不新增可独立命名的领域算法；新算法落到 `runtime/`、`schedule/`、`workspace/`、`capabilityPacks/` 等明确模块。
+- **CapabilityPack merge**（`mergeCapabilityPacks` 或同名）必须独立模块；Host 仅薄调用。借 L1 抬高 `createEngineHost` / `effectExecutor` / `scheduleTick` 的 baseline 受控指标 → **禁止**。
 - `effectExecutor` 只做 Effect 调度；复杂 effect 委派 handler / 领域服务，禁止继续无边界堆叠。
 - Schedule once、recurring、clock、card reference、chapter cleanup 是可分离职责；禁止把新规则只塞进 `scheduleTick.ts`。
 - 高风险功能任务必须在执行索引中声明：目标模块、允许修改、禁止落点、状态不变量、负向测试、`verify: npm run quality:engine`、结构预算。

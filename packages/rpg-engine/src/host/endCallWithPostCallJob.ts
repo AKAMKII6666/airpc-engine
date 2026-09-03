@@ -31,6 +31,8 @@ import { buildBackgroundSteps, postCallJobSummary } from "./postCallJobRuntime.j
 import type { PostCallJobStorePort } from "../ports/postCallJobStorePort.js";
 import type { ScheduledCardLookup } from "../schedule/scheduleCardReferenceResolver.js";
 import type { OnVoicemailUnreadChanged } from "../runtime/voicemail/voicemailPorts.js";
+import type { AfterHangupHook } from "../capabilityPacks/contributeTypes.js";
+import { runAfterHangupHooks } from "../capabilityPacks/runAfterHangupHooks.js";
 
 const ACTIVE_STATUSES = new Set<CallSession["status"]>([
 	"resolving",
@@ -70,6 +72,9 @@ export interface EndCallHandlerDeps {
 	) => Promise<PostCallJob | null>;
 	startPostCallBackgroundJob: (jobId: string) => void;
 	runPostCallBackgroundJob: (jobId: string) => Promise<void>;
+	/** L1 call.afterHangup：endCall outcome 后、Free/Story 分支前；缺省空 */
+	afterHangupHooks?: readonly AfterHangupHook[];
+	packIdByHookId?: ReadonlyMap<string, string>;
 }
 
 interface EndCallContext {
@@ -537,6 +542,23 @@ export function createEndCallHandler(deps: EndCallHandlerDeps) {
 			outcome,
 			nowIso: new Date().toISOString(),
 		};
+
+		const afterHangupEvents = await runAfterHangupHooks({
+			hooks: deps.afterHangupHooks ?? [],
+			userId: session.userId,
+			sessionId,
+			agentId: session.resolve.agentId,
+			profile,
+			packIdByHookId: deps.packIdByHookId,
+		});
+		for (const event of afterHangupEvents) {
+			deps.pushLog({
+				at: ctx.nowIso,
+				type: event.type,
+				userId: session.userId,
+				payload: event,
+			});
+		}
 
 		const isFree = sessionIsFreeLike({
 			chapterId: session.chapterId,

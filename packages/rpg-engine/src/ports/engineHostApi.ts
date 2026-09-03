@@ -38,6 +38,13 @@ import type {
 	OnVoicemailUnreadChanged,
 } from "../runtime/voicemail/voicemailPorts.js";
 import type { PromptProviderRegistry } from "../runtime/promptProviderRegistry.js";
+import type {
+	AfterHangupHook,
+	ScheduleGate,
+	SoftExtraEnricher,
+	TaskRegistrar,
+} from "../capabilityPacks/contributeTypes.js";
+import type { CapabilityPackLogEvent } from "../capabilityPacks/mergeCapabilityPacks.js";
 import type { Outcome } from "../schema/outcome.js";
 import type { PlayerProfile } from "../schema/profile.js";
 import type { WorldLoreDoc } from "../schema/worldLore.js";
@@ -266,6 +273,31 @@ export interface CreateEngineHostOptions {
 	effectSink?: EffectSink | null;
 	/** Prompt Provider Registry；未注入则使用引擎内置默认链。 */
 	promptProviderRegistry?: PromptProviderRegistry | null;
+	/** L1 call.afterHangup 钩子；来自 mergeCapabilityPacks */
+	afterHangupHooks?: readonly AfterHangupHook[] | null;
+	/** hookId → packId，供 afterHangup 日志 */
+	packIdByHookId?: ReadonlyMap<string, string> | null;
+	/**
+	 * L1 schedule.gates；Studio 应传入 merge 结果。
+	 * `undefined`/`null` → 回退内置 outbound-window-gate；显式 `[]` → 无闸。
+	 */
+	scheduleGates?: readonly ScheduleGate[] | null;
+	/** gateId → packId，供 schedule_gate 日志 */
+	packIdByGateId?: ReadonlyMap<string, string> | null;
+	/** L1 begin.softExtras；缺省空 */
+	softExtraEnrichers?: readonly SoftExtraEnricher[] | null;
+	/**
+	 * L1 tasks.register；Host 创建时各 register 一次。
+	 * 完整宿主定时 / onTick 属后续；本字段只保证形状可挂。
+	 */
+	taskRegistrars?: readonly TaskRegistrar[] | null;
+	/** taskId → packId */
+	packIdByTaskId?: ReadonlyMap<string, string> | null;
+	/**
+	 * 装配期 CapabilityPack 事件（merge/disabled/rejected）；
+	 * Host 创建时写入 log ring，便于 Trace 对齐 packId。
+	 */
+	capabilityPackEvents?: readonly CapabilityPackLogEvent[] | null;
 	/** Lore 生成端口；null／缺省 → 直接 fallback */
 	loreBootstrap?: LoreBootstrapPort | null;
 	/**

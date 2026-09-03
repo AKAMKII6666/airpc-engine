@@ -9,8 +9,8 @@ import {
 	createLlmLoreBootstrapPortFromEnv,
 	extractLoreJsonObject,
 	parseWorldLoreFromLlmJson,
-} from "../../src/utils/server/lore/loreBootstrapLlm.server";
-import { isUserLocationChanged } from "../../src/utils/server/lore/loreLocationCompare.server";
+} from "../../src/utils/server/lore/bootstrap/loreBootstrapLlm.server";
+import { isUserLocationChanged } from "../../src/utils/server/lore/bootstrap/loreLocationCompare.server";
 import { resolveLoreLlmRuntimeConfig } from "../../src/utils/server/llm/llmConfig.server";
 
 const sampleInput: LoreBootstrapInput = {

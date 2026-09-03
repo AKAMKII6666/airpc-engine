@@ -8,7 +8,7 @@ import {
 	fetchDebuggerIncomingCalls,
 	postDebuggerIncomingAccept,
 	postDebuggerIncomingReject,
-} from "@studio-v2/src/utils/ajaxProxy/debugger/api/callSessionApi";
+} from "@studio-v2/src/utils/ajaxProxy/debugger/api/callSession/http/callSessionApi";
 import { useDebuggerStore } from "@studio-v2/src/stores/debugger/debuggerStore";
 import type { DebuggerIncomingCallView } from "@studio-v2/typeFiles/debugger/callSession";
 

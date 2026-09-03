@@ -6,8 +6,9 @@ import type { PlayerProfile } from "../schema/profile.js";
 import type { ScheduledCardLookup } from "../schedule/scheduleCardReferenceResolver.js";
 import {
 	ensureOutboundPending,
-	shouldDeferOutboundForPlayerWindow,
+	resolveOutboundWindowDefer,
 } from "./scheduleOutboundPending.js";
+import type { ScheduleFireOptions } from "./scheduleFireOptions.js";
 import {
 	fireVoicemailMailboxOnce,
 	isVoicemailMailboxOnce,
@@ -54,13 +55,20 @@ export function fireDueOnceIntent(
 	raw: unknown,
 	nowIso: string,
 	lookupCard?: ScheduledCardLookup | null,
+	fireOpts?: ScheduleFireOptions | null,
 ): OnceFireResult {
 	if (isVoicemailMailboxOnce(once, raw, lookupCard)) {
 		fireVoicemailMailboxOnce(profile, once, nowIso);
 		return { kind: "voicemail", once: { ...once, status: "fired" } };
 	}
 
-	if (shouldDeferOutboundForPlayerWindow(profile, nowIso)) {
+	const gateResult = resolveOutboundWindowDefer(profile, nowIso, fireOpts);
+	if (fireOpts?.onScheduleGateEvent) {
+		for (const event of gateResult.events) {
+			fireOpts.onScheduleGateEvent(event);
+		}
+	}
+	if (gateResult.defer) {
 		return { kind: "defer", once };
 	}
 

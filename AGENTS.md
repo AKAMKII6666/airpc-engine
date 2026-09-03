@@ -4,17 +4,18 @@
 
 ## 必读
 
-1. [docs/AI和人类/需求/00-文档索引.md](docs/AI和人类/需求/00-文档索引.md) — 产品总纲 
-2. [docs/AI和人类/里程碑/对照本仓库文档的工程落地_100计划.md](docs/AI和人类/里程碑/对照本仓库文档的工程落地_100计划.md) — **工程 100% 已收口（E0–E11）**；维护者整体验收后开 1.1  
-3. [docs/AI和人类/里程碑/项目第三步计划执行索引.md](docs/AI和人类/里程碑/项目第三步计划执行索引.md) — 第三步主线已收口（T0–T11）  
-4. [docs/AI和人类/里程碑/项目第二步计划执行索引.md](docs/AI和人类/里程碑/项目第二步计划执行索引.md) — 第二步分期（S0–S11，已收口）  
-5. [docs/AI和人类/里程碑/项目初始执行索引.md](docs/AI和人类/里程碑/项目初始执行索引.md) — 初始阶段分期（P0–P6a，已收口） 
-6. [docs/AI和人类/技术设计文档/00-技术设计索引.md](docs/AI和人类/技术设计文档/00-技术设计索引.md) — 工程分册入口 
-7. [docs/AI和人类/技术设计文档/19-引擎宿主与会话模型.md](docs/AI和人类/技术设计文档/19-引擎宿主与会话模型.md) — Host / CallSession 
-8. [docs/AI和人类/技术设计文档/23-引擎存取Port与IO适配.md](docs/AI和人类/技术设计文档/23-引擎存取Port与IO适配.md) — 存取 Port；本机 IO = studioV2/engineIOModule 
-9. [docs/AI和人类/技术设计文档/21-Studio客户端分层.md](docs/AI和人类/技术设计文档/21-Studio客户端分层.md) — Zustand · bis · shell（V2 硬门禁 STRUCT-021～024） 
-10. [.cursor/rules/codingRole.mdc](.cursor/rules/codingRole.mdc) — 编码铁律 
-11. [packages/rpg-engine/README.md](packages/rpg-engine/README.md) — 引擎使用说明 
+1. [docs/AI和人类/需求/00-文档索引.md](docs/AI和人类/需求/00-文档索引.md) — 产品总纲  
+2. [docs/AI和人类/里程碑/v1.0/对照本仓库文档的工程落地_100计划.md](docs/AI和人类/里程碑/v1.0/对照本仓库文档的工程落地_100计划.md) — **工程 100% 已收口（E0–E11）**；维护者整体验收后开 1.1  
+3. [docs/AI和人类/里程碑/v2.0/项目第三步计划执行索引.md](docs/AI和人类/里程碑/v2.0/项目第三步计划执行索引.md) — 第三步主线已收口（T0–T11）  
+4. [docs/AI和人类/里程碑/v2.0/项目第二步计划执行索引.md](docs/AI和人类/里程碑/v2.0/项目第二步计划执行索引.md) — 第二步分期（S0–S11，已收口）  
+5. [docs/AI和人类/里程碑/v1.0/项目初始执行索引.md](docs/AI和人类/里程碑/v1.0/项目初始执行索引.md) — 初始阶段分期（P0–P6a，已收口）  
+6. [docs/AI和人类/里程碑/v2.0/L1能力包与插槽_前置与分期执行索引.md](docs/AI和人类/里程碑/v2.0/L1能力包与插槽_前置与分期执行索引.md) — **1.1+ L1：前置收口后方可 L1-A**（能力包 / 插槽）  
+7. [docs/AI和人类/技术设计文档/00-技术设计索引.md](docs/AI和人类/技术设计文档/00-技术设计索引.md) — 工程分册入口  
+8. [docs/AI和人类/技术设计文档/19-引擎宿主与会话模型.md](docs/AI和人类/技术设计文档/19-引擎宿主与会话模型.md) — Host / CallSession  
+9. [docs/AI和人类/技术设计文档/23-引擎存取Port与IO适配.md](docs/AI和人类/技术设计文档/23-引擎存取Port与IO适配.md) — 存取 Port；本机 IO = studioV2/engineIOModule  
+10. [docs/AI和人类/技术设计文档/21-Studio客户端分层.md](docs/AI和人类/技术设计文档/21-Studio客户端分层.md) — Zustand · bis · shell（V2 硬门禁 STRUCT-021～024）  
+11. [.cursor/rules/codingRole.mdc](.cursor/rules/codingRole.mdc) — 编码铁律  
+12. [packages/rpg-engine/README.md](packages/rpg-engine/README.md) — 引擎使用说明  
 
 ## 拓扑
 
@@ -29,9 +30,11 @@ Browser (React + MUI + scss module + Zustand/bis/shell)
 
 ```text
 packages/rpg-engine/          # 纯逻辑 + Port 契约；用法见 README
+  src/capabilityPacks/        # L1 第一方能力包（静态；禁裸名 plugins/）
 apps/studio/
 apps/studioV2/
   engineIOModule/             # 本机存取 IO（JSON+fs / SQLite / jsonl）
+  src/utils/server/capabilityPacks/  # 第一方包装配
 data/                         # storis-packages/ + characters/ + users/ + …
 docs/人类/
 docs/AI和人类/需求/
@@ -40,12 +43,14 @@ docs/AI和人类/里程碑/
 docs/AI/
 .cursor/rules/
 ```
+
 ## 磁盘与 Registry 口径（S0 定稿 · 包⊃章升档）
 
 - **故事包根目录正式名** = `data/storis-packages/`（拼写保持现状；全仓重命名另立项，不做本步强制迁移）
 - **布局**：`<packageId>/package.conf.json` + `chapters/<chapterId>/{story.conf.json,canvas.layout.json,cards/}`；旧扁平目录读盘自动迁
 - **运行时单位** = 章（`chapterId`）；故事包为容器；实机一次只载一包
 - **ToolRegistry v1 真源** = 引擎代码内置 `builtinRegistry`；`data/tools/registry.json` = **非真源／预留导出副本**（运行时无读路径）
+- **CapabilityPack（L1）** = 引擎 `src/capabilityPacks/` 静态 merge；workspace `plugins/` 扫描属 L2（见技术设计 24/25）
 
 ## 铁律摘要
 
@@ -54,6 +59,7 @@ docs/AI/
 - 故事列表 → UserGate → 画布；调试与编辑分离  
 - UI：仅 MUI + scss module；客户端 **Zustand · bis · shell**（见技术设计 21）  
 - 引擎不进 client；存取经 Port（见 [23](docs/AI和人类/技术设计文档/23-引擎存取Port与IO适配.md)）；本机 IO = `engineIOModule`；Memory = SQLite  
+- 第一方扩展走 `capabilityPacks` 插槽；Client 禁 import；引擎禁 `readdir(plugins)`  
 
 ## 常用命令
 

@@ -9,7 +9,7 @@ import {
 	httpStatusForCode,
 } from "@studio-v2/src/utils/server/http/apiResponse.server";
 import { getStudioV2EngineHost } from "@studio-v2/src/utils/server/host/engineHost.server";
-import { lorePreviewFromDoc } from "@studio-v2/src/utils/server/lore/lorePreview.server";
+import { lorePreviewFromDoc } from "@studio-v2/src/utils/server/lore/preview/lorePreview.server";
 import { isValidUserId } from "@studio-v2/src/utils/server/users/usersFs.server";
 import { syncHostProfileAfterFsWrite } from "@studio-v2/src/utils/server/users/syncHostProfileAfterFsWrite.server";
 

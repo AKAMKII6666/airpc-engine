@@ -3,6 +3,28 @@
 	* 与 server/engine 类型字段对齐但不 import，遵守 Client/Server 隔离。
 	*/
 
+import type { DebuggerMemoryCommitTraceView } from "./memoryTrace";
+export type { DebuggerMemoryCommitTraceView } from "./memoryTrace";
+export type {
+	DebuggerPostCallJobView,
+	DebuggerPostCallJobsResponse,
+	DebuggerPostCallRetryBody,
+	DebuggerPostCallRetryResponse,
+} from "./postCall";
+export type {
+	DebuggerMemoryTraceBlockView,
+	DebuggerMemoryAttitudeView,
+	DebuggerMemoryCommitTraceDetailView,
+	DebuggerMemoryTraceResponse,
+} from "./memoryTrace";
+export type {
+	DebuggerCallSessionResponse,
+	DebuggerIncomingCallsResponse,
+	DebuggerCallEndResponse,
+} from "./callSessionResponses";
+
+
+/** 表示 Host resolve 来源；UI 用来区分 free/story/simulate/信箱 */
 export type DebuggerCallSource =
 	| "story_pending"
 	| "free"
@@ -175,24 +197,39 @@ export type DebuggerOpeningSituationView = {
 
 /** 单个工具在 Registry / 角色能力 / 卡策略过滤链上的投影 */
 export type DebuggerToolResolutionTraceItem = {
+	/** 工具稳定 id；与 builtinRegistry / ToolDefinition.id 对齐 */
 	toolId: string;
+	/** UI 展示名；来自 registry displayName */
 	displayName: string;
+	/** 能力声明层级：global 或 character_capability（及扩展串） */
 	availability: "global" | "character_capability" | string;
+	/** 角色 CharacterCapabilities 是否声明过该 tool */
 	declaredByCharacter: boolean;
+	/** 角色能力白名单是否允许 */
 	allowedByCharacter: boolean;
+	/** 当前卡 kind 策略是否允许 */
 	allowedByCardKind: boolean;
+	/** 卡级 toolPolicy include/exclude 是否纳入 */
 	includedByCardPolicy: boolean;
+	/** 最终是否暴露给本通 LLM tools 列表 */
 	exposedToLlm: boolean;
+	/** 未暴露或过滤原因人话摘要；暴露时可为空串 */
 	reason: string;
 };
 
 /** 工具能力来源 Trace；由 engine projector 产生，client 只展示 */
 export type DebuggerToolResolutionTrace = {
+	/** 全量 registry 工具 id 列表（过滤前） */
 	registryToolIds: string[];
+	/** 角色能力声明的 tool id；无能力配置时为空 */
 	characterCapabilityToolIds: string[];
+	/** 卡策略模式摘要（如 allowlist / denylist / inherit） */
 	cardPolicyMode: string;
+	/** 卡策略显式列出的 tool id；无策略时为 null */
 	cardPolicyToolIds: string[] | null;
+	/** 最终交给 LLM 的 tool id 有序列表 */
 	finalToolIds: string[];
+	/** 逐工具过滤链明细；与 registry 对齐 */
 	items: DebuggerToolResolutionTraceItem[];
 };
 
@@ -226,34 +263,9 @@ export type DebuggerPromptTraceView = {
 };
 
 /** 表示 Host 调度外呼事件的浏览器投影；FE 镜像，禁止 import engine 类型 */
-export type DebuggerIncomingCallView = {
-	/** Host incoming event id；接听/挂断时回传 */
-	eventId: string;
-	/** 当前调试用户 id */
-	userId: string;
-	/** 外呼角色 id */
-	agentId: string;
-	/** 外呼角色展示名；server 从角色库投影 */
-	displayName: string;
-	/** 外呼角色号码；用于 modal 辅助展示 */
-	phoneNumber: string;
-	/** 外呼目标章节 id */
-	chapterId: string;
-	/** 外呼目标通话卡 id */
-	cardId: string;
-	/** Board pending instance id；用于核对接听命中的 pending */
-	instanceId: string;
-	/** Profile.schedule once intent id；用于日志索引 */
-	scheduleIntentId: string;
-	/** 事件来源；当前为 schedule */
-	source: "schedule" | string;
-	/** incoming event 状态；GET 只返回 pending */
-	status: "pending" | "accepted" | "rejected" | "dismissed" | string;
-	/** 事件创建时间 ISO 字符串 */
-	createdAt: string;
-};
+export type { DebuggerIncomingCallView } from "./incomingCall";
 
-/** 表示真实 Host CallSession 的浏览器投影，生命周期跟随 server 内存会话 */
+/** 表示 Host CallSession 的浏览器投影；UI 只读，不以 client store 为真源 */
 export type DebuggerCallSessionView = {
 	/** Host CallSession id；浏览器只持引用，不作为真源 */
 	sessionId: string;
@@ -345,23 +357,45 @@ export type SendDebuggerMessageBody = {
 	text: string;
 };
 
+/**
+	* SSE tool_start 载荷；流式一轮工具调用开始时推给 UI。
+	* 生命周期仅覆盖当前 messageId 的本轮 tool call。
+	*/
 export type DebuggerMessageStreamToolStart = {
+	/** 本通 assistant 消息 id；与 message_start 对齐 */
 	messageId: string;
+	/** LLM tool_call id；与后续 tool_end 配对 */
 	toolCallId: string;
+	/** 工具稳定 id */
 	toolId: string;
+	/** 工具循环轮次；从 0 起 */
 	round: number;
+	/** 参数 JSON 预览（已裁剪）；勿当完整入参真源 */
 	argumentsPreview: string;
 };
 
+/**
+	* SSE tool_end 载荷；工具执行结束（成功或失败）时推给 UI。
+	*/
 export type DebuggerMessageStreamToolEnd = {
+	/** 本通 assistant 消息 id */
 	messageId: string;
+	/** 与 tool_start 配对的 tool_call id */
 	toolCallId: string;
+	/** 工具稳定 id */
 	toolId: string;
+	/** 工具循环轮次；与 tool_start 一致 */
 	round: number;
+	/** 结果摘要预览（已裁剪）；失败时可为错误文案 */
 	resultPreview: string;
+	/** true=工具执行成功；false=失败仍继续主链 */
 	ok: boolean;
 };
 
+/**
+	* 调试消息 SSE 事件联合体；client EventSource 按 event 字段分发。
+	* 不含 LLM Key；session_snapshot 为 Host 投影刷新点。
+	*/
 export type DebuggerMessageStreamEvent =
 	| {
 			event: "message_start";
@@ -427,9 +461,9 @@ export type DebuggerCallEndView = {
 	/** Effect plan 终态；没有 plan 时为 null */
 	planStatus: string | null;
 	/**
-	 * Free pipeline 记忆是否已提交。
-	 * 后台未完成时为 false（见 memoryTrace.skippedReason=background_pending），勿当最终失败。
-	 */
+		* Free pipeline 记忆是否已提交。
+		* 后台未完成时为 false（见 memoryTrace.skippedReason=background_pending），勿当最终失败。
+		*/
 	freeCommitted: boolean | null;
 	/** 挂机后后台副作用 job id；用于轮询详情与占线状态 */
 	postCallJobId: string;
@@ -437,145 +471,3 @@ export type DebuggerCallEndView = {
 	memoryTrace: DebuggerMemoryCommitTraceView | null;
 };
 
-export type DebuggerPostCallJobView = {
-	jobId: string;
-	userId: string;
-	sessionId: string;
-	primaryAgentId: string;
-	status: string;
-	updatedAt: string;
-	effectPlanStatus: string | null;
-	selectedExitId: string | null;
-	steps: Array<{
-		id: string;
-		status: "pending" | "running" | "done" | "failed" | "skipped";
-		detail?: string;
-	}>;
-	failedSteps: Array<{ stepId: string; error: string }>;
-};
-
-export type DebuggerPostCallJobsResponse = {
-	jobs: DebuggerPostCallJobView[];
-};
-
-export type DebuggerPostCallRetryBody = {
-	jobId: string;
-};
-
-export type DebuggerPostCallRetryResponse = {
-	job: DebuggerPostCallJobView;
-};
-
-/** 表示挂机记忆提交的可读 trace 摘要 */
-export type DebuggerMemoryCommitTraceView = {
-	/** DTO trace id；对应 debug-dto indexes/by-trace */
-	traceId: string;
-	/** DTO id；对应 debug-dto/memory-commits/<dtoId>.json */
-	dtoId: string;
-	/** 记忆提交策略来源 */
-	policy: "free_post_pipeline" | "story_call";
-	/** 是否提交成功 */
-	committed: boolean;
-	/** 本次提交写入/命中的 entry ids */
-	entryIds: string[];
-	/** 跳过原因；无则为 null */
-	skippedReason: string | null;
-	/** 提交错误；无则为 null */
-	error: string | null;
-};
-
-/** 表示调试通话 API 的统一响应包，session 为最新 Host 投影 */
-export type DebuggerCallSessionResponse = {
-	/** 最新 Host CallSession 投影；浏览器展示用，不持久化 */
-	session: DebuggerCallSessionView;
-};
-
-/** 表示调试器外呼列表响应包 */
-export type DebuggerIncomingCallsResponse = {
-	/** 当前仍 pending 的外呼事件 */
-	incomingCalls: DebuggerIncomingCallView[];
-};
-
-/** 表示调试通话挂断 API 的统一响应包 */
-export type DebuggerCallEndResponse = {
-	/** Host endCall 投影；浏览器展示用，不持久化 */
-	end: DebuggerCallEndView;
-};
-
-/** 表示 MemoryCommit Trace 的 UI 预览块 */
-export type DebuggerMemoryTraceBlockView = {
-	/** 块标题 */
-	title: string;
-	/** 裁剪后的文本内容 */
-	text: string;
-	/** 原始字符数 */
-	charCount: number;
-	/** 是否被裁剪 */
-	truncated: boolean;
-};
-
-/** 表示态度记忆结构化预览 */
-export type DebuggerMemoryAttitudeView = {
-	/** 短态度标签，如“亲近”“防备” */
-	stance: string;
-	/** 一句人话摘要 */
-	summary: string;
-	/** 本通依据 */
-	evidence: string;
-	/** 抽象感觉标签；用于展示 NPC 当前感觉 */
-	feel: string[];
-	/** 用于后续记忆溯源的关键词 */
-	keywords: string[];
-};
-
-/** 表示 MemoryCommit Trace 的可读摘要 */
-export type DebuggerMemoryCommitTraceDetailView = {
-	/** DTO id；对应 debug-dto/memory-commits/<dtoId>.json */
-	dtoId: string;
-	/** DTO trace id */
-	traceId: string | null;
-	/** DTO 写入时间 */
-	at: string | null;
-	/** 所属 session */
-	sessionId: string;
-	/** 所属 user */
-	userId: string | null;
-	/** 角色 */
-	agentId: string | null;
-	/** 存储是否成功 */
-	ok: boolean;
-	/** 写入层 */
-	writtenLayers: string[];
-	/** 写入 entry 数 */
-	writtenEntryCount: number;
-	/** LLM 抽取前字段计数 */
-	rawCounts: Record<string, number>;
-	/** 字段级清洗后计数 */
-	sanitizedCounts: Record<string, number>;
-	/** 被过滤计数 */
-	filteredCounts: Record<string, number>;
-	/** exclusion seed 数 */
-	exclusionSeedCount: number;
-	/** 写入错误；无则 null */
-	error: string | null;
-	/** 本通摘要预览 */
-	summaryText: string | null;
-	/** 结构化字段预览 */
-	structured: {
-		userFacts: string[];
-		sharedEvents: string[];
-		promises: string[];
-		socialShareCandidates: string[];
-		emotion: string | null;
-		identityNote: string | null;
-		attitude: DebuggerMemoryAttitudeView | null;
-	};
-	/** LLM 输入/输出/落库等预览块 */
-	blocks: DebuggerMemoryTraceBlockView[];
-};
-
-/** 表示 MemoryCommit Trace 读取 API 响应 */
-export type DebuggerMemoryTraceResponse = {
-	/** MemoryCommit Trace 详情 */
-	trace: DebuggerMemoryCommitTraceDetailView;
-};

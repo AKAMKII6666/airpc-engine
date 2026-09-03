@@ -7,17 +7,21 @@ export type LoreSourceDto = "llm" | "fallback" | "manual";
 
 /** 世界背景锚定地点只读投影；与 Profile.world.lore.location 对齐 */
 export type LoreLocationPreviewDto = {
+	/** 国家；与 user.location / lore 锚定一致 */
 	country: string;
+	/** 省/州；可与 Profile.user.location 对照 */
 	province: string;
+	/** 城市；通话 softExtras 地点文案来源之一 */
 	city: string;
 	/** 区/县；可空 */
 	district?: string;
 };
 
 /**
- * 详情页只读展示用；与 Profile.world.lore 摘要字段镜像，禁止 import 引擎。
- */
+	* 详情页只读展示用；与 Profile.world.lore 摘要字段镜像，禁止 import 引擎。
+	*/
 export type LorePreviewDto = {
+	/** lore 生成来源；llm / fallback / manual，影响「重新生成」提示 */
 	source: LoreSourceDto;
 	/** 共享前提；通话 softExtras 主文案 */
 	sharedPremise: string;

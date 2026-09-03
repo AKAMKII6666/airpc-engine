@@ -1,27 +1,16 @@
 /**
- * 模块名称：本机 Fs PostCallJobStorePort
- * 模块说明：PostCallJob 持久化到 `data/post-call-jobs.json`。
- * 仅 Server / Host 装配可引用；禁止 Client。
- */
+	* 模块名称：本机 Fs PostCallJobStorePort
+	* 模块说明：PostCallJob 持久化到 `data/post-call-jobs.json`。
+	* 仅 Server / Host 装配可引用；禁止 Client。
+	*/
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type {
 	PostCallJob,
 	PostCallJobListFilter,
 	PostCallJobStorePort,
-	PostCallJobStatus,
 } from "@airpc/rpg-engine";
-
-const RUNNING_STATUSES = new Set<string>([
-	"closing",
-	"committed",
-	"memory_committing",
-	"rollup_running",
-	"media_running",
-	"voicemail_running",
-]);
-
-const CLAIMABLE = new Set<PostCallJobStatus>(["background_pending"]);
+import { createJobMutations } from "./fsPostCallJobMutations";
 
 function jobsFilePath(dataRoot: string): string {
 	return path.join(dataRoot, "post-call-jobs.json");
@@ -66,41 +55,24 @@ export function createFsPostCallJobStorePort(dataRoot: string): PostCallJobStore
 		return run;
 	}
 
+	const io = {
+		readJobs: function () {
+			return readJobs(file);
+		},
+		writeJobs: function (jobs: PostCallJob[]) {
+			return writeJobs(file, jobs);
+		},
+		enqueueWrite,
+	};
+	const mutations = createJobMutations(io);
+
 	return {
-		async createJob(job: PostCallJob): Promise<void> {
-			await enqueueWrite(async function () {
-				const jobs = await readJobs(file);
-				const exists = jobs.some(
-					(item) =>
-						item.jobId === job.jobId || item.sessionId === job.sessionId,
-				);
-				if (!exists) {
-					jobs.push(job);
-					await writeJobs(file, jobs);
-				}
-			});
-		},
-
-		async updateJob(
-			jobId: string,
-			patch: Partial<PostCallJob>,
-		): Promise<PostCallJob | null> {
-			return enqueueWrite(async function () {
-				const jobs = await readJobs(file);
-				const idx = jobs.findIndex((item) => item.jobId === jobId);
-				if (idx < 0) return null;
-				const next: PostCallJob = { ...jobs[idx]!, ...patch, jobId };
-				jobs[idx] = next;
-				await writeJobs(file, jobs);
-				return next;
-			});
-		},
-
+		createJob: mutations.createJob,
+		updateJob: mutations.updateJob,
 		async getJob(jobId: string): Promise<PostCallJob | null> {
 			const jobs = await readJobs(file);
 			return jobs.find((item) => item.jobId === jobId) ?? null;
 		},
-
 		async listJobs(filter?: PostCallJobListFilter): Promise<PostCallJob[]> {
 			const jobs = await readJobs(file);
 			const statuses = filter?.statuses;
@@ -113,40 +85,7 @@ export function createFsPostCallJobStorePort(dataRoot: string): PostCallJobStore
 				return true;
 			});
 		},
-
-		async claimJob(jobId: string): Promise<PostCallJob | null> {
-			return enqueueWrite(async function () {
-				const jobs = await readJobs(file);
-				const idx = jobs.findIndex((item) => item.jobId === jobId);
-				if (idx < 0) return null;
-				const current = jobs[idx]!;
-				if (!CLAIMABLE.has(current.status)) return null;
-				const next: PostCallJob = {
-					...current,
-					status: "memory_committing",
-					updatedAt: new Date().toISOString(),
-				};
-				jobs[idx] = next;
-				await writeJobs(file, jobs);
-				return next;
-			});
-		},
-
-		async reclaimRunningJobs(): Promise<string[]> {
-			return enqueueWrite(async function () {
-				const jobs = await readJobs(file);
-				const reclaimed: string[] = [];
-				for (const job of jobs) {
-					if (RUNNING_STATUSES.has(job.status)) {
-						job.status = "background_pending";
-						reclaimed.push(job.jobId);
-					}
-				}
-				if (reclaimed.length > 0) {
-					await writeJobs(file, jobs);
-				}
-				return reclaimed;
-			});
-		},
+		claimJob: mutations.claimJob,
+		reclaimRunningJobs: mutations.reclaimRunningJobs,
 	};
 }

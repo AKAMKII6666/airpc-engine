@@ -231,6 +231,64 @@ export function characterDefToSummary(def: CharacterDef): CharacterSummary {
 }
 
 /**
+	* 详情 Formik 场景层 → CharacterDef.defaultPromptScenes。
+	*/
+function mapDetailScenesFromForm(
+	values: CharacterDetailFormValues,
+): NonNullable<CharacterDef["defaultPromptScenes"]> {
+	return values.defaultPromptScenes.map(function (scene, index) {
+		return {
+			layerId: scene.layerId.trim(),
+			priority: index * 10,
+			match: {
+				callDirection: scene.match.callDirection,
+				localHourRange: {
+					from: scene.match.localHourRange.from,
+					to: scene.match.localHourRange.to,
+				},
+			},
+			patch: {
+				openingSpeakable: scene.patch.openingSpeakable.trim(),
+				openingPrivate: scene.patch.openingPrivate.trim(),
+				emotion: scene.patch.emotion.trim(),
+				toneHint: scene.patch.toneHint.trim(),
+				appendSpeakable: scene.patch.appendSpeakable.trim(),
+				appendPrivate: scene.patch.appendPrivate.trim(),
+			},
+		};
+	});
+}
+
+function mapDetailCallFlowFromForm(
+	previous: CharacterDef,
+	values: CharacterDetailFormValues,
+): NonNullable<CharacterDef["callFlowPrompts"]> {
+	return {
+		...(previous.callFlowPrompts ?? {}),
+		longSilence: values.callFlowPrompts.longSilence.map(function (v) {
+			return {
+				variantId: v.variantId.trim(),
+				text: v.text.trim(),
+			};
+		}),
+		longCallNudge: values.callFlowPrompts.longCallNudge.map(function (v) {
+			return {
+				variantId: v.variantId.trim(),
+				text: v.text.trim(),
+			};
+		}),
+		preHangupFarewell: values.callFlowPrompts.preHangupFarewell.map(
+			function (v) {
+				return {
+					variantId: v.variantId.trim(),
+					text: v.text.trim(),
+				};
+			},
+		),
+	};
+}
+
+/**
 	* 详情 Formik 合并进既有 CharacterDef；保留 social/freeCardId/dialable 等。
 	* 显式剥离 match.timeBuckets；不写入记忆。
 	*/
@@ -256,32 +314,6 @@ export function mergeDetailFormIntoCharacterDef(
 	} else {
 		delete nextMeta.avatarAssetId;
 	}
-
-	const scenes = values.defaultPromptScenes.map(function (scene, index) {
-		const match: {
-			callDirection: "inbound" | "outbound" | "either";
-			localHourRange: { from: number; to: number };
-		} = {
-			callDirection: scene.match.callDirection,
-			localHourRange: {
-				from: scene.match.localHourRange.from,
-				to: scene.match.localHourRange.to,
-			},
-		};
-		return {
-			layerId: scene.layerId.trim(),
-			priority: index * 10,
-			match,
-			patch: {
-				openingSpeakable: scene.patch.openingSpeakable.trim(),
-				openingPrivate: scene.patch.openingPrivate.trim(),
-				emotion: scene.patch.emotion.trim(),
-				toneHint: scene.patch.toneHint.trim(),
-				appendSpeakable: scene.patch.appendSpeakable.trim(),
-				appendPrivate: scene.patch.appendPrivate.trim(),
-			},
-		};
-	});
 
 	return {
 		...previous,
@@ -312,30 +344,8 @@ export function mergeDetailFormIntoCharacterDef(
 					? 5
 					: values.persona.attitudeHistoryLimit,
 		},
-		callFlowPrompts: {
-			...(previous.callFlowPrompts ?? {}),
-			longSilence: values.callFlowPrompts.longSilence.map(function (v) {
-				return {
-					variantId: v.variantId.trim(),
-					text: v.text.trim(),
-				};
-			}),
-			longCallNudge: values.callFlowPrompts.longCallNudge.map(function (v) {
-				return {
-					variantId: v.variantId.trim(),
-					text: v.text.trim(),
-				};
-			}),
-			preHangupFarewell: values.callFlowPrompts.preHangupFarewell.map(
-				function (v) {
-					return {
-						variantId: v.variantId.trim(),
-						text: v.text.trim(),
-					};
-				},
-			),
-		},
-		defaultPromptScenes: scenes,
+		callFlowPrompts: mapDetailCallFlowFromForm(previous, values),
+		defaultPromptScenes: mapDetailScenesFromForm(values),
 		meta: nextMeta,
 	};
 }

@@ -1,7 +1,7 @@
 /**
- * usersFs 直写后 syncHostProfileAfterFsWrite：autosave 不覆盖新 nickname。
- */
-import { cp, mkdtemp, readFile, rm } from "node:fs/promises";
+	* usersFs 直写后 syncHostProfileAfterFsWrite：autosave 不覆盖新 nickname。
+	*/
+import { cp, mkdir, mkdtemp, readFile, rm } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -26,19 +26,40 @@ const repoRoot = path.resolve(
 );
 const repoData = path.join(repoRoot, "data");
 
+/**
+	* 只拷稳定夹具，禁止整树 cp(data/)。
+	* storiesFs / diskBundleGraph 会在共享 storis-packages 下建删探针包，
+	* 整树递归拷贝会与其竞态（ENOENT lstat studio_v2_*）。
+	*/
+async function setupIsolatedDataRoot(): Promise<string> {
+	const tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-user-sync-"));
+	await mkdir(path.join(tmpRoot, "storis-packages"), { recursive: true });
+	await cp(
+		path.join(repoData, "workspace.json"),
+		path.join(tmpRoot, "workspace.json"),
+	);
+	await cp(path.join(repoData, "users"), path.join(tmpRoot, "users"), {
+		recursive: true,
+	});
+	await cp(
+		path.join(repoData, "characters"),
+		path.join(tmpRoot, "characters"),
+		{ recursive: true },
+	);
+	await cp(
+		path.join(repoData, "storis-packages", "golden_handoff"),
+		path.join(tmpRoot, "storis-packages", "golden_handoff"),
+		{ recursive: true },
+	);
+	return tmpRoot;
+}
+
 describe("syncHostProfileAfterFsWrite", () => {
 	let tmpRoot: string | undefined;
 
 	beforeEach(async () => {
 		resetStudioV2EngineHostForTests();
-		tmpRoot = await mkdtemp(path.join(os.tmpdir(), "airpc-user-sync-"));
-		await cp(repoData, tmpRoot, {
-			recursive: true,
-			filter: function (src) {
-				const rel = path.relative(repoData, src);
-				return rel !== "logs" && !rel.startsWith(`logs${path.sep}`);
-			},
-		});
+		tmpRoot = await setupIsolatedDataRoot();
 		vi.mocked(getStudioV2DataRoot).mockReturnValue(tmpRoot);
 	});
 

@@ -1,9 +1,9 @@
 /**
- * 模块名称：调试器挂机后副作用 job 投影
- * 模块说明：Host PostCallJob → DebuggerPostCallJobView。
- */
+	* 模块名称：调试器挂机后副作用 job 投影
+	* 模块说明：Host PostCallJob → DebuggerPostCallJobView。
+	*/
 import { isEngineError, type EngineHost, type PostCallJob } from "@airpc/rpg-engine";
-import type { DebuggerPostCallJobView } from "@studio-v2/typeFiles/debugger/callSession";
+import type { DebuggerPostCallJobView } from "./debuggerCallDtos.server";
 import { getStudioV2EngineHost } from "@studio-v2/src/utils/server/host/engineHost.server";
 
 function projectPostCallJob(job: PostCallJob): DebuggerPostCallJobView {

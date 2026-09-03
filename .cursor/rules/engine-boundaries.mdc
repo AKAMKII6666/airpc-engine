@@ -22,6 +22,8 @@ alwaysApply: false
 - 本包只被 Next **server**（`app/api` / `*.server.ts` / `utils/server`）/ 壳 / Vitest 引用；**禁止** Studio V2 Client（含 `bis` / `pageComponents` / `typeFiles` / `ajaxProxy`）任何 import（含 type）。
 - 条件求值结构化谓词；禁 `eval`。
 - **对外门面：** `src/index.ts` **允许且鼓励**聚合导出；**合法调用方**只 `import from "@airpc/rpg-engine"`，禁依赖方深挖内部模块。
+- **第一方 CapabilityPack：** 代码落 `src/capabilityPacks/`；由 Studio server / 测试静态 import + `mergeCapabilityPacks` 注入；**禁止**引擎内核 `readdir(plugins)`；引擎内**禁止**裸目录名 `plugins/`（workspace `plugins/` 属 L2，见技术设计 24/25）。
+- **Client 禁深挖** `capabilityPacks/**`（与禁 import 引擎一致；含 type）。
 - **测试**放 `packages/rpg-engine/tests/`，禁止与 `src/` 平放 `*.test.ts`。
 - **目录职责聚类：** 内部域文件增多时按异责 ≥4 分子目录（host/session/memory…）；不为空壳先建单文件空目录。
 

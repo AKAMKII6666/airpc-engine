@@ -15,7 +15,7 @@ import {
 } from "./sqlite/write/mutations";
 import { openSqliteMemoryDb } from "./sqlite/db/openDb";
 import { listRecentAttitudes } from "./sqlite/query/listRecentAttitudes";
-import { projectForCall } from "./sqlite/query/projectForCall";
+import { projectForCall } from "./sqlite/query/project/projectForCall";
 import { rollupIfNeeded } from "./sqlite/write/rollup";
 import { searchMemory } from "./sqlite/query/search";
 

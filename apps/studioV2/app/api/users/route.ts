@@ -12,7 +12,7 @@ import {
 	apiOk,
 	httpStatusForCode,
 } from "@studio-v2/src/utils/server/http/apiResponse.server";
-import { bootstrapLoreAfterCreateUser } from "@studio-v2/src/utils/server/lore/bootstrapLoreAfterCreate.server";
+import { bootstrapLoreAfterCreateUser } from "@studio-v2/src/utils/server/lore/bootstrap/bootstrapLoreAfterCreate.server";
 import {
 	createUserProfile,
 	isValidUserId,

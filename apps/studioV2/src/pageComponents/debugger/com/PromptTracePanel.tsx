@@ -6,81 +6,17 @@
 import type { FC } from "react";
 import type { DebuggerPromptTraceView } from "@studio-v2/typeFiles/debugger/callSession";
 import styles from "../DebuggerShell.module.scss";
-
-function providerClass(important: boolean): string {
-	return important ? styles.promptProviderChipActive : styles.promptProviderChip;
-}
-
-function promptTraceItemKey(scope: string, value: string, index: number): string {
-	return `${scope}_${index}_${value}`;
-}
-
-function promptTraceBlockKey(
-	scope: string,
-	block: DebuggerPromptTraceView["systemHardBlocks"][number],
-	index: number,
-): string {
-	return promptTraceItemKey(
-		scope,
-		`${block.title}_${block.charCount}`,
-		index,
-	);
-}
-
-type PromptBlockListProps = {
-	/** block 列标题；用于区分 systemHard / softContext */
-	title: string;
-	/** server 已裁剪的 prompt block 列表 */
-	blocks: DebuggerPromptTraceView["systemHardBlocks"];
-	/** key scope；用于避免 hard/soft block key 冲突 */
-	scope: string;
-};
-
-const PromptBlockList: FC<PromptBlockListProps> = function PromptBlockList({
-	// title 是 block 列标题，用于标识 systemHard 或 softContext
-	title,
-	// blocks 是 server 投影出的 prompt block 列表，用于展开查看
-	blocks,
-	// scope 是 key 命名空间，用于区分不同 block 列
-	scope,
-}) {
-	return (
-		<div>
-			<h4>{title}</h4>
-			{blocks.map((block, index) => (
-				<details
-					key={promptTraceBlockKey(scope, block, index)}
-					className={styles.promptBlock}
-				>
-					<summary>
-						<span>
-							<strong>{block.title}</strong>
-							<em>{block.preview}</em>
-						</span>
-						<small>
-							{block.charCount} chars
-							{block.truncated ? " · trimmed" : ""}
-						</small>
-					</summary>
-					<pre>{block.text}</pre>
-				</details>
-			))}
-		</div>
-	);
-};
+import {
+	PromptBlockList,
+	promptTraceItemKey,
+	providerClass,
+} from "./PromptTraceBlocks";
+import { PromptTraceOpening, PromptTraceTools } from "./PromptTraceSections";
 
 type PromptTracePanelProps = {
 	/** Host Composer trace 投影；用于定位 Prompt Provider 组装结果 */
 	trace: DebuggerPromptTraceView;
 };
-
-function traceReasonLabel(reason: string): string {
-	if (reason === "exposed") return "开放";
-	if (reason === "character_capability_missing") return "角色未声明";
-	if (reason === "card_policy_filtered") return "卡策略过滤";
-	if (reason === "card_kind_blocked") return "卡类型不允许";
-	return reason;
-}
 
 export const PromptTracePanel: FC<PromptTracePanelProps> =
 	function PromptTracePanel({
@@ -97,7 +33,6 @@ export const PromptTracePanel: FC<PromptTracePanelProps> =
 					<span>soft {trace.softContextBlocks.length}</span>
 					<span>layers {trace.matchedLayerIds.length}</span>
 				</div>
-
 				{trace.providerRows.length > 0 ? (
 					<div className={styles.promptProviderRail}>
 						{trace.providerRows.map((provider) => (
@@ -115,118 +50,10 @@ export const PromptTracePanel: FC<PromptTracePanelProps> =
 				) : (
 					<div className={styles.debugEmptyLine}>暂无 provider trace。</div>
 				)}
-
-				<div className={styles.promptTraceGrid}>
-					<div>
-						<span className={styles.debugLabel}>Opening</span>
-						<strong>{trace.openingSpeakable ?? "由模型生成"}</strong>
-					</div>
-					<div>
-						<span className={styles.debugLabel}>Policy</span>
-						<strong>
-							{trace.openingPolicy
-								? `${trace.openingPolicy.mode} · ${trace.openingPolicy.maxSentences}句`
-								: "无"}
-						</strong>
-					</div>
-					<div>
-						<span className={styles.debugLabel}>Situation</span>
-						<strong>
-							{trace.openingSituation
-								? `${trace.openingSituation.kind} · ${trace.openingSituation.control}`
-								: "无"}
-						</strong>
-					</div>
-				</div>
-
-				{trace.openingSituation ? (
-					<div className={styles.promptSituation}>
-						<div>
-							<span>opening situation</span>
-							<strong>
-								{trace.openingSituation.overridden ? "provider 覆盖" : "card 保持"}
-								{trace.openingSituation.priority !== null
-									? ` · P${trace.openingSituation.priority}`
-									: ""}
-							</strong>
-						</div>
-						<p>{trace.openingSituation.reason || "无 reason"}</p>
-						{trace.openingSituation.tags.length > 0 ? (
-							<div className={styles.promptMiniList}>
-								<span>tags</span>
-								{trace.openingSituation.tags.map((tag, index) => (
-									<code key={promptTraceItemKey("situation_tag", tag, index)}>
-										{tag}
-									</code>
-								))}
-							</div>
-						) : null}
-					</div>
-				) : null}
-
-				{trace.openingPolicy?.forbidden.length ? (
-					<div className={styles.promptMiniList}>
-						<span>开场禁用</span>
-						{trace.openingPolicy.forbidden.map((item, index) => (
-							<code key={promptTraceItemKey("forbidden", item, index)}>
-								{item}
-							</code>
-						))}
-					</div>
-				) : null}
-
-				{trace.openingPolicy?.reason ? (
-					<div className={styles.promptPolicyReason}>
-						<span>policy reason</span>
-						<p>{trace.openingPolicy.reason}</p>
-					</div>
-				) : null}
-
-				<div className={styles.promptToolTrace}>
-					<div className={styles.promptToolTraceHead}>
-						<div>
-							<span>tool resolution</span>
-							<strong>
-								{trace.toolResolution.cardPolicyMode} · final {trace.toolResolution.finalToolIds.length}
-							</strong>
-						</div>
-						<div>
-							<span>registry</span>
-							<strong>{trace.toolResolution.registryToolIds.length}</strong>
-						</div>
-						<div>
-							<span>character</span>
-							<strong>{trace.toolResolution.characterCapabilityToolIds.length}</strong>
-						</div>
-					</div>
-					{trace.toolResolution.characterCapabilityToolIds.length > 0 ? (
-						<div className={styles.promptMiniList}>
-							<span>character tools</span>
-							{trace.toolResolution.characterCapabilityToolIds.map((toolId, index) => (
-								<code key={promptTraceItemKey("character_tool", toolId, index)}>
-									{toolId}
-								</code>
-							))}
-						</div>
-					) : null}
-					<div className={styles.promptToolRows}>
-						{trace.toolResolution.items.map((item, index) => (
-							<div
-								key={promptTraceItemKey("tool_resolution", item.toolId, index)}
-								className={
-									item.exposedToLlm
-										? styles.promptToolRowActive
-										: styles.promptToolRow
-								}
-							>
-								<strong>{item.toolId}</strong>
-								<span>{item.availability}</span>
-								<em>{traceReasonLabel(item.reason)}</em>
-							</div>
-						))}
-					</div>
-				</div>
-
+				{/* 引用了PromptTraceOpening组件，用于开场策略区 */}
+				<PromptTraceOpening trace={trace} />
+				{/* 引用了PromptTraceTools组件，用于工具决议区 */}
+				<PromptTraceTools trace={trace} />
 				{trace.matchedLayerIds.length > 0 ? (
 					<div className={styles.promptMiniList}>
 						<span>matched layers</span>
@@ -237,18 +64,14 @@ export const PromptTracePanel: FC<PromptTracePanelProps> =
 						))}
 					</div>
 				) : null}
-
 				{trace.notes.length > 0 ? (
 					<div className={styles.promptMiniList}>
 						<span>notes</span>
 						{trace.notes.map((note, index) => (
-							<code key={promptTraceItemKey("note", note, index)}>
-								{note}
-							</code>
+							<code key={promptTraceItemKey("note", note, index)}>{note}</code>
 						))}
 					</div>
 				) : null}
-
 				{hasBlocks ? (
 					<div className={styles.promptBlockGrid}>
 						{/* 引用了PromptBlockList组件，用于展示 systemHard prompt 块 */}

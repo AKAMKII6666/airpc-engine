@@ -3,7 +3,7 @@ import {
 	createInitialDebuggerChatState,
 	debuggerChatStreamReducer,
 	turnsToDebuggerChatMessages,
-} from "@studio-v2/src/pageComponents/debugger/com/chat/debuggerChatStreamReducer";
+} from "@studio-v2/src/pageComponents/debugger/com/chat/stream/reduce/debuggerChatStreamReducer";
 
 describe("debuggerChatStreamReducer", () => {
 	it("appends optimistic user message then streams assistant text", () => {

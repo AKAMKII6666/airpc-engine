@@ -5,9 +5,9 @@ import { parseStudioApiJson } from "@studio-v2/src/utils/ajaxHelper/studioApiCli
 import type { MemoryListPageDto } from "@studio-v2/typeFiles/library/characters/memory/memoryReadModel";
 
 export type ClearMemoryResult = {
-  entries: number;
-  rollups: number;
-  inertiaCleared: boolean;
+	entries: number;
+	rollups: number;
+	inertiaCleared: boolean;
 };
 
 /**

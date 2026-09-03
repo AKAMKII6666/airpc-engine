@@ -310,7 +310,12 @@ export function createTestHost(opts: {
   loreBootstrap?: LoreBootstrapPort | null;
   generateVoicemail?: CreateEngineHostOptions["generateVoicemail"];
   onVoicemailUnreadChanged?: CreateEngineHostOptions["onVoicemailUnreadChanged"];
-  promptProviderRegistry?: CreateEngineHostOptions["promptProviderRegistry"];
+	promptProviderRegistry?: CreateEngineHostOptions["promptProviderRegistry"];
+	afterHangupHooks?: CreateEngineHostOptions["afterHangupHooks"];
+	packIdByHookId?: CreateEngineHostOptions["packIdByHookId"];
+	scheduleGates?: CreateEngineHostOptions["scheduleGates"];
+	packIdByGateId?: CreateEngineHostOptions["packIdByGateId"];
+	capabilityPackEvents?: CreateEngineHostOptions["capabilityPackEvents"];
 }): ReturnType<typeof createEngineHost> {
   return createEngineHost({
     persist: opts.persist,
@@ -322,5 +327,10 @@ export function createTestHost(opts: {
     generateVoicemail: opts.generateVoicemail,
     onVoicemailUnreadChanged: opts.onVoicemailUnreadChanged,
     promptProviderRegistry: opts.promptProviderRegistry,
+    afterHangupHooks: opts.afterHangupHooks,
+    packIdByHookId: opts.packIdByHookId,
+    scheduleGates: opts.scheduleGates,
+    packIdByGateId: opts.packIdByGateId,
+    capabilityPackEvents: opts.capabilityPackEvents,
   });
 }

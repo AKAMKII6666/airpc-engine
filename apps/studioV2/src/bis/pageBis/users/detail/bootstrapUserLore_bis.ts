@@ -52,6 +52,7 @@ export async function commitBootstrapUserLore(
 export type BootstrapUserLoreWithSaveResult = {
 	/** dirty 时先 PUT 的回读投影；未改表单则为空 */
 	save?: SaveUserDetailResult;
+	/** force bootstrap 后的 lore 预览与 fallback 提示；与 commitBootstrapUserLore 同形 */
 	bootstrap: BootstrapUserLoreResult;
 };
 

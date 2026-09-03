@@ -9,7 +9,7 @@ import {
 	type CallState,
 } from "@studio-v2/src/pageComponents/debugger/debuggerUiModel";
 import styles from "../DebuggerShell.module.scss";
-import { DebuggerChatFlow } from "./chat/DebuggerChatFlow";
+import { DebuggerChatFlow } from "./chat/ui/flow/DebuggerChatFlow";
 
 export type CallChatPanelProps = {
 	/** 通话态数据；组件只在 inCall 分支渲染 */
@@ -29,9 +29,13 @@ export type CallChatPanelProps = {
 };
 
 export const CallChatPanel: FC<CallChatPanelProps> = function CallChatPanel({
+	// callState 表示通话态数据，用于渲染聊天头与会话流
 	callState,
+	// draft 表示输入框草稿，用于回传 composer
 	draft,
+	// onDraftChange 表示草稿变更回调，用于父级持有草稿
 	onDraftChange,
+	// onHangup 表示挂断回调，用于结束当前通话
 	onHangup,
 }) {
 	const remoteHangup = latestRemoteHangupEvent(callState.session);
@@ -59,6 +63,7 @@ export const CallChatPanel: FC<CallChatPanelProps> = function CallChatPanel({
 				</div>
 			</div>
 
+			{/* 引用了DebuggerChatFlow组件，用于通话态消息流与发送挂断 */}
 			<DebuggerChatFlow
 				session={callState.session}
 				roleName={callState.role.name}

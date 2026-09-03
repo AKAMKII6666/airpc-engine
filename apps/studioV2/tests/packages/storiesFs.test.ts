@@ -45,6 +45,15 @@ describe("buildDefaultCanvasLayout", () => {
 describe("packagesFs against data/storis-packages", () => {
 	const probeIds: string[] = [];
 
+	/** 探针包名加随机后缀，避免并行用例撞固定 id */
+	function allocProbeId(prefix: string): string {
+		const id = `${prefix}_${Date.now().toString(36)}_${Math.random()
+			.toString(36)
+			.slice(2, 8)}`;
+		probeIds.push(id);
+		return id;
+	}
+
 	afterEach(async () => {
 		for (const id of probeIds.splice(0)) {
 			await rm(path.join(DATA_ROOT, "storis-packages", id), {
@@ -95,8 +104,7 @@ describe("packagesFs against data/storis-packages", () => {
 	});
 
 	it("chapter write roundtrips and drops orphan cards", async () => {
-		const probeId = "studio_v2_bff_probe";
-		probeIds.push(probeId);
+		const probeId = allocProbeId("studio_v2_bff_probe");
 		await createDiskStoryPackage({
 			packageId: probeId,
 			title: "BFF 探针包",
@@ -152,8 +160,7 @@ describe("packagesFs against data/storis-packages", () => {
 	});
 
 	it("createDiskStoryPackage writes package.conf + chapter scaffold", async () => {
-		const pkgId = "studio_v2_create_probe";
-		probeIds.push(pkgId);
+		const pkgId = allocProbeId("studio_v2_create_probe");
 		const created = await createDiskStoryPackage({
 			packageId: pkgId,
 			title: "新建探针",
@@ -170,8 +177,7 @@ describe("packagesFs against data/storis-packages", () => {
 	});
 
 	it("updateDiskPackageMeta changes package title without touching entry chapter", async () => {
-		const pkgId = "studio_v2_meta_probe";
-		probeIds.push(pkgId);
+		const pkgId = allocProbeId("studio_v2_meta_probe");
 		await createDiskStoryPackage({
 			packageId: pkgId,
 			title: "旧故事包名",
@@ -195,8 +201,7 @@ describe("packagesFs against data/storis-packages", () => {
 	});
 
 	it("writeValidatedDiskStoryPackage rolls back when validate has errors", async () => {
-		const pkgId = "studio_v2_validate_gate";
-		probeIds.push(pkgId);
+		const pkgId = allocProbeId("studio_v2_validate_gate");
 		const card = {
 			cardId: "gate_card",
 			cardKind: "story" as const,

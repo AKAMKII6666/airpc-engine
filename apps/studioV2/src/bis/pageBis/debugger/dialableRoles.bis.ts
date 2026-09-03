@@ -4,7 +4,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { fetchDebuggerDialableRoles } from "@studio-v2/src/utils/ajaxProxy/debugger/api/callSessionApi";
+import { fetchDebuggerDialableRoles } from "@studio-v2/src/utils/ajaxProxy/debugger/api/callSession/http/callSessionApi";
 import type { DebuggerDialableRole } from "@studio-v2/typeFiles/debugger/dialableRole";
 
 /** UI 可消费的待机角色查询状态 */
