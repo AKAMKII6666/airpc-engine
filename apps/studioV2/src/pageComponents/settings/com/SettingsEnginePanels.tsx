@@ -15,6 +15,9 @@ import { schemaCompatLabel } from "@studio-v2/typeFiles/settings/settingsLabels"
 import { formatRelativeEdit } from "@studio-v2/typeFiles/story/labels/statusLabels";
 // 引用了ValidationReportPanel组件，用于展示校验问题列表
 import { ValidationReportPanel } from "@studio-v2/src/pageComponents/settings/com/ValidationReportPanel";
+// 引用了PluginPanelHost组件，用于 L2 settings.plugin 挂载
+import { PluginPanelHost } from "@studio-v2/src/commonUiComponents/PluginPanelHost";
+import { usePluginPanelsBis } from "@studio-v2/src/bis/pageBis/plugins/pluginPanels.bis";
 import styles from "../SettingsShell.module.scss";
 
 export type ImportExportPrefsPanelProps = {
@@ -73,6 +76,8 @@ export const ImportExportPrefsPanel: FC<ImportExportPrefsPanelProps> = function 
 };
 
 export const AdvancedPrefsPanel: FC = function () {
+	// 引用了usePluginPanelsBis，用于拉取 settings.plugin 面板
+	const pluginPanels = usePluginPanelsBis("settings.plugin");
 	return (
 		<div>
 			<h2 className={styles.sectionTitle}>高级</h2>
@@ -98,6 +103,17 @@ export const AdvancedPrefsPanel: FC = function () {
 			<div className={styles.warnBox}>
 				清理缓存 / 重建索引会打断未保存编辑；本步仅展示警示，不执行危险操作。
 			</div>
+			<h3 className={styles.sectionTitle}>L2 插件面板</h3>
+			<p className={styles.sectionSub}>
+				workspace plugins 的 settings.plugin 挂载点。
+			</p>
+			{/* 引用了PluginPanelHost组件，用于 iframe 展示插件设置面板 */}
+			<PluginPanelHost
+				slot="settings.plugin"
+				panels={pluginPanels.panels}
+				loading={pluginPanels.loading}
+				error={pluginPanels.error}
+			/>
 		</div>
 	);
 };

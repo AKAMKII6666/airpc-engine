@@ -74,11 +74,37 @@ describe("buildBeginCallSoftExtras enrichers", () => {
 describe("bootstrapTaskRegistrars", () => {
 	it("calls register with packId", () => {
 		const register = vi.fn();
-		bootstrapTaskRegistrars({
+		const result = bootstrapTaskRegistrars({
 			registrars: [{ taskId: "t1", register }],
 			packIdByTaskId: new Map([["t1", "pack_demo"]]),
 		});
 		expect(register).toHaveBeenCalledWith({ packId: "pack_demo" });
+		expect(result.events).toEqual([]);
+	});
+
+	it("skips throwing registrar without aborting others", () => {
+		const ok = vi.fn();
+		const result = bootstrapTaskRegistrars({
+			registrars: [
+				{
+					taskId: "bad",
+					register() {
+						throw new Error("boom");
+					},
+				},
+				{ taskId: "ok", register: ok },
+			],
+			packIdByTaskId: new Map([
+				["bad", "pack_bad"],
+				["ok", "pack_ok"],
+			]),
+		});
+		expect(ok).toHaveBeenCalledOnce();
+		expect(result.events).toHaveLength(1);
+		expect(result.events[0]).toMatchObject({
+			type: "capabilityPack.merge_rejected",
+			packId: "pack_bad",
+		});
 	});
 });
 

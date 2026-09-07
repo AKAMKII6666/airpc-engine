@@ -13,6 +13,9 @@ import {
 	type CharacterDetailFormValues,
 } from "@studio-v2/src/bis/pageBis/characters/detail/form/characterDetailForm";
 import { commitSaveCharacterDetail } from "@studio-v2/src/bis/pageBis/characters/detail/save/saveCharacter_bis";
+import { usePluginPanelsBis } from "@studio-v2/src/bis/pageBis/plugins/pluginPanels.bis";
+// 引用了PluginPanelHost组件，用于 L2 character.plugin 面板挂载
+import { PluginPanelHost } from "@studio-v2/src/commonUiComponents/PluginPanelHost";
 import { CharacterDetailEditForm } from "@studio-v2/src/pageComponents/characters/com/CharacterDetailEditForm";
 import { CharacterMemoryPanel } from "@studio-v2/src/pageComponents/characters/com/CharacterMemoryPanel";
 import styles from "@studio-v2/src/pageComponents/library/LibrarySplit.module.scss";
@@ -43,6 +46,9 @@ export const CharacterLibraryDetail: FC<CharacterLibraryDetailProps> =
 		// onSaved 在落盘成功后回调，用于同步列表
 		onSaved,
 	}) {
+		// 引用了usePluginPanelsBis，用于拉取 character.plugin 面板
+		const pluginPanels = usePluginPanelsBis("character.plugin");
+
 		async function handleSubmit(
 			values: CharacterDetailFormValues,
 			helpers: FormikHelpers<CharacterDetailFormValues>,
@@ -87,6 +93,20 @@ export const CharacterLibraryDetail: FC<CharacterLibraryDetailProps> =
 
 				{/* 引用了CharacterMemoryPanel组件，用于记忆只读列表与分页 */}
 				<CharacterMemoryPanel agentId={character.agentId} />
+
+				<div className={styles.section}>
+					<h3 className={styles.sectionTitle}>L2 插件面板</h3>
+					<p className={styles.detailMeta}>
+						workspace plugins 的 character.plugin 挂载点。
+					</p>
+					{/* 引用了PluginPanelHost组件，用于 iframe 展示角色插件面板 */}
+					<PluginPanelHost
+						slot="character.plugin"
+						panels={pluginPanels.panels}
+						loading={pluginPanels.loading}
+						error={pluginPanels.error}
+					/>
+				</div>
 			</section>
 		);
 	};

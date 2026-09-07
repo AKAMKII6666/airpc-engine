@@ -9,6 +9,7 @@
     "plugins": [{ "name": "next" }],
     "paths": {
       "@airpc/rpg-engine": ["../../packages/rpg-engine/src/index.ts"],
+      "@airpc/pack-sdk": ["../../packages/pack-sdk/src/index.ts"],
       "@studio-v2/*": ["./*"]
     },
     "types": ["node"]

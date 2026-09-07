@@ -10,6 +10,8 @@ import type { LastMemoryTraceState } from "@studio-v2/src/pageComponents/debugge
 import styles from "../DebuggerShell.module.scss";
 import { IdleContextPanel } from "./IdleContextPanel";
 import { MemoryTracePanel } from "./MemoryTracePanel";
+// 引用了DebuggerPluginsPanel组件，用于 L2 插件加载状态
+import { DebuggerPluginsPanel } from "./DebuggerPluginsPanel";
 
 type DebuggerContextTabsProps = {
 	/** 最近一次挂机 Memory Trace；null 表示还没有上一通抽取记录 */
@@ -37,9 +39,9 @@ export const DebuggerContextTabs: FC<DebuggerContextTabsProps> =
 		// onRefreshRoles 是刷新命令，用于上下文 Tab
 		onRefreshRoles,
 	}) {
-		const [activeTab, setActiveTab] = useState<"context" | "memoryTrace">(
-			"context",
-		);
+		const [activeTab, setActiveTab] = useState<
+			"context" | "memoryTrace" | "plugins"
+		>("context");
 
 		return (
 			<>
@@ -66,6 +68,16 @@ export const DebuggerContextTabs: FC<DebuggerContextTabsProps> =
 					>
 						Memory Trace
 					</Button>
+					{/* 引用了Button组件，用于切换到 Plugins Tab */}
+					<Button
+						size="small"
+						variant={activeTab === "plugins" ? "contained" : "outlined"}
+						onClick={function () {
+							setActiveTab("plugins");
+						}}
+					>
+						Plugins
+					</Button>
 				</div>
 
 				{activeTab === "context" ? (
@@ -76,9 +88,12 @@ export const DebuggerContextTabs: FC<DebuggerContextTabsProps> =
 						error={rolesError}
 						onRefresh={onRefreshRoles}
 					/>
-				) : (
+				) : activeTab === "memoryTrace" ? (
 					// 引用了MemoryTracePanel组件，用于展示上一通抽取详情
 					<MemoryTracePanel trace={memoryTrace?.detail ?? null} />
+				) : (
+					// 引用了DebuggerPluginsPanel组件，用于展示 L2 加载状态
+					<DebuggerPluginsPanel />
 				)}
 			</>
 		);

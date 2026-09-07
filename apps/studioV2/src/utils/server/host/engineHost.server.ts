@@ -2,9 +2,7 @@
 	* 模块名称：Studio V2 EngineHost 进程单例装配
 	* 模块说明：createEngineIOPorts(dataRoot) → getEngineHost({ ports })；
 	* 仅 app/api / *.server.ts / utils/server 可引用；禁止 Client 区 import。
-	* 协议：技术设计 23 §5；需求引擎存取 Port 抽象 §5。
-	* L1：merge 后注入 softExtras / scheduleGates / afterHangup / tasks.register；
-	* commit.* 经 MemoryCommit Orchestrator，不经 Host beginCall。
+	* 协议：技术设计 23 §5；L1+L2 合流见 assembleWithPlugins。
 	*/
 import {
 	getEngineHost,
@@ -20,77 +18,104 @@ import {
 import { getStudioV2DataRoot } from "../data/dataRoot.server";
 import { createMemoryCommitOrchestratingPort } from "../memory/memoryCommitMemoryPort.server";
 import { createLlmLoreBootstrapPortFromEnv } from "../lore/bootstrap/loreBootstrapLlm.server";
-// 引用了第一方 CapabilityPack 装配，用于 merge 后注入 promptProviderRegistry
-import { assembleFirstPartyCapabilityPacks } from "../capabilityPacks/assembleFirstPartyPacks.server";
+import {
+	assembleCapabilityRuntime,
+	getCachedCapabilityRuntime,
+	resetAssembledCapabilityRuntimeForTests,
+	type AssembledCapabilityRuntime,
+} from "@studio-v2/src/utils/server/plugins/assemble/assembleWithPlugins.server";
+import { createPluginOutboundRequestHandler } from "@studio-v2/src/utils/server/plugins/api/outbound/requestOutbound.server";
 
 let ports: EngineIOPorts | null = null;
 let workspaceLoaded = false;
 let workspaceError: { code: string; message: string } | null = null;
 let postCallJobsRecovered = false;
+let runtimePacks: AssembledCapabilityRuntime | null = null;
+/** 供插件 API 懒解析；getEngineHost 首次创建前为 null */
+let liveHost: EngineHost | null = null;
+/** cold boot 单飞，避免并发重复扫描/装配 */
+let bootInFlight: Promise<EngineHost> | null = null;
+/** 首次 loadWorkspace 单飞 */
+let workspaceLoadInFlight: Promise<void> | null = null;
 
-/**
-	* 按 dataRoot 懒建 Ports；Memory 连接须进程内复用，禁止每次 getHost 新开库。
-	* commit.* Pack 贡献注入 Orchestrator（非 Host beginCall 路径）。
-	*/
-function ensureEngineIOPorts(dataRoot: string): EngineIOPorts {
-	if (!ports) {
-		const packs = assembleFirstPartyCapabilityPacks();
-		const io = createEngineIOPorts(dataRoot);
-		ports = {
-			...io,
-			memory: createMemoryCommitOrchestratingPort(io.memory, {
-				commitContextEnrichers: packs.commitContextEnrichers,
-				commitExtractContributors: packs.commitExtractContributors,
-			}),
-		};
-	}
-	return ports;
-}
-
-/**
-	* 热更后旧 Host 单例可能缺 PostCallJob API；dev 下重建以免 listPostCallJobs 炸。
-	*/
 function hostHasPostCallApi(host: EngineHost): boolean {
 	return typeof host.listPostCallJobs === "function";
 }
 
-function createConfiguredHost(io: EngineIOPorts): EngineHost {
-	const packs = assembleFirstPartyCapabilityPacks();
-	return getEngineHost({
-		memory: io.memory,
-		profile: io.profile,
-		content: io.content,
-		engineLog: io.engineLog,
-		postCallJob: io.postCallJob,
-		// 无 Key / 禁用时为 null → Host 内走 fallback lore
-		loreBootstrap: createLlmLoreBootstrapPortFromEnv(),
-		promptProviderRegistry: packs.promptProviderRegistry,
-		afterHangupHooks: packs.afterHangupHooks,
-		packIdByHookId: packs.packIdByHookId,
-		scheduleGates: packs.scheduleGates,
-		packIdByGateId: packs.packIdByGateId,
-		softExtraEnrichers: packs.softExtraEnrichers,
-		taskRegistrars: packs.taskRegistrars,
-		packIdByTaskId: packs.packIdByTaskId,
-		capabilityPackEvents: packs.events,
-	});
+/**
+	* 装配 L1+L2 → 建 Ports → 首次 getEngineHost（带齐 options）。
+	* 插件 entry 在加载期不得调用能力 API（Host 尚未就绪）。
+	*/
+async function bootHost(): Promise<EngineHost> {
+	if (bootInFlight) {
+		return bootInFlight;
+	}
+	bootInFlight = (async function () {
+		const dataRoot = getStudioV2DataRoot();
+		const packs = await assembleCapabilityRuntime({
+			getHost: function () {
+				if (!liveHost) {
+					throw new Error("ENGINE_HOST_NOT_READY");
+				}
+				return liveHost;
+			},
+			requestOutbound: createPluginOutboundRequestHandler({
+				getHost: function () {
+					if (!liveHost) {
+						throw new Error("ENGINE_HOST_NOT_READY");
+					}
+					return liveHost;
+				},
+			}),
+		});
+		runtimePacks = packs;
+		if (!ports) {
+			const io = createEngineIOPorts(dataRoot);
+			ports = {
+				...io,
+				memory: createMemoryCommitOrchestratingPort(io.memory, {
+					commitContextEnrichers: packs.commitContextEnrichers,
+					commitExtractContributors: packs.commitExtractContributors,
+				}),
+			};
+		}
+		const host = getEngineHost({
+			memory: ports.memory,
+			profile: ports.profile,
+			content: ports.content,
+			engineLog: ports.engineLog,
+			postCallJob: ports.postCallJob,
+			loreBootstrap: createLlmLoreBootstrapPortFromEnv(),
+			promptProviderRegistry: packs.promptProviderRegistry,
+			afterHangupHooks: packs.afterHangupHooks,
+			packIdByHookId: packs.packIdByHookId,
+			scheduleGates: packs.scheduleGates,
+			packIdByGateId: packs.packIdByGateId,
+			softExtraEnrichers: packs.softExtraEnrichers,
+			taskRegistrars: packs.taskRegistrars,
+			packIdByTaskId: packs.packIdByTaskId,
+			capabilityPackEvents: packs.capabilityPackEvents,
+		});
+		liveHost = host;
+		return host;
+	})();
+	try {
+		return await bootInFlight;
+	} finally {
+		bootInFlight = null;
+	}
 }
 
-/**
-	* 取得已注入本机 Ports 的 Host，并确保 workspace 已 load。
-	* getEngineHost 仅首次创建时吃 options；本函数保证首次即带齐四 Port。
-	*/
-export async function getStudioV2EngineHost(): Promise<EngineHost> {
-	const dataRoot = getStudioV2DataRoot();
-	const io = ensureEngineIOPorts(dataRoot);
-	let host = createConfiguredHost(io);
-	if (!hostHasPostCallApi(host)) {
-		resetEngineHostForTests();
-		workspaceLoaded = false;
-		postCallJobsRecovered = false;
-		host = createConfiguredHost(io);
+async function ensureWorkspaceLoaded(host: EngineHost): Promise<void> {
+	if (workspaceLoaded || workspaceError) {
+		return;
 	}
-	if (!workspaceLoaded && !workspaceError) {
+	if (workspaceLoadInFlight) {
+		await workspaceLoadInFlight;
+		return;
+	}
+	const dataRoot = getStudioV2DataRoot();
+	workspaceLoadInFlight = (async function () {
 		try {
 			await host.loadWorkspace(dataRoot);
 			workspaceLoaded = true;
@@ -104,7 +129,24 @@ export async function getStudioV2EngineHost(): Promise<EngineHost> {
 				};
 			}
 			throw err;
+		} finally {
+			workspaceLoadInFlight = null;
 		}
+	})();
+	await workspaceLoadInFlight;
+}
+
+/**
+	* 取得已注入本机 Ports 的 Host，并确保 workspace 已 load。
+	*/
+export async function getStudioV2EngineHost(): Promise<EngineHost> {
+	let host = liveHost ?? (await bootHost());
+	if (!hostHasPostCallApi(host)) {
+		resetStudioV2EngineHostForTests();
+		host = await bootHost();
+	}
+	if (!workspaceLoaded && !workspaceError) {
+		await ensureWorkspaceLoaded(host);
 	}
 	if (workspaceError && !workspaceLoaded) {
 		throw workspaceError;
@@ -113,7 +155,6 @@ export async function getStudioV2EngineHost(): Promise<EngineHost> {
 		postCallJobsRecovered = true;
 		const recovered = await host.recoverPostCallJobs();
 		if (isEngineError(recovered)) {
-			// 恢复失败不阻断调试；job tip 仍可读内存态
 			console.warn("[studioV2] recoverPostCallJobs failed", recovered);
 		}
 	}
@@ -127,23 +168,14 @@ export function getStudioV2WorkspaceLoadError(): {
 	return workspaceError;
 }
 
-/**
-	* Content 保存后刷新引擎工作区缓存。
-	* 默认保留 sessions / profiles（与旧 Studio reload 口径一致）。
-	*/
 export async function reloadStudioV2Workspace(): Promise<void> {
+	const host = await getStudioV2EngineHost();
 	const dataRoot = getStudioV2DataRoot();
-	const io = ensureEngineIOPorts(dataRoot);
-	const host = createConfiguredHost(io);
 	await host.loadWorkspace(dataRoot, { resetRuntime: false });
 	workspaceLoaded = true;
 	workspaceError = null;
 }
 
-/**
-	* 内容写盘后通知：仅当 Host 已装配过才刷缓存，避免纯编辑路径强制开 SQLite。
-	* 首次 getStudioV2EngineHost 会重新扫盘，故未 boot 时跳过是安全的。
-	*/
 export async function reloadStudioV2WorkspaceIfBooted(): Promise<void> {
 	if (!ports) {
 		return;
@@ -151,27 +183,32 @@ export async function reloadStudioV2WorkspaceIfBooted(): Promise<void> {
 	await reloadStudioV2Workspace();
 }
 
-/** 显式重置运行时（踢会话 + 清 Profile 缓存），禁与普通保存绑定 */
 export async function resetStudioV2WorkspaceRuntime(): Promise<void> {
 	const host = await getStudioV2EngineHost();
 	host.resetRuntime();
 }
 
-/**
-	* 仅测试：关 Memory 库、清本模块状态、重置引擎进程单例。
-	* 退出条件：正式 API 路径不得调用。
-	*/
 export function resetStudioV2EngineHostForTests(): void {
 	if (ports?.memory.close) {
 		try {
 			ports.memory.close();
 		} catch {
-			/* 测试 teardown：库已关则忽略 */
+			/* 测试 teardown */
 		}
 	}
 	ports = null;
 	workspaceLoaded = false;
 	workspaceError = null;
 	postCallJobsRecovered = false;
+	runtimePacks = null;
+	liveHost = null;
+	bootInFlight = null;
+	workspaceLoadInFlight = null;
+	resetAssembledCapabilityRuntimeForTests();
 	resetEngineHostForTests();
+}
+
+/** 调试 / 面板：已装配的 L2 运行时快照 */
+export function getStudioV2CapabilityRuntime(): AssembledCapabilityRuntime | null {
+	return runtimePacks ?? getCachedCapabilityRuntime();
 }

@@ -20,7 +20,7 @@ export type CapabilityPackHostBindings = {
 export function resolveCapabilityPackHostBindings(
 	options: CreateEngineHostOptions,
 ): CapabilityPackHostBindings {
-	bootstrapTaskRegistrars({
+	const boot = bootstrapTaskRegistrars({
 		registrars: options.taskRegistrars ?? [],
 		packIdByTaskId: options.packIdByTaskId ?? undefined,
 	});
@@ -28,6 +28,9 @@ export function resolveCapabilityPackHostBindings(
 		afterHangupHooks: options.afterHangupHooks ?? [],
 		packIdByHookId: options.packIdByHookId ?? undefined,
 		softExtraEnrichers: options.softExtraEnrichers ?? [],
-		capabilityPackEvents: options.capabilityPackEvents ?? [],
+		capabilityPackEvents: [
+			...(options.capabilityPackEvents ?? []),
+			...boot.events,
+		],
 	};
 }

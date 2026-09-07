@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@airpc/rpg-engine": "*",
+    "@airpc/pack-sdk": "*",
     "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",

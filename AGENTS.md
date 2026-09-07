@@ -10,6 +10,7 @@
 4. [docs/AI和人类/里程碑/v2.0/项目第二步计划执行索引.md](docs/AI和人类/里程碑/v2.0/项目第二步计划执行索引.md) — 第二步分期（S0–S11，已收口）  
 5. [docs/AI和人类/里程碑/v1.0/项目初始执行索引.md](docs/AI和人类/里程碑/v1.0/项目初始执行索引.md) — 初始阶段分期（P0–P6a，已收口）  
 6. [docs/AI和人类/里程碑/v2.0/L1能力包与插槽_前置与分期执行索引.md](docs/AI和人类/里程碑/v2.0/L1能力包与插槽_前置与分期执行索引.md) — **1.1+ L1：前置收口后方可 L1-A**（能力包 / 插槽）  
+6b. [docs/AI和人类/里程碑/v2.0/L2第三方能力包_分期执行索引.md](docs/AI和人类/里程碑/v2.0/L2第三方能力包_分期执行索引.md) — **L2：workspace `plugins/`（L2-0～F）**  
 7. [docs/AI和人类/技术设计文档/00-技术设计索引.md](docs/AI和人类/技术设计文档/00-技术设计索引.md) — 工程分册入口  
 8. [docs/AI和人类/技术设计文档/19-引擎宿主与会话模型.md](docs/AI和人类/技术设计文档/19-引擎宿主与会话模型.md) — Host / CallSession  
 9. [docs/AI和人类/技术设计文档/23-引擎存取Port与IO适配.md](docs/AI和人类/技术设计文档/23-引擎存取Port与IO适配.md) — 存取 Port；本机 IO = studioV2/engineIOModule  
@@ -35,6 +36,9 @@ apps/studio/
 apps/studioV2/
   engineIOModule/             # 本机存取 IO（JSON+fs / SQLite / jsonl）
   src/utils/server/capabilityPacks/  # 第一方包装配
+  src/utils/server/plugins/   # L2：workspace plugins 扫描与合流（禁引擎扫盘）
+packages/pack-sdk/            # L2 作者 SDK（类型 / mock）
+plugins/                      # L2 第三方特性插件根（capability-packs.json）
 data/                         # storis-packages/ + characters/ + users/ + …
 docs/人类/
 docs/AI和人类/需求/

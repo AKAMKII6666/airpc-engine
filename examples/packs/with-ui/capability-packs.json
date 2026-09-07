@@ -1,0 +1,24 @@
+{
+  "id": "example-with-ui",
+  "name": "Example With UI",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "enabled": false,
+  "ui": {
+    "enabled": true,
+    "panels": [
+      {
+        "slot": "settings.plugin",
+        "entry": "./ui/settings.html"
+      },
+      {
+        "slot": "character.plugin",
+        "entry": "./ui/character.html"
+      },
+      {
+        "slot": "user.plugin",
+        "entry": "./ui/user.html"
+      }
+    ]
+  }
+}

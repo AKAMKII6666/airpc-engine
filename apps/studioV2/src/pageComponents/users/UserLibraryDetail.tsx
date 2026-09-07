@@ -14,6 +14,9 @@ import {
 } from "@studio-v2/src/bis/pageBis/users/detail/userDetailForm";
 import { commitBootstrapUserLoreWithOptionalSave } from "@studio-v2/src/bis/pageBis/users/detail/bootstrapUserLore_bis";
 import { commitSaveUserDetail } from "@studio-v2/src/bis/pageBis/users/detail/save/saveUser_bis";
+import { usePluginPanelsBis } from "@studio-v2/src/bis/pageBis/plugins/pluginPanels.bis";
+// 引用了PluginPanelHost组件，用于 L2 user.plugin 面板挂载
+import { PluginPanelHost } from "@studio-v2/src/commonUiComponents/PluginPanelHost";
 import { UserDetailEditForm } from "@studio-v2/src/pageComponents/users/com/UserDetailEditForm";
 import { useUserDetailLore } from "@studio-v2/src/pageComponents/users/hooks/useUserDetailLore";
 import styles from "@studio-v2/src/pageComponents/library/LibrarySplit.module.scss";
@@ -47,15 +50,15 @@ export type UserLibraryDetailProps = {
 	onSaved: (next: UserProfileSummary) => void;
 };
 
-export const UserLibraryDetail: FC<UserLibraryDetailProps> = function (props) {
-	const {
-		// profile 表示当前选中玩家投影，用于表单初始值与头区
-		profile,
-		// onSaved 用于落盘成功后刷新列表选中态
-		onSaved,
-	} = props;
-
+export const UserLibraryDetail: FC<UserLibraryDetailProps> = function ({
+	// profile 表示当前选中玩家投影，用于表单初始值与头区
+	profile,
+	// onSaved 用于落盘成功后刷新列表选中态
+	onSaved,
+}) {
 	const lore = useUserDetailLore(profile.userId);
+	// 引用了usePluginPanelsBis，用于拉取 user.plugin 面板
+	const pluginPanels = usePluginPanelsBis("user.plugin");
 
 	async function handleSubmit(
 		values: UserDetailFormValues,
@@ -139,6 +142,20 @@ export const UserLibraryDetail: FC<UserLibraryDetailProps> = function (props) {
 					/>
 				)}
 			</Formik>
+
+			<div className={styles.section}>
+				<h3 className={styles.sectionTitle}>L2 插件面板</h3>
+				<p className={styles.detailMeta}>
+					workspace plugins 的 user.plugin 挂载点。
+				</p>
+				{/* 引用了PluginPanelHost组件，用于 iframe 展示玩家插件面板 */}
+				<PluginPanelHost
+					slot="user.plugin"
+					panels={pluginPanels.panels}
+					loading={pluginPanels.loading}
+					error={pluginPanels.error}
+				/>
+			</div>
 		</section>
 	);
 };

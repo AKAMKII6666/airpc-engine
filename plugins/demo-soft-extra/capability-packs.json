@@ -1,0 +1,16 @@
+{
+  "id": "demo-soft-extra",
+  "name": "Demo Soft Extra",
+  "version": "1.0.0",
+  "apiVersion": 1,
+  "enabled": false,
+  "realtime": {
+    "enabled": true,
+    "pipelines": [
+      {
+        "slot": "begin.softExtras",
+        "entry": "./softExtra.mjs"
+      }
+    ]
+  }
+}
