@@ -129,6 +129,13 @@ export function createPhoneCommands(input: {
 			input.setPhoneUi({ phase: "dialing", receiverMode: "speaker", dialed: "" });
 			void startSimulateChapterNow(input, chapterId);
 		},
+		async startChapterEntryRing(chapterId: string): Promise<boolean> {
+			input.clearPhoneTimers();
+			input.setLocalError(undefined);
+			// 来电路径保持待机；勿进入「拨号中」
+			input.setPhoneUi(readyPhoneUi("speaker"));
+			return startChapterEntryRingNow(input, chapterId);
+		},
 	};
 }
 
@@ -141,8 +148,15 @@ async function resetPhoneAfterEnd(
 	input.setLocalError(undefined);
 	input.setDraft("");
 	input.setPhoneUi(lockedPhoneUi());
+	// 本地无 session 时仍按 userId 收口 Host 孤儿通话（离页只清 store 的典型残留）
 	if (!sessionId) {
-		input.callBis.resetCall();
+		const cleared = await input.callBis.endCall({
+			userId: input.callBis.userId,
+			hangupEarly: true,
+		});
+		if (!cleared) {
+			input.callBis.resetCall();
+		}
 		return;
 	}
 	input.showHangupToast("您已挂断");
@@ -210,5 +224,22 @@ async function startSimulateChapterNow(
 ): Promise<void> {
 	const session = await input.callBis.startSimulateChapterCall(chapterId);
 	if (!session) input.setPhoneUi(readyPhoneUi("speaker"));
+}
+
+async function startChapterEntryRingNow(
+	input: Parameters<typeof createPhoneCommands>[0],
+	chapterId: string,
+): Promise<boolean> {
+	const ring = await input.callBis.startChapterEntryRing(chapterId);
+	if (!ring) {
+		input.setPhoneUi(readyPhoneUi("speaker"));
+		return false;
+	}
+	if (ring.mode === "simulate_start") {
+		// bis 已 beginCall；通话态由 activeCall 投影，勿再拨号遮罩
+		return false;
+	}
+	input.setPhoneUi(readyPhoneUi("speaker"));
+	return true;
 }
 

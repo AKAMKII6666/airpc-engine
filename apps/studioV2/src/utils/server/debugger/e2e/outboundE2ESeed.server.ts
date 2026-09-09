@@ -23,7 +23,10 @@ export type SeedDebuggerOutboundE2EInput = {
 	chapterId?: string;
 	/** 外呼目标通话卡；默认 lanxing_callback_intro */
 	cardId?: string;
-	/** 延迟毫秒；默认 10 秒，最短 1 秒，最长 5 分钟 */
+	/**
+		* 延迟毫秒；默认 10 秒，最短 0（立刻到期），最长 5 分钟。
+		* delay=0 时 fireAtMs=clockMs；仍须 advanceClock tick 才会点火派发。
+		*/
 	delayMs?: number;
 	/** 人工 E2E 备注，会进入 schedule topicHint */
 	topicHint?: string;
@@ -100,7 +103,7 @@ function boundedDelayMs(value: unknown): number {
 	if (typeof value !== "number" || !Number.isFinite(value)) {
 		return DEFAULT_DELAY_MS;
 	}
-	return Math.min(Math.max(Math.floor(value), 1_000), MAX_DELAY_MS);
+	return Math.min(Math.max(Math.floor(value), 0), MAX_DELAY_MS);
 }
 
 function assertValidUserId(userId: string): void {
@@ -262,7 +265,12 @@ export async function seedDebuggerOutboundE2E(
 		agentId,
 		cardId,
 		chapterId,
-		topicHint: textOrDefault(input.topicHint, "人工 E2E 外呼种子"),
+		// 剧情外呼默认；勿因默认 topicHint 落成 user_reminder（会禁止误拨开场）
+		origin: "story_scheduled_call",
+		topicHint:
+			typeof input.topicHint === "string" && input.topicHint.trim() !== ""
+				? input.topicHint.trim()
+				: undefined,
 		fireAtMs,
 		status: "pending",
 		linkedInstanceId: instanceId,

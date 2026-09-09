@@ -4,7 +4,7 @@
 "use client";
 
 import type { FC } from "react";
-import { Button } from "@mui/material";
+import { Button, Checkbox, FormControlLabel, FormGroup } from "@mui/material";
 import {
 	type CallState,
 	type RoleRow,
@@ -148,13 +148,22 @@ const ExitCandidateList: FC<ExitCandidateListProps> =
 type ActiveContextPanelProps = {
 	/** 通话态数据；用于展示当前卡调试信息 */
 	callState: Extract<CallState, { mode: "inCall" }>;
+	/** 本通手勾已完成节拍 */
+	outcomeCompletedBeats: readonly string[];
+	/** 手勾/取消节拍 */
+	onToggleOutcomeBeat: (beatId: string) => void;
 };
 
 const ActiveContextPanel: FC<ActiveContextPanelProps> =
 	function ActiveContextPanel({
 		// callState 是当前通话态，用于展示角色和卡片状态
 		callState,
+		// outcomeCompletedBeats 是本通手勾节拍，用于挂机 Outcome
+		outcomeCompletedBeats,
+		// onToggleOutcomeBeat 切换节拍勾选
+		onToggleOutcomeBeat,
 	}) {
+		const requiredBeats = callState.session.requiredBeats;
 		return (
 			<>
 				<div className={styles.panelHead}>
@@ -189,6 +198,38 @@ const ActiveContextPanel: FC<ActiveContextPanelProps> =
 						</div>
 					</div>
 				</div>
+
+				{requiredBeats.length > 0 ? (
+					<div className={styles.debugCard}>
+						<h3 className={styles.subTitle}>Outcome 节拍（挂机前手勾）</h3>
+						<p className={styles.debugText}>
+							v1 不接 LLM 自动打拍；勾选后挂机才会满足
+							all_required_beats_completed 等条件。
+						</p>
+						{/* 引用了FormGroup组件，用于勾选本通完成节拍 */}
+						<FormGroup>
+							{requiredBeats.map(function (beatId) {
+								return (
+									// 引用了FormControlLabel组件，用于单个节拍勾选
+									<FormControlLabel
+										key={beatId}
+										control={
+											// 引用了Checkbox组件，用于节拍完成态
+											<Checkbox
+												size="small"
+												checked={outcomeCompletedBeats.includes(beatId)}
+												onChange={function () {
+													onToggleOutcomeBeat(beatId);
+												}}
+											/>
+										}
+										label={beatId}
+									/>
+								);
+							})}
+						</FormGroup>
+					</div>
+				) : null}
 
 				<div className={styles.debugCard}>
 					<h3 className={styles.subTitle}>Prompt 摘要</h3>
@@ -265,6 +306,10 @@ export type DebuggerContextPanelProps = {
 	rolesError: string | undefined;
 	/** 刷新待机角色列表 */
 	onRefreshRoles: () => Promise<void>;
+	/** 本通手勾已完成节拍；仅 inCall 使用 */
+	outcomeCompletedBeats: readonly string[];
+	/** 手勾/取消节拍；仅 inCall 使用 */
+	onToggleOutcomeBeat: (beatId: string) => void;
 };
 
 export const DebuggerContextPanel: FC<DebuggerContextPanelProps> =
@@ -281,12 +326,20 @@ export const DebuggerContextPanel: FC<DebuggerContextPanelProps> =
 		rolesError,
 		// onRefreshRoles 是刷新角色列表命令，用于 idle 面板
 		onRefreshRoles,
+		// outcomeCompletedBeats 是本通手勾节拍
+		outcomeCompletedBeats,
+		// onToggleOutcomeBeat 切换节拍勾选
+		onToggleOutcomeBeat,
 	}) {
 		return (
 			<section className={styles.contextPanel}>
 				{callState.mode === "inCall" ? (
 					// 引用了ActiveContextPanel组件，用于展示当前通话卡调试信息
-					<ActiveContextPanel callState={callState} />
+					<ActiveContextPanel
+						callState={callState}
+						outcomeCompletedBeats={outcomeCompletedBeats}
+						onToggleOutcomeBeat={onToggleOutcomeBeat}
+					/>
 				) : (
 					// 引用了DebuggerContextTabs组件，用于展示上下文与 Memory Trace 双 Tab
 					<DebuggerContextTabs

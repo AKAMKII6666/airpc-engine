@@ -21,6 +21,10 @@ export type {
 	DebuggerCallSessionResponse,
 	DebuggerIncomingCallsResponse,
 	DebuggerCallEndResponse,
+	DebuggerChapterEntryRingView,
+	DebuggerChapterEntryRingResponse,
+	DebuggerChapterEntryOutboundRingView,
+	DebuggerChapterEntrySimulateView,
 } from "./callSessionResponses";
 
 
@@ -283,6 +287,11 @@ export type DebuggerCallSessionView = {
 	cardTitle: string;
 	/** 当前通话目标摘要 */
 	objective: string;
+	/**
+		* 本卡 requiredBeats；调试器手勾完成态后写入挂机 Outcome。
+		* 空数组表示无节拍门槛。
+		*/
+	requiredBeats: string[];
 	/** 当前交互阶段；playback 阶段不允许文本聊天 */
 	interactionPhase: DebuggerCallInteractionPhase;
 	/** 已登记聊天轮次；只投影 user/assistant */
@@ -444,10 +453,23 @@ export type DebuggerMessageStreamEvent =
 
 /** 表示挂断当前 Host session 的请求，生命周期仅覆盖当前通话 */
 export type EndDebuggerCallBody = {
-	/** Host CallSession id；server 用它执行 endCall */
-	sessionId: string;
+	/**
+		* Host CallSession id；server 用它执行 endCall。
+		* 可与 userId 二选一：缺省时按 userId 强制结束 Host 残留通话。
+		*/
+	sessionId?: string;
+	/**
+		* 调试用户 id。
+		* UI 已丢 session 投影但 Host 仍占线时，用它定位并收口孤儿通话。
+		*/
+	userId?: string;
 	/** true 表示早挂；false/缺省表示完成接听后挂断 */
 	hangupEarly?: boolean;
+	/**
+		* 本通已完成节拍；对齐卡 requiredBeats。
+		* v1 调试器手勾，缺省空数组。
+		*/
+	completedBeats?: string[];
 };
 
 /** 表示 Host endCall 后的调试摘要，供 UI/后续日志面板展示 */

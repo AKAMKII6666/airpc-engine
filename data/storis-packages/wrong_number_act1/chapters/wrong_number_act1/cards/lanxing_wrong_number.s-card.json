@@ -46,7 +46,12 @@
     ]
   },
   "toolPolicy": {
-    "mode": "inherit_free"
+    "mode": "allowlist",
+    "toolIds": [
+      "search_memory",
+      "get_memory_by_id",
+      "request_hangup"
+    ]
   },
   "exits": [
     {

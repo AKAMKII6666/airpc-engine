@@ -4,6 +4,7 @@
  * 需求：语音留言改造 §3.3；执行索引 V2-VM-4 / V2-VM-5
  */
 import { randomUUID } from "node:crypto";
+import { resolveChapterId } from "../../chapter/resolveChapterId.js";
 import { FREE_CHAPTER_ID } from "../../constants.js";
 import type { CallSession } from "../../host/types.js";
 import type { Effect } from "../../schema/outcome.js";
@@ -41,8 +42,9 @@ function resolveAttachPackageId(
 	effect: Effect,
 	session: CallSession,
 ): string {
-	if (typeof effect.chapterId === "string" && effect.chapterId) {
-		return effect.chapterId;
+	const fromEffect = resolveChapterId(effect as Record<string, unknown>);
+	if (fromEffect) {
+		return fromEffect;
 	}
 	return session.chapterId === FREE_CHAPTER_ID
 		? FREE_CHAPTER_ID

@@ -18,6 +18,34 @@ export type DebuggerIncomingCallsResponse = {
 
 /** 表示调试通话挂断 API 的统一响应包 */
 export type DebuggerCallEndResponse = {
-	/** Host endCall 投影；浏览器展示用，不持久化 */
-	end: DebuggerCallEndView;
+	/**
+		* Host endCall 投影；浏览器展示用，不持久化。
+		* 按 userId 强制收口且当时无 active call 时为 null。
+		*/
+	end: DebuggerCallEndView | null;
+};
+
+/** 章节开局响铃：已 delay=0 调度并派发来电 */
+export type DebuggerChapterEntryOutboundRingView = {
+	mode: "outbound_ring";
+	cardId: string;
+	agentId: string;
+	/** Host incoming event id；接听用 */
+	incomingEventId: string | null;
+};
+
+/** 章节开局非外呼：回落 simulate_start */
+export type DebuggerChapterEntrySimulateView = {
+	mode: "simulate_start";
+	chapterId: string;
+	cardId: string;
+};
+
+export type DebuggerChapterEntryRingView =
+	| DebuggerChapterEntryOutboundRingView
+	| DebuggerChapterEntrySimulateView;
+
+/** POST /api/debug/call/chapter-entry-ring 响应 */
+export type DebuggerChapterEntryRingResponse = {
+	ring: DebuggerChapterEntryRingView;
 };

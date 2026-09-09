@@ -56,6 +56,11 @@ export type DebuggerCallSessionView = {
 	cardTitle: string;
 	/** 当前通话目标摘要 */
 	objective: string;
+	/**
+		* 本卡 requiredBeats；调试器手勾后写入挂机 Outcome。
+		* 空数组表示无节拍门槛。
+		*/
+	requiredBeats: string[];
 	/** 当前交互阶段；playback 阶段不允许文本聊天 */
 	interactionPhase: CallSession["interactionPhase"];
 	/** 已登记聊天轮次；只投影 user/assistant */
@@ -160,10 +165,23 @@ export type SendDebuggerMessageInput = {
 };
 
 export type EndDebuggerCallInput = {
-	/** Host CallSession id */
-	sessionId: string;
+	/**
+		* Host CallSession id。
+		* 可与 userId 二选一：缺省时按 userId 强制结束 Host 残留通话。
+		*/
+	sessionId?: string;
+	/**
+		* 调试用户 id。
+		* 当 sessionId 缺失时，用 getActiveSession(userId) 定位孤儿通话并收口。
+		*/
+	userId?: string;
 	/** 是否按早挂处理；false/缺省按已完成接听处理 */
 	hangupEarly?: boolean;
+	/**
+		* 本通已完成节拍 id；对齐卡 objectives.requiredBeats。
+		* v1 由调试器手勾，不接 LLM 自动打拍。
+		*/
+	completedBeats?: string[];
 };
 
 export type DebuggerCallEndView = {
@@ -291,6 +309,7 @@ export function projectDebuggerCallSession(
 		source: session.resolve.source,
 		cardTitle: session.frozenCard.title ?? session.resolve.cardId,
 		objective: readObjective(session),
+		requiredBeats: session.frozenCard.objectives?.requiredBeats ?? [],
 		interactionPhase: session.interactionPhase,
 		turns: projectTurns(session),
 		llm,

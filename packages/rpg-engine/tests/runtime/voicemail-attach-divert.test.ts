@@ -111,6 +111,33 @@ describe("attach_call_card voicemail divert (V2-VM-4)", () => {
 		expect(stack[0]?.chapterId).toBe("wrong_number_act1");
 	});
 
+	it("磁盘仍写 packageId 时也能分流（迁移兼容）", async () => {
+		const profile = baseProfile();
+		const session = baseSession("wrong_number_act1");
+		const plan = await executeEffects(
+			[
+				{
+					id: "fx_attach_vm_pkg",
+					effect: "attach_call_card",
+					agentId: "lanxing",
+					cardId: "lanxing_voicemail",
+					packageId: "wrong_number_act1",
+				} as Effect,
+			],
+			{
+				profile,
+				session,
+				nowIso: "2026-07-23T00:00:00.000Z",
+				lookupCard: lookupFromMap({ lanxing_voicemail: voicemailCard }),
+			},
+		);
+		expect(plan.results[0]?.status).toBe("executed");
+		expect(listVoicemailGenStack(profile)).toHaveLength(1);
+		expect(profile.callCards.board.byAgent.lanxing?.pending ?? []).toEqual(
+			[],
+		);
+	});
+
 	it("负向：普通 story 卡仍写 Board.pending", async () => {
 		const profile = baseProfile();
 		const session = baseSession("wrong_number_act1");

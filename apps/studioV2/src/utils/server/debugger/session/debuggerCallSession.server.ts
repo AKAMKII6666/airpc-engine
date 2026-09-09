@@ -78,21 +78,47 @@ export async function startDebuggerCallSession(
 			interactionPhase: ready.interactionPhase,
 		},
 	});
-	const result = await runOpeningFirstTurn({
-		host: activeHost,
-		session: ready,
+	try {
+		const result = await runOpeningFirstTurn({
+			host: activeHost,
+			session: ready,
+		});
+		writeCallSessionDto({
+			event: "debugger.call.started_with_opening",
+			session: result.session,
+			llm: result.llm,
+			toolEvents: result.toolEvents,
+		});
+		return projectDebuggerCallSession(
+			result.session,
+			result.llm,
+			result.toolEvents,
+		);
+	} catch (err) {
+		// 开场 LLM 失败时 beginCall 已占线；必须收口，否则编辑器再进会 CONFLICT_ACTIVE_CALL
+		await discardDebuggerCallAfterStartFailure(activeHost, ready.sessionId);
+		throw err;
+	}
+}
+
+/** 开场失败后 best-effort 收口；NO_EXIT_MATCHED 也已在 Host 侧释放 activeByUser */
+async function discardDebuggerCallAfterStartFailure(
+	host: EngineHost,
+	sessionId: string,
+): Promise<void> {
+	const ended = await host.endCall(sessionId, {
+		flags: { hangup_early: true },
+		completedBeats: [],
+		missedRequiredBeats: [],
 	});
-	writeCallSessionDto({
-		event: "debugger.call.started_with_opening",
-		session: result.session,
-		llm: result.llm,
-		toolEvents: result.toolEvents,
-	});
-	return projectDebuggerCallSession(
-		result.session,
-		result.llm,
-		result.toolEvents,
-	);
+	if (isEngineError(ended) && ended.code !== "NO_EXIT_MATCHED") {
+		writeStudioLog("debugger", "warn", {
+			event: "debugger.call.start_opening_discard_failed",
+			sessionId,
+			message: ended.message,
+			payload: { code: ended.code },
+		});
+	}
 }
 
 export async function sendDebuggerCallMessage(

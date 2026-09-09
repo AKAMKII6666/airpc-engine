@@ -5,6 +5,7 @@
 "use client";
 
 import { useEffect, useLayoutEffect } from "react";
+import { leaveDebuggerCallCleanup } from "@studio-v2/src/bis/pageBis/debugger/callSessionCommands.bis";
 import { loadDebuggerMailbox } from "@studio-v2/src/bis/pageBis/debugger/mailbox_bis";
 import { loadDebuggerSessionMock } from "@studio-v2/src/bis/pageBis/debugger/session/loadDebuggerSessionMock_bis";
 import { useDebuggerStore } from "@studio-v2/src/stores/debugger/debuggerStore";
@@ -48,7 +49,14 @@ export function useDebuggerShellBis(): void {
 	useEffect(
 		function () {
 			return function () {
+				// 仅收口本页已知 session；无投影的 Host 孤儿留给下次 start 的 CONFLICT 重试
+				// （按 userId 强制挂断会与「离开后立刻再进编辑器开局」竞态）
+				const sessionId =
+					useDebuggerStore.getState().activeCall?.sessionId ?? null;
 				resetDebuggerSession();
+				if (sessionId) {
+					void leaveDebuggerCallCleanup({ userId: "", sessionId });
+				}
 			};
 		},
 		[resetDebuggerSession],

@@ -70,6 +70,8 @@ export const DebuggerShellWorkspace: FC<DebuggerShellWorkspaceProps> =
 					rolesLoading={rolesLoading}
 					rolesError={rolesError}
 					onRefreshRoles={onRefreshRoles}
+					outcomeCompletedBeats={session.outcomeCompletedBeats}
+					onToggleOutcomeBeat={session.toggleOutcomeCompletedBeat}
 				/>
 			</section>
 		);

@@ -273,18 +273,57 @@ export async function acceptDebuggerIncomingCall(
 	const begun = await activeHost.beginCall(input.userId, resolved, {
 		channel: "text_turn",
 	});
-	if (isEngineError(begun)) throw begun;
+	if (isEngineError(begun)) {
+		// 挂机副作用未收完时立刻接听补打会占线；drain 后再试一次
+		if (begun.code === "AGENT_POST_CALL_BUSY") {
+			await activeHost.drainPostCallJobs();
+			const retry = await activeHost.beginCall(input.userId, resolved, {
+				channel: "text_turn",
+			});
+			if (isEngineError(retry)) throw retry;
+			return finishAcceptedIncoming(activeHost, input, retry, options);
+		}
+		throw begun;
+	}
+	return finishAcceptedIncoming(activeHost, input, begun, options);
+}
+
+async function finishAcceptedIncoming(
+	activeHost: EngineHost,
+	input: DebuggerIncomingCallCommandInput,
+	begun: CallSession,
+	options: AcceptDebuggerIncomingCallOptions,
+): Promise<DebuggerCallSessionView> {
 	const accepted = activeHost.acceptIncomingCallEvent(
 		input.userId,
 		input.eventId,
 	);
 	if (isEngineError(accepted)) throw accepted;
 	const ready = ensureDialoguePhase(activeHost, begun);
-	const result = await runOpeningFirstTurn({
-		host: activeHost,
-		session: ready,
-		llmRunner: options.llmRunner,
-	});
+	let result: Awaited<ReturnType<typeof runOpeningFirstTurn>>;
+	try {
+		result = await runOpeningFirstTurn({
+			host: activeHost,
+			session: ready,
+			llmRunner: options.llmRunner,
+		});
+	} catch (err) {
+		const discarded = await activeHost.endCall(ready.sessionId, {
+			flags: { hangup_early: true },
+			completedBeats: [],
+			missedRequiredBeats: [],
+		});
+		if (isEngineError(discarded) && discarded.code !== "NO_EXIT_MATCHED") {
+			writeStudioLog("debugger", "warn", {
+				event: "debugger.incoming.accept_opening_discard_failed",
+				userId: input.userId,
+				sessionId: ready.sessionId,
+				message: discarded.message,
+				payload: { code: discarded.code },
+			});
+		}
+		throw err;
+	}
 	void writeDtoLog({
 		bucket: "shell-events",
 		id: accepted.eventId,

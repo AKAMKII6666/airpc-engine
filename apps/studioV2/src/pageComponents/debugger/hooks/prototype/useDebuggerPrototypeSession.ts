@@ -121,5 +121,8 @@ export function useDebuggerPrototypeSession(
 		sendDraft: commands.sendDraft,
 		startSimulateCall: commands.startSimulateCall,
 		startSimulateChapterCall: commands.startSimulateChapterCall,
+		startChapterEntryRing: commands.startChapterEntryRing,
+		outcomeCompletedBeats: callBis.outcomeCompletedBeats,
+		toggleOutcomeCompletedBeat: callBis.toggleOutcomeCompletedBeat,
 	};
 }

@@ -17,7 +17,10 @@ import styles from "../DebuggerShell.module.scss";
 export type IdlePhonePanelProps = {
 	/** 电话 UI 状态；决定键盘是否可按、屏幕文案与拨号遮罩 */
 	phoneUi: PhoneUiState;
-	/** 真实拨号请求中；用于禁用重播与提示 */
+	/**
+	 * Host 建联请求中（主动拨号或接听来电）。
+	 * phase=dialing →「拨号中」；仅 busy →「接通中」，避免接听显示拨号。
+	 */
 	busy: boolean;
 	/** 真实拨号失败人话；无则 undefined */
 	error: string | undefined;
@@ -152,7 +155,13 @@ export const IdlePhonePanel: FC<IdlePhonePanelProps> = function IdlePhonePanel({
 	const canDial =
 		!busy && (phoneUi.phase === "ready" || phoneUi.phase === "debouncing");
 	const isPhoneUnlocked = phoneUi.phase !== "locked";
-	const isDialing = phoneUi.phase === "dialing" || busy;
+	// busy 含「接听来电建联」；phase=dialing 才是用户主动拨号。二者勿共用「拨号中」文案。
+	const isConnecting = phoneUi.phase === "dialing" || busy;
+	const isOutboundDialing = phoneUi.phase === "dialing";
+	const connectingTitle = isOutboundDialing ? "拨号中" : "接通中";
+	const connectingHint = isOutboundDialing
+		? "正在通过 Host 建立通话，接通后由 LLM 先发言。"
+		: "正在接听来电，接通后由 LLM 先发言。";
 
 	return (
 		<aside className={styles.phonePanel}>
@@ -186,9 +195,15 @@ export const IdlePhonePanel: FC<IdlePhonePanelProps> = function IdlePhonePanel({
 							<span className={styles.battery}>BAT</span>
 						</span>
 					</div>
-					<div className={styles.displayMain}>{phoneDisplayMain(phoneUi)}</div>
+					<div className={styles.displayMain}>
+						{isConnecting && !isOutboundDialing
+							? "接通中"
+							: phoneDisplayMain(phoneUi)}
+					</div>
 					<div className={styles.displaySub}>
-						{phoneDisplaySub(phoneUi, hasUnreadVoicemail)}
+						{isConnecting && !isOutboundDialing
+							? "正在接听来电"
+							: phoneDisplaySub(phoneUi, hasUnreadVoicemail)}
 					</div>
 				</div>
 
@@ -199,12 +214,10 @@ export const IdlePhonePanel: FC<IdlePhonePanelProps> = function IdlePhonePanel({
 						{error}
 					</div>
 				) : null}
-				{isDialing ? (
+				{isConnecting ? (
 					<div className={styles.dialingOverlay} role="status">
-						<div className={styles.dialingPulse}>拨号中</div>
-						<div className={styles.dialingHint}>
-							正在通过 Host 建立通话，接通后由 LLM 先发言。
-						</div>
+						<div className={styles.dialingPulse}>{connectingTitle}</div>
+						<div className={styles.dialingHint}>{connectingHint}</div>
 					</div>
 				) : null}
 			</div>

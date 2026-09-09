@@ -76,6 +76,7 @@ function sampleCall(): DebuggerCallSessionView {
 		source: "free",
 		cardTitle: "澜星自由通话",
 		objective: "闲聊",
+		requiredBeats: [],
 		interactionPhase: "dialogue",
 		turns: [{ role: "assistant", text: "喂？" }],
 		llm: {

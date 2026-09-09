@@ -296,20 +296,37 @@ export function createEngineHost(
     return lookupCharacterSideCard(requireWorkspace(), packageId, cardId);
   }
 
+  /**
+   * 挂机 Effect 执行前按需 preload 目标卡。
+   * attach_call_card 也必须 preload：voicemail divert 靠 lookupCard 认 cardKind，
+   * 章卡默认不进 workspace 快照，未 preload 会误判为普通 Board attach。
+   */
   async function preloadScheduleCallCardTargets(
     effects: readonly Record<string, unknown>[],
+    fallbackChapterId = "",
   ): Promise<void> {
     for (const effect of effects) {
-      if (effect.effect !== "schedule_call_card") continue;
+      if (
+        effect.effect !== "schedule_call_card" &&
+        effect.effect !== "attach_call_card"
+      ) {
+        continue;
+      }
       const cardId = typeof effect.cardId === "string" ? effect.cardId : "";
-      const chapterId = resolveChapterId(effect);
+      const chapterId = resolveChapterId(effect, fallbackChapterId);
       if (!cardId || !chapterId) continue;
       const pre = await host.preloadCard(chapterId, cardId);
       if (pre && isEngineError(pre)) {
         pushLog({
           at: new Date().toISOString(),
-          type: "schedule_call_card.preload_failed",
-          payload: { chapterId, cardId, code: pre.code, message: pre.message },
+          type: "call_card_effect.preload_failed",
+          payload: {
+            effect: effect.effect,
+            chapterId,
+            cardId,
+            code: pre.code,
+            message: pre.message,
+          },
         });
       }
     }
@@ -319,7 +336,10 @@ export function createEngineHost(
     session: CallSession,
   ): Promise<void> {
     for (const candidate of session.exitCandidates) {
-      await preloadScheduleCallCardTargets(candidate.effects);
+      await preloadScheduleCallCardTargets(
+        candidate.effects,
+        session.chapterId,
+      );
     }
   }
 

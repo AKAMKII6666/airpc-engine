@@ -65,6 +65,9 @@ describe("endDebuggerCallSession", () => {
 	it("ends active Host session and projects end result", async () => {
 		const calls: unknown[] = [];
 		const host = {
+			getActiveSession() {
+				return null;
+			},
 			async endCall(sessionId: string, summary: unknown) {
 				calls.push([sessionId, summary]);
 				return {
@@ -113,6 +116,84 @@ describe("endDebuggerCallSession", () => {
 				skippedReason: null,
 				error: null,
 			},
+		});
+	});
+
+	it("resolves orphan Host session by userId when sessionId is omitted", async () => {
+		const ended: string[] = [];
+		const host = {
+			getActiveSession(userId: string) {
+				if (userId !== "demo-user") return null;
+				return callSessionFixture();
+			},
+			async endCall(sessionId: string) {
+				ended.push(sessionId);
+				return {
+					ok: true,
+					session: callSessionFixture(),
+					selectedExitId: null,
+					effectPlanResult: { status: "completed", aborted: false, results: [] },
+					postCallJobId: "job_orphan",
+				} satisfies EndCallResult;
+			},
+		} as unknown as EngineHost;
+
+		const view = await endDebuggerCallSession(
+			{ userId: "demo-user", hangupEarly: true },
+			host,
+		);
+
+		expect(ended).toEqual(["session_1"]);
+		expect(view?.sessionId).toBe("session_1");
+	});
+
+	it("returns null when userId has no active Host session", async () => {
+		const host = {
+			getActiveSession() {
+				return null;
+			},
+			async endCall() {
+				throw new Error("endCall should not run");
+			},
+		} as unknown as EngineHost;
+
+		const view = await endDebuggerCallSession(
+			{ userId: "demo-user", hangupEarly: true },
+			host,
+		);
+		expect(view).toBeNull();
+	});
+
+	it("treats NO_EXIT_MATCHED as soft success after Host freed the slot", async () => {
+		const host = {
+			getActiveSession() {
+				return callSessionFixture();
+			},
+			getSession(sessionId: string) {
+				if (sessionId !== "session_1") return null;
+				return { ...callSessionFixture(), status: "aborted" as const };
+			},
+			async endCall() {
+				return {
+					ok: false,
+					code: "NO_EXIT_MATCHED",
+					message: "no exit matched outcome",
+				};
+			},
+		} as unknown as EngineHost;
+
+		const view = await endDebuggerCallSession(
+			{ userId: "demo-user", hangupEarly: true },
+			host,
+		);
+		expect(view).toEqual({
+			sessionId: "session_1",
+			status: "aborted",
+			selectedExitId: null,
+			planStatus: "aborted",
+			freeCommitted: null,
+			postCallJobId: "",
+			memoryTrace: null,
 		});
 	});
 });

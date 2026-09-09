@@ -77,4 +77,32 @@ describe("selectExit", () => {
     expect(selected?.source).toBe("static");
     expect(selected?.exit.exitId).toBe("win");
   });
+
+  it("higher-priority pure dynamic does not steal matching static story exit", () => {
+    const selected = selectExit(
+      card,
+      {
+        flags: { answered_completed: true },
+        completedBeats: ["b1"],
+        missedRequiredBeats: [],
+      },
+      [
+        {
+          candidateId: "c_name",
+          toolId: "record_user_name",
+          registeredAt: "2026-01-01T00:00:00.000Z",
+          priority: 50,
+          effects: [
+            {
+              id: "e_name",
+              effect: "set_character_unlocked",
+              args: { agentId: "x" },
+            },
+          ],
+        },
+      ],
+    );
+    expect(selected?.source).toBe("static");
+    expect(selected?.exit.exitId).toBe("win");
+  });
 });

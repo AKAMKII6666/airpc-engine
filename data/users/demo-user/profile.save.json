@@ -3,7 +3,7 @@
   "userId": "demo-user",
   "user": {
     "userId": "demo-user",
-    "nickname": "廖力",
+    "nickname": "小陈",
     "fullName": "廖力",
     "gender": "male",
     "birthday": "2000-01-15",
@@ -19,7 +19,7 @@
       "district": "北七家"
     },
     "createdAt": "2026-07-13T00:00:00.000Z",
-    "updatedAt": "2026-09-01T01:01:19.510Z"
+    "updatedAt": "2026-09-09T08:33:02.617Z"
   },
   "characters": {
     "lanxing": {
@@ -28,17 +28,14 @@
     }
   },
   "stories": {
-    "golden_handoff": {
-      "packageId": "golden_handoff",
-      "status": "active",
-      "instanceId": "daa7992d-6649-4e4d-a62d-edc7c282daf9",
-      "variables": {}
-    },
     "wrong_number_act1": {
       "chapterId": "wrong_number_act1",
       "status": "active",
-      "instanceId": "df4e10ba-1845-4396-804f-7112cebb00fd",
-      "variables": {}
+      "instanceId": "818c9fcb-beea-41d9-9e46-e573e7f89c62",
+      "variables": {},
+      "lock": null,
+      "reason": "留言收束",
+      "endedAt": "2026-09-09T08:33:35.454Z"
     }
   },
   "callCards": {
@@ -93,6 +90,37 @@
               "scheduledIntentId": "reminder_18a923c3-a5a7-4179-ada7-35d065ff1db5",
               "createdAt": "2026-08-13T09:04:57.874Z",
               "updatedAt": "2026-08-14T01:57:12.752Z"
+            },
+            {
+              "instanceId": "15043578-5b5d-45f3-9e5a-43668c97584a",
+              "cardId": "lanxing_callback_intro",
+              "chapterId": "wrong_number_act1",
+              "agentId": "lanxing",
+              "status": "missed",
+              "entryMode": "outbound_auto",
+              "createdAt": "2026-09-09T09:35:48.559Z",
+              "updatedAt": "2026-09-09T09:37:06.169Z",
+              "activationHint": "outbound_auto",
+              "scheduledIntentId": "fx_schedule_callback",
+              "missedOutboundAt": "2026-09-09T09:37:06.169Z",
+              "missedOutboundReason": "rejected",
+              "missedIncomingEventId": "80fcba42-85c6-43c7-a95c-00de26204444"
+            },
+            {
+              "instanceId": "0291dfee-7760-41cc-9e1b-10a4b193e6cc",
+              "cardId": "lanxing_wrong_number",
+              "chapterId": "wrong_number_act1",
+              "agentId": "lanxing",
+              "status": "missed",
+              "entryMode": "either",
+              "activationHint": "outbound_auto",
+              "scheduledIntentId": "debug_outbound_e2e:8550ccd7-590b-4896-858d-344baf408117",
+              "priority": 1000000,
+              "createdAt": "2026-09-09T09:35:57.262Z",
+              "updatedAt": "2026-09-09T09:36:21.356Z",
+              "missedOutboundAt": "2026-09-09T09:36:21.356Z",
+              "missedOutboundReason": "rejected",
+              "missedIncomingEventId": "522250f9-4353-47bd-aa1b-33c97fc88f8d"
             }
           ]
         }
@@ -100,6 +128,23 @@
     }
   },
   "telephony": {
+    "redialSlot": {
+      "agentId": "lanxing",
+      "cardId": "lanxing_callback_intro"
+    },
+    "voicemails": [
+      {
+        "id": "fx_voicemail",
+        "agentId": "lanxing",
+        "cardId": "lanxing_voicemail",
+        "chapterId": "wrong_number_act1",
+        "instanceId": "fx_voicemail",
+        "text": "喂？是我，澜星。就是刚才打错电话、又补打一遍那个。可以叫我澜星姐姐。电话号码 2267070。有空打给我哦。如果有个叫小皮的小孩突然打电话给你……你先别怕。他小麻烦很多，但有时候也需要有人听见。",
+        "status": "listened",
+        "createdAt": "2026-09-09T08:33:25.471Z",
+        "listenedAt": "2026-09-09T08:33:35.454Z"
+      }
+    ],
     "voicemailGenStack": []
   },
   "world": {
@@ -163,70 +208,46 @@
     "knowledge": {}
   },
   "schedule": {
-    "clockMs": 1970390963,
+    "clockMs": 10730714,
     "intents": [
       {
         "kind": "once",
-        "intentId": "reminder_cef40abe-bb4b-4cd3-9da8-7a659487d9d7",
+        "intentId": "fx_schedule_callback",
         "agentId": "lanxing",
-        "cardId": "lanxing_free",
-        "chapterId": "__free__",
-        "fireAtMs": 7125266,
+        "cardId": "lanxing_callback_intro",
+        "chapterId": "wrong_number_act1",
+        "fireAtMs": 140007,
         "status": "consumed",
-        "topicHint": "叫用户起床",
-        "createdAt": "2026-08-11T09:04:15.962Z",
-        "linkedInstanceId": "69f93bbd-37e7-4c0f-ad74-881d70951093"
+        "topicHint": "补打：自报澜星姐姐并留号",
+        "origin": "story_scheduled_call",
+        "createdAt": "2026-09-09T08:33:13.027Z",
+        "linkedInstanceId": "de6bee63-23ae-4836-a386-a10bed7f9a32"
       },
       {
         "kind": "once",
-        "intentId": "reminder_97512cd5-f444-45e6-b20f-fc9e6116f459",
+        "intentId": "fx_schedule_callback",
         "agentId": "lanxing",
-        "cardId": "lanxing_free",
-        "chapterId": "__free__",
-        "fireAtMs": 63120166,
-        "status": "consumed",
-        "topicHint": "叫用户起床",
-        "createdAt": "2026-08-12T01:37:27.488Z",
-        "linkedInstanceId": "2c54e594-f7ae-462e-9d34-dbe22c8e2088"
+        "cardId": "lanxing_callback_intro",
+        "chapterId": "wrong_number_act1",
+        "fireAtMs": 3795395,
+        "status": "fired",
+        "topicHint": "补打：自报澜星姐姐并留号",
+        "origin": "story_scheduled_call",
+        "createdAt": "2026-09-09T09:35:48.559Z",
+        "linkedInstanceId": "15043578-5b5d-45f3-9e5a-43668c97584a"
       },
       {
         "kind": "once",
-        "intentId": "reminder_100a48fb-1db3-42ae-bd2f-2f8b4937faf6",
+        "intentId": "debug_outbound_e2e:8550ccd7-590b-4896-858d-344baf408117",
         "agentId": "lanxing",
-        "cardId": "lanxing_free",
-        "chapterId": "__free__",
-        "fireAtMs": 68949605,
-        "status": "consumed",
-        "topicHint": "两分钟后回电",
-        "origin": "user_reminder",
-        "createdAt": "2026-08-12T11:06:26.573Z",
-        "linkedInstanceId": "1bb992ad-62ee-4350-ba01-141cbab59c37"
-      },
-      {
-        "kind": "once",
-        "intentId": "reminder_086a8c60-474e-49b2-a85c-8fc8b9dacbe6",
-        "agentId": "lanxing",
-        "cardId": "lanxing_free",
-        "chapterId": "__free__",
-        "fireAtMs": 69854112,
-        "status": "consumed",
-        "topicHint": "提醒用户烧水",
-        "origin": "user_reminder",
-        "createdAt": "2026-08-13T01:55:12.838Z",
-        "linkedInstanceId": "3c395df9-c6c9-42e7-86d1-801beb5a50dc"
-      },
-      {
-        "kind": "once",
-        "intentId": "reminder_18a923c3-a5a7-4179-ada7-35d065ff1db5",
-        "agentId": "lanxing",
-        "cardId": "lanxing_free",
-        "chapterId": "__free__",
-        "fireAtMs": 79142765,
-        "status": "consumed",
-        "topicHint": "提醒用户7点下班打卡",
-        "origin": "user_reminder",
-        "createdAt": "2026-08-13T09:04:57.874Z",
-        "linkedInstanceId": "15d5c7b3-dd33-48cb-b594-08d5a44c5aa5"
+        "cardId": "lanxing_wrong_number",
+        "chapterId": "wrong_number_act1",
+        "fireAtMs": 3703916,
+        "status": "fired",
+        "topicHint": "chapter_entry_ring",
+        "origin": "story_scheduled_call",
+        "createdAt": "2026-09-09T09:35:57.262Z",
+        "linkedInstanceId": "0291dfee-7760-41cc-9e1b-10a4b193e6cc"
       }
     ]
   },
@@ -235,36 +256,21 @@
   },
   "meta": {
     "createdAt": "2026-07-13T00:00:00.000Z",
-    "updatedAt": "2026-09-08T07:59:37.347Z",
+    "updatedAt": "2026-09-09T10:14:59.337Z",
     "note": "记忆明细在 data/memory/memory.sqlite，不在本文件内嵌",
     "repairedAt": "2026-08-11T09:09:51.070Z",
     "repairedReason": "trimmed corrupted appended JSON tail and restored pending reminder intent",
     "conversationInertiaByAgent": {
       "lanxing": {
-        "previousSessionId": "5e8af2c1-99f4-43dd-ae37-f49f4a9a4349",
-        "previousEndedAt": "2026-09-08T06:50:36.063Z",
-        "previousCardId": "lanxing_free",
-        "previousSource": "free",
+        "previousSessionId": "3a8c3f66-ed14-4a7c-8f7e-77b8fdd13a5c",
+        "previousEndedAt": "2026-09-09T09:35:48.559Z",
+        "previousCardId": "lanxing_wrong_number",
+        "previousSource": "story_pending",
         "recentTurns": [
           {
-            "role": "user",
-            "text": "确实，非常忙，一直有各种事情",
-            "at": "2026-09-08T06:48:58.932Z"
-          },
-          {
             "role": "assistant",
-            "text": "嗯，听出来了，那种忙起来停不下来的感觉。（笑）\n\n其实吧，有时候事情太多，反而容易顾不上喘口气。你这样连着忙，身体跟得上吗？",
-            "at": "2026-09-08T06:49:02.411Z"
-          },
-          {
-            "role": "user",
-            "text": "还行吧，反正没什么大碍，我先不和你说了，这边来活了",
-            "at": "2026-09-08T06:50:26.847Z"
-          },
-          {
-            "role": "assistant",
-            "text": "行，那你先去忙～（笑）\n\n有事儿再给我来电话，我先挂啦，拜拜。",
-            "at": "2026-09-08T06:50:29.130Z"
+            "text": "喂，是我。\n\n刚才还在想是不是该给你打个电话，结果一开口……哎呀，这脑子又自动脑补成小皮了。",
+            "at": "2026-09-09T09:35:08.442Z"
           }
         ]
       },

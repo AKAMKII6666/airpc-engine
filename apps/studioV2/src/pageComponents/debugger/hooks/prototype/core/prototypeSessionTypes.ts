@@ -62,7 +62,16 @@ export type DebuggerPrototypeSession = {
 	sendDraft: () => void;
 	/** 编辑器入口：直接从指定章节/卡启动调试通话 */
 	startSimulateCall: (chapterId: string, cardId: string) => void;
-	/** 编辑器入口：从章节 entryCardId 启动调试通话 */
+	/** 编辑器入口：从章节 entryCardId 启动调试通话（旧 simulate） */
 	startSimulateChapterCall: (chapterId: string) => void;
+	/**
+		* 编辑器「运行调试」：outbound 入口 delay=0 来电；否则 simulate。
+		* 返回是否已派发来电（供 shell 立刻 refresh incoming）。
+		*/
+	startChapterEntryRing: (chapterId: string) => Promise<boolean>;
+	/** 本通手勾已完成节拍；挂机写入 Outcome */
+	outcomeCompletedBeats: readonly string[];
+	/** 手勾/取消本通节拍 */
+	toggleOutcomeCompletedBeat: (beatId: string) => void;
 };
 

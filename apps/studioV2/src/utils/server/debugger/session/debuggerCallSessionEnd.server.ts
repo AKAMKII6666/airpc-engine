@@ -125,16 +125,64 @@ export function writeCallSessionDto(input: {
 export async function endDebuggerCallSession(
 	input: EndDebuggerCallInput,
 	host?: EngineHost,
-): Promise<DebuggerCallEndView> {
-	const activeHost = host ?? await getStudioV2EngineHost();
-	const ended = await activeHost.endCall(input.sessionId, {
+): Promise<DebuggerCallEndView | null> {
+	const activeHost = host ?? (await getStudioV2EngineHost());
+	const explicitSessionId =
+		typeof input.sessionId === "string" ? input.sessionId.trim() : "";
+	let sessionId = explicitSessionId;
+	if (sessionId === "") {
+		const userId = typeof input.userId === "string" ? input.userId.trim() : "";
+		if (userId === "") {
+			throw Object.assign(new Error("sessionId_or_userId_required"), {
+				code: "VALIDATION",
+				status: 400,
+			});
+		}
+		const active = activeHost.getActiveSession(userId);
+		if (!active) {
+			return null;
+		}
+		sessionId = active.sessionId;
+	}
+	const completedBeats = Array.isArray(input.completedBeats)
+		? input.completedBeats.filter(function (beatId) {
+				return typeof beatId === "string" && beatId.trim() !== "";
+			})
+		: [];
+	const ended = await activeHost.endCall(sessionId, {
 		flags: input.hangupEarly
 			? { hangup_early: true }
 			: { answered_completed: true },
-		completedBeats: [],
+		completedBeats,
 		missedRequiredBeats: [],
 	});
-	if (isEngineError(ended)) throw ended;
+	// Story 早挂常 NO_EXIT_MATCHED；abortStoryNoExit 已释放 activeByUser，调试器按收口成功处理
+	if (isEngineError(ended)) {
+		if (ended.code === "NO_EXIT_MATCHED") {
+			const aborted = activeHost.getSession(sessionId);
+			const softEnd: DebuggerCallEndView = {
+				sessionId,
+				status: aborted?.status ?? "aborted",
+				selectedExitId: null,
+				planStatus: "aborted",
+				freeCommitted: null,
+				postCallJobId: "",
+				memoryTrace: null,
+			};
+			writeStudioLog("debugger", "info", {
+				event: "debugger.call.ended_no_exit",
+				userId: aborted?.userId,
+				sessionId,
+				chapterId: aborted?.chapterId,
+				cardId: aborted?.resolve.cardId,
+				agentId: aborted?.resolve.agentId,
+				message: "debugger call aborted with no exit; Host slot freed",
+				payload: softEnd,
+			});
+			return softEnd;
+		}
+		throw ended;
+	}
 	const endView = projectEndResult(ended);
 	writeCallSessionDto({
 		event: "debugger.call.ended",

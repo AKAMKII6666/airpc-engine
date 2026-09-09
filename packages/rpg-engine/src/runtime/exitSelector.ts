@@ -16,6 +16,11 @@ export interface SelectedExit {
 /**
  * 候选池 = 静态 exits ∪ 动态 candidates。
  * 同 priority：静态定义序优先于动态。
+ *
+ * 剧情推进约束：只要存在命中的「卡内静态出口」（含动态绑 exitId），
+ * 就不再让纯动态 free 工具候选（exitId=`dynamic:…`）凭更高 priority 抢走唯一出口；
+ * 否则 inherit_free 的 record_user_name 等会盖掉 story 的 attach/end_story。
+ * Free 卡通常无静态命中，仍走纯动态。
  */
 export function selectExit(
   card: CallCardDefinition,
@@ -80,7 +85,12 @@ export function selectExit(
 
   if (matched.length === 0) return null;
 
-  matched.sort(function (a, b) {
+  const storyProgress = matched.filter(function (item) {
+    return !item.exit.exitId.startsWith("dynamic:");
+  });
+  const pool = storyProgress.length > 0 ? storyProgress : matched;
+
+  pool.sort(function (a, b) {
     if (b.priority !== a.priority) return b.priority - a.priority;
     if (a.source !== b.source) {
       return a.source === "static" ? -1 : 1;
@@ -88,7 +98,7 @@ export function selectExit(
     return a.staticOrder - b.staticOrder;
   });
 
-  const top = matched[0]!;
+  const top = pool[0]!;
   return {
     exit: top.exit,
     source: top.source,

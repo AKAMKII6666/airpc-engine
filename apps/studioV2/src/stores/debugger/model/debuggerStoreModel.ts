@@ -41,6 +41,11 @@ export type DebuggerStoreState = {
 		* server Host 内存仍是真源，store 只持 UI 快照。
 		*/
 	activeCall: DebuggerCallSessionView | null;
+	/**
+		* 本通手勾已完成节拍；挂机写入 Outcome.completedBeats。
+		* 新通话开始时清空。
+		*/
+	outcomeCompletedBeats: string[];
 	/** 真实通话 start/message 请求中 */
 	callBusy: boolean;
 	/** 真实通话请求失败人话；成功时 undefined */
@@ -102,6 +107,8 @@ export type DebuggerStoreState = {
 	applyCallCommandAborted: () => void;
 	/** 清空当前通话投影；第四轮再接 Host endCall */
 	resetActiveCall: () => void;
+	/** 手勾/取消本通 Outcome 节拍 */
+	toggleOutcomeCompletedBeat: (beatId: string) => void;
 	/** 开始拉挂机后副作用 job */
 	applyPostCallJobsLoadStarted: () => void;
 	/** 灌 job 列表 */
@@ -153,6 +160,7 @@ export function createDebuggerSessionSlice(): Pick<
 		| "sessionLoading"
 		| "sessionLoadError"
 		| "activeCall"
+		| "outcomeCompletedBeats"
 		| "callBusy"
 		| "callError"
 		| "postCallJobs"
@@ -177,6 +185,7 @@ export function createDebuggerSessionSlice(): Pick<
 			sessionLoading: false,
 			sessionLoadError: undefined,
 			activeCall: null,
+			outcomeCompletedBeats: [],
 			callBusy: false,
 			callError: undefined,
 			postCallJobs: [],
