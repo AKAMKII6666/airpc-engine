@@ -64,15 +64,6 @@
       "label": "挂机后补打"
     },
     {
-      "edgeId": "e_callback_known",
-      "edgeKind": "story",
-      "source": "card_callback",
-      "target": "chapter_end",
-      "sourceHandle": "exit_known",
-      "targetHandle": "parent",
-      "label": "记住名号"
-    },
-    {
       "edgeId": "e_callback_voicemail",
       "edgeKind": "story",
       "source": "card_callback",
@@ -124,6 +115,36 @@
       "effectKind": "attach",
       "exitId": "exit_callback",
       "effectId": "fx_attach_callback"
+    },
+    {
+      "edgeId": "story_end_card_wrong_number_exit_8b9f16c8dc404169ba45983163cd5b33",
+      "edgeKind": "story",
+      "source": "card_wrong_number",
+      "target": "chapter_end",
+      "sourceHandle": "exit_8b9f16c8dc404169ba45983163cd5b33",
+      "targetHandle": "parent",
+      "label": "结束"
+    },
+    {
+      "edgeId": "effect_card_callback_exit_9ab52d03377a4db2b31192d7e613535f_fx_c6e3ca1f79cd4e3991796b932ff13778",
+      "edgeKind": "effect",
+      "source": "card_callback",
+      "target": "card_voicemail",
+      "sourceHandle": "exit_9ab52d03377a4db2b31192d7e613535f",
+      "targetHandle": "parent",
+      "label": "挂载",
+      "effectKind": "attach",
+      "exitId": "exit_9ab52d03377a4db2b31192d7e613535f",
+      "effectId": "fx_c6e3ca1f79cd4e3991796b932ff13778"
+    },
+    {
+      "edgeId": "story_end_card_callback_exit_6eb24652b4bf45d2ac93a800f0a9f624",
+      "edgeKind": "story",
+      "source": "card_callback",
+      "target": "chapter_end",
+      "sourceHandle": "exit_6eb24652b4bf45d2ac93a800f0a9f624",
+      "targetHandle": "parent",
+      "label": "结束"
     }
   ],
   "note": "引擎忽略本文件；章节节点与边仅 Studio 画布使用。内容真源在 cards/conf，layout 不重复存 objective 全文。"

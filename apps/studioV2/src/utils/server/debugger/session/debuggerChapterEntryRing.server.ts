@@ -47,6 +47,9 @@ export type RingDebuggerChapterEntryView =
 	| RingDebuggerChapterEntryOutboundView
 	| RingDebuggerChapterEntrySimulateView;
 
+/** 新鲜通话（含接听开场中）不可被二次章节响铃清掉；仅清真正卡住的孤儿会话 */
+const ORPHAN_ACTIVE_CALL_MIN_AGE_MS = 120_000;
+
 function textOrFail(value: unknown, code: string, message: string): string {
 	if (typeof value === "string" && value.trim() !== "") {
 		return value.trim();
@@ -54,12 +57,37 @@ function textOrFail(value: unknown, code: string, message: string): string {
 	throw Object.assign(new Error(message), { code, status: 400 });
 }
 
+function sessionAgeMs(startedAt: string | undefined): number | null {
+	if (typeof startedAt !== "string" || startedAt.trim() === "") return null;
+	const startedMs = Date.parse(startedAt);
+	if (!Number.isFinite(startedMs)) return null;
+	return Date.now() - startedMs;
+}
+
+/**
+	* 仅清「像卡住」的孤儿通话。
+	* 刚 beginCall / 开场 LLM 中的会话绝不能杀——否则接听会变成「点了没反应」再被二次响铃打断。
+	*/
 async function clearOrphanActiveCall(
 	host: EngineHost,
 	userId: string,
 ): Promise<void> {
 	const active = host.getActiveSession(userId);
 	if (!active) return;
+	const ageMs = sessionAgeMs(active.startedAt);
+	if (ageMs !== null && ageMs < ORPHAN_ACTIVE_CALL_MIN_AGE_MS) {
+		writeStudioLog("debugger", "info", {
+			event: "debugger.chapter_entry.skip_clear_fresh_active",
+			userId,
+			sessionId: active.sessionId,
+			message: "skip ending fresh active call during chapter entry ring",
+			payload: { ageMs, cardId: active.resolve?.cardId },
+		});
+		throw Object.assign(
+			new Error("已有通话进行中（可能正在接听开场），请先挂断或完成接听后再开局响铃"),
+			{ code: "CONFLICT_ACTIVE_CALL", status: 409 },
+		);
+	}
 	try {
 		await endDebuggerCallSession({
 			userId,
@@ -69,6 +97,22 @@ async function clearOrphanActiveCall(
 	} catch {
 		// 留给后续 accept/start 再清；开局响铃优先
 	}
+}
+
+/** 同章节同卡已有 pending 来电时复用，避免 Strict Mode / 双挂载连响两次 */
+function findExistingPendingIncoming(
+	host: EngineHost,
+	userId: string,
+	chapterId: string,
+	cardId: string,
+) {
+	return host.listIncomingCallEvents(userId).find(function (event) {
+		return (
+			event.status === "pending" &&
+			event.chapterId === chapterId &&
+			event.cardId === cardId
+		);
+	}) ?? null;
 }
 
 /**
@@ -117,6 +161,55 @@ export async function ringDebuggerChapterEntry(
 
 	const activeHost = host ?? (await getStudioV2EngineHost());
 	await activeHost.ensureProfile(userId);
+
+	const existingIncoming = findExistingPendingIncoming(
+		activeHost,
+		userId,
+		entry.chapterId,
+		entry.cardId,
+	);
+	if (existingIncoming) {
+		const verify = await verifyDebuggerOutboundE2E(
+			{ userId, intentId: existingIncoming.scheduleIntentId },
+			activeHost,
+		);
+		writeStudioLog("debugger", "info", {
+			event: "debugger.chapter_entry.reuse_pending_incoming",
+			userId,
+			agentId,
+			chapterId: entry.chapterId,
+			cardId: entry.cardId,
+			message: "reuse existing pending incoming instead of double-ring",
+			payload: {
+				incomingEventId: existingIncoming.eventId,
+				instanceId: existingIncoming.instanceId,
+				intentId: existingIncoming.scheduleIntentId,
+			},
+		});
+		return {
+			mode: "outbound_ring",
+			cardId: entry.cardId,
+			agentId,
+			seed: {
+				intentId: existingIncoming.scheduleIntentId,
+				instanceId: existingIncoming.instanceId,
+				userId,
+				agentId,
+				chapterId: entry.chapterId,
+				cardId: entry.cardId,
+				clockMs: 0,
+				fireAtMs: 0,
+				delayMs: 0,
+				dtoPath: `schedule-intents/${existingIncoming.scheduleIntentId}.json`,
+			},
+			verify: {
+				...verify,
+				hasIncomingEvent: true,
+				incomingEventId: existingIncoming.eventId,
+			},
+		};
+	}
+
 	await clearOrphanActiveCall(activeHost, userId);
 
 	const seed = await seedDebuggerOutboundE2E(

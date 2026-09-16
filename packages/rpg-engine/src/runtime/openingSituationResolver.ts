@@ -150,6 +150,28 @@ export function resolveOpeningSituation(
     });
   }
 
+  // 剧情计划外呼（含章节 delay=0 响铃、卡内 schedule_call_card）：开场归当前卡，
+  // 禁止再用「喂，是我」盖掉误拨/补打等卡面首句。
+  if (
+    ctx?.source === "story_scheduled_call" ||
+    ctx?.source === "scheduled_call"
+  ) {
+    return situation({
+      kind: "card_story",
+      priority: 85,
+      control: "card",
+      reason:
+        "story-planned outbound opening should be owned by the current card",
+      tags: [
+        "story_scheduled_call",
+        ctx.source,
+        ctx.actualEntry ?? input.scene.callDirection,
+        ctx.topicHint ? "has_topic" : "no_topic",
+      ],
+      firstTurn: cardControlledFirstTurn(),
+    });
+  }
+
   if (ctx && SCHEDULED_SOURCES.has(ctx.source)) {
     return situation({
       kind: "scheduled_callback",

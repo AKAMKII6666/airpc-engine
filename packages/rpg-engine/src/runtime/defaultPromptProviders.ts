@@ -287,6 +287,23 @@ const openingSituationProvider: PromptProvider = {
       if (!ctx.draft.openingPrivate && opening.privateNote) {
         ctx.draft.openingPrivate = opening.privateNote;
       }
+      // 卡掌控开场：用 speakableBrief 首行盖掉角色默认 opening，贴合作者写的误拨/补打首句
+      if (situation.control === "card" && ctx.draft.speakable.trim() !== "") {
+        const firstLine = ctx.draft.speakable
+          .split(/\r?\n/)
+          .map(function (line) {
+            return line.trim();
+          })
+          .find(function (line) {
+            return line !== "";
+          });
+        if (firstLine) {
+          ctx.draft.openingSpeakable = firstLine;
+          ctx.draft.notes.push(
+            "opening.situation:card_speakable_first_line",
+          );
+        }
+      }
     }
     ctx.systemHard.push(
       [

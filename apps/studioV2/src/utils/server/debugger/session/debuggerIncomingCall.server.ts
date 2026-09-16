@@ -7,6 +7,7 @@ import {
 	type CallSession,
 	type EngineHost,
 	type IncomingCallShellEvent,
+	type PlayerProfile,
 } from "@airpc/rpg-engine";
 import { getStudioV2EngineHost } from "@studio-v2/src/utils/server/host/engineHost.server";
 import { isValidUserId } from "@studio-v2/src/utils/server/users/usersFs.server";
@@ -203,6 +204,88 @@ function assertNoActiveCall(host: EngineHost, userId: string): void {
 	});
 }
 
+/** Board 上仍可接听（pending/missed）的 instance；active/已删则视为幽灵 */
+function findAnswerablePendingInstance(
+	profile: PlayerProfile,
+	agentId: string,
+	instanceId: string,
+) {
+	const item = profile.callCards.board.byAgent[agentId]?.pending.find(
+		function (row) {
+			return row.instanceId === instanceId;
+		},
+	);
+	if (!item) return null;
+	if (item.status !== "pending" && item.status !== "missed") return null;
+	return item;
+}
+
+function dismissStaleIncomingEvent(
+	host: EngineHost,
+	userId: string,
+	event: IncomingCallShellEvent,
+	reason: string,
+): void {
+	const dismissed = host.dismissIncomingCallEvent(
+		userId,
+		event.eventId,
+		"dismissed",
+	);
+	if (isEngineError(dismissed)) {
+		writeStudioLog("debugger", "warn", {
+			event: "debugger.incoming.stale_dismiss_failed",
+			userId,
+			message: dismissed.message,
+			payload: {
+				code: dismissed.code,
+				eventId: event.eventId,
+				instanceId: event.instanceId,
+				reason,
+			},
+		});
+		return;
+	}
+	writeStudioLog("debugger", "warn", {
+		event: "debugger.incoming.stale_dismissed",
+		userId,
+		message: "dismissed incoming whose board pending is gone or not answerable",
+		payload: {
+			eventId: event.eventId,
+			instanceId: event.instanceId,
+			agentId: event.agentId,
+			reason,
+		},
+	});
+}
+
+/** 丢掉 Board 已无对应可接听 pending 的壳事件，避免 UI 幽灵响铃 */
+function pruneUnanswerableIncomingEvents(
+	host: EngineHost,
+	userId: string,
+	profile: PlayerProfile,
+	events: readonly IncomingCallShellEvent[],
+): IncomingCallShellEvent[] {
+	const kept: IncomingCallShellEvent[] = [];
+	for (const event of events) {
+		const pending = findAnswerablePendingInstance(
+			profile,
+			event.agentId,
+			event.instanceId,
+		);
+		if (pending) {
+			kept.push(event);
+			continue;
+		}
+		dismissStaleIncomingEvent(
+			host,
+			userId,
+			event,
+			"board_pending_missing_or_not_answerable",
+		);
+	}
+	return kept;
+}
+
 /** 读取 Host pending incoming events，并补上角色展示字段 */
 export async function listDebuggerIncomingCalls(
 	userId: string,
@@ -210,7 +293,7 @@ export async function listDebuggerIncomingCalls(
 ): Promise<DebuggerIncomingCallView[]> {
 	assertValidUserId(userId);
 	const activeHost = host ?? await getStudioV2EngineHost();
-	await activeHost.ensureProfile(userId);
+	const profile = await activeHost.ensureProfile(userId);
 	if (!host) {
 		ensureDebuggerScheduleClockPumpStarted(userId);
 		await pumpDebuggerScheduleClock(userId, activeHost);
@@ -219,7 +302,13 @@ export async function listDebuggerIncomingCalls(
 		Promise.resolve(activeHost.listIncomingCallEvents(userId)),
 		buildRoleMap(),
 	]);
-	return events.map(function (event) {
+	const answerable = pruneUnanswerableIncomingEvents(
+		activeHost,
+		userId,
+		profile,
+		events,
+	);
+	return answerable.map(function (event) {
 		return projectIncomingCall(event, roleMap);
 	});
 }
@@ -259,12 +348,37 @@ export async function acceptDebuggerIncomingCall(
 	await activeHost.ensureProfile(input.userId);
 	const event = findIncomingEvent(activeHost, input.userId, input.eventId);
 	assertNoActiveCall(activeHost, input.userId);
+	// 定点 instanceId：避免 Board 上其它 pending / Free 抢走解析，导致响铃卡对不上
 	const resolved = await activeHost.resolveAsync(input.userId, {
 		kind: "agent_outbound",
 		agentId: event.agentId,
+		instanceId: event.instanceId,
 	});
-	if (isEngineError(resolved)) throw resolved;
+	if (isEngineError(resolved)) {
+		// 幽灵响铃：Board pending 已没了仍挂在壳上；丢掉 event 避免连点同一错误
+		dismissStaleIncomingEvent(
+			activeHost,
+			input.userId,
+			event,
+			`resolve_${resolved.code}`,
+		);
+		throw Object.assign(
+			new Error(
+				`incoming call no longer answerable: ${resolved.message}`,
+			),
+			{
+				code: resolved.code,
+				status: resolved.code === "NOT_FOUND" ? 404 : 409,
+			},
+		);
+	}
 	if (resolved.instanceId !== event.instanceId) {
+		dismissStaleIncomingEvent(
+			activeHost,
+			input.userId,
+			event,
+			"resolve_instance_mismatch",
+		);
 		throw Object.assign(new Error("incoming event no longer matches pending card"), {
 			code: "CONFLICT",
 			status: 409,
@@ -313,13 +427,25 @@ async function finishAcceptedIncoming(
 			completedBeats: [],
 			missedRequiredBeats: [],
 		});
-		if (isEngineError(discarded) && discarded.code !== "NO_EXIT_MATCHED") {
-			writeStudioLog("debugger", "warn", {
-				event: "debugger.incoming.accept_opening_discard_failed",
-				userId: input.userId,
-				sessionId: ready.sessionId,
-				message: discarded.message,
-				payload: { code: discarded.code },
+		if (isEngineError(discarded)) {
+			// 二次章节响铃可能已把开场中会话 abort；勿再当致命错误刷屏
+			const alreadyGone =
+				discarded.code === "NO_EXIT_MATCHED" ||
+				/not endable|not in_call|aborted/i.test(discarded.message);
+			if (!alreadyGone) {
+				writeStudioLog("debugger", "warn", {
+					event: "debugger.incoming.accept_opening_discard_failed",
+					userId: input.userId,
+					sessionId: ready.sessionId,
+					message: discarded.message,
+					payload: { code: discarded.code },
+				});
+			}
+		}
+		if (isEngineError(err)) {
+			throw Object.assign(new Error(err.message), {
+				code: err.code,
+				status: err.code === "NOT_FOUND" ? 404 : 500,
 			});
 		}
 		throw err;

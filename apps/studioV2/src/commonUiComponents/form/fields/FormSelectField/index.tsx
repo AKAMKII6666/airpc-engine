@@ -93,13 +93,22 @@ export const FormSelectField: FC<Props> = function FormSelectField({
 				SelectProps={{
 					displayEmpty: Boolean(placeholder),
 					inputProps: { "aria-label": label },
+					// 空值时强制显示占位文案，避免 MUI 把空串渲染成第一项可用标签（如「男」）
+					renderValue: function (selected) {
+						const current = String(selected ?? "");
+						if (current === "" && placeholder) {
+							return placeholder;
+						}
+						const hit = options.find(function (opt) {
+							return opt.value === current;
+						});
+						return hit?.label ?? current;
+					},
 				}}
 			>
 				{placeholder ? (
-					// 引用了MenuItem组件，用于占位空选项
-					<MenuItem value="" disabled>
-						{placeholder}
-					</MenuItem>
+					// 引用了MenuItem组件，用于占位空选项（可选，勿 disabled，否则折叠态易误显首项）
+					<MenuItem value="">{placeholder}</MenuItem>
 				) : null}
 				{options.map((opt) => (
 					// 引用了MenuItem组件，用于渲染下拉选项

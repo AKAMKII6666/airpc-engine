@@ -104,6 +104,38 @@ export function createPhoneCommands(input: {
 			input.setPhoneUi((previous) => ({ ...previous, dialed: nextDialed }));
 			startDialing(nextDialed);
 		},
+		/**
+			* 右侧「自由通话」chip：按 agentId 直拨，复用 startFreeCall（可先未摘机）。
+			*/
+		dialFreeCall(agentId: string): void {
+			if (input.callState.mode === "inCall" || input.callBis.busy) return;
+			const role = input.roles.find(function (row) {
+				return row.agentId === agentId;
+			});
+			if (!role) {
+				input.setLocalError(`未找到角色：${agentId}`);
+				return;
+			}
+			if (!role.canFreeCall) {
+				input.setLocalError(
+					`${role.name} 当前不可拨：${role.blockedReason ?? "未知原因"}`,
+				);
+				return;
+			}
+			input.clearPhoneTimers();
+			input.setLocalError(undefined);
+			input.setPhoneUi({
+				phase: "dialing",
+				receiverMode: input.phoneUi.receiverMode ?? "handset",
+				dialed: role.number,
+			});
+			void (async function () {
+				const session = await input.callBis.startFreeCall(role.agentId);
+				if (!session) {
+					input.setPhoneUi(readyPhoneUi(input.phoneUi.receiverMode ?? "handset"));
+				}
+			})();
+		},
 		sendDraft(): void {
 			if (
 				input.callState.mode !== "inCall" ||

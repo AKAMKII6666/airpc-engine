@@ -118,6 +118,7 @@ export function useDebuggerPrototypeSession(
 		liftReceiver: commands.liftReceiver,
 		pressDialKey: commands.pressDialKey,
 		redial: commands.redial,
+		dialFreeCall: commands.dialFreeCall,
 		sendDraft: commands.sendDraft,
 		startSimulateCall: commands.startSimulateCall,
 		startSimulateChapterCall: commands.startSimulateChapterCall,

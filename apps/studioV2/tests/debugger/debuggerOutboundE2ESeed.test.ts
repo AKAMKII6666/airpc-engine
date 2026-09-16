@@ -57,7 +57,28 @@ function fakeHost(state: FakeHostState): EngineHost {
 			state.saveReasons.push(reason);
 		},
 		listIncomingCallEvents() {
-			return state.incomingEvents;
+			return state.incomingEvents.filter(function (event) {
+				return event.status === "pending";
+			});
+		},
+		dismissIncomingCallEvent(
+			_userId: string,
+			eventId: string,
+			status: "rejected" | "dismissed",
+		) {
+			const event = state.incomingEvents.find(function (item) {
+				return item.eventId === eventId;
+			});
+			if (!event) {
+				return {
+					ok: false as const,
+					code: "NOT_FOUND",
+					message: `incoming event not found: ${eventId}`,
+				};
+			}
+			event.status = status;
+			event.updatedAt = "2026-08-11T00:00:02.000Z";
+			return event;
 		},
 	} as unknown as EngineHost;
 }
@@ -105,6 +126,47 @@ describe("outboundE2ESeed.server", () => {
 			status: "pending",
 		});
 		expect(state.saveReasons).toEqual(["manual"]);
+	});
+
+	it("dismisses stale incoming when reseeding removes prior debug pending", async () => {
+		const state: FakeHostState = {
+			profile: profileFixture(),
+			saveReasons: [],
+			incomingEvents: [],
+		};
+		const host = fakeHost(state);
+		const first = await seedDebuggerOutboundE2E(
+			{ userId: "demo-user", delayMs: 0 },
+			host,
+		);
+		state.incomingEvents.push({
+			schemaVersion: 1,
+			eventId: "incoming_old",
+			type: "call.incoming_requested",
+			userId: "demo-user",
+			chapterId: first.chapterId,
+			cardId: first.cardId,
+			agentId: first.agentId,
+			instanceId: first.instanceId,
+			scheduleIntentId: first.intentId,
+			source: "schedule",
+			status: "pending",
+			createdAt: "2026-08-11T00:00:01.000Z",
+		});
+
+		const second = await seedDebuggerOutboundE2E(
+			{ userId: "demo-user", delayMs: 0 },
+			host,
+		);
+
+		expect(second.instanceId).not.toBe(first.instanceId);
+		expect(
+			state.profile.callCards.board.byAgent.lanxing?.pending.map(function (item) {
+				return item.instanceId;
+			}),
+		).toEqual([second.instanceId]);
+		expect(state.incomingEvents[0]?.status).toBe("dismissed");
+		expect(host.listIncomingCallEvents("demo-user")).toEqual([]);
 	});
 
 	it("verifies seeded schedule, board pending and incoming event", async () => {

@@ -13,6 +13,7 @@ import type {
 	ServerLlmChatResult,
 } from "@studio-v2/src/utils/server/llm/llmClient.server";
 import {
+	resolveDebuggerToolChoice,
 	runDebuggerLlmWithTools,
 	runDebuggerLlmWithToolsStream,
 } from "@studio-v2/src/utils/server/debugger/session/debuggerToolCalling.server";
@@ -83,7 +84,11 @@ function sessionFixture(): CallSession {
 		exitCandidates: [],
 		shellEvents: [],
 		effectLedger: {},
-		chatTurns: [],
+		chatTurns: [{
+			role: "user",
+			text: "你好",
+			at: "2026-08-10T00:00:00.000Z",
+		}],
 	};
 }
 
@@ -101,6 +106,119 @@ function fakeLlmResult(
 }
 
 describe("runDebuggerLlmWithTools", () => {
+	it("forces tool_choice=required for clear reminder/name intents on first round", () => {
+		expect(
+			resolveDebuggerToolChoice({
+				messages: [{ role: "user", content: "过两分钟再打给我提醒喝水" }],
+				hasTools: true,
+				round: 0,
+			}),
+		).toBe("required");
+		expect(
+			resolveDebuggerToolChoice({
+				messages: [{ role: "user", content: "我叫测测，请记住我" }],
+				hasTools: true,
+				round: 0,
+			}),
+		).toBe("required");
+		expect(
+			resolveDebuggerToolChoice({
+				messages: [{ role: "user", content: "过两分钟再打给我提醒喝水" }],
+				hasTools: true,
+				round: 1,
+			}),
+		).toBe("auto");
+		expect(
+			resolveDebuggerToolChoice({
+				messages: [{ role: "user", content: "今天天气怎么样" }],
+				hasTools: true,
+				round: 0,
+			}),
+		).toBe("auto");
+	});
+
+	it("tool_choice ignores opening synthetic user and only honors session chatTurns", () => {
+		expect(
+			resolveDebuggerToolChoice({
+				messages: [{
+					role: "user",
+					content: "接通电话。请先说第一句话。\n禁止：客服式长自我介绍。",
+				}],
+				hasTools: true,
+				round: 0,
+				sessionUserText: null,
+			}),
+		).toBe("auto");
+		expect(
+			resolveDebuggerToolChoice({
+				messages: [{
+					role: "user",
+					content: "接通电话。请先说第一句话。",
+				}],
+				hasTools: true,
+				round: 0,
+				sessionUserText: "那先拜拜",
+			}),
+		).toBe("required");
+	});
+
+	it("hides request_hangup before any user turn and blocks forced invoke", async () => {
+		const session = sessionFixture();
+		session.chatTurns = [];
+		const shellInvoked: unknown[] = [];
+		const host = {
+			invokeShellControlTool(sessionId: string, toolId: string, args?: unknown) {
+				shellInvoked.push({ sessionId, toolId, args });
+				throw new Error("request_hangup must not reach Host before user speaks");
+			},
+			getSession() {
+				return session;
+			},
+		} as unknown as EngineHost;
+
+		const result = await runDebuggerLlmWithTools({
+			host,
+			session,
+			messages: [
+				{
+					role: "system",
+					content:
+						"[conversation.inertia.recent_turns]\n- user: 打错了就算了吧，拜拜",
+				},
+				{ role: "user", content: "接通电话。请先说第一句话。" },
+			],
+			temperature: 0.1,
+			llmRunner: async function (input) {
+				expect(input.tools?.map(function (tool) {
+					return tool.function.name;
+				})).not.toContain("request_hangup");
+				expect(input.toolChoice).toBe("auto");
+				if (input.messages.some(function (msg) {
+					return msg.role === "tool";
+				})) {
+					return fakeLlmResult({ text: "喂，是我。" });
+				}
+				return fakeLlmResult({
+					finishReason: "tool_calls",
+					toolCalls: [{
+						id: "call_ghost_hangup",
+						name: "request_hangup",
+						argumentsJson: "{\"reason\":\"inertia goodbye\"}",
+					}],
+				});
+			},
+		});
+
+		expect(shellInvoked).toEqual([]);
+		expect(result.toolEvents[0]).toMatchObject({
+			toolCallId: "call_ghost_hangup",
+			toolId: "request_hangup",
+			ok: false,
+		});
+		expect(result.toolEvents[0]?.resultContent).toContain("SHELL_HANGUP_BEFORE_USER");
+		expect(result.llm.text).toBe("喂，是我。");
+	});
+
 	it("exposes the first-version special FC capability matrix to the model", async () => {
 		const session = sessionFixture();
 		let firstTools: string[] = [];
@@ -119,6 +237,8 @@ describe("runDebuggerLlmWithTools", () => {
 				firstTools = input.tools?.map(function (tool) {
 					return tool.function.name;
 				}) ?? [];
+				expect(input.enableThinking).toBe(false);
+				expect(input.toolChoice).toBe("auto");
 				return fakeLlmResult({ text: "能力已就绪。" });
 			},
 		});

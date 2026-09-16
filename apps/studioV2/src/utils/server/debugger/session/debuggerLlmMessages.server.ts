@@ -46,6 +46,16 @@ function appendRenderedPrompt(
 	};
 	if (effectivePolicy.includeSystemHard) {
 		for (const hard of prompt.systemHard) {
+			// 开场隔离：systemHard 里的 memory / inertia 块也要挡，不能只过滤 soft
+			if (!effectivePolicy.includeMemory && hard.startsWith("[memory]")) {
+				continue;
+			}
+			if (
+				!effectivePolicy.includeInertia &&
+				hard.startsWith("[conversation.inertia")
+			) {
+				continue;
+			}
 			pushIfText(messages, "system", hard);
 		}
 	}

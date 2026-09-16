@@ -128,12 +128,42 @@ export function shellToolResultContent(result: ShellControlToolResult): string {
 	});
 }
 
+/** 本通 chatTurns 是否已有用户发言；开场首轮未开口前不得挂机 FC */
+export function sessionHasUserSpoken(session: CallSession | null | undefined): boolean {
+	if (!session?.chatTurns) return false;
+	return session.chatTurns.some(function (turn) {
+		return turn.role === "user";
+	});
+}
+
+/** 本通最新一条用户发言文本；开场合成 user 不算（只读 chatTurns） */
+export function latestSessionUserText(
+	session: CallSession | null | undefined,
+): string | null {
+	if (!session?.chatTurns) return null;
+	for (let i = session.chatTurns.length - 1; i >= 0; i -= 1) {
+		const turn = session.chatTurns[i];
+		if (turn?.role === "user" && typeof turn.text === "string") {
+			const trimmed = turn.text.trim();
+			return trimmed === "" ? null : trimmed;
+		}
+	}
+	return null;
+}
+
 export function listLlmToolsForSession(session: CallSession) {
+	const shellTools = listDebuggerShellControlTools().filter(function (tool) {
+		// 用户未在本通开口前不暴露 hangup，避免 inertia「拜拜」诱发放飞
+		if (tool.toolId === "request_hangup" && !sessionHasUserSpoken(session)) {
+			return false;
+		}
+		return true;
+	});
 	return [
 		...listToolsForCard(session.frozenCard, {
 			characterDef: session.frozenCharacter,
 		}),
-		...listDebuggerShellControlTools(),
+		...shellTools,
 	];
 }
 
@@ -294,6 +324,27 @@ async function invokeToolCall(
 	});
 	try {
 		if (isDebuggerShellControlTool(call.name)) {
+			// 兜底：模型仍吐 hangup 时也不发 call.hangup_requested
+			if (call.name === "request_hangup") {
+				const session = host.getSession(sessionId);
+				if (!sessionHasUserSpoken(session)) {
+					const blocked = {
+						ok: false,
+						code: "SHELL_HANGUP_BEFORE_USER",
+						message:
+							"须等本通用户开口后才能 request_hangup；上一通告别/惯性不算。",
+					};
+					recordToolEngineError({
+						sessionId,
+						call,
+						error: {
+							code: blocked.code,
+							message: blocked.message,
+						},
+					});
+					return JSON.stringify(blocked);
+				}
+			}
 			const invoked = host.invokeShellControlTool(
 				sessionId,
 				call.name,

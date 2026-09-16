@@ -7,6 +7,7 @@ import type {
 	EngineHost,
 	IncomingCallShellEvent,
 	IncomingCallShellEventStatus,
+	PlayerProfile,
 } from "@airpc/rpg-engine";
 import {
 	acceptDebuggerIncomingCall,
@@ -31,13 +32,54 @@ function incomingEventFixture(): IncomingCallShellEvent {
 	};
 }
 
+function profileWithAnswerablePending(
+	event: IncomingCallShellEvent,
+	status: "pending" | "missed" | "active" = "pending",
+): PlayerProfile {
+	return {
+		schemaVersion: 1,
+		userId: event.userId,
+		user: {
+			userId: event.userId,
+			nickname: "调试玩家",
+			createdAt: "2026-08-10T00:00:00.000Z",
+			updatedAt: "2026-08-10T00:00:00.000Z",
+		},
+		characters: {},
+		stories: {},
+		callCards: {
+			board: {
+				byAgent: {
+					[event.agentId]: {
+						pending: [{
+							instanceId: event.instanceId,
+							cardId: event.cardId,
+							chapterId: event.chapterId,
+							agentId: event.agentId,
+							status,
+							entryMode: "outbound_auto",
+							createdAt: event.createdAt,
+							updatedAt: event.createdAt,
+						}],
+					},
+				},
+			},
+		},
+		telephony: {},
+		world: { lore: null, facts: [], knowledge: {} },
+		schedule: { clockMs: 0, intents: [] },
+		research: { commitments: [] },
+	};
+}
+
 function hostFixture(
 	event: IncomingCallShellEvent,
 	saveReasons: string[] = [],
+	profile: PlayerProfile = profileWithAnswerablePending(event),
 ): EngineHost {
 	return {
 		async ensureProfile() {
-			return {} as Awaited<ReturnType<EngineHost["ensureProfile"]>>;
+			return profile;
 		},
 		async saveProfile(_userId: string, reason: string) {
 			saveReasons.push(reason);
@@ -63,7 +105,7 @@ function hostFixture(
 function activeCallHostFixture(event: IncomingCallShellEvent): EngineHost {
 	return {
 		async ensureProfile() {
-			return {} as Awaited<ReturnType<EngineHost["ensureProfile"]>>;
+			return profileWithAnswerablePending(event);
 		},
 		listIncomingCallEvents() {
 			return event.status === "pending" ? [event] : [];
@@ -90,7 +132,7 @@ function beginFailingHostFixture(
 ): EngineHost {
 	return {
 		async ensureProfile() {
-			return {} as Awaited<ReturnType<EngineHost["ensureProfile"]>>;
+			return profileWithAnswerablePending(event);
 		},
 		listIncomingCallEvents() {
 			return event.status === "pending" ? [event] : [];
@@ -98,7 +140,12 @@ function beginFailingHostFixture(
 		getActiveSession() {
 			return null;
 		},
-		async resolveAsync() {
+		async resolveAsync(_userId: string, intent: { kind: string; instanceId?: string }) {
+			expect(intent).toMatchObject({
+				kind: "agent_outbound",
+				agentId: event.agentId,
+				instanceId: event.instanceId,
+			});
 			return {
 				source: "story_pending",
 				instanceId: event.instanceId,
@@ -106,7 +153,11 @@ function beginFailingHostFixture(
 				agentId: event.agentId,
 				chapterId: event.chapterId,
 				card: {},
-				intent: { kind: "agent_outbound", agentId: event.agentId },
+				intent: {
+					kind: "agent_outbound",
+					agentId: event.agentId,
+					instanceId: event.instanceId,
+				},
 			};
 		},
 		async beginCall() {
@@ -152,7 +203,7 @@ function acceptSuccessHostFixture(
 	} as unknown as CallSession;
 	return {
 		async ensureProfile() {
-			return {} as Awaited<ReturnType<EngineHost["ensureProfile"]>>;
+			return profileWithAnswerablePending(event);
 		},
 		listIncomingCallEvents() {
 			return event.status === "pending" ? [event] : [];
@@ -160,8 +211,13 @@ function acceptSuccessHostFixture(
 		getActiveSession() {
 			return null;
 		},
-		async resolveAsync() {
+		async resolveAsync(_userId: string, intent: { kind: string; instanceId?: string }) {
 			steps.push("resolve");
+			expect(intent).toMatchObject({
+				kind: "agent_outbound",
+				agentId: event.agentId,
+				instanceId: event.instanceId,
+			});
 			return {
 				source: "story_pending",
 				instanceId: event.instanceId,
@@ -169,7 +225,11 @@ function acceptSuccessHostFixture(
 				agentId: event.agentId,
 				chapterId: event.chapterId,
 				card: {},
-				intent: { kind: "agent_outbound", agentId: event.agentId },
+				intent: {
+					kind: "agent_outbound",
+					agentId: event.agentId,
+					instanceId: event.instanceId,
+				},
 			};
 		},
 		async beginCall() {
@@ -221,6 +281,74 @@ describe("debuggerIncomingCall.server", () => {
 			cardId: "doubao_intro_outbound",
 			status: "pending",
 		});
+	});
+
+	it("prunes ghost incoming when board pending is missing", async () => {
+		const event = incomingEventFixture();
+		const emptyProfile = profileWithAnswerablePending(event);
+		emptyProfile.callCards.board.byAgent.lanxing = { pending: [] };
+		const remaining = await listDebuggerIncomingCalls(
+			"demo-user",
+			hostFixture(event, [], emptyProfile),
+		);
+
+		expect(event.status).toBe("dismissed");
+		expect(remaining).toEqual([]);
+	});
+
+	it("prunes ghost incoming when board pending is already active", async () => {
+		const event = incomingEventFixture();
+		const remaining = await listDebuggerIncomingCalls(
+			"demo-user",
+			hostFixture(event, [], profileWithAnswerablePending(event, "active")),
+		);
+
+		expect(event.status).toBe("dismissed");
+		expect(remaining).toEqual([]);
+	});
+
+	it("dismisses ghost incoming when accept resolve returns NOT_FOUND", async () => {
+		const event = incomingEventFixture();
+		const profile = profileWithAnswerablePending(event);
+		profile.callCards.board.byAgent.lanxing = { pending: [] };
+		const host = {
+			async ensureProfile() {
+				return profile;
+			},
+			listIncomingCallEvents() {
+				return event.status === "pending" ? [event] : [];
+			},
+			getActiveSession() {
+				return null;
+			},
+			async resolveAsync() {
+				return {
+					ok: false,
+					code: "NOT_FOUND",
+					message: `outbound pending instance not found: ${event.instanceId}`,
+				};
+			},
+			dismissIncomingCallEvent(
+				_userId: string,
+				eventId: string,
+				status: Extract<IncomingCallShellEventStatus, "rejected" | "dismissed">,
+			) {
+				expect(eventId).toBe(event.eventId);
+				event.status = status;
+				return event;
+			},
+		} as unknown as EngineHost;
+
+		await expect(
+			acceptDebuggerIncomingCall(
+				{ userId: "demo-user", eventId: event.eventId },
+				host,
+			),
+		).rejects.toMatchObject({
+			code: "NOT_FOUND",
+			status: 404,
+		});
+		expect(event.status).toBe("dismissed");
 	});
 
 	it("rejects incoming call and returns remaining pending list", async () => {

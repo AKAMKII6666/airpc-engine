@@ -29,6 +29,12 @@ export type DebuggerShellProps = {
 	initialCardId?: string;
 };
 
+/**
+	* Strict Mode 会卸载再挂载，组件内 useRef 挡不住双发章节响铃。
+	* 用模块级去重：同一章节入口在短窗内只自动响一次。
+	*/
+const autoStartedChapterKeys = new Set<string>();
+
 export const DebuggerShell: FC<DebuggerShellProps> = function DebuggerShell({
 	// initialChapterId 来自路由 query，用于编辑器定点调试
 	initialChapterId,
@@ -43,7 +49,6 @@ export const DebuggerShell: FC<DebuggerShellProps> = function DebuggerShell({
 	const roleRows = useMemo(() => toRoleRows(roleBis.roles), [roleBis.roles]);
 	const session = useDebuggerPrototypeSession(roleRows, mailboxBis);
 	const isInCall = session.callState.mode === "inCall";
-	const autoStartKeyRef = useRef<string | null>(null);
 	const sessionRef = useRef(session);
 	sessionRef.current = session;
 	const refreshIncomingRef = useRef(incomingBis.refresh);
@@ -52,8 +57,8 @@ export const DebuggerShell: FC<DebuggerShellProps> = function DebuggerShell({
 	useEffect(function () {
 		if (!initialChapterId || isInCall) return;
 		const key = `${initialChapterId}:${initialCardId ?? "__entry__"}`;
-		if (autoStartKeyRef.current === key) return;
-		autoStartKeyRef.current = key;
+		if (autoStartedChapterKeys.has(key)) return;
+		autoStartedChapterKeys.add(key);
 		if (initialCardId) {
 			sessionRef.current.startSimulateCall(initialChapterId, initialCardId);
 			return;
@@ -64,6 +69,10 @@ export const DebuggerShell: FC<DebuggerShellProps> = function DebuggerShell({
 				if (ringed) {
 					void refreshIncomingRef.current();
 				}
+			})
+			.catch(function () {
+				// 失败后允许同 key 再试（例如首发冲突 / Host 未就绪）
+				autoStartedChapterKeys.delete(key);
 			});
 	}, [initialChapterId, initialCardId, isInCall]);
 

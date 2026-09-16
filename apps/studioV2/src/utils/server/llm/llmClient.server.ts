@@ -54,8 +54,8 @@ export type ServerLlmChatInput = {
 	responseFormat?: "json_object";
 	/** 本轮允许模型调用的 OpenAI-compatible tools；空数组等同不发 tools */
 	tools?: OpenAiCompatibleTool[];
-	/** OpenAI-compatible tool_choice；缺省交给供应商 auto */
-	toolChoice?: "auto" | "none";
+	/** OpenAI-compatible tool_choice；缺省交给供应商 auto；required 需配合关 thinking */
+	toolChoice?: "auto" | "none" | "required";
 };
 
 export type ServerLlmChatResult = {

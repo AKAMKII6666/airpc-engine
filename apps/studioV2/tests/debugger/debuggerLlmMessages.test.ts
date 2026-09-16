@@ -105,6 +105,16 @@ describe("debuggerLlmMessages.server", () => {
 		expect(messages.at(-2)?.content).toContain("[phone-shell-controls]");
 		expect(messages.at(-2)?.content).toContain("拜拜");
 		expect(messages.at(-2)?.content).toContain("不要重复调用业务工具");
+		expect(messages.at(-2)?.content).toContain("触发条件只看本通 chatTurns");
+		expect(messages.at(-2)?.content).toContain(
+			"禁止：把上一通（conversation.inertia / memory）里的告别",
+		);
+		expect(messages.at(-2)?.content).toContain(
+			"禁止：把上一通出现过的任何 function call",
+		);
+		expect(messages.at(-2)?.content).toContain(
+			"开场首轮（用户尚未在本通开口）禁止仅因上一通余温调用 request_hangup",
+		);
 		expect(messages.at(-1)?.content).toContain("喂？你找我吗？");
 		expect(messages.at(-1)?.content).toContain("不要把开场扩写成完整段落");
 		expect(messages.at(-1)?.content).toContain("小作文式环境描写");
@@ -160,6 +170,9 @@ describe("debuggerLlmMessages.server", () => {
 			"[conversation.inertia.recent_turns]\nassistant: 喂，棍子哥哥～",
 			"[scheduled.callback]\n回电话题：提醒睡午觉",
 		];
+		session.renderedPrompt!.systemHard.push(
+			"[conversation.inertia]\n- 这不是完全重启的一通",
+		);
 
 		const messages = buildOpeningLlmMessages(session);
 		const text = messages.map((message) => message.content).join("\n\n");
@@ -168,8 +181,12 @@ describe("debuggerLlmMessages.server", () => {
 		expect(text).toContain("可说内容");
 		expect(text).toContain("私有目标");
 		expect(text).not.toContain("棍子哥哥");
-		expect(text).not.toContain("conversation.inertia");
+		// soft/hard 里的 inertia 块应被隔离；shell 纪律可提及「conversation.inertia」作禁止对象
+		expect(text).not.toContain("[conversation.inertia]");
+		expect(text).not.toContain("[conversation.inertia.recent_turns]");
 		expect(text).not.toContain("提醒睡午觉");
+		expect(text).not.toContain("这不是完全重启的一通");
+		expect(text).toContain("禁止：把上一通（conversation.inertia / memory）里的告别");
 	});
 
 	it("builds turn messages from prompt plus recorded Host chatTurns", () => {

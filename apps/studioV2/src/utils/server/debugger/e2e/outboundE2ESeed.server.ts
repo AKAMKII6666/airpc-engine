@@ -143,21 +143,73 @@ function isDebugIntent(raw: unknown): boolean {
 	);
 }
 
+/**
+	* 清掉同角色上一批 debug E2E seed；返回被删 pending 的 instanceId，
+	* 供同步 dismiss 已响铃但尚未接听的 Host incoming event（避免幽灵来电）。
+	*/
 function cleanupPreviousDebugSeeds(
 	profile: PlayerProfile,
 	agentId: string,
-): void {
+): string[] {
+	const removedInstanceIds: string[] = [];
 	const board = profile.callCards.board.byAgent[agentId];
 	if (board) {
-		board.pending = board.pending.filter(function (item) {
-			return !item.scheduledIntentId?.startsWith(DEBUG_INTENT_PREFIX);
-		});
+		const kept: PendingBoardEntry[] = [];
+		for (const item of board.pending) {
+			if (item.scheduledIntentId?.startsWith(DEBUG_INTENT_PREFIX)) {
+				removedInstanceIds.push(item.instanceId);
+				continue;
+			}
+			kept.push(item);
+		}
+		board.pending = kept;
 	}
 	const schedule = ensureSchedule(profile);
 	schedule.intents = schedule.intents.filter(function (intent) {
 		const row = intent as { agentId?: unknown };
 		return !(isDebugIntent(intent) && row.agentId === agentId);
 	});
+	return removedInstanceIds;
+}
+
+/** seed 清掉旧 pending 后，同步丢掉仍挂在壳上的旧响铃，避免接听 NOT_FOUND */
+function dismissIncomingForRemovedInstances(
+	host: EngineHost,
+	userId: string,
+	removedInstanceIds: readonly string[],
+): void {
+	if (removedInstanceIds.length === 0) return;
+	const removed = new Set(removedInstanceIds);
+	for (const event of host.listIncomingCallEvents(userId)) {
+		if (!removed.has(event.instanceId)) continue;
+		const dismissed = host.dismissIncomingCallEvent(
+			userId,
+			event.eventId,
+			"dismissed",
+		);
+		if (isEngineError(dismissed)) {
+			writeStudioLog("schedule", "warn", {
+				event: "debugger.e2e.outbound.stale_incoming_dismiss_failed",
+				userId,
+				message: dismissed.message,
+				payload: {
+					code: dismissed.code,
+					eventId: event.eventId,
+					instanceId: event.instanceId,
+				},
+			});
+			continue;
+		}
+		writeStudioLog("schedule", "info", {
+			event: "debugger.e2e.outbound.stale_incoming_dismissed",
+			userId,
+			message: "dismissed stale incoming after debug seed cleanup",
+			payload: {
+				eventId: event.eventId,
+				instanceId: event.instanceId,
+			},
+		});
+	}
 }
 
 function findIntent(
@@ -239,7 +291,8 @@ export async function seedDebuggerOutboundE2E(
 	await assertCardExists(activeHost, chapterId, cardId);
 	const profile = await activeHost.ensureProfile(userId);
 	const schedule = ensureSchedule(profile);
-	cleanupPreviousDebugSeeds(profile, agentId);
+	const removedInstanceIds = cleanupPreviousDebugSeeds(profile, agentId);
+	dismissIncomingForRemovedInstances(activeHost, userId, removedInstanceIds);
 	const nowIso = new Date().toISOString();
 	const intentId = `${DEBUG_INTENT_PREFIX}${randomUUID()}`;
 	const instanceId = randomUUID();

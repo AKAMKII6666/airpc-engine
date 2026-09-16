@@ -18,6 +18,7 @@
 | [studio-v2/06-过程岔子与纠正记录.md](./studio-v2/06-过程岔子与纠正记录.md) | 做错什么、用户怎么要求改、最终口径 |
 | [studio-v2/07-已知边界与下一步候选.md](./studio-v2/07-已知边界与下一步候选.md) | 故意未做的事、易误判项 |
 | [studio-v2/08-调试器人工E2E清单.md](./studio-v2/08-调试器人工E2E清单.md) | 调试器人工走测、提交前核对、失败取证口径 |
+| [studio-v2/e2e/README.md](./studio-v2/e2e/README.md) | **全量 UI E2E 用例包**（计划 / 路由清单 / 意图台账 / 60 基线 + [第二轮 21 条深测](./studio-v2/e2e/04-第二轮用例矩阵.md)；只测不修） |
 | [studio-v2/09-记忆Commit与Trace.md](./studio-v2/09-记忆Commit与Trace.md) | 挂机抽取分层、Orchestrator 落点、Memory Trace |
 | [studio-v2/10-下一步-态度记忆与MemoryTrace面板.md](./studio-v2/10-下一步-态度记忆与MemoryTrace面板.md) | 给后续 Agent：态度记忆 + Trace 成品面板 |
 
@@ -54,6 +55,10 @@ T3-8 之后调试器真会话 / Host 已接通。记忆加强已落地：完整 
 - 调试器文本聊天新增 SSE 流式回复：`POST /api/debug/call/message/stream`；原非流式接口保留。
 - 聊天流补齐思考收折、Markdown、工具事件卡片、自动吸底/回到底部、失败重试、中断回复、长会话虚拟滚动。
 - 挂机事实/态度抽取显式关闭 Qwen 思考，降低收尾延迟；细节见 [08](./studio-v2/08-调试器人工E2E清单.md) 与 [09](./studio-v2/09-记忆Commit与Trace.md)。
+
+### 3.3 增量（2026-09-09）
+
+- 落盘 Studio V2 **全量 UI E2E 用例包**：`docs/AI/studio-v2/e2e/`（全部路由深测；操作仅 UI；断言允许 Network/日志；意图双栏；只测不修）。入口见 [e2e/README](./studio-v2/e2e/README.md)。
 
 ## 4. 真源接通（里程碑）
 

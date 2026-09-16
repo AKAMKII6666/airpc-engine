@@ -24,6 +24,8 @@ type DebuggerContextTabsProps = {
 	rolesError: string | undefined;
 	/** 刷新角色列表 */
 	onRefreshRoles: () => Promise<void>;
+	/** 点击可拨「自由通话」chip */
+	onFreeCall: (agentId: string) => void;
 };
 
 export const DebuggerContextTabs: FC<DebuggerContextTabsProps> =
@@ -38,6 +40,8 @@ export const DebuggerContextTabs: FC<DebuggerContextTabsProps> =
 		rolesError,
 		// onRefreshRoles 是刷新命令，用于上下文 Tab
 		onRefreshRoles,
+		// onFreeCall 是 chip 直拨命令，用于 free card
+		onFreeCall,
 	}) {
 		const [activeTab, setActiveTab] = useState<
 			"context" | "memoryTrace" | "plugins"
@@ -87,6 +91,7 @@ export const DebuggerContextTabs: FC<DebuggerContextTabsProps> =
 						loading={rolesLoading}
 						error={rolesError}
 						onRefresh={onRefreshRoles}
+						onFreeCall={onFreeCall}
 					/>
 				) : activeTab === "memoryTrace" ? (
 					// 引用了MemoryTracePanel组件，用于展示上一通抽取详情

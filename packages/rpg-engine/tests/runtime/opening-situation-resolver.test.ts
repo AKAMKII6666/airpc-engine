@@ -154,6 +154,25 @@ describe("resolveOpeningSituation", function () {
     );
   });
 
+  it("lets story-planned outbound keep card-owned opening (wrong-number / 补打)", function () {
+    const result = resolveOpeningSituation({
+      beginContext: beginContext({
+        source: "story_scheduled_call",
+        actualEntry: "outbound_auto",
+        scheduledIntentId: "intent_story",
+        topicHint: "chapter_entry_ring",
+      }),
+      scene: scene({ actualEntry: "outbound_auto" }),
+    });
+    expect(result).toMatchObject({
+      kind: "card_story",
+      control: "card",
+    });
+    expect(result.tags).toEqual(
+      expect.arrayContaining(["story_scheduled_call", "has_topic"]),
+    );
+  });
+
   it("keeps missed outbound resume above inbound unknown", function () {
     const result = resolveOpeningSituation({
       beginContext: beginContext({

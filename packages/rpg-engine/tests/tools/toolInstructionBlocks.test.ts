@@ -18,6 +18,7 @@ describe("buildToolInstructionBlocks", () => {
 		expect(blocks[0]).toMatch(/^\[tools\]/);
 		expect(blocks[0]).toMatch(/口头预约回电/);
 		expect(blocks[0]).toMatch(/schedule_reminder_call/);
+		expect(blocks[0]).toMatch(/禁止只说/);
 		expect(blocks[0]).not.toMatch(/专家介绍优先/);
 	});
 
@@ -111,7 +112,8 @@ describe("buildAcquaintanceSoftExtra", () => {
 		expect(block).toMatch(/^\[acquaintance\]/);
 		expect(block).toMatch(/已认识「廖力」/);
 		expect(block).toMatch(/哦是你啊/);
-		expect(block).toMatch(/禁止再演初次记名/);
+		expect(block).toMatch(/禁止再演对已知称呼/);
+		expect(block).toMatch(/record_user_name/);
 		expect(block).toMatch(/接听瞬间仍可当陌生来电/);
 	});
 });

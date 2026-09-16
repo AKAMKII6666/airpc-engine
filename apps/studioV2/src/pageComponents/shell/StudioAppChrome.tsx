@@ -1,10 +1,11 @@
 /**
 	* 应用壳：左侧主导航 + 主区装配。
 	* 章编辑器路由进入全屏：隐藏主导航与主区 padding，避免挤占画布。
+	* 首帧固定非全屏壳，pathname 就绪后再切全屏，避免 SSR/CSR hydration mismatch。
 	*/
 "use client";
 
-import type { FC, ReactNode } from "react";
+import { useEffect, useState, type FC, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Typography } from "@mui/material";
@@ -30,7 +31,15 @@ function isStoryEditorPath(pathname: string): boolean {
 export const StudioAppChrome: FC<StudioAppChromeProps> = function (props) {
 	const { children } = props;
 	const pathname = usePathname() ?? "/";
-	const fullscreen = isStoryEditorPath(pathname);
+	// 首帧与 SSR 对齐为非全屏；挂载后再按真实 pathname 切全屏，消 hydration 分叉
+	const [fullscreen, setFullscreen] = useState(false);
+
+	useEffect(
+		function () {
+			setFullscreen(isStoryEditorPath(pathname));
+		},
+		[pathname],
+	);
 
 	if (fullscreen) {
 		return <div className={styles.fullscreen}>{children}</div>;

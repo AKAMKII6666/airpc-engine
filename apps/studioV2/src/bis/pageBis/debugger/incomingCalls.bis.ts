@@ -36,6 +36,12 @@ function errorMessage(error: unknown): string {
 	if (error instanceof Error && error.message.trim() !== "") {
 		return error.message;
 	}
+	if (error && typeof error === "object") {
+		const row = error as { message?: unknown; code?: unknown };
+		if (typeof row.message === "string" && row.message.trim() !== "") {
+			return row.message;
+		}
+	}
 	return "外呼请求失败";
 }
 

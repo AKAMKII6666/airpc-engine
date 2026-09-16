@@ -320,9 +320,13 @@ describe("composeRenderedPrompt", () => {
     const joinedHard = prompt.systemHard.join("\n\n");
     expect(joinedHard).toContain("[conversation.inertia]");
     expect(joinedHard).toContain("不要重新完整自我介绍");
+    expect(joinedHard).toContain("【只读信息】");
+    expect(joinedHard).toContain("把上一通的告别/拒绝/挂机意图当作本通用户刚说的话");
+    expect(joinedHard).toContain("把上一通任何 FC 调用指令");
     expect(prompt.softContext.join("\n\n")).toContain(
       "[conversation.inertia.recent_turns]",
     );
+    expect(prompt.softContext.join("\n\n")).toContain("read_only=true");
     expect(prompt.softContext.join("\n\n")).toContain("明天要早起");
     expect(prompt.debug?.providerIds).toEqual(
       expect.arrayContaining(["conversation.inertia"]),

@@ -31,7 +31,7 @@
     "wrong_number_act1": {
       "chapterId": "wrong_number_act1",
       "status": "active",
-      "instanceId": "818c9fcb-beea-41d9-9e46-e573e7f89c62",
+      "instanceId": "3d45ebba-6342-4a29-a52e-b6d2cb01baca",
       "variables": {},
       "lock": null,
       "reason": "留言收束",
@@ -98,29 +98,50 @@
               "agentId": "lanxing",
               "status": "missed",
               "entryMode": "outbound_auto",
-              "createdAt": "2026-09-09T09:35:48.559Z",
-              "updatedAt": "2026-09-09T09:37:06.169Z",
               "activationHint": "outbound_auto",
               "scheduledIntentId": "fx_schedule_callback",
               "missedOutboundAt": "2026-09-09T09:37:06.169Z",
               "missedOutboundReason": "rejected",
-              "missedIncomingEventId": "80fcba42-85c6-43c7-a95c-00de26204444"
+              "missedIncomingEventId": "80fcba42-85c6-43c7-a95c-00de26204444",
+              "createdAt": "2026-09-09T09:35:48.559Z",
+              "updatedAt": "2026-09-09T09:37:06.169Z"
             },
             {
-              "instanceId": "0291dfee-7760-41cc-9e1b-10a4b193e6cc",
+              "instanceId": "ed59906a-d2a9-45ca-9834-7ab231b98b8d",
+              "cardId": "lanxing_callback_intro",
+              "chapterId": "wrong_number_act1",
+              "agentId": "lanxing",
+              "status": "active",
+              "entryMode": "outbound_auto",
+              "activationHint": "outbound_auto",
+              "scheduledIntentId": "fx_schedule_callback",
+              "createdAt": "2026-09-16T07:48:06.795Z",
+              "updatedAt": "2026-09-16T07:49:13.096Z"
+            },
+            {
+              "instanceId": "00a7323c-6df0-42ed-aeea-009d61685ebc",
+              "cardId": "lanxing_callback_intro",
+              "chapterId": "wrong_number_act1",
+              "agentId": "lanxing",
+              "status": "active",
+              "entryMode": "outbound_auto",
+              "activationHint": "outbound_auto",
+              "scheduledIntentId": "fx_schedule_callback",
+              "createdAt": "2026-09-16T08:10:27.771Z",
+              "updatedAt": "2026-09-16T08:11:30.866Z"
+            },
+            {
+              "instanceId": "3d45ebba-6342-4a29-a52e-b6d2cb01baca",
               "cardId": "lanxing_wrong_number",
               "chapterId": "wrong_number_act1",
               "agentId": "lanxing",
-              "status": "missed",
+              "status": "active",
               "entryMode": "either",
               "activationHint": "outbound_auto",
-              "scheduledIntentId": "debug_outbound_e2e:8550ccd7-590b-4896-858d-344baf408117",
+              "scheduledIntentId": "debug_outbound_e2e:e51edc88-94ec-47e6-bd59-79e452ea7a4f",
               "priority": 1000000,
-              "createdAt": "2026-09-09T09:35:57.262Z",
-              "updatedAt": "2026-09-09T09:36:21.356Z",
-              "missedOutboundAt": "2026-09-09T09:36:21.356Z",
-              "missedOutboundReason": "rejected",
-              "missedIncomingEventId": "522250f9-4353-47bd-aa1b-33c97fc88f8d"
+              "createdAt": "2026-09-16T08:21:31.734Z",
+              "updatedAt": "2026-09-16T08:21:33.724Z"
             }
           ]
         }
@@ -143,6 +164,26 @@
         "status": "listened",
         "createdAt": "2026-09-09T08:33:25.471Z",
         "listenedAt": "2026-09-09T08:33:35.454Z"
+      },
+      {
+        "id": "fx_c6e3ca1f79cd4e3991796b932ff13778",
+        "agentId": "lanxing",
+        "cardId": "lanxing_voicemail",
+        "chapterId": "wrong_number_act1",
+        "instanceId": "fx_c6e3ca1f79cd4e3991796b932ff13778",
+        "text": "喂？是我，澜星。就是刚才打错电话、又补打一遍那个。可以叫我澜星姐姐。电话号码 2267070。有空打给我哦。如果有个叫小皮的小孩突然打电话给你……你先别怕。他小麻烦很多，但有时候也需要有人听见。",
+        "status": "unread",
+        "createdAt": "2026-09-16T07:49:15.344Z"
+      },
+      {
+        "id": "fx_c6e3ca1f79cd4e3991796b932ff13778",
+        "agentId": "lanxing",
+        "cardId": "lanxing_voicemail",
+        "chapterId": "wrong_number_act1",
+        "instanceId": "fx_c6e3ca1f79cd4e3991796b932ff13778",
+        "text": "喂？是我，澜星。就是刚才打错电话、又补打一遍那个。可以叫我澜星姐姐。电话号码 2267070。有空打给我哦。如果有个叫小皮的小孩突然打电话给你……你先别怕。他小麻烦很多，但有时候也需要有人听见。",
+        "status": "unread",
+        "createdAt": "2026-09-16T08:11:33.646Z"
       }
     ],
     "voicemailGenStack": []
@@ -208,7 +249,7 @@
     "knowledge": {}
   },
   "schedule": {
-    "clockMs": 10730714,
+    "clockMs": 46287133,
     "intents": [
       {
         "kind": "once",
@@ -230,7 +271,7 @@
         "cardId": "lanxing_callback_intro",
         "chapterId": "wrong_number_act1",
         "fireAtMs": 3795395,
-        "status": "fired",
+        "status": "consumed",
         "topicHint": "补打：自报澜星姐姐并留号",
         "origin": "story_scheduled_call",
         "createdAt": "2026-09-09T09:35:48.559Z",
@@ -238,16 +279,42 @@
       },
       {
         "kind": "once",
-        "intentId": "debug_outbound_e2e:8550ccd7-590b-4896-858d-344baf408117",
+        "intentId": "fx_schedule_callback",
+        "agentId": "lanxing",
+        "cardId": "lanxing_callback_intro",
+        "chapterId": "wrong_number_act1",
+        "fireAtMs": 43651161,
+        "status": "consumed",
+        "topicHint": "补打：自报澜星姐姐并留号",
+        "origin": "story_scheduled_call",
+        "createdAt": "2026-09-16T07:48:06.795Z",
+        "linkedInstanceId": "ed59906a-d2a9-45ca-9834-7ab231b98b8d"
+      },
+      {
+        "kind": "once",
+        "intentId": "fx_schedule_callback",
+        "agentId": "lanxing",
+        "cardId": "lanxing_callback_intro",
+        "chapterId": "wrong_number_act1",
+        "fireAtMs": 46104503,
+        "status": "consumed",
+        "topicHint": "补打：自报澜星姐姐并留号",
+        "origin": "story_scheduled_call",
+        "createdAt": "2026-09-16T08:10:27.771Z",
+        "linkedInstanceId": "00a7323c-6df0-42ed-aeea-009d61685ebc"
+      },
+      {
+        "kind": "once",
+        "intentId": "debug_outbound_e2e:e51edc88-94ec-47e6-bd59-79e452ea7a4f",
         "agentId": "lanxing",
         "cardId": "lanxing_wrong_number",
         "chapterId": "wrong_number_act1",
-        "fireAtMs": 3703916,
-        "status": "fired",
+        "fireAtMs": 46143729,
+        "status": "consumed",
         "topicHint": "chapter_entry_ring",
         "origin": "story_scheduled_call",
-        "createdAt": "2026-09-09T09:35:57.262Z",
-        "linkedInstanceId": "0291dfee-7760-41cc-9e1b-10a4b193e6cc"
+        "createdAt": "2026-09-16T08:21:31.734Z",
+        "linkedInstanceId": "3d45ebba-6342-4a29-a52e-b6d2cb01baca"
       }
     ]
   },
@@ -256,21 +323,21 @@
   },
   "meta": {
     "createdAt": "2026-07-13T00:00:00.000Z",
-    "updatedAt": "2026-09-09T10:14:59.337Z",
+    "updatedAt": "2026-09-16T08:23:55.018Z",
     "note": "记忆明细在 data/memory/memory.sqlite，不在本文件内嵌",
     "repairedAt": "2026-08-11T09:09:51.070Z",
     "repairedReason": "trimmed corrupted appended JSON tail and restored pending reminder intent",
     "conversationInertiaByAgent": {
       "lanxing": {
-        "previousSessionId": "3a8c3f66-ed14-4a7c-8f7e-77b8fdd13a5c",
-        "previousEndedAt": "2026-09-09T09:35:48.559Z",
-        "previousCardId": "lanxing_wrong_number",
+        "previousSessionId": "8b9fb759-ff59-491f-b579-63ac2fde9480",
+        "previousEndedAt": "2026-09-16T08:11:33.555Z",
+        "previousCardId": "lanxing_callback_intro",
         "previousSource": "story_pending",
         "recentTurns": [
           {
             "role": "assistant",
-            "text": "喂，是我。\n\n刚才还在想是不是该给你打个电话，结果一开口……哎呀，这脑子又自动脑补成小皮了。",
-            "at": "2026-09-09T09:35:08.442Z"
+            "text": "抱歉，刚才那通电话可能没接通或者信号不太好。我是澜星姐姐，之前好像打错过给你了。既然缘分到了，不如重新认识一下？我电话号码是2267070，你方便告诉我怎么称呼你吗？",
+            "at": "2026-09-16T08:11:33.444Z"
           }
         ]
       },

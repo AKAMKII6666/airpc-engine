@@ -58,6 +58,8 @@ export type DebuggerPrototypeSession = {
 	pressDialKey: (key: string) => void;
 	/** 重播最近号码；原型中回落到第一名角色号码 */
 	redial: () => void;
+	/** 右侧自由通话 chip：按 agentId 直拨 free card */
+	dialFreeCall: (agentId: string) => void;
 	/** 发送玩家输入到真实调试通话 API */
 	sendDraft: () => void;
 	/** 编辑器入口：直接从指定章节/卡启动调试通话 */

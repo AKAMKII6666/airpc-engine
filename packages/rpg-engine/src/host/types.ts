@@ -42,7 +42,15 @@ export type CallSessionStatus =
 export type CallIntent =
   | { kind: "simulate_start"; chapterId: string; cardId: string }
   | { kind: "user_dial"; agentId: string }
-  | { kind: "agent_outbound"; agentId: string }
+  | {
+			kind: "agent_outbound";
+			agentId: string;
+			/**
+			 * 接听真实外呼时传入 IncomingCallShellEvent.instanceId，
+			 * 定点消费响铃实例，避免与 Board 其它 pending / Free 抢解析。
+			 */
+			instanceId?: string;
+		}
   | { kind: "free_call"; agentId: string }
   /** 信箱打开：听已物化留言；不从 Board.pending 挑选 */
   | {

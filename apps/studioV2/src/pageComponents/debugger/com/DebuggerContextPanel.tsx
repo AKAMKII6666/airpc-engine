@@ -306,6 +306,8 @@ export type DebuggerContextPanelProps = {
 	rolesError: string | undefined;
 	/** 刷新待机角色列表 */
 	onRefreshRoles: () => Promise<void>;
+	/** 点击可拨「自由通话」chip */
+	onFreeCall: (agentId: string) => void;
 	/** 本通手勾已完成节拍；仅 inCall 使用 */
 	outcomeCompletedBeats: readonly string[];
 	/** 手勾/取消节拍；仅 inCall 使用 */
@@ -326,6 +328,8 @@ export const DebuggerContextPanel: FC<DebuggerContextPanelProps> =
 		rolesError,
 		// onRefreshRoles 是刷新角色列表命令，用于 idle 面板
 		onRefreshRoles,
+		// onFreeCall 是 chip 直拨命令，用于 free card
+		onFreeCall,
 		// outcomeCompletedBeats 是本通手勾节拍
 		outcomeCompletedBeats,
 		// onToggleOutcomeBeat 切换节拍勾选
@@ -348,6 +352,7 @@ export const DebuggerContextPanel: FC<DebuggerContextPanelProps> =
 						rolesLoading={rolesLoading}
 						rolesError={rolesError}
 						onRefreshRoles={onRefreshRoles}
+						onFreeCall={onFreeCall}
 					/>
 				)}
 			</section>

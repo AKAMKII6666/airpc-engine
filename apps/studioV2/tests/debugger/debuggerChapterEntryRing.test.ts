@@ -121,4 +121,94 @@ describe("debuggerChapterEntryRing.server", () => {
 		expect(ring.verify.hasIncomingEvent).toBe(true);
 		expect(ring.verify.incomingEventId).toBe("evt-1");
 	});
+
+	it("reuses existing pending incoming instead of seeding a second ring", async () => {
+		const profile = profileFixture();
+		const incoming: IncomingCallShellEvent[] = [{
+			schemaVersion: 1,
+			eventId: "evt-existing",
+			type: "call.incoming_requested",
+			userId: "demo-user",
+			chapterId: "wrong_number_act1",
+			cardId: "lanxing_wrong_number",
+			agentId: "lanxing",
+			instanceId: "inst-existing",
+			scheduleIntentId: "debug_outbound_e2e:existing",
+			source: "schedule",
+			status: "pending",
+			createdAt: "2026-08-11T00:00:00.000Z",
+		}];
+		let advanceCount = 0;
+		const host = {
+			async preloadCard() {
+				return undefined;
+			},
+			async ensureProfile() {
+				return profile;
+			},
+			async saveProfile() {
+				return undefined;
+			},
+			getActiveSession() {
+				return null;
+			},
+			advanceClock() {
+				advanceCount += 1;
+				return [];
+			},
+			listIncomingCallEvents() {
+				return incoming;
+			},
+		} as unknown as EngineHost;
+
+		const ring = await ringDebuggerChapterEntry(
+			{ userId: "demo-user", chapterId: "wrong_number_act1" },
+			host,
+		);
+		expect(ring.mode).toBe("outbound_ring");
+		if (ring.mode !== "outbound_ring") return;
+		expect(advanceCount).toBe(0);
+		expect(ring.verify.incomingEventId).toBe("evt-existing");
+		expect(ring.seed.instanceId).toBe("inst-existing");
+	});
+
+	it("does not abort a fresh active call when re-ringing", async () => {
+		const profile = profileFixture();
+		const host = {
+			async preloadCard() {
+				return undefined;
+			},
+			async ensureProfile() {
+				return profile;
+			},
+			async saveProfile() {
+				return undefined;
+			},
+			getActiveSession() {
+				return {
+					sessionId: "fresh_session",
+					userId: "demo-user",
+					startedAt: new Date().toISOString(),
+					resolve: { cardId: "lanxing_wrong_number" },
+					status: "in_call",
+				};
+			},
+			listIncomingCallEvents() {
+				return [];
+			},
+			advanceClock() {
+				throw new Error("should not seed while fresh call is active");
+			},
+		} as unknown as EngineHost;
+
+		await expect(
+			ringDebuggerChapterEntry(
+				{ userId: "demo-user", chapterId: "wrong_number_act1" },
+				host,
+			),
+		).rejects.toMatchObject({
+			code: "CONFLICT_ACTIVE_CALL",
+			status: 409,
+		});
+	});
 });
