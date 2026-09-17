@@ -79,6 +79,7 @@ import {
 - Manual / 调试：`beginCall` → `consumeOpeningFirstTurn` → 多轮对话 → `endCall(manualOutcome)`。  
 - Text / 壳：首句必须先走 `consumeOpeningFirstTurn`；不要在 Studio 或电话壳里解析 Prompt Trace 文本自行拼开场。
 - Free：挂机走 Free 管线（MemoryCommit；有 candidate 再 Exit）。  
-- 样例包：`data/storis-packages/golden_handoff/` 等（由 ContentPort 读取）。
+- 产品剧情包：`data/storis-packages/wrong_number_act1/`（由 ContentPort 读取）。
+- 引擎回归素材：`test-fixtures/storis-packages/golden_handoff/`，仅测试装配，不进入 Studio 产品列表。
 
 更细的 Host API、错误码、磁盘**布局**约定见技术设计 [19](../../docs/AI和人类/技术设计文档/19-引擎宿主与会话模型.md)；B/S 拓扑见 [18](../../docs/AI和人类/技术设计文档/18-部署拓扑与BS架构.md)；Memory 投影算法见 [20](../../docs/AI和人类/技术设计文档/20-记忆存储与投影.md)。**存取谁读谁写、Port 入参出参**以 [23](../../docs/AI和人类/技术设计文档/23-引擎存取Port与IO适配.md) 为准。本文只负责「怎么用引擎」。

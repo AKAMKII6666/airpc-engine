@@ -65,6 +65,9 @@ describe("endDebuggerCallSession", () => {
 	it("ends active Host session and projects end result", async () => {
 		const calls: unknown[] = [];
 		const host = {
+			getActiveSession() {
+				return null;
+			},
 			async endCall(sessionId: string, summary: unknown) {
 				calls.push([sessionId, summary]);
 				return {
@@ -95,6 +98,7 @@ describe("endDebuggerCallSession", () => {
 				flags: { answered_completed: true },
 				completedBeats: [],
 				missedRequiredBeats: [],
+				termination: { source: "user" },
 			},
 		]);
 		expect(view).toEqual({
@@ -113,6 +117,39 @@ describe("endDebuggerCallSession", () => {
 				skippedReason: null,
 				error: null,
 			},
+		});
+	});
+
+	it("treats NO_EXIT_MATCHED as soft success after Host freed the slot", async () => {
+		const host = {
+			getActiveSession() {
+				return callSessionFixture();
+			},
+			getSession(sessionId: string) {
+				if (sessionId !== "session_1") return null;
+				return { ...callSessionFixture(), status: "aborted" as const };
+			},
+			async endCall() {
+				return {
+					ok: false,
+					code: "NO_EXIT_MATCHED",
+					message: "no exit matched outcome",
+				};
+			},
+		} as unknown as EngineHost;
+
+		const view = await endDebuggerCallSession(
+			{ sessionId: "session_1", hangupEarly: true },
+			host,
+		);
+		expect(view).toEqual({
+			sessionId: "session_1",
+			status: "aborted",
+			selectedExitId: null,
+			planStatus: "aborted",
+			freeCommitted: null,
+			postCallJobId: "",
+			memoryTrace: null,
 		});
 	});
 });

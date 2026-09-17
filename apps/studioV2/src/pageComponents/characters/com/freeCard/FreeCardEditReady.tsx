@@ -4,7 +4,7 @@
 "use client";
 
 import { useCallback, useState, type FC } from "react";
-import { Button } from "@mui/material";
+import { Alert, Button, LinearProgress } from "@mui/material";
 import { FormModal } from "@studio-v2/src/commonUiComponents/modal/form/FormModal";
 // 引用了FirstConnectPromptPreviewModal组件，用于首通提示词预览
 import { FirstConnectPromptPreviewModal } from "@studio-v2/src/commonUiComponents/promptPreview/FirstConnectPromptPreviewModal";
@@ -16,6 +16,8 @@ import {
 import { commitSaveFreeCard } from "@studio-v2/src/bis/pageBis/characters/freeCard/saveFreeCard_bis";
 import type { CallCardDefinition } from "@studio-v2/typeFiles/story/callCard/engineCallCard";
 import { renderFreeCardFormBody } from "./FreeCardFormBody";
+import { useToolCatalogBis } from "@studio-v2/src/bis/pageBis/tools/toolCatalog.bis";
+import { projectToolCatalogChoices } from "@studio-v2/src/bis/pageBis/tools/toolCatalogProjection";
 
 export type FreeCardEditReadyProps = {
 	open: boolean;
@@ -42,6 +44,11 @@ export const FreeCardEditReady: FC<FreeCardEditReadyProps> = function ({
 }) {
 	const [previewOpen, setPreviewOpen] = useState(false);
 	const [previewCard, setPreviewCard] = useState<unknown>(null);
+	const { catalog, loading, error } = useToolCatalogBis({
+		agentId: card.ownerAgentId,
+		cardKind: "free",
+		interactionMode: card.interactionMode ?? "realtime_dialogue",
+	});
 
 	const handleSubmit = useCallback(
 		async function (values: FreeCardFormValues): Promise<void> {
@@ -58,7 +65,7 @@ export const FreeCardEditReady: FC<FreeCardEditReadyProps> = function ({
 			<FormModal
 				open={open}
 				title="编辑自由通话卡"
-				description={`真源 data/characters/free-cards/${freeCardId}.s-card.json。能力开关对应 toolPolicy；主动挂机为壳钩子预留。`}
+				description={`真源 data/characters/free-cards/${freeCardId}.s-card.json。工具目录来自服务端 Registry，主动挂机与插件 FC 均由 toolPolicy 控制。`}
 				onClose={onClose}
 				initialValues={initial}
 				validate={validateFreeCardForm}
@@ -67,25 +74,40 @@ export const FreeCardEditReady: FC<FreeCardEditReadyProps> = function ({
 				mode="edit"
 				maxWidth="md"
 			>
-				{(formik) => (
-					<>
-						{renderFreeCardFormBody(formik)}
-						{/* 引用了Button组件，用于打开首通提示词预览 */}
-						<Button
-							sx={{ mt: 2 }}
-							variant="outlined"
-							size="small"
-							onClick={function () {
-								setPreviewCard(
-									applyFreeCardForm(card, formik.values),
-								);
-								setPreviewOpen(true);
-							}}
-						>
-							首通提示词预览
-						</Button>
-					</>
-				)}
+				{(formik) => {
+					const choices = projectToolCatalogChoices({
+						catalog,
+						storedIds: formik.values.allowedToolIds,
+						mode: formik.values.toolPolicyMode,
+					});
+					return (
+						<>
+							{/* 引用了LinearProgress组件，用于展示动态工具目录加载态 */}
+							{loading ? <LinearProgress /> : null}
+							{/* 引用了Alert组件，用于展示工具目录加载失败 */}
+							{error ? <Alert severity="error">工具目录加载失败：{error}</Alert> : null}
+							{renderFreeCardFormBody(
+								formik,
+								choices.options,
+								choices.effectiveToolIds,
+							)}
+							{/* 引用了Button组件，用于打开首通提示词预览 */}
+							<Button
+								sx={{ mt: 2 }}
+								variant="outlined"
+								size="small"
+								onClick={function () {
+									setPreviewCard(
+										applyFreeCardForm(card, formik.values),
+									);
+									setPreviewOpen(true);
+								}}
+							>
+								首通提示词预览
+							</Button>
+						</>
+					);
+				}}
 			</FormModal>
 
 			{/* 引用了FirstConnectPromptPreviewModal组件，用于 Free 卡首通预览 */}

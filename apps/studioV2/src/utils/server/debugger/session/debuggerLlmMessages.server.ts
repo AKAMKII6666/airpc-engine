@@ -2,7 +2,11 @@
 	* Host CallSession → LLM messages 投影。
 	* 只把 Composer 已产出的公开调试上下文与 chatTurns 送入模型，不读取 Client 状态。
 	*/
-import type { CallSession, RenderedPrompt } from "@airpc/rpg-engine";
+import {
+	listToolsForCard,
+	type CallSession,
+	type RenderedPrompt,
+} from "@airpc/rpg-engine";
 import type { ServerLlmChatMessage } from "@studio-v2/src/utils/server/llm/llmClient.server";
 import { buildShellControlInstruction } from "@studio-v2/src/utils/server/debugger/shell/shellControlTools.server";
 
@@ -30,10 +34,22 @@ function pushIfText(
 	if (trimmed) messages.push({ role, content: trimmed });
 }
 
+function isPromptBlockExcluded(
+	text: string,
+	policy: OpeningLlmContextPolicy,
+): boolean {
+	const memoryExcluded =
+		!policy.includeMemory && text.startsWith("[memory]");
+	const inertiaExcluded =
+		!policy.includeInertia && text.startsWith("[conversation.inertia");
+	return memoryExcluded || inertiaExcluded;
+}
+
 function appendRenderedPrompt(
 	messages: ServerLlmChatMessage[],
 	prompt: RenderedPrompt | undefined,
 	policy?: OpeningLlmContextPolicy,
+	includeShellControlInstruction = false,
 ): void {
 	if (!prompt) return;
 	const effectivePolicy = policy ?? {
@@ -46,6 +62,8 @@ function appendRenderedPrompt(
 	};
 	if (effectivePolicy.includeSystemHard) {
 		for (const hard of prompt.systemHard) {
+			// 开场隔离：systemHard 里的 memory / inertia 块也要挡，不能只过滤 soft
+			if (isPromptBlockExcluded(hard, effectivePolicy)) continue;
 			pushIfText(messages, "system", hard);
 		}
 	}
@@ -57,19 +75,13 @@ function appendRenderedPrompt(
 	}
 	if (effectivePolicy.includeSoftContext) {
 		for (const soft of prompt.softContext) {
-			if (!effectivePolicy.includeMemory && soft.startsWith("[memory]")) {
-				continue;
-			}
-			if (
-				!effectivePolicy.includeInertia &&
-				soft.startsWith("[conversation.inertia")
-			) {
-				continue;
-			}
+			if (isPromptBlockExcluded(soft, effectivePolicy)) continue;
 			pushIfText(messages, "system", soft);
 		}
 	}
-	pushIfText(messages, "system", buildShellControlInstruction());
+	if (includeShellControlInstruction) {
+		pushIfText(messages, "system", buildShellControlInstruction());
+	}
 }
 
 function readOpeningLlmContextPolicy(
@@ -117,6 +129,7 @@ export function buildOpeningLlmMessages(
 		messages,
 		session.renderedPrompt,
 		readOpeningLlmContextPolicy(session),
+		false,
 	);
 	appendOpeningInstruction(messages, session);
 	return messages;
@@ -127,7 +140,16 @@ export function buildTurnLlmMessages(
 	session: CallSession,
 ): ServerLlmChatMessage[] {
 	const messages: ServerLlmChatMessage[] = [];
-	appendRenderedPrompt(messages, session.renderedPrompt);
+	appendRenderedPrompt(
+		messages,
+		session.renderedPrompt,
+		undefined,
+		(session.frozenTools ?? listToolsForCard(session.frozenCard, {
+			characterDef: session.frozenCharacter,
+		})).some(function (tool) {
+			return tool.toolId === "request_hangup";
+		}) === true,
+	);
 	for (const turn of session.chatTurns ?? []) {
 		if (
 			turn.role === "system" ||

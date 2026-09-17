@@ -18,6 +18,7 @@ export type L1ReservedIds = {
 	gateIds: ReadonlySet<string>;
 	taskIds: ReadonlySet<string>;
 	providerIds: ReadonlySet<string>;
+	toolIds: ReadonlySet<string>;
 };
 
 export function collectL1ReservedIds(
@@ -29,6 +30,7 @@ export function collectL1ReservedIds(
 		gateIds: new Set(l1.packIdByGateId.keys()),
 		taskIds: new Set(l1.packIdByTaskId.keys()),
 		providerIds: new Set(l1.promptProviderRegistry.getProviderIds()),
+		toolIds: new Set(l1.packIdByToolId.keys()),
 	};
 }
 
@@ -78,6 +80,12 @@ export function conflictReasonForPlugin(
 			plugins.packIdByProviderId,
 			reserved.providerIds,
 			"conflict_l1_provider_id",
+		) ??
+		firstOwnedConflict(
+			pluginId,
+			plugins.packIdByToolId,
+			reserved.toolIds,
+			"conflict_l1_tool_id",
 		)
 	);
 }
@@ -125,6 +133,7 @@ export function conflictReasonAgainstAcceptedL2(
 			accepted.packIdByContributorId,
 			"conflict_l2_contributor_id",
 		],
+		[staging.packIdByToolId, accepted.packIdByToolId, "conflict_l2_tool_id"],
 	];
 	for (const [st, ac, prefix] of checks) {
 		const hit = firstCrossPluginDuplicate(pluginId, st, ac, prefix);
@@ -173,6 +182,9 @@ export function stripPluginContributions(
 			return plugins.packIdByContributorId.get(c.contributorId) !== pluginId;
 		},
 	);
+	plugins.registeredTools = plugins.registeredTools.filter(function (tool) {
+		return tool.source.providerId !== pluginId;
+	});
 	plugins.outboundPrepare = plugins.outboundPrepare.filter(function (h) {
 		return h.pluginId !== pluginId;
 	});
@@ -188,6 +200,7 @@ export function stripPluginContributions(
 	deleteOwnedKeys(plugins.packIdByEnricherId, pluginId);
 	deleteOwnedKeys(plugins.packIdByProviderId, pluginId);
 	deleteOwnedKeys(plugins.packIdByContributorId, pluginId);
+	deleteOwnedKeys(plugins.packIdByToolId, pluginId);
 	plugins.loaded = plugins.loaded.filter(function (l) {
 		return l.pluginId !== pluginId;
 	});
@@ -205,6 +218,7 @@ export function mergePluginStagingInto(
 	target.taskTickHandlers.push(...staging.taskTickHandlers);
 	target.commitContextEnrichers.push(...staging.commitContextEnrichers);
 	target.commitExtractContributors.push(...staging.commitExtractContributors);
+	target.registeredTools.push(...staging.registeredTools);
 	target.outboundPrepare.push(...staging.outboundPrepare);
 	target.outboundRequest.push(...staging.outboundRequest);
 	target.uiPanels.push(...staging.uiPanels);
@@ -220,6 +234,9 @@ export function mergePluginStagingInto(
 	}
 	for (const [k, v] of staging.packIdByContributorId) {
 		target.packIdByContributorId.set(k, v);
+	}
+	for (const [k, v] of staging.packIdByToolId) {
+		target.packIdByToolId.set(k, v);
 	}
 }
 
@@ -249,6 +266,9 @@ export function rejectL2ConflictsWithL1(input: {
 		pluginIds.add(owner);
 	}
 	for (const owner of input.plugins.packIdByProviderId.values()) {
+		pluginIds.add(owner);
+	}
+	for (const owner of input.plugins.packIdByToolId.values()) {
 		pluginIds.add(owner);
 	}
 	for (const pluginId of pluginIds) {

@@ -104,6 +104,9 @@ export function createPhoneCommands(input: {
 			input.setPhoneUi((previous) => ({ ...previous, dialed: nextDialed }));
 			startDialing(nextDialed);
 		},
+		dialFreeCall(agentId: string): void {
+			startFreeCallFromChip(input, agentId);
+		},
 		sendDraft(): void {
 			if (
 				input.callState.mode !== "inCall" ||
@@ -129,7 +132,43 @@ export function createPhoneCommands(input: {
 			input.setPhoneUi({ phase: "dialing", receiverMode: "speaker", dialed: "" });
 			void startSimulateChapterNow(input, chapterId);
 		},
+		async startChapterEntryRing(chapterId: string): Promise<boolean> {
+			input.clearPhoneTimers();
+			input.setLocalError(undefined);
+			// 来电路径保持待机；勿进入「拨号中」
+			input.setPhoneUi(readyPhoneUi("speaker"));
+			return startChapterEntryRingNow(input, chapterId);
+		},
 	};
+}
+
+function startFreeCallFromChip(
+	input: Parameters<typeof createPhoneCommands>[0],
+	agentId: string,
+): void {
+	if (input.callState.mode === "inCall" || input.callBis.busy) return;
+	const role = input.roles.find((row) => row.agentId === agentId);
+	if (!role) {
+		input.setLocalError(`未找到角色：${agentId}`);
+		return;
+	}
+	if (!role.canFreeCall) {
+		input.setLocalError(
+			`${role.name} 当前不可拨：${role.blockedReason ?? "未知原因"}`,
+		);
+		return;
+	}
+	input.clearPhoneTimers();
+	input.setLocalError(undefined);
+	const receiverMode = input.phoneUi.receiverMode ?? "handset";
+	input.setPhoneUi({
+		phase: "dialing",
+		receiverMode,
+		dialed: role.number,
+	});
+	void input.callBis.startFreeCall(role.agentId).then(function (session) {
+		if (!session) input.setPhoneUi(readyPhoneUi(receiverMode));
+	});
 }
 
 async function resetPhoneAfterEnd(
@@ -141,6 +180,7 @@ async function resetPhoneAfterEnd(
 	input.setLocalError(undefined);
 	input.setDraft("");
 	input.setPhoneUi(lockedPhoneUi());
+	// 本地无 session 时不可猜测 Host session；避免结束其它页面仍在进行的活动通话。
 	if (!sessionId) {
 		input.callBis.resetCall();
 		return;
@@ -212,3 +252,20 @@ async function startSimulateChapterNow(
 	if (!session) input.setPhoneUi(readyPhoneUi("speaker"));
 }
 
+async function startChapterEntryRingNow(
+	input: Parameters<typeof createPhoneCommands>[0],
+	chapterId: string,
+): Promise<boolean> {
+	const ring = await input.callBis.startChapterEntryRing(chapterId);
+	if (!ring) {
+		input.setPhoneUi(readyPhoneUi("speaker"));
+		return false;
+	}
+	if (ring.mode === "simulate_start") {
+		// bis 已 beginCall；通话态由 activeCall 投影，勿再拨号遮罩
+		return false;
+	}
+	if (ring.mode === "already_active" || ring.mode === "blocked") return false;
+	input.setPhoneUi(readyPhoneUi("speaker"));
+	return true;
+}

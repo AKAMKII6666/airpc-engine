@@ -53,6 +53,10 @@ export interface MergeCapabilityPacksResult {
 	softExtraEnrichers: SoftExtraEnricher[];
 	commitContextEnrichers: CommitContextEnricher[];
 	commitExtractContributors: CommitExtractContributor[];
+	/** tools.register 已标准化为 source.kind=l1 的统一 Registry 条目。 */
+	registeredTools: import("../tools/types.js").RegisteredTool[];
+	/** toolId → packId */
+	packIdByToolId: ReadonlyMap<string, string>;
 	enabledPackIds: string[];
 	disabledPackIds: string[];
 	events: CapabilityPackLogEvent[];
@@ -82,6 +86,12 @@ export function mergeCapabilityPacks(
 		}),
 		"afterHangup hook id",
 	);
+	assertUniqueIds(
+		collected.registeredTools.map(function (tool) {
+			return tool.definition.toolId;
+		}),
+		"tool id",
+	);
 
 	const base = input.baseProviders ?? DEFAULT_PROMPT_PROVIDERS;
 	const promptProviderRegistry = createPromptProviderRegistry([
@@ -107,6 +117,8 @@ export function mergeCapabilityPacks(
 		softExtraEnrichers: collected.softExtraEnrichers,
 		commitContextEnrichers: collected.commitContextEnrichers,
 		commitExtractContributors: collected.commitExtractContributors,
+		registeredTools: collected.registeredTools,
+		packIdByToolId: collected.packIdByToolId,
 		enabledPackIds: collected.enabledPackIds,
 		disabledPackIds: collected.disabledPackIds,
 		events: collected.events,

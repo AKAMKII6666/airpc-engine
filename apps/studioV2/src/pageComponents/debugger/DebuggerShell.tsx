@@ -23,9 +23,9 @@ import {
 import styles from "./DebuggerShell.module.scss";
 
 export type DebuggerShellProps = {
-	/** 编辑器入口章节 id；存在时配合 initialCardId 自动启动 simulate_start */
+	/** 编辑器入口章节 id；无 cardId 时走章节开局响铃/simulate */
 	initialChapterId?: string;
-	/** 编辑器入口起始卡 id；存在时配合 initialChapterId 自动启动 simulate_start */
+	/** 编辑器定点卡 id；存在时配合 initialChapterId 自动 simulate_start */
 	initialCardId?: string;
 };
 
@@ -44,6 +44,10 @@ export const DebuggerShell: FC<DebuggerShellProps> = function DebuggerShell({
 	const session = useDebuggerPrototypeSession(roleRows, mailboxBis);
 	const isInCall = session.callState.mode === "inCall";
 	const autoStartKeyRef = useRef<string | null>(null);
+	const sessionRef = useRef(session);
+	sessionRef.current = session;
+	const refreshIncomingRef = useRef(incomingBis.refresh);
+	refreshIncomingRef.current = incomingBis.refresh;
 
 	useEffect(function () {
 		if (!initialChapterId || isInCall) return;
@@ -51,11 +55,17 @@ export const DebuggerShell: FC<DebuggerShellProps> = function DebuggerShell({
 		if (autoStartKeyRef.current === key) return;
 		autoStartKeyRef.current = key;
 		if (initialCardId) {
-			session.startSimulateCall(initialChapterId, initialCardId);
+			sessionRef.current.startSimulateCall(initialChapterId, initialCardId);
 			return;
 		}
-		session.startSimulateChapterCall(initialChapterId);
-	}, [initialChapterId, initialCardId, isInCall, session]);
+		void sessionRef.current
+			.startChapterEntryRing(initialChapterId)
+			.then(function (ringed) {
+				if (ringed) {
+					void refreshIncomingRef.current();
+				}
+			});
+	}, [initialChapterId, initialCardId, isInCall]);
 
 	return (
 		<main className={styles.root}>

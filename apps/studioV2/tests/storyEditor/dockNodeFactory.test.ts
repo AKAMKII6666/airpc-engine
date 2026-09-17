@@ -26,7 +26,13 @@ describe("dockNodeFactory", () => {
 		expect(story.entryMode).toBe("inbound_user_dial");
 		expect(story.interactionMode).toBe("realtime_dialogue");
 		expect(story.exits).toEqual([]);
-		expect(story.toolPolicy).toEqual({ mode: "inherit_free" });
+		expect(story.toolPolicy).toEqual({
+			schemaVersion: 2,
+			mode: "inherit_free",
+			options: {
+				request_hangup: { allowedReasonKinds: ["natural", "policy"] },
+			},
+		});
 		expect(story.ownerAgentId).toBe("");
 		expect(story.cardId).toMatch(/^card_/);
 	});

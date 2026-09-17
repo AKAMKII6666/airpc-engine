@@ -17,7 +17,9 @@
     "check:comments": "node scripts/studio-quality/check-comments.mjs && node --test scripts/studio-quality/tests/check-comments.test.mjs",
     "check:studio-structure": "node scripts/studio-quality/check-studio-structure.mjs && node --test scripts/studio-quality/tests/check-studio-structure.test.mjs",
     "test:studio": "npm run test -w @airpc/studio-v2",
+    "test:e2e:studio-v2": "node scripts/e2e/run-studio-v2-e2e.mjs",
     "quality:studio": "node scripts/studio-quality/quality-studio.mjs",
+    "migrate:studio-layout": "node scripts/studio-quality/ensure-modal-layout.mjs && node scripts/studio-quality/ensure-migrated-layout.mjs",
     "typecheck": "npm run build -w @airpc/rpg-engine && npm run typecheck -w @airpc/rpg-engine && npm run typecheck -w @airpc/studio && npm run typecheck -w @airpc/studio-v2",
     "typecheck:studio-v2": "npm run typecheck -w @airpc/studio-v2"
   },

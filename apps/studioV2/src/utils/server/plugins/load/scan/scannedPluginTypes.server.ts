@@ -10,6 +10,7 @@ import type {
 	SoftExtraEnricher,
 	TaskRegistrar,
 	TaskTickHandler,
+	RegisteredTool,
 } from "@airpc/rpg-engine";
 
 export type PluginUiPanelDescriptor = {
@@ -53,6 +54,9 @@ export type ScannedPluginContributions = {
 	packIdByContributorId: Map<string, string>;
 	commitContextEnrichers: CommitContextEnricher[];
 	commitExtractContributors: CommitExtractContributor[];
+	registeredTools: RegisteredTool[];
+	/** 标准化 toolId → pluginId */
+	packIdByToolId: Map<string, string>;
 	outboundPrepare: Array<{
 		pluginId: string;
 		run: (input: Record<string, unknown>) => unknown | Promise<unknown>;
@@ -85,6 +89,8 @@ export function emptyContributions(): ScannedPluginContributions {
 		packIdByContributorId: new Map(),
 		commitContextEnrichers: [],
 		commitExtractContributors: [],
+		registeredTools: [],
+		packIdByToolId: new Map(),
 		outboundPrepare: [],
 		outboundRequest: [],
 		uiPanels: [],

@@ -15,6 +15,10 @@ export default defineConfig({
 				__dirname,
 				"../../packages/rpg-engine/src/index.ts",
 			),
+			"@airpc/pack-sdk": path.resolve(
+				__dirname,
+				"../../packages/pack-sdk/src/index.ts",
+			),
 			"@studio-v2": path.resolve(__dirname, "."),
 		},
 	},

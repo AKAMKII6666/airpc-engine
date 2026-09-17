@@ -1,0 +1,179 @@
+{
+  "cardId": "doubao_intro_outbound",
+  "cardKind": "story",
+  "title": "介绍小雨",
+  "ownerAgentId": "lanxing",
+  "entryMode": "outbound_auto",
+  "interactionMode": "realtime_dialogue",
+  "context": {
+    "privateBrief": "让用户去打给小雨，勿剧透主线。",
+    "speakableBrief": "有个朋友小雨想认识你。",
+    "background": "",
+    "premise": "澜星主动外呼用户，介绍小雨。",
+    "emotion": "热心",
+    "objective": "用户知道并愿意拨打小雨",
+    "forbidden": [
+      "剧透小雨身世"
+    ],
+    "promptScenes": [
+      {
+        "layerId": "outbound_afternoon",
+        "priority": 10,
+        "match": {
+          "callDirection": "outbound",
+          "localHourRange": { "from": 11, "to": 17 }
+        },
+        "patch": {
+          "openingSpeakable": "喂喂，下午还好吗？有个朋友想认识你。",
+          "toneHint": "轻松、热心"
+        }
+      },
+      {
+        "layerId": "outbound_evening",
+        "priority": 10,
+        "match": {
+          "callDirection": "outbound",
+          "localHourRange": { "from": 17, "to": 22 }
+        },
+        "patch": {
+          "openingSpeakable": "晚上好呀，打扰一下——有个朋友想认识你。",
+          "toneHint": "轻声、热心"
+        }
+      },
+      {
+        "layerId": "outbound_night",
+        "priority": 10,
+        "match": {
+          "callDirection": "outbound",
+          "localHourRange": { "from": 22, "to": 24 }
+        },
+        "patch": {
+          "openingSpeakable": "这么晚还没歇呀？有个朋友想认识你。",
+          "toneHint": "压低声音、热心"
+        }
+      },
+      {
+        "layerId": "outbound_late_night",
+        "priority": 10,
+        "match": {
+          "callDirection": "outbound",
+          "localHourRange": { "from": 0, "to": 5 }
+        },
+        "patch": {
+          "openingSpeakable": "还醒着啊……有个朋友想认识你，别吵着别人。",
+          "toneHint": "轻声、勿扰"
+        }
+      },
+      {
+        "layerId": "outbound_any",
+        "priority": 1,
+        "match": {
+          "callDirection": "outbound"
+        },
+        "patch": {
+          "openingSpeakable": "喂喂，是我。有个朋友想认识你。",
+          "appendSpeakable": "别紧张，随便聊聊就行。"
+        }
+      }
+    ]
+  },
+  "objectives": {
+    "requiredBeats": [
+      "user_knows_to_call_xiaopi"
+    ]
+  },
+  "toolPolicy": {
+    "schemaVersion": 2,
+    "mode": "allowlist",
+    "allowedToolIds": [
+      "share_expert_number",
+      "refer_to_expert",
+      "request_hangup"
+    ],
+    "options": {
+      "request_hangup": {
+        "allowedReasonKinds": ["natural", "policy", "handoff"]
+      }
+    }
+  },
+  "exits": [
+    {
+      "exitId": "success_handoff",
+      "exitKind": "handoff",
+      "title": "同意去打",
+      "priority": 100,
+      "condition": {
+        "op": "and",
+        "items": [
+          {
+            "op": "outcome_flag",
+            "flag": "answered_completed",
+            "equals": true
+          },
+          {
+            "op": "beat_completed",
+            "beatId": "user_knows_to_call_xiaopi"
+          }
+        ]
+      },
+      "effects": [
+        {
+          "id": "unlock_xiaopi",
+          "effect": "set_character_unlocked",
+          "agentId": "xiaopi",
+          "unlocked": true
+        },
+        {
+          "id": "attach_xiaopi",
+          "effect": "attach_call_card",
+          "agentId": "xiaopi",
+          "cardId": "xiaopi_waiting_user",
+          "activation": "inbound_user_dial"
+        },
+        {
+          "id": "redial_xiaopi",
+          "effect": "set_redial_slot",
+          "agentId": "xiaopi",
+          "cardId": "xiaopi_waiting_user"
+        }
+      ]
+    },
+    {
+      "exitId": "hangup_early_fail",
+      "exitKind": "failure",
+      "title": "提前挂断",
+      "priority": 10,
+      "condition": {
+        "op": "outcome_flag",
+        "flag": "hangup_early",
+        "equals": true
+      },
+      "effects": [
+        {
+          "id": "keep_intro",
+          "effect": "keep_card_pending"
+        }
+      ]
+    },
+    {
+      "exitId": "edge_to_xiaopi_story_3",
+      "exitKind": "handoff",
+      "title": "连到 xiaopi_story_3",
+      "priority": 50,
+      "condition": {
+        "op": "always"
+      },
+      "effects": []
+    },
+    {
+      "exitId": "edge_to_doubao_sister_story_3",
+      "exitKind": "callback",
+      "title": "外呼/回拨 → doubao_sister_story_3",
+      "priority": 50,
+      "condition": {
+        "op": "always"
+      },
+      "effects": []
+    }
+  ]
+}

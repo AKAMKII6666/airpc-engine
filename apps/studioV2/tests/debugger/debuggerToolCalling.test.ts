@@ -13,6 +13,7 @@ import type {
 	ServerLlmChatResult,
 } from "@studio-v2/src/utils/server/llm/llmClient.server";
 import {
+	resolveDebuggerToolChoice,
 	runDebuggerLlmWithTools,
 	runDebuggerLlmWithToolsStream,
 } from "@studio-v2/src/utils/server/debugger/session/debuggerToolCalling.server";
@@ -83,7 +84,11 @@ function sessionFixture(): CallSession {
 		exitCandidates: [],
 		shellEvents: [],
 		effectLedger: {},
-		chatTurns: [],
+		chatTurns: [{
+			role: "user",
+			text: "你好",
+			at: "2026-08-10T00:00:00.000Z",
+		}],
 	};
 }
 
@@ -101,6 +106,128 @@ function fakeLlmResult(
 }
 
 describe("runDebuggerLlmWithTools", () => {
+	it("forces tool_choice=required for clear reminder/name intents on first round", () => {
+		expect(
+			resolveDebuggerToolChoice({
+				messages: [{ role: "user", content: "过两分钟再打给我提醒喝水" }],
+				hasTools: true,
+				round: 0,
+			}),
+		).toBe("required");
+		expect(
+			resolveDebuggerToolChoice({
+				messages: [{ role: "user", content: "我叫测测，请记住我" }],
+				hasTools: true,
+				round: 0,
+			}),
+		).toBe("required");
+		expect(
+			resolveDebuggerToolChoice({
+				messages: [{ role: "user", content: "过两分钟再打给我提醒喝水" }],
+				hasTools: true,
+				round: 1,
+			}),
+		).toBe("auto");
+		expect(
+			resolveDebuggerToolChoice({
+				messages: [{ role: "user", content: "今天天气怎么样" }],
+				hasTools: true,
+				round: 0,
+			}),
+		).toBe("auto");
+	});
+
+	it("tool_choice ignores opening synthetic user and only honors session chatTurns", () => {
+		expect(
+			resolveDebuggerToolChoice({
+				messages: [{
+					role: "user",
+					content: "接通电话。请先说第一句话。\n禁止：客服式长自我介绍。",
+				}],
+				hasTools: true,
+				round: 0,
+				sessionUserText: null,
+			}),
+		).toBe("auto");
+		expect(
+			resolveDebuggerToolChoice({
+				messages: [{
+					role: "user",
+					content: "接通电话。请先说第一句话。",
+				}],
+				hasTools: true,
+				round: 0,
+				sessionUserText: "那先拜拜",
+			}),
+		).toBe("required");
+	});
+
+	it("hides request_hangup before any user turn and blocks forced invoke", async () => {
+		const session = sessionFixture();
+		session.chatTurns = [];
+		const centralInvoked: unknown[] = [];
+		const host = {
+			async invokeTool(sessionId: string, toolId: string, args?: unknown) {
+				centralInvoked.push({ sessionId, toolId, args });
+				return {
+					ok: false as const,
+					code: "VALIDATION_FAILED" as const,
+					message: "用户尚未在本通开口",
+					details: { rule: "SHELL_HANGUP_BEFORE_USER" },
+				};
+			},
+			getSession() {
+				return session;
+			},
+		} as unknown as EngineHost;
+
+		const result = await runDebuggerLlmWithTools({
+			host,
+			session,
+			messages: [
+				{
+					role: "system",
+					content:
+						"[conversation.inertia.recent_turns]\n- user: 打错了就算了吧，拜拜",
+				},
+				{ role: "user", content: "接通电话。请先说第一句话。" },
+			],
+			temperature: 0.1,
+			llmRunner: async function (input) {
+				expect(input.tools?.map(function (tool) {
+					return tool.function.name;
+				})).not.toContain("request_hangup");
+				expect(input.toolChoice).toBe("auto");
+				if (input.messages.some(function (msg) {
+					return msg.role === "tool";
+				})) {
+					return fakeLlmResult({ text: "喂，是我。" });
+				}
+				return fakeLlmResult({
+					finishReason: "tool_calls",
+					toolCalls: [{
+						id: "call_ghost_hangup",
+						name: "request_hangup",
+						argumentsJson: "{\"reason\":\"inertia goodbye\"}",
+					}],
+				});
+			},
+		});
+
+		expect(centralInvoked).toEqual([{
+			sessionId: "session_1",
+			toolId: "request_hangup",
+			args: { reason: "inertia goodbye" },
+		}]);
+		expect(result.toolEvents[0]).toMatchObject({
+			toolCallId: "call_ghost_hangup",
+			toolId: "request_hangup",
+			ok: false,
+		});
+		expect(result.toolEvents[0]?.resultContent).toContain("SHELL_HANGUP_BEFORE_USER");
+		expect(result.llm.text).toBe("喂，是我。");
+	});
+
 	it("exposes the first-version special FC capability matrix to the model", async () => {
 		const session = sessionFixture();
 		let firstTools: string[] = [];
@@ -119,6 +246,8 @@ describe("runDebuggerLlmWithTools", () => {
 				firstTools = input.tools?.map(function (tool) {
 					return tool.function.name;
 				}) ?? [];
+				expect(input.enableThinking).toBe(false);
+				expect(input.toolChoice).toBe("auto");
 				return fakeLlmResult({ text: "能力已就绪。" });
 			},
 		});
@@ -398,20 +527,12 @@ describe("runDebuggerLlmWithTools", () => {
 		});
 	});
 
-	it("routes request_hangup through Host shell-control path", async () => {
+	it("routes request_hangup through the single Host tool path", async () => {
 		const session = sessionFixture();
-		const businessInvoked: unknown[] = [];
-		const shellInvoked: unknown[] = [];
+		const centralInvoked: unknown[] = [];
 		const host = {
 			async invokeTool(sessionId: string, toolId: string, args?: unknown) {
-				businessInvoked.push({ sessionId, toolId, args });
-				return {
-					ok: true,
-					behavior: "session_local",
-				} satisfies ToolInvokeResult;
-			},
-			invokeShellControlTool(sessionId: string, toolId: string, args?: unknown) {
-				shellInvoked.push({ sessionId, toolId, args });
+				centralInvoked.push({ sessionId, toolId, args });
 				const event = {
 					schemaVersion: 1 as const,
 					eventId: "shell_event_1",
@@ -423,20 +544,20 @@ describe("runDebuggerLlmWithTools", () => {
 					agentId: session.resolve.agentId,
 					source: "llm_tool" as const,
 					createdAt: "2026-08-10T00:02:00.000Z",
+					reasonKind: "natural" as const,
 					reason: "说完晚安后挂断",
 				};
 				session.shellEvents = [event];
 				session.phoneFlags.remote_hangup_requested = true;
 				return {
 					ok: true,
-					toolId: "request_hangup",
-					event,
-					resultForLlm: {
+					behavior: "shell_control",
+					localResult: {
 						accepted: true,
 						eventType: event.type,
 						message: "Hangup request accepted by phone shell.",
 					},
-				};
+				} satisfies ToolInvokeResult;
 			},
 			getSession() {
 				return session;
@@ -455,7 +576,7 @@ describe("runDebuggerLlmWithTools", () => {
 						toolCalls: [{
 							id: "call_hangup",
 							name: "request_hangup",
-							argumentsJson: "{\"reason\":\"说完晚安后挂断\"}",
+							argumentsJson: "{\"reasonKind\":\"natural\",\"reason\":\"说完晚安后挂断\"}",
 						}],
 					});
 				}
@@ -463,11 +584,10 @@ describe("runDebuggerLlmWithTools", () => {
 			},
 		});
 
-		expect(businessInvoked).toEqual([]);
-		expect(shellInvoked).toEqual([{
+		expect(centralInvoked).toEqual([{
 			sessionId: "session_1",
 			toolId: "request_hangup",
-			args: { reason: "说完晚安后挂断" },
+			args: { reasonKind: "natural", reason: "说完晚安后挂断" },
 		}]);
 		expect(result.session.shellEvents?.[0]).toMatchObject({
 			type: "call.hangup_requested",
@@ -489,13 +609,39 @@ describe("runDebuggerLlmWithTools", () => {
 		expect(result.llm.text).toBe("晚安，我先挂啦。");
 	});
 
-	it("routes business FC and shell-control FC through separate Host paths in one turn", async () => {
+	it("routes business FC and shell-control FC through one Host path in one turn", async () => {
 		const session = sessionFixture();
-		const businessInvoked: unknown[] = [];
-		const shellInvoked: unknown[] = [];
+		const centralInvoked: unknown[] = [];
 		const host = {
 			async invokeTool(sessionId: string, toolId: string, args?: unknown) {
-				businessInvoked.push({ sessionId, toolId, args });
+				centralInvoked.push({ sessionId, toolId, args });
+				if (toolId === "request_hangup") {
+					const event = {
+						schemaVersion: 1 as const,
+						eventId: "shell_event_2",
+						type: "call.hangup_requested" as const,
+						sessionId,
+						userId: session.userId,
+						chapterId: session.chapterId,
+						cardId: session.resolve.cardId,
+						agentId: session.resolve.agentId,
+						source: "llm_tool" as const,
+						createdAt: "2026-08-10T00:03:01.000Z",
+						reasonKind: "natural" as const,
+						reason: "约好两分钟后再打来",
+					};
+					session.shellEvents = [event];
+					session.phoneFlags.remote_hangup_requested = true;
+					return {
+						ok: true,
+						behavior: "shell_control",
+						localResult: {
+							accepted: true,
+							eventType: event.type,
+							message: "Hangup request accepted by phone shell.",
+						},
+					} satisfies ToolInvokeResult;
+				}
 				const candidate: RuntimeExitCandidate = {
 					candidateId: "candidate_schedule",
 					toolId,
@@ -517,34 +663,6 @@ describe("runDebuggerLlmWithTools", () => {
 					behavior: "register_exit",
 					candidate,
 				} satisfies ToolInvokeResult;
-			},
-			invokeShellControlTool(sessionId: string, toolId: string, args?: unknown) {
-				shellInvoked.push({ sessionId, toolId, args });
-				const event = {
-					schemaVersion: 1 as const,
-					eventId: "shell_event_2",
-					type: "call.hangup_requested" as const,
-					sessionId,
-					userId: session.userId,
-					chapterId: session.chapterId,
-					cardId: session.resolve.cardId,
-					agentId: session.resolve.agentId,
-					source: "llm_tool" as const,
-					createdAt: "2026-08-10T00:03:01.000Z",
-					reason: "约好两分钟后再打来",
-				};
-				session.shellEvents = [event];
-				session.phoneFlags.remote_hangup_requested = true;
-				return {
-					ok: true,
-					toolId: "request_hangup",
-					event,
-					resultForLlm: {
-						accepted: true,
-						eventType: event.type,
-						message: "Hangup request accepted by phone shell.",
-					},
-				};
 			},
 			getSession() {
 				return session;
@@ -571,6 +689,7 @@ describe("runDebuggerLlmWithTools", () => {
 							id: "call_shell_hangup",
 							name: "request_hangup",
 							argumentsJson: JSON.stringify({
+								reasonKind: "natural",
 								reason: "约好两分钟后再打来",
 							}),
 						}],
@@ -580,18 +699,17 @@ describe("runDebuggerLlmWithTools", () => {
 			},
 		});
 
-		expect(businessInvoked).toEqual([{
+		expect(centralInvoked).toEqual([{
 				sessionId: "session_1",
 				toolId: "schedule_reminder_call",
 				args: {
 					delay_minutes: 2,
 					topic_hint: "提醒用户继续调试",
 				},
-		}]);
-		expect(shellInvoked).toEqual([{
+		}, {
 			sessionId: "session_1",
 			toolId: "request_hangup",
-			args: { reason: "约好两分钟后再打来" },
+			args: { reasonKind: "natural", reason: "约好两分钟后再打来" },
 		}]);
 		expect(result.session.exitCandidates[0]).toMatchObject({
 			toolId: "schedule_reminder_call",
@@ -658,5 +776,75 @@ describe("runDebuggerLlmWithTools", () => {
 		expect(events).toContain("thinking_start:模型正在思考...");
 		expect(events).toContain("thinking_delta:先思考");
 		expect(events).toContain("text:正在");
+	});
+
+	it("buffers required XML fallback and emits only the cleaned follow-up", async () => {
+		const session = sessionFixture();
+		session.chatTurns = [{
+			role: "user",
+			text: "过两分钟再打给我提醒喝水",
+			at: "2026-08-10T00:00:00.000Z",
+		}];
+		const textDeltas: string[] = [];
+		const invoked: unknown[] = [];
+		let round = 0;
+		const host = {
+			async invokeTool(sessionId: string, toolId: string, args?: unknown) {
+				invoked.push({ sessionId, toolId, args });
+				return {
+					ok: true,
+					behavior: "register_exit",
+					candidate: {
+						candidateId: "candidate-reminder",
+						toolId,
+						effects: [],
+						priority: 50,
+						registeredAt: "2026-08-10T00:00:01.000Z",
+						args: args as Record<string, unknown>,
+					},
+				} satisfies ToolInvokeResult;
+			},
+			getSession() {
+				return session;
+			},
+		} as unknown as EngineHost;
+
+		const result = await runDebuggerLlmWithToolsStream({
+			host,
+			session,
+			messages: [{ role: "user", content: session.chatTurns[0]!.text }],
+			temperature: 0.1,
+			messageId: "stream-required",
+			llmStreamRunner: async function (input, _opts, callbacks) {
+				round += 1;
+				if (round === 1) {
+					expect(input.toolChoice).toBe("required");
+					const xml = "<tool_call><function=schedule_reminder_call><parameter=delay_minutes>2</parameter><parameter=topic_hint>喝水</parameter></function></tool_call>";
+					callbacks?.onTextDelta?.(xml);
+					return fakeLlmResult({ text: xml, finishReason: "stop" });
+				}
+				expect(input.toolChoice).toBe("auto");
+				callbacks?.onTextDelta?.("好，两分钟后我再打来。");
+				return fakeLlmResult({ text: "好，两分钟后我再打来。" });
+			},
+			emitter: {
+				thinkingStart() {},
+				thinkingDelta() {},
+				thinkingEnd() {},
+				textDelta(_messageId, text) {
+					textDeltas.push(text);
+				},
+				toolStart() {},
+				toolEnd() {},
+			},
+		});
+
+		expect(invoked).toEqual([{
+			sessionId: "session_1",
+			toolId: "schedule_reminder_call",
+			args: { delay_minutes: 2, topic_hint: "喝水" },
+		}]);
+		expect(textDeltas).toEqual(["好，两分钟后我再打来。"]);
+		expect(result.llm.text).toBe("好，两分钟后我再打来。");
 	});
 });

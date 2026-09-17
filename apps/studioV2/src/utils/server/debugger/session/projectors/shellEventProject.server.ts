@@ -16,6 +16,7 @@ export type DebuggerShellEventView = {
 	source: string;
 	/** 角色主动挂断原因；无则为 null */
 	reason: string | null;
+	reasonKind: "natural" | "policy" | "handoff" | null;
 };
 
 function projectShellEvent(raw: unknown): DebuggerShellEventView {
@@ -26,6 +27,7 @@ function projectShellEvent(raw: unknown): DebuggerShellEventView {
 		agentId?: unknown;
 		source?: unknown;
 		reason?: unknown;
+		reasonKind?: unknown;
 	};
 	return {
 		eventId: typeof event.eventId === "string" ? event.eventId : "unknown",
@@ -34,6 +36,12 @@ function projectShellEvent(raw: unknown): DebuggerShellEventView {
 		agentId: typeof event.agentId === "string" ? event.agentId : "",
 		source: typeof event.source === "string" ? event.source : "unknown",
 		reason: typeof event.reason === "string" ? event.reason : null,
+		reasonKind:
+			event.reasonKind === "natural" ||
+			event.reasonKind === "policy" ||
+			event.reasonKind === "handoff"
+				? event.reasonKind
+				: null,
 	};
 }
 

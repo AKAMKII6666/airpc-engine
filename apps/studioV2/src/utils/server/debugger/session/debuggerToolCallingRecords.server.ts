@@ -6,7 +6,6 @@ import {
 	listToolsForCard,
 	type CallSession,
 	type EngineHost,
-	type ShellControlToolResult,
 	type ToolInvokeResult,
 } from "@airpc/rpg-engine";
 import {
@@ -16,10 +15,6 @@ import {
 	type ServerLlmChatResult,
 	type ServerLlmToolCall,
 } from "@studio-v2/src/utils/server/llm/llmClient.server";
-import {
-	isDebuggerShellControlTool,
-	listDebuggerShellControlTools,
-} from "@studio-v2/src/utils/server/debugger/shell/shellControlTools.server";
 import { writeDtoLog } from "@studio-v2/src/utils/server/observability/dto/dtoLogStore.server";
 import { writeStudioLog } from "@studio-v2/src/utils/server/observability/logger/pinoLogger.server";
 export function previewUnknown(value: unknown, emptyText: string): string {
@@ -119,60 +114,41 @@ export function toolResultContent(result: ToolInvokeResult): string {
 	});
 }
 
-export function shellToolResultContent(result: ShellControlToolResult): string {
-	return JSON.stringify({
-		ok: true,
-		behavior: "shell_control",
-		event: result.event,
-		resultForLlm: result.resultForLlm,
+/** 本通 chatTurns 是否已有用户发言；开场首轮未开口前不得挂机 FC */
+export function sessionHasUserSpoken(session: CallSession | null | undefined): boolean {
+	if (!session?.chatTurns) return false;
+	return session.chatTurns.some(function (turn) {
+		return turn.role === "user";
 	});
+}
+
+/** 本通最新一条用户发言文本；开场合成 user 不算（只读 chatTurns） */
+export function latestSessionUserText(
+	session: CallSession | null | undefined,
+): string | null {
+	if (!session?.chatTurns) return null;
+	for (let i = session.chatTurns.length - 1; i >= 0; i -= 1) {
+		const turn = session.chatTurns[i];
+		if (turn?.role === "user" && typeof turn.text === "string") {
+			const trimmed = turn.text.trim();
+			return trimmed === "" ? null : trimmed;
+		}
+	}
+	return null;
 }
 
 export function listLlmToolsForSession(session: CallSession) {
-	return [
-		...listToolsForCard(session.frozenCard, {
-			characterDef: session.frozenCharacter,
-		}),
-		...listDebuggerShellControlTools(),
-	];
-}
-
-export function recordShellToolOk(input: {
-	/** 当前 Host session id */
-	sessionId: string;
-	/** 模型 tool_call */
-	call: ServerLlmToolCall;
-	/** Host shell-control 结果 */
-	result: ShellControlToolResult;
-}): void {
-	void writeDtoLog({
-		bucket: "shell-events",
-		id: input.result.event.eventId,
-		event: "shell.shell_tool.accepted",
-		sessionId: input.result.event.sessionId,
-		userId: input.result.event.userId,
-		summary: {
-			toolId: input.call.name,
-			eventType: input.result.event.type,
-			agentId: input.result.event.agentId,
-		},
-		payload: {
-			toolCall: input.call,
-			shellEvent: input.result.event,
-			resultForLlm: input.result.resultForLlm,
-		},
-	});
-	writeStudioLog("shell", "info", {
-		event: "shell.shell_tool.accepted",
-		userId: input.result.event.userId,
-		sessionId: input.sessionId,
-		message: `shell tool ${input.call.name} accepted`,
-		payload: {
-			toolCallId: input.call.id,
-			toolId: input.call.name,
-			eventId: input.result.event.eventId,
-			eventType: input.result.event.type,
-		},
+	if (session.openingFirstTurn?.status === "pending") return [];
+	const frozenOrLegacy = session.frozenTools ?? listToolsForCard(
+		session.frozenCard,
+		{ characterDef: session.frozenCharacter },
+	);
+	return frozenOrLegacy.filter(function (tool) {
+		// 用户未在本通开口前不暴露 hangup，避免 inertia「拜拜」诱发放飞
+		if (tool.toolId === "request_hangup" && !sessionHasUserSpoken(session)) {
+			return false;
+		}
+		return true;
 	});
 }
 
@@ -293,23 +269,6 @@ async function invokeToolCall(
 		},
 	});
 	try {
-		if (isDebuggerShellControlTool(call.name)) {
-			const invoked = host.invokeShellControlTool(
-				sessionId,
-				call.name,
-				parseArgumentsJson(call),
-			);
-			if (!isEngineError(invoked)) {
-				recordShellToolOk({ sessionId, call, result: invoked });
-				return shellToolResultContent(invoked);
-			}
-			recordToolEngineError({ sessionId, call, error: invoked });
-			return JSON.stringify({
-				ok: false,
-				code: invoked.code,
-				message: invoked.message,
-			});
-		}
 		const invoked = await host.invokeTool(
 			sessionId,
 			call.name,
@@ -324,6 +283,7 @@ async function invokeToolCall(
 			ok: false,
 			code: invoked.code,
 			message: invoked.message,
+			details: invoked.details ?? null,
 		});
 	} catch (err) {
 		recordToolFailed({ sessionId, call, error: err });

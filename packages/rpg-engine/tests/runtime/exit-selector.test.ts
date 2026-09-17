@@ -31,7 +31,7 @@ const card = CallCardDefinitionSchema.parse({
   ],
 });
 
-describe("selectExit", () => {
+describe("selectExit base selection", () => {
   it("picks higher priority success", () => {
     const selected = selectExit(card, {
       flags: { answered_completed: true },
@@ -74,6 +74,37 @@ describe("selectExit", () => {
         },
       ],
     );
+    expect(selected?.source).toBe("static");
+    expect(selected?.exit.exitId).toBe("win");
+  });
+});
+
+describe("selectExit story progress precedence", () => {
+  it("matched story progress is not replaced by a higher-priority pure dynamic exit", () => {
+    const selected = selectExit(
+      card,
+      {
+        flags: { answered_completed: true },
+        completedBeats: ["b1"],
+        missedRequiredBeats: [],
+      },
+      [
+        {
+          candidateId: "profile-capture",
+          toolId: "record_user_name",
+          registeredAt: "2026-01-01T00:00:00.000Z",
+          priority: 999,
+          effects: [
+            {
+              id: "profile-effect",
+              effect: "update_user_profile",
+              args: { nickname: "Ada" },
+            },
+          ],
+        },
+      ],
+    );
+
     expect(selected?.source).toBe("static");
     expect(selected?.exit.exitId).toBe("win");
   });

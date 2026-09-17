@@ -15,6 +15,12 @@ const repoRoot = path.resolve(
 	"../../../..",
 );
 const dataSrc = path.join(repoRoot, "data");
+const goldenFixture = path.join(
+	repoRoot,
+	"test-fixtures",
+	"storis-packages",
+	"golden_handoff",
+);
 
 describe("FsContentPort", () => {
 	let tmp: string | undefined;
@@ -46,7 +52,7 @@ describe("FsContentPort", () => {
 			{ recursive: true },
 		);
 		await cp(
-			path.join(dataSrc, "storis-packages", "golden_handoff"),
+			goldenFixture,
 			path.join(dataRoot, "storis-packages", "golden_handoff"),
 			{ recursive: true },
 		);

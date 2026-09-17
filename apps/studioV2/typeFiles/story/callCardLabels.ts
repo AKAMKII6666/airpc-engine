@@ -203,27 +203,6 @@ export const TOOL_POLICY_MODE_OPTIONS: readonly CallCardLabelOption[] = [
 	{ label: "全部拒绝", value: "deny_all" },
 ];
 
-/**
-	* 内置工具多选选项；与引擎 BUILTIN_TOOL_DEFINITIONS 只读对齐（不 import 引擎值）。
-	* value 写入 toolPolicy.allowedToolIds；label 为 displayName 中文。
-	*/
-export const BUILTIN_TOOL_OPTIONS: readonly CallCardLabelOption[] = [
-	{ label: "安排专家回电", value: "refer_to_expert" },
-	{ label: "已口播专家号码", value: "share_expert_number" },
-	{ label: "预约回电提醒", value: "schedule_reminder_call" },
-	{ label: "登记重复外呼", value: "schedule_recurring_call" },
-	{ label: "登记共同秘密", value: "record_shared_secret" },
-	{ label: "研究承诺", value: "create_research_commitment" },
-	{ label: "登记用户称呼", value: "record_user_name" },
-	{ label: "搜索记忆", value: "search_memory" },
-	{ label: "按 id 取记忆", value: "get_memory_by_id" },
-];
-
-/** 内置 toolId 集合；写回 allowlist 时过滤未知串，禁止自由文本残留 */
-export const BUILTIN_TOOL_ID_SET: ReadonlySet<string> = new Set(
-	BUILTIN_TOOL_OPTIONS.map((opt) => opt.value),
-);
-
 /** schedule.mode Select 选项 */
 export const SCHEDULE_MODE_OPTIONS: readonly CallCardLabelOption[] = [
 	{ label: "每日", value: "daily" },

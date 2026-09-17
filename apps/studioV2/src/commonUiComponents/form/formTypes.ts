@@ -13,6 +13,10 @@ export type FormFieldMode = "add" | "edit" | "watch";
 export type FormSelectOption = {
 	label: string;
 	value: string;
+	/** 多选目录分组标题；同组相邻展示。 */
+	group?: string;
+	/** 当前上下文不可新选；若已选仍允许取消。 */
+	disabled?: boolean;
 	/**
 		* 悬停「作用」；与 exampleScenario 成对进 Tooltip。
 		* 缺省表示该选项无需解释。

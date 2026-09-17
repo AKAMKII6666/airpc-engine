@@ -48,9 +48,9 @@ export const MOCK_RECENT_DEBUGS: readonly RecentDebugSummary[] = [
 	},
 	{
 		sessionId: "dbg_night_02",
-		packageTitle: "演示：黄金交接",
-		packageId: "golden_handoff",
-		startCardTitle: "章节起点",
+		packageTitle: "第一幕：打错电话",
+		packageId: "wrong_number_act1",
+		startCardTitle: "澜星回拨",
 		hitExitTitle: "",
 		resultLabel: "通话中断 · 未选出口",
 		at: "2026-07-14T22:18:00.000Z",

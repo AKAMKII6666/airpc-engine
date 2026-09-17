@@ -118,8 +118,12 @@ export function useDebuggerPrototypeSession(
 		liftReceiver: commands.liftReceiver,
 		pressDialKey: commands.pressDialKey,
 		redial: commands.redial,
+		dialFreeCall: commands.dialFreeCall,
 		sendDraft: commands.sendDraft,
 		startSimulateCall: commands.startSimulateCall,
 		startSimulateChapterCall: commands.startSimulateChapterCall,
+		startChapterEntryRing: commands.startChapterEntryRing,
+		outcomeCompletedBeats: callBis.outcomeCompletedBeats,
+		toggleOutcomeCompletedBeat: callBis.toggleOutcomeCompletedBeat,
 	};
 }

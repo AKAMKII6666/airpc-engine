@@ -54,6 +54,7 @@ function callFixture(): DebuggerCallSessionView {
 		source: "free",
 		cardTitle: "澜星自由通话",
 		objective: "闲聊",
+		requiredBeats: [],
 		interactionPhase: "dialogue",
 		turns: [{ role: "assistant", text: "晚安。" }],
 		llm: null,
@@ -80,6 +81,7 @@ function callFixture(): DebuggerCallSessionView {
 			agentId: "lanxing",
 			source: "llm_tool",
 			reason: "说完晚安后挂断",
+			reasonKind: "natural",
 		}],
 	};
 }

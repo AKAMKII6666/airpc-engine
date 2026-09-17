@@ -12,10 +12,7 @@ import type {
 	EditorScheduleMetaProjection,
 	EditorToolPolicyProjection,
 } from "@studio-v2/typeFiles/story/editor/callCard/editorCallCardProjection";
-import {
-	BUILTIN_TOOL_ID_SET,
-	cardKindLabel,
-} from "@studio-v2/typeFiles/story/callCardLabels";
+import { cardKindLabel } from "@studio-v2/typeFiles/story/callCardLabels";
 import { asPromptSceneList } from "@studio-v2/src/utils/promptScene/promptSceneListHelpers";
 import {
 	normalizeExitList,
@@ -68,6 +65,7 @@ export type NodePropertyFormValues = {
 	toolPolicy: {
 		mode: EditorToolPolicyProjection["mode"] | "";
 		allowedToolIds: string[];
+		allowedHangupReasonKinds: Array<"natural" | "policy" | "handoff">;
 	};
 	/**
 		* 调度字段；IntegerInput 空串表示未填。
@@ -114,10 +112,35 @@ function toPolicyAndScheduleFormValues(data: EditorCallCardProjection): Pick<
 	NodePropertyFormValues,
 	"toolPolicy" | "schedule"
 > {
+	const legacyRealtimeAllowlist =
+		data.toolPolicy?.mode === "allowlist" &&
+		data.toolPolicy.schemaVersion !== 2 &&
+		data.interactionMode !== "playback_only" &&
+		data.cardKind !== "voicemail";
+	const allowedToolIds = listOrEmpty(data.toolPolicy?.allowedToolIds);
+	if (legacyRealtimeAllowlist && !allowedToolIds.includes("request_hangup")) {
+		allowedToolIds.push("request_hangup");
+	}
+	const legacyShell = (
+		data.context as typeof data.context & {
+			studioShellHangup?: {
+				naturalHangup?: boolean;
+				policyHangup?: boolean;
+			};
+		}
+	).studioShellHangup;
+	const explicitReasons = data.toolPolicy?.options?.request_hangup
+		?.allowedReasonKinds;
+	const legacyReasons: Array<"natural" | "policy"> = [];
+	if (legacyShell?.naturalHangup !== false) legacyReasons.push("natural");
+	if (legacyShell?.policyHangup !== false) legacyReasons.push("policy");
 	return {
 		toolPolicy: {
 			mode: data.toolPolicy?.mode ?? "",
-			allowedToolIds: listOrEmpty(data.toolPolicy?.allowedToolIds),
+			allowedToolIds,
+			allowedHangupReasonKinds: listOrEmpty(
+				explicitReasons ?? legacyReasons,
+			),
 		},
 		schedule: {
 			mode: data.schedule?.mode ?? "",
@@ -177,23 +200,29 @@ function optionalInt(value: number | ""): number | undefined {
 }
 
 /**
-	* 写回 toolPolicy：非 allowlist 不带 allowedToolIds；
-	* allowlist 仅保留内置 toolId，过滤自由文本残留。
+	* 写回 ToolPolicy v2：只 trim + 去重；未知插件 id 必须保留供 UI 报失效。
 	*/
 function applyToolPolicy(
 	values: NodePropertyFormValues["toolPolicy"],
 ): EditorToolPolicyProjection | undefined {
 	const mode = optionalMode(values.mode);
 	if (!mode) return undefined;
-	if (mode !== "allowlist") {
-		return { mode };
-	}
-	const allowedToolIds = values.allowedToolIds
+	if (mode === "deny_all") return { schemaVersion: 2, mode };
+	const allowedToolIds = [...new Set(values.allowedToolIds
 		.map((item) => item.trim())
-		.filter((item) => BUILTIN_TOOL_ID_SET.has(item));
+		.filter(Boolean))];
+	const allowedReasonKinds = [...new Set(values.allowedHangupReasonKinds)];
+	const options = allowedReasonKinds.length > 0
+		? { request_hangup: { allowedReasonKinds } }
+		: undefined;
+	if (mode !== "allowlist") {
+		return { schemaVersion: 2, mode, options };
+	}
 	return {
+		schemaVersion: 2,
 		mode,
 		allowedToolIds: allowedToolIds.length > 0 ? allowedToolIds : undefined,
+		options,
 	};
 }
 
@@ -230,6 +259,10 @@ export function applyNodePropertyForm(
 	const promptScenes = asPromptSceneList(values.context.promptScenes);
 	const cardKind = values.cardKind;
 	const voicemail = cardKind === "voicemail";
+	const previousContext = {
+		...previous.context,
+	} as EditorCallCardProjection["context"] & { studioShellHangup?: unknown };
+	delete previousContext.studioShellHangup;
 	return {
 		...previous,
 		cardKind,
@@ -241,7 +274,7 @@ export function applyNodePropertyForm(
 			? "playback_only"
 			: optionalMode(values.interactionMode),
 		context: {
-			...previous.context,
+			...previousContext,
 			objective: optionalTrimmed(values.context.objective),
 			privateBrief: optionalTrimmed(values.context.privateBrief),
 			speakableBrief: optionalTrimmed(values.context.speakableBrief),
@@ -261,7 +294,7 @@ export function applyNodePropertyForm(
 		},
 		exits: normalizeExitList(values.exits),
 		toolPolicy: voicemail
-			? { mode: "deny_all" }
+			? { schemaVersion: 2, mode: "deny_all" }
 			: applyToolPolicy(values.toolPolicy),
 		schedule:
 			cardKind === "schedule"

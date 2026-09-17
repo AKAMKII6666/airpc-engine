@@ -10,6 +10,8 @@ import type { ValidationIssue, ValidationReport } from "./types.js";
 import { validateReferencedAgents } from "./validateReferencedAgents.js";
 import { validateAssetRef } from "./package/assets.js";
 import { validatePackageCards } from "./package/cards.js";
+import type { ToolRegistry } from "../tools/types.js";
+import { DEFAULT_TOOL_REGISTRY } from "../tools/toolRegistry.js";
 export { VALIDATE_PACKAGE_ERROR_COVERAGE } from "./errorCoverage.js";
 
 const SUPPORTED_SCHEMA = 1;
@@ -31,6 +33,8 @@ export interface ValidatePackageInput {
 	 * 可选覆盖角色表（Host 已加载的 Map）。缺省用 bundle.characters。
 	 */
 	characters?: Map<string, CharacterDef>;
+	/** Studio Server 注入的统一工具目录；缺省为引擎内置 + 电话壳。 */
+	toolRegistry?: ToolRegistry;
 }
 
 function charactersMapFromBundle(
@@ -118,6 +122,7 @@ export async function validatePackage(
 		characters,
 		errors,
 		warnings,
+		toolRegistry: input.toolRegistry ?? DEFAULT_TOOL_REGISTRY,
 	});
 
 	await validateReferencedAgents({

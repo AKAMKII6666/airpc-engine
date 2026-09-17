@@ -7,30 +7,27 @@ import {
 	type CallSession,
 	type EngineHost,
 	type IncomingCallShellEvent,
+	type ResolveResult,
 } from "@airpc/rpg-engine";
 import { getStudioV2EngineHost } from "@studio-v2/src/utils/server/host/engineHost.server";
 import { isValidUserId } from "@studio-v2/src/utils/server/users/usersFs.server";
 import {
-	type ServerLlmChatResult,
-} from "@studio-v2/src/utils/server/llm/llmClient.server";
-import { buildOpeningLlmMessages } from "@studio-v2/src/utils/server/debugger/session/debuggerLlmMessages.server";
-import { consumeDebuggerOpeningFirstTurn } from "@studio-v2/src/utils/server/debugger/session/debuggerConsumeOpeningFirstTurn.server";
-import {
-	projectDebuggerCallSession,
-	type DebuggerCallSessionView,
-} from "@studio-v2/src/utils/server/debugger/session/debuggerCallSession.server";
-import {
-	runDebuggerLlmWithTools,
-	type DebuggerLlmToolEvent,
 	type DebuggerLlmRunner,
 } from "@studio-v2/src/utils/server/debugger/session/debuggerToolCalling.server";
+import {
+	finishAcceptedDebuggerIncoming,
+} from "@studio-v2/src/utils/server/debugger/session/debuggerIncomingAccept.server";
+import type { DebuggerCallSessionView } from "@studio-v2/src/utils/server/debugger/session/debuggerCallSession.server";
 import { listDebuggerDialableRoles } from "@studio-v2/src/utils/server/debugger/session/debuggerDialableRoles.server";
 import {
 	ensureDebuggerScheduleClockPumpStarted,
 	pumpDebuggerScheduleClock,
 } from "@studio-v2/src/utils/server/debugger/schedule/debuggerScheduleClockPump.server";
-import { writeDtoLog } from "@studio-v2/src/utils/server/observability/dto/dtoLogStore.server";
 import { writeStudioLog } from "@studio-v2/src/utils/server/observability/logger/pinoLogger.server";
+import {
+	dismissStaleIncomingEvent,
+	pruneUnanswerableIncomingEvents,
+} from "./debuggerIncomingReconcile.server";
 
 export type DebuggerIncomingCallView = {
 	/** Host incoming event id；接听/挂断时回传 */
@@ -117,66 +114,6 @@ async function buildRoleMap(): Promise<
 	);
 }
 
-async function appendAssistantTurn(
-	host: EngineHost,
-	session: CallSession,
-	llm: ServerLlmChatResult,
-): Promise<CallSession> {
-	const recorded = host.recordChatTurn(session.sessionId, {
-		role: "assistant",
-		text: llm.text,
-	});
-	if (isEngineError(recorded)) throw recorded;
-	return recorded;
-}
-
-async function runOpeningFirstTurn(input: {
-	host: EngineHost;
-	session: CallSession;
-	llmRunner?: DebuggerLlmRunner;
-}): Promise<{
-	session: CallSession;
-	llm: ServerLlmChatResult | null;
-	toolEvents: DebuggerLlmToolEvent[];
-}> {
-	const openingFirstTurn = consumeDebuggerOpeningFirstTurn(
-		input.host,
-		input.session,
-	);
-	if (openingFirstTurn.mode !== "llm") {
-		return {
-			session: openingFirstTurn.session,
-			llm: openingFirstTurn.llm,
-			toolEvents: openingFirstTurn.toolEvents,
-		};
-	}
-	const result = await runDebuggerLlmWithTools({
-		host: input.host,
-		session: openingFirstTurn.session,
-		messages: buildOpeningLlmMessages(openingFirstTurn.session),
-		temperature: 0.7,
-		llmRunner: input.llmRunner,
-	});
-	return {
-		session: await appendAssistantTurn(input.host, result.session, result.llm),
-		llm: result.llm,
-		toolEvents: result.toolEvents,
-	};
-}
-
-function ensureDialoguePhase(host: EngineHost, session: CallSession): CallSession {
-	if (session.interactionPhase !== "playback") return session;
-	if (session.frozenCard.interactionMode === "hybrid") {
-		const completed = host.completePlayback(session.sessionId);
-		if (isEngineError(completed)) throw completed;
-		return completed;
-	}
-	throw Object.assign(new Error("playback_only card cannot start text chat"), {
-		code: "VALIDATION_FAILED",
-		status: 400,
-	});
-}
-
 function findIncomingEvent(
 	host: EngineHost,
 	userId: string,
@@ -203,6 +140,20 @@ function assertNoActiveCall(host: EngineHost, userId: string): void {
 	});
 }
 
+async function beginIncomingWithBusyRetry(
+	host: EngineHost,
+	userId: string,
+	resolved: ResolveResult,
+): Promise<CallSession> {
+	const begun = await host.beginCall(userId, resolved, { channel: "text_turn" });
+	if (!isEngineError(begun)) return begun;
+	if (begun.code !== "AGENT_POST_CALL_BUSY") throw begun;
+	await host.drainPostCallJobs();
+	const retry = await host.beginCall(userId, resolved, { channel: "text_turn" });
+	if (isEngineError(retry)) throw retry;
+	return retry;
+}
+
 /** 读取 Host pending incoming events，并补上角色展示字段 */
 export async function listDebuggerIncomingCalls(
 	userId: string,
@@ -210,7 +161,7 @@ export async function listDebuggerIncomingCalls(
 ): Promise<DebuggerIncomingCallView[]> {
 	assertValidUserId(userId);
 	const activeHost = host ?? await getStudioV2EngineHost();
-	await activeHost.ensureProfile(userId);
+	const profile = await activeHost.ensureProfile(userId);
 	if (!host) {
 		ensureDebuggerScheduleClockPumpStarted(userId);
 		await pumpDebuggerScheduleClock(userId, activeHost);
@@ -219,7 +170,13 @@ export async function listDebuggerIncomingCalls(
 		Promise.resolve(activeHost.listIncomingCallEvents(userId)),
 		buildRoleMap(),
 	]);
-	return events.map(function (event) {
+	const answerable = pruneUnanswerableIncomingEvents(
+		activeHost,
+		userId,
+		profile,
+		events,
+	);
+	return answerable.map(function (event) {
 		return projectIncomingCall(event, roleMap);
 	});
 }
@@ -262,55 +219,46 @@ export async function acceptDebuggerIncomingCall(
 	const resolved = await activeHost.resolveAsync(input.userId, {
 		kind: "agent_outbound",
 		agentId: event.agentId,
+		instanceId: event.instanceId,
 	});
-	if (isEngineError(resolved)) throw resolved;
+	if (isEngineError(resolved)) {
+		dismissStaleIncomingEvent(
+			activeHost,
+			input.userId,
+			event,
+			`resolve_${resolved.code}`,
+		);
+		throw Object.assign(
+			new Error(`incoming call no longer answerable: ${resolved.message}`),
+			{
+				code: resolved.code,
+				status: resolved.code === "NOT_FOUND" ? 404 : 409,
+			},
+		);
+	}
 	if (resolved.instanceId !== event.instanceId) {
+		dismissStaleIncomingEvent(
+			activeHost,
+			input.userId,
+			event,
+			"resolve_instance_mismatch",
+		);
 		throw Object.assign(new Error("incoming event no longer matches pending card"), {
 			code: "CONFLICT",
 			status: 409,
 		});
 	}
-	const begun = await activeHost.beginCall(input.userId, resolved, {
-		channel: "text_turn",
-	});
-	if (isEngineError(begun)) throw begun;
-	const accepted = activeHost.acceptIncomingCallEvent(
+	// 挂机副作用未收完时立刻接听补打会占线；drain 后再试一次。
+	const begun = await beginIncomingWithBusyRetry(
+		activeHost,
 		input.userId,
-		input.eventId,
+		resolved,
 	);
-	if (isEngineError(accepted)) throw accepted;
-	const ready = ensureDialoguePhase(activeHost, begun);
-	const result = await runOpeningFirstTurn({
+	return finishAcceptedDebuggerIncoming({
 		host: activeHost,
-		session: ready,
+		userId: input.userId,
+		eventId: input.eventId,
+		begun,
 		llmRunner: options.llmRunner,
 	});
-	void writeDtoLog({
-		bucket: "shell-events",
-		id: accepted.eventId,
-		event: "debugger.incoming.accepted",
-		sessionId: result.session.sessionId,
-		userId: input.userId,
-		summary: {
-			agentId: accepted.agentId,
-			chapterId: accepted.chapterId,
-			cardId: accepted.cardId,
-		},
-		payload: { incoming: accepted, session: result.session },
-	});
-	writeStudioLog("debugger", "info", {
-		event: "debugger.incoming.accepted",
-		userId: input.userId,
-		sessionId: result.session.sessionId,
-		chapterId: result.session.chapterId,
-		cardId: result.session.resolve.cardId,
-		agentId: result.session.resolve.agentId,
-		message: "debugger incoming call accepted",
-		payload: accepted,
-	});
-	return projectDebuggerCallSession(
-		result.session,
-		result.llm,
-		result.toolEvents,
-	);
 }

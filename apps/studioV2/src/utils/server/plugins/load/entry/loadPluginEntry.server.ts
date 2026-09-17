@@ -62,7 +62,8 @@ export async function loadPluginEntryModule(input: {
 		});
 	}
 	const href = pathToFileURL(input.absoluteEntryPath).href;
-	const mod = (await import(href)) as Record<string, unknown>;
+	// 插件 entry 位于 workspace，生产构建时必须由 Node 在运行期加载，不能让 webpack 收集为构建期 context。
+	const mod = (await import(/* webpackIgnore: true */ href)) as Record<string, unknown>;
 	const raw = mod.default ?? mod;
 	let contribution: unknown = raw;
 	if (typeof raw === "function") {

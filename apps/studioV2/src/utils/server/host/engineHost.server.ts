@@ -25,6 +25,8 @@ import {
 	type AssembledCapabilityRuntime,
 } from "@studio-v2/src/utils/server/plugins/assemble/assembleWithPlugins.server";
 import { createPluginOutboundRequestHandler } from "@studio-v2/src/utils/server/plugins/api/outbound/requestOutbound.server";
+// 引用了留言物化端口，用于挂机后把 GenStack 写成可读 unread 槽
+import { createStudioGenerateVoicemailPort } from "@studio-v2/src/utils/server/voicemail/generateVoicemail.server";
 
 let ports: EngineIOPorts | null = null;
 let workspaceLoaded = false;
@@ -80,12 +82,14 @@ async function bootHost(): Promise<EngineHost> {
 			};
 		}
 		const host = getEngineHost({
+			toolRegistry: packs.toolRegistry,
 			memory: ports.memory,
 			profile: ports.profile,
 			content: ports.content,
 			engineLog: ports.engineLog,
 			postCallJob: ports.postCallJob,
 			loreBootstrap: createLlmLoreBootstrapPortFromEnv(),
+			generateVoicemail: createStudioGenerateVoicemailPort(),
 			promptProviderRegistry: packs.promptProviderRegistry,
 			afterHangupHooks: packs.afterHangupHooks,
 			packIdByHookId: packs.packIdByHookId,

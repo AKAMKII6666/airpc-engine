@@ -7,6 +7,10 @@
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  assertWorktreeUnchanged,
+  captureWorktreeFingerprint,
+} from "../quality/worktree-fingerprint.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "../..");
@@ -38,6 +42,7 @@ function runStep(label, command, args) {
 }
 
 function main() {
+  const fingerprint = captureWorktreeFingerprint(repoRoot);
   const steps = [
     [
       "check:engine-imports",
@@ -72,10 +77,12 @@ function main() {
 
   for (const [label, cmd, args] of steps) {
     if (!runStep(label, cmd, args)) {
+      assertWorktreeUnchanged(repoRoot, fingerprint, "quality:engine");
       console.error("\nquality:engine FAILED");
-      process.exit(process.exitCode || 1);
+      return;
     }
   }
+  assertWorktreeUnchanged(repoRoot, fingerprint, "quality:engine");
   console.log("\nquality:engine ok");
 }
 

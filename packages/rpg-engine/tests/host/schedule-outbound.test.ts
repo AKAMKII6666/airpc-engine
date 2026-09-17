@@ -289,9 +289,9 @@ describe("schedule → outbound (S3)", () => {
       channel: "manual",
     });
     if (isEngineError(storySession)) throw storySession;
-    expect(storySession.renderedPrompt?.openingSpeakable).toBe("喂？小皮？");
+    expect(storySession.renderedPrompt?.openingSpeakable).toBe("喂，是小皮家吗？");
     expect(storySession.renderedPrompt?.matchedLayerIds).toContain(
-      "wrong_number_open",
+      "wrong_number_refined_open",
     );
 
     const host2 = createTestHost({ persist: false, dataRoot });
@@ -308,7 +308,7 @@ describe("schedule → outbound (S3)", () => {
     });
     if (isEngineError(fallbackSession)) throw fallbackSession;
     expect(fallbackSession.renderedPrompt?.openingSpeakable).toBe(
-      "喂？还是刚才那个电话吗？",
+      "喂？还是刚才那个电话吗？太好了。我叫澜星。你怎么称呼呀？",
     );
 
     const host3 = createTestHost({ persist: false, dataRoot });

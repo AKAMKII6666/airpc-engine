@@ -1,7 +1,7 @@
 /**
 	* L2 §8 集成链路：挂机登记任务 → 到点 tick → outbound.request → pending CallCard。
 	*/
-import { cp, mkdtemp, rm } from "node:fs/promises";
+import { cp, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -54,6 +54,19 @@ function createHost(profile: PlayerProfile): EngineHost {
 	return host as unknown as EngineHost;
 }
 
+async function enableCopiedPlugin(pluginRoot: string): Promise<void> {
+	const manifestPath = path.join(
+		pluginRoot,
+		"demo-hangup-task",
+		"capability-packs.json",
+	);
+	const manifest = JSON.parse(await readFile(manifestPath, "utf8")) as {
+		enabled?: boolean;
+	};
+	manifest.enabled = true;
+	await writeFile(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
+}
+
 describe("plugin outbound integration", () => {
 	let tmpRoot: string | undefined;
 
@@ -81,6 +94,7 @@ describe("plugin outbound integration", () => {
 			path.join(tmpRoot, "demo-hangup-task"),
 			{ recursive: true },
 		);
+		await enableCopiedPlugin(tmpRoot);
 		const profile = createProfile();
 		const host = createHost(profile);
 

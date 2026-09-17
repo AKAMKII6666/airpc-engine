@@ -3,11 +3,9 @@
 	*/
 import {
 	listToolsForCard,
-	projectToolResolutionTrace,
 	type CallSession,
 	type ToolDefinition,
 } from "@airpc/rpg-engine";
-import { listDebuggerShellControlTools } from "@studio-v2/src/utils/server/debugger/shell/shellControlTools.server";
 
 export type DebuggerAvailableToolView = {
 	/** 引擎 toolId；等同 LLM function name */
@@ -29,29 +27,20 @@ export type DebuggerAvailableToolView = {
 export function projectAvailableTools(
 	session: CallSession,
 ): DebuggerAvailableToolView[] {
-	const trace = projectToolResolutionTrace(session.frozenCard, {
-		characterDef: session.frozenCharacter,
-	});
-	const traceById = new Map(
-		trace.items.map(function (item) {
-			return [item.toolId, item];
-		}),
+	const frozenOrLegacy = session.frozenTools ?? listToolsForCard(
+		session.frozenCard,
+		{ characterDef: session.frozenCharacter },
 	);
-	return [
-		...listToolsForCard(session.frozenCard, {
-			characterDef: session.frozenCharacter,
-		}),
-		...listDebuggerShellControlTools(),
-	].map(function (tool) {
+	return frozenOrLegacy.map(function (tool) {
 		return {
 			toolId: tool.toolId,
 			displayName: tool.displayName,
 			behavior: tool.behavior,
 			description: tool.description,
-			availability: traceById.get(tool.toolId)?.availability ?? "global",
+			availability: tool.availability ?? "global",
 			declaredByCharacter:
-				traceById.get(tool.toolId)?.declaredByCharacter ?? false,
-			resolutionReason: traceById.get(tool.toolId)?.reason ?? "exposed",
+				tool.availability === "character_capability",
+			resolutionReason: "frozen_at_begin_call",
 		};
 	});
 }

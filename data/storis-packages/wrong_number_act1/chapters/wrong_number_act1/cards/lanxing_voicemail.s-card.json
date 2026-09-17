@@ -24,6 +24,7 @@
     ]
   },
   "toolPolicy": {
+    "schemaVersion": 2,
     "mode": "deny_all"
   },
   "exits": [

@@ -31,7 +31,6 @@ import {
 } from "@studio-v2/src/bis/pageBis/storyEditor/form/chapter/chapterPropertyForm";
 import type { EditorCallCardProjection } from "@studio-v2/typeFiles/story/editor/callCard/editorCallCardProjection";
 import {
-	BUILTIN_TOOL_OPTIONS,
 	CARD_KIND_OPTIONS,
 	cardKindLabel,
 	EFFECT_NAME_OPTIONS,
@@ -196,7 +195,7 @@ describe("nodePropertyForm", () => {
 		expect(next.cardKind).toBe("voicemail");
 		expect(next.entryMode).toBe("mailbox_open");
 		expect(next.interactionMode).toBe("playback_only");
-		expect(next.toolPolicy).toEqual({ mode: "deny_all" });
+		expect(next.toolPolicy).toEqual({ schemaVersion: 2, mode: "deny_all" });
 		expect(next.schedule).toBeUndefined();
 
 		const items = buildNodeBasicItems("voicemail");
@@ -309,20 +308,21 @@ describe("callCardLabels", () => {
 		expect(items.map((i) => i.name)).toEqual(["context.objective"]);
 	});
 
-	it("exposes BUILTIN_TOOL_OPTIONS for allowlist multi-select", () => {
-		expect(
-			BUILTIN_TOOL_OPTIONS.some((o) => o.value === "refer_to_expert"),
-		).toBe(true);
-		expect(BUILTIN_TOOL_OPTIONS.every((o) => o.label.trim().length > 0)).toBe(
-			true,
-		);
+	it("accepts the server-projected tool catalog for allowlist multi-select", () => {
+		const items = buildNodeToolPolicyItems("allowlist", [
+			{ value: "plugin:demo:lookup", label: "插件查询", group: "插件能力" },
+		], ["plugin:demo:lookup"]);
+		const tools = items.find((item) => item.name === "toolPolicy.allowedToolIds");
+		expect(tools?.options?.[0]?.value).toBe("plugin:demo:lookup");
 	});
 });
 
 describe("toolPolicy allowlist multi-select", () => {
 	it("uses OptionMultiSelect only when mode is allowlist", () => {
 		const hidden = buildNodeToolPolicyItems("deny_all");
-		const allow = buildNodeToolPolicyItems("allowlist");
+		const allow = buildNodeToolPolicyItems("allowlist", [
+			{ value: "search_memory", label: "搜索记忆" },
+		], ["search_memory"]);
 		expect(hidden.find((i) => i.name === "toolPolicy.allowedToolIds")?.hidden).toBe(
 			true,
 		);
@@ -334,19 +334,29 @@ describe("toolPolicy allowlist multi-select", () => {
 		);
 	});
 
-	it("filters unknown tool ids and drops allowlist when mode leaves allowlist", () => {
+	it("preserves unknown tool ids and drops allowlist when mode leaves allowlist", () => {
 		const values = toNodePropertyFormValues(sampleCard);
 		values.toolPolicy.allowedToolIds = ["refer_to_expert", "not_a_tool", ""];
 		const next = applyNodePropertyForm(sampleCard, values);
 		expect(next.toolPolicy).toEqual({
+			schemaVersion: 2,
 			mode: "allowlist",
-			allowedToolIds: ["refer_to_expert"],
+			allowedToolIds: ["refer_to_expert", "not_a_tool"],
+			options: {
+				request_hangup: { allowedReasonKinds: ["natural", "policy"] },
+			},
 		});
 
 		values.toolPolicy.mode = "inherit_free";
 		values.toolPolicy.allowedToolIds = ["refer_to_expert"];
 		const cleared = applyNodePropertyForm(sampleCard, values);
-		expect(cleared.toolPolicy).toEqual({ mode: "inherit_free" });
+		expect(cleared.toolPolicy).toEqual({
+			schemaVersion: 2,
+			mode: "inherit_free",
+			options: {
+				request_hangup: { allowedReasonKinds: ["natural", "policy"] },
+			},
+		});
 	});
 });
 

@@ -4,8 +4,13 @@
 import type { CardKind } from "../schema/callCard.js";
 import type { Effect } from "../schema/outcome.js";
 
-export type ToolBehavior = "register_exit" | "session_local";
+export type ToolBehavior =
+  | "register_exit"
+  | "session_local"
+  | "shell_control"
+  | "external";
 export type ToolAvailability = "global" | "character_capability";
+export type ToolSourceKind = "builtin" | "shell" | "l1" | "plugin";
 
 export interface ToolDefinition {
   toolId: string;
@@ -29,6 +34,40 @@ export interface ToolDefinition {
    */
   availability?: ToolAvailability;
   behavior: ToolBehavior;
+}
+
+export interface ToolSource {
+  kind: ToolSourceKind;
+  providerId: string;
+  displayName: string;
+}
+
+export interface ToolInvokeHandlerInput {
+  sessionId: string;
+  userId: string;
+  agentId: string;
+  chapterId: string;
+  cardId: string;
+  args: Record<string, unknown>;
+}
+
+export type ToolInvokeHandler = (
+  input: ToolInvokeHandlerInput,
+) => unknown | Promise<unknown>;
+
+export interface RegisteredTool {
+  definition: ToolDefinition;
+  source: ToolSource;
+  /** inherit_free 只自动纳入该标记为 true 的核心工具。 */
+  inheritByDefault: boolean;
+  /** external 工具的宿主执行器；其它行为由 EngineHost 内建路由。 */
+  invoke?: ToolInvokeHandler;
+}
+
+export interface ToolRegistry {
+  revision: string;
+  registrations: readonly RegisteredTool[];
+  byId: ReadonlyMap<string, RegisteredTool>;
 }
 
 export interface RuntimeExitCandidate {

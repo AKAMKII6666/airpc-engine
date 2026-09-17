@@ -9,6 +9,7 @@ import type {
 	ShellControlToolId,
 	ShellControlToolResult,
 } from "./shellControlTypes.js";
+import type { HangupReasonKind } from "../../schema/callCard.js";
 
 export function isShellControlToolId(toolId: string): toolId is ShellControlToolId {
 	return toolId === "request_hangup";
@@ -28,6 +29,11 @@ function makeHangupEvent(
 	session: CallSession,
 	args: Record<string, unknown>,
 ): ShellControlEvent {
+	const rawReasonKind = args.reasonKind;
+	const reasonKind: HangupReasonKind =
+		rawReasonKind === "policy" || rawReasonKind === "handoff"
+			? rawReasonKind
+			: "natural";
 	return {
 		schemaVersion: 1,
 		eventId: `shell_${randomUUID()}`,
@@ -39,6 +45,7 @@ function makeHangupEvent(
 		agentId: session.resolve.agentId,
 		source: "llm_tool",
 		createdAt: new Date().toISOString(),
+		reasonKind,
 		reason: stringArg(args, "reason"),
 	};
 }

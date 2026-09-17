@@ -3,6 +3,10 @@
 	* 仅 Next API 门面调用；禁止 client 直引。口径见需求 01 §7 / 11 §4。
 	*/
 import {
+	CallCardDefinitionSchema,
+	normalizeCallCardToolPolicy,
+} from "@airpc/rpg-engine";
+import {
 	access,
 	mkdir,
 	readdir,
@@ -91,11 +95,17 @@ export async function writeFreeCardJson(
 			code: "VALIDATION_FAILED",
 		});
 	}
+	const parsed = CallCardDefinitionSchema.safeParse(body);
+	if (!parsed.success || parsed.data.cardKind !== "free") {
+		throw Object.assign(new Error("invalid free card"), {
+			code: "VALIDATION_FAILED",
+		});
+	}
 	const root = freeCardsRoot();
 	await mkdir(root, { recursive: true });
 	await writeFile(
 		freeCardPath(cardId),
-		JSON.stringify(body, null, 2) + "\n",
+		JSON.stringify(normalizeCallCardToolPolicy(parsed.data), null, 2) + "\n",
 		"utf8",
 	);
 }
@@ -141,7 +151,15 @@ export function buildDefaultFreeCardJson(input: {
 			forbidden: [],
 		},
 		objectives: { requiredBeats: [] },
-		toolPolicy: { mode: "inherit_free" },
+		toolPolicy: {
+			schemaVersion: 2,
+			mode: "inherit_free",
+			options: {
+				request_hangup: {
+					allowedReasonKinds: ["natural", "policy"],
+				},
+			},
+		},
 		exits: [],
 	};
 }

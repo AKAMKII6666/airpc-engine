@@ -58,9 +58,22 @@ export const ExitKindSchema = z.enum([
   "dynamic",
 ]);
 
+export const HangupReasonKindSchema = z.enum(["natural", "policy", "handoff"]);
+
 export const ToolPolicySchema = z.object({
+  /** 缺省表示 legacy v1；读取时可规范化，正式保存写 2。 */
+  schemaVersion: z.literal(2).optional(),
   mode: z.enum(["inherit_free", "allowlist", "deny_all"]),
   allowedToolIds: z.array(z.string()).optional(),
+  options: z
+    .object({
+      request_hangup: z
+        .object({
+          allowedReasonKinds: z.array(HangupReasonKindSchema),
+        })
+        .optional(),
+    })
+    .optional(),
 });
 
 export const CallCardExitSchema = z.object({
@@ -136,6 +149,8 @@ export type ScheduleMeta = z.infer<typeof ScheduleMetaSchema>;
 export type CardKind = z.infer<typeof CardKindSchema>;
 export type EntryMode = z.infer<typeof EntryModeSchema>;
 export type InteractionMode = z.infer<typeof InteractionModeSchema>;
+export type HangupReasonKind = z.infer<typeof HangupReasonKindSchema>;
+export type ToolPolicy = z.infer<typeof ToolPolicySchema>;
 
 /** ScheduleCard 形态守卫：cardKind 必须为 schedule */
 export function isScheduleCard(

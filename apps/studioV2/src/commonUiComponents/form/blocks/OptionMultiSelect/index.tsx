@@ -91,8 +91,11 @@ export const FormOptionMultiSelect: FC<Props> = function FormOptionMultiSelect({
 			watchText={watchText}
 		>
 			<ul className={styles.list}>
-				{options.map((opt) => (
+				{options.map((opt, index) => (
 					<li key={opt.value} className={styles.row}>
+						{opt.group && options[index - 1]?.group !== opt.group ? (
+							<strong>{opt.group}</strong>
+						) : null}
 						{/* 引用了FormControlLabel组件，用于枚举项勾选 */}
 						<FormControlLabel
 							className={styles.row}
@@ -101,7 +104,10 @@ export const FormOptionMultiSelect: FC<Props> = function FormOptionMultiSelect({
 								<Checkbox
 									size="small"
 									checked={selectedSet.has(opt.value)}
-									disabled={disabled}
+									disabled={
+										disabled ||
+										(Boolean(opt.disabled) && !selectedSet.has(opt.value))
+									}
 									onChange={(e) => {
 										toggleValue(opt.value, e.target.checked);
 									}}
@@ -111,7 +117,10 @@ export const FormOptionMultiSelect: FC<Props> = function FormOptionMultiSelect({
 								/>
 							}
 							label={opt.label}
-							disabled={disabled}
+							disabled={
+								disabled ||
+								(Boolean(opt.disabled) && !selectedSet.has(opt.value))
+							}
 						/>
 					</li>
 				))}

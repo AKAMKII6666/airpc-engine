@@ -18,12 +18,14 @@ import {
 	runEndCall,
 	runSendMessage,
 	runSendMessageStream,
+	runStartChapterEntryRing,
 	runStartFreeCall,
 	runStartSimulateCall,
 	runStartSimulateChapterCall,
 	type DebuggerEndCallInput,
 } from "./callSessionCommands.bis";
 import { usePostCallJobsControls } from "./callSessionPostCall.bis";
+import type { DebuggerChapterEntryRingView } from "@studio-v2/typeFiles/debugger/callSessionResponses";
 
 export type { DebuggerEndCallInput };
 
@@ -64,6 +66,12 @@ export type DebuggerCallSessionBis = {
 	startSimulateChapterCall: (
 		chapterId: string,
 	) => Promise<DebuggerCallSessionView | null>;
+	/**
+		* 编辑器「运行调试」：outbound_auto → delay=0 来电；否则回落 simulate。
+		*/
+	startChapterEntryRing: (
+		chapterId: string,
+	) => Promise<DebuggerChapterEntryRingView | null>;
 	/** 发送玩家文本并等待模型回复 */
 	sendMessage: (text: string) => Promise<DebuggerCallSessionView | null>;
 	/** 发送玩家文本并订阅流式事件；返回 AbortController */
@@ -76,6 +84,10 @@ export type DebuggerCallSessionBis = {
 	) => AbortController | null;
 	/** 挂断当前通话：立即清 UI 投影，再后台执行 Host endCall */
 	endCall: (input?: DebuggerEndCallInput) => Promise<DebuggerCallEndView | null>;
+	/** 本通手勾已完成节拍；挂机写入 Outcome */
+	outcomeCompletedBeats: string[];
+	/** 手勾/取消本通节拍 */
+	toggleOutcomeCompletedBeat: (beatId: string) => void;
 	/** 清空当前通话 UI 投影；仅无 session 或错误恢复时使用 */
 	resetCall: () => void;
 };
@@ -104,6 +116,10 @@ function useCallSessionStoreSlice() {
 	const applyCallCommandAborted = useDebuggerStore(
 		(s) => s.applyCallCommandAborted,
 	);
+	const outcomeCompletedBeats = useDebuggerStore((s) => s.outcomeCompletedBeats);
+	const toggleOutcomeCompletedBeat = useDebuggerStore(
+		(s) => s.toggleOutcomeCompletedBeat,
+	);
 	return {
 		userId,
 		activeCall,
@@ -120,6 +136,8 @@ function useCallSessionStoreSlice() {
 		applyFailed,
 		resetActiveCall,
 		applyCallCommandAborted,
+		outcomeCompletedBeats,
+		toggleOutcomeCompletedBeat,
 	};
 }
 
@@ -153,6 +171,11 @@ export function useDebuggerCallSessionBis(): DebuggerCallSessionBis {
 			runStartSimulateChapterCall(actions, slice.userId, chapterId),
 		[slice.userId, slice.applyStarted, slice.applyResult, slice.applyFailed, slice.resetActiveCall],
 	);
+	const startChapterEntryRing = useCallback(
+		(chapterId: string) =>
+			runStartChapterEntryRing(actions, slice.userId, chapterId),
+		[slice.userId, slice.applyStarted, slice.applyResult, slice.applyFailed, slice.resetActiveCall],
+	);
 	const sendMessage = useCallback(
 		(text: string) => runSendMessage(actions, slice.activeCall, text),
 		[slice.activeCall, slice.applyStarted, slice.applyResult, slice.applyFailed, slice.resetActiveCall],
@@ -168,8 +191,20 @@ export function useDebuggerCallSessionBis(): DebuggerCallSessionBis {
 		[slice.activeCall, slice.applyStarted, slice.applyResult, slice.applyFailed, slice.applyCallCommandAborted],
 	);
 	const endCall = useCallback(
-		(input?: DebuggerEndCallInput) => runEndCall(actions, slice.activeCall, input),
-		[slice.activeCall, slice.applyStarted, slice.applyResult, slice.applyFailed, slice.resetActiveCall],
+		(input?: DebuggerEndCallInput) =>
+			runEndCall(actions, slice.activeCall, {
+				...input,
+				completedBeats:
+					input?.completedBeats ?? slice.outcomeCompletedBeats,
+			}),
+		[
+			slice.activeCall,
+			slice.outcomeCompletedBeats,
+			slice.applyStarted,
+			slice.applyResult,
+			slice.applyFailed,
+			slice.resetActiveCall,
+		],
 	);
 	const fetchMemoryTrace = useCallback(
 		(dtoId: string) => fetchDebuggerMemoryTrace(dtoId),
@@ -191,9 +226,12 @@ export function useDebuggerCallSessionBis(): DebuggerCallSessionBis {
 		startFreeCall,
 		startSimulateCall,
 		startSimulateChapterCall,
+		startChapterEntryRing,
 		sendMessage,
 		sendMessageStream,
 		endCall,
+		outcomeCompletedBeats: slice.outcomeCompletedBeats,
+		toggleOutcomeCompletedBeat: slice.toggleOutcomeCompletedBeat,
 		resetCall: slice.resetActiveCall,
 	};
 }

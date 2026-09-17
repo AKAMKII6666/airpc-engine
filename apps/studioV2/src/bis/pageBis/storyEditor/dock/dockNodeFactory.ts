@@ -42,7 +42,15 @@ export function createDefaultCallCardProjection(): EditorCallCardProjection {
 		entryMode: "inbound_user_dial",
 		interactionMode: "realtime_dialogue",
 		context: {},
-		toolPolicy: { mode: "inherit_free" },
+		toolPolicy: {
+			schemaVersion: 2,
+			mode: "inherit_free",
+			options: {
+				request_hangup: {
+					allowedReasonKinds: ["natural", "policy"],
+				},
+			},
+		},
 		exits: [],
 		validationBadge: "ok",
 	};

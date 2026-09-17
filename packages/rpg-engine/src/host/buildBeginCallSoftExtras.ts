@@ -15,6 +15,7 @@ import { listToolsForCard } from "../tools/resolveToolPolicy.js";
 import type { SoftExtraEnricher } from "../capabilityPacks/contributeTypes.js";
 import { applySoftExtraEnrichers } from "../capabilityPacks/applySoftExtraEnrichers.js";
 import { buildAcquaintanceSoftExtra } from "./acquaintanceSoftExtra.js";
+import type { ToolRegistry } from "../tools/types.js";
 
 export async function buildBeginCallSoftExtras(input: {
 	userId: string;
@@ -24,6 +25,7 @@ export async function buildBeginCallSoftExtras(input: {
 	nowIso: string;
 	memory: MemoryPort | null | undefined;
 	profile: PlayerProfile | undefined;
+	toolRegistry?: ToolRegistry;
 	/** L1 begin.softExtras Pack 贡献；缺省空 */
 	softExtraEnrichers?: readonly SoftExtraEnricher[];
 }): Promise<string[]> {
@@ -56,6 +58,7 @@ export async function buildBeginCallSoftExtras(input: {
 		...buildToolInstructionBlocks(
 			listToolsForCard(input.card, {
 				characterDef: input.characterDef,
+				registry: input.toolRegistry,
 			}).map(function (t) {
 				return t.toolId;
 			}),

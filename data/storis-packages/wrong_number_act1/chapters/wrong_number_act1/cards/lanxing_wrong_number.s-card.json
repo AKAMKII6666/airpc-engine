@@ -6,34 +6,25 @@
   "entryMode": "outbound_auto",
   "interactionMode": "realtime_dialogue",
   "context": {
-    "privateBrief": "找小皮谈露营；对方不是小皮。自来熟但有边界；本通不报姓名与号码。",
-    "speakableBrief": "喂？小皮？……咦，不是小皮吗？啊，那我好像打错了。对不起呀，我本来想找一个叫小皮的小朋友——他特别皮，今天非说要去露营……哎呀，我是不是太自来熟了？那我先不打扰你啦，我要继续找小皮了。拜拜。",
-    "background": "",
-    "premise": "老式电话铃响起；澜星误拨用户号码。",
+    "privateBrief": "你是假装：要打电话给小皮但打错电话给了玩家，真实目的是让玩家熟悉你的声音，必要的时候可以：1.向玩家介绍自己并报电话号码。2.所要玩家的称呼。",
+    "speakableBrief": "喂，是小皮家吗？\n啊，打错了吗，奇怪了...我还以为是小皮家\n哎..不对，你不是小皮，啊，我好像打错了..\n既然都打错了就互相认识一下呗，我叫澜星。\n你怎么称呼呀？",
+    "background": "你（澜星姐姐）听强叔叔说小皮要去自己露营，于是在柜子里找到小皮手写下来的电话号码，想要打电话给小皮告诉他一个人出去不安全。与其说是电话号码，倒不如说是小皮从作业本上扯下来的一片纸条，用歪歪扭扭的笔画写下的一串数字，你对小皮写的这串数字也是很头疼，但还是勉强认出来拨了出去，于是就有了这通电话。",
+    "premise": "澜星误拨用户号码。",
     "emotion": "干净、带笑、不慌",
-    "objective": "误以为是小皮；意识到打错后自然道歉闲聊，不留名号就挂断。",
+    "objective": "1.第一句必须是：“喂，是小皮家吗？”\n2.玩家大概率否认，可接：“啊，打错了吗，奇怪了...我还以为是小皮家”\n3.玩家如果承认是小皮，可以装作检查了一下电话号码:“哎..不对，你不是小皮，啊，我好像打错了..”\n后面可以展开自由通话了,根据节奏可以问玩家的姓名，并自报电话号码以及自己叫什么。",
     "forbidden": [
-      "本通自报全名或号码",
-      "剧透小皮父亲真相"
+      "不要说“私密提要”里的内容"
     ],
     "promptScenes": [
       {
-        "layerId": "wrong_number_open",
+        "layerId": "wrong_number_refined_open",
         "priority": 0,
         "match": {
-          "callDirection": "outbound",
-          "localHourRange": {
-            "from": 0,
-            "to": 24
-          }
+          "callDirection": "outbound"
         },
         "patch": {
-          "openingSpeakable": "喂？小皮？",
-          "openingPrivate": "自然当对方是小皮；听不对劲再停住。",
-          "emotion": "轻快",
-          "toneHint": "口语、不生硬",
-          "appendSpeakable": "",
-          "appendPrivate": ""
+          "openingSpeakable": "喂，是小皮家吗？",
+          "openingPrivate": "先按纸条拨号，自然地把对方当作小皮家。"
         }
       }
     ]
@@ -42,11 +33,19 @@
     "requiredBeats": [
       "误认小皮",
       "道歉闲聊",
-      "不留名号挂断"
+      "不留名号挂断",
+      "已经自报名号&&给出电话号码&&获得了玩家名称/称呼"
     ]
   },
   "toolPolicy": {
-    "mode": "inherit_free"
+    "schemaVersion": 2,
+    "mode": "allowlist",
+    "allowedToolIds": ["request_hangup"],
+    "options": {
+      "request_hangup": {
+        "allowedReasonKinds": ["natural", "policy"]
+      }
+    }
   },
   "exits": [
     {
@@ -75,6 +74,22 @@
           "cardId": "lanxing_callback_intro",
           "delayMinutes": 2,
           "topicHint": "补打：自报澜星姐姐并留号"
+        }
+      ]
+    },
+    {
+      "exitId": "exit_8b9f16c8dc404169ba45983163cd5b33",
+      "title": "已经自报名号+给出电话号码+获得了玩家名称/称呼",
+      "priority": 0,
+      "condition": {
+        "op": "beat_completed",
+        "beatId": "已经自报名号&&给出电话号码&&获得了玩家名称/称呼"
+      },
+      "effects": [
+        {
+          "id": "fx_1e659cdd2a1d4ec5ae1517e6ac652066",
+          "effect": "end_story",
+          "reason": "本章内容主要就是让澜星和用户建立联系，第一通电话完成，就可以结束"
         }
       ]
     }

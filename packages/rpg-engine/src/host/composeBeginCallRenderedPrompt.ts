@@ -19,6 +19,7 @@ import type { PromptProviderRegistry } from "../runtime/promptProviderRegistry.j
 import { isEngineError, type EngineError } from "./errors.js";
 import { buildBeginCallSoftExtras } from "./buildBeginCallSoftExtras.js";
 import type { SoftExtraEnricher } from "../capabilityPacks/contributeTypes.js";
+import type { ToolRegistry } from "../tools/types.js";
 
 type ClassifyBeginContext = (input: {
 	result: ResolveResult;
@@ -38,6 +39,7 @@ export async function composeBeginCallRenderedPrompt(input: {
 	nowIso: string;
 	memory: MemoryPort | null | undefined;
 	profile: PlayerProfile | undefined;
+	toolRegistry?: ToolRegistry;
 	composeScene: ComposeScene;
 	promptProviderRegistry: PromptProviderRegistry | null;
 	classifyBeginContext: ClassifyBeginContext;
@@ -57,6 +59,7 @@ export async function composeBeginCallRenderedPrompt(input: {
 		nowIso: input.nowIso,
 		memory: input.memory,
 		profile: input.profile,
+		toolRegistry: input.toolRegistry,
 		softExtraEnrichers: input.softExtraEnrichers,
 	});
 	const userLocation = input.profile?.user?.location;

@@ -2,7 +2,7 @@
 
 相关：[24-L1第一方能力包与流水线插槽](./24-L1第一方能力包与流水线插槽.md) · [07](./07-壳嵌入与导出契约.md) · [18](./18-部署拓扑与BS架构.md) · [19](./19-引擎宿主与会话模型.md) · [23](./23-引擎存取Port与IO适配.md) · [51](../需求/51-自由通话增强-旧仓对标缺口.md)
 
-**状态：** 工程实施中（**依赖 L1 收口**）；**对外 `apiVersion=1` 与 §5 槽点名已冻结**（增删须同步 24+25+执行索引）。  
+**状态：** L2 主线已收口；`tools.register` 已接入统一 ToolRegistry，`effects.register` / `dialogue.events` 仍明确未接线。**对外 `apiVersion=1` 与 §5 槽点名已冻结**（增删须同步 24+25+执行索引）。
 **目标：** 第三方/伙伴按「一个特性一个目录」交付插件；宿主提供**包装完整的能力 API** 与**流水线插槽**；作者自管私有逻辑与私有存储。  
 **非目标（本阶段）：** ACL、白名单权限裁剪、沙箱、签名审核、私有存储路径规范、行为校验。安全产品化见 §12（规划 L3 前专项），**不阻塞**本篇收口。
 
@@ -192,9 +192,9 @@ L3 开放生态   分发商店等                                          → �
 |------|------|----------|
 | `compose.providers` | beginCall 合成提示词 | 注入本通上下文、汇报材料摘要 |
 | `begin.softExtras` | 开场软上下文 | 附加 soft |
-| `tools.register` | 本通/角色工具集 | 注册功能调用（连电脑、下发 job…） |
-| `effects.register` | 挂机效果表（可选） | 贡献效果处理；慎改主链语义 |
-| `dialogue.events` | 通话中事件 | 实时处理、追加可说内容 |
+| `tools.register` | **已接线** | 注册功能调用；进入统一 Registry 与卡片 ToolPolicy |
+| `effects.register` | **未接线** | 挂机效果表（可选）；当前记 `slot_not_wired` |
+| `dialogue.events` | **未接线** | 通话中事件；当前记 `slot_not_wired` |
 | `call.afterHangup` | endCall 同步段末 | 把活交给后台（登记任务等） |
 | `commit.context` | 组装 MemoryCommitInput 时 | 补 exclusionSeeds、本通线索等 |
 | `commit.extract` | Studio 挂机抽取编排 | 特性化记忆 kind / 校验贡献（server） |
@@ -219,6 +219,32 @@ L3 开放生态   分发商店等                                          → �
 | `user.plugin` | 用户详情 · 插件面板 |
 
 宿主挂载时注入上下文：当前插件 id、当前用户、当前角色（若有）、能力 API 客户端（经 XHR/门面，**非**浏览器直连引擎内核）。
+
+### 5.1.1 `tools.register` 正式贡献契约
+
+```ts
+interface PluginToolContribution {
+  localToolId: string
+  displayName: string
+  description: string
+  inputSchema: JsonSchema
+  allowedCardKinds: CardKind[]
+  allowedInPlayback: boolean
+  invoke(input: PluginToolInvocation): Promise<unknown>
+}
+
+interface PluginToolInvocation {
+  session: { sessionId: string; userId: string; agentId: string; chapterId: string; cardId: string }
+  args: Record<string, unknown>
+  capabilities: PluginCapabilityApi
+}
+```
+
+- 宿主将局部 id 标准化为 `plugin:<pluginId>:<localToolId>`；与内置、壳、L1 或其它 L2 冲突时拒载。
+- 插件工具 `inheritByDefault=false`，不会进入 `inherit_free`；内容作者必须在卡片上显式选择。
+- handler 只收到无磁盘路径的会话摘要、已经按 `inputSchema` 校验的参数和能力 API。
+- 调用统一经过 `Host.invokeTool`，默认 10 秒超时；返回值必须可 JSON 序列化且不超过 32 KiB。
+- 参数非法、超时、异常或结果超限返回标准 FC 错误；不结束会话、不伪造成功。每次调用审计 plugin ID、toolId、sessionId、耗时与结果状态。
 
 ---
 
@@ -252,7 +278,8 @@ L3 开放生态   分发商店等                                          → �
 
 ### 6.5 实时通话
 
-- 订阅已归一化通话事件；请求注入可说内容；接收工具调用并返回结果。
+- `tools.register` handler 可读取宿主提供的本通摘要，并通过 `PluginCapabilityApi` 使用已接线能力。
+- `subscribeEvents` / `injectSpeakable` / `reportToolResult` / `registerExitCandidate` 仍显式 `not_wired`；不得把未接线方法写成成功空操作。
 
 ### 6.6 任务与调度
 
@@ -280,6 +307,7 @@ Studio server / 壳启动或 loadWorkspace
   → 跳过 enabled≠true
   → 校验 apiVersion；加载 main（若有）
   → 按 realtime / background 的 pipelines 把 entry 挂到对应 slot
+  → 将 L2 tools.register 与 builtin / shell / L1 合流为 ToolRegistry 并注入 Host
   → 按 ui.panels 注册面板入口（供 Studio 客户端经约定通道拉取）
   → 注入能力门面 api
 ```
@@ -290,6 +318,8 @@ Studio server / 壳启动或 loadWorkspace
 | 加载时机 | 进程启动 / loadWorkspace；**通话中不热插包** |
 | 单包失败 | 跳过该包 + 日志；默认不阻断内核 |
 | Client | 只渲染 UI 贡献；业务逻辑入口在 server/壳 |
+
+活动 CallSession 冻结 Registry revision 与实际工具集合；本通期间插件启停、升级或加载失败不改写冻结集合，只影响新通话。
 
 ---
 
@@ -384,12 +414,15 @@ Studio server / 壳启动或 loadWorkspace
 - [x] 仅改某包 `enabled` 即可开关，无需根级总表  
 - [x] 单目录可同时声明 realtime + background + ui  
 - [x] Trace/日志可见插件 id 与槽点贡献  
+- [x] `tools.register` 进入动态目录；显式选择后可保存、重载与调用，且 `inherit_free` 不自动授权
+- [x] 插件停用后保留内容配置并阻止运行；强制调用不能绕过 Host policy
+- [x] 参数校验、10 秒超时、32 KiB 结果上限和调用审计可观察
 - [x] 记忆等官方数据仅经 API，文档与 SDK 无「路径用法」  
 - [x] 三面板至少有示例挂上  
 - [x] 示例演示：挂机登记任务 → 到点回调 → 请求外呼  
 - [x] 不验收 ACL/白名单权限子集  
 
-**收口补完（对抗审查后）：** session 实时注入显式 `not_wired`；跨 L1/L2 冲突 id 拒载；entry/资产 `realpath`；任务按 pluginId 隔离。详见 [L2 执行索引](../里程碑/v2.0/L2第三方能力包_分期执行索引.md)。
+**收口补完（对抗审查后）：** `tools.register` 已接统一 Registry / ToolPolicy / Host 分发；其它 session 实时注入与 `effects.register` / `dialogue.events` 显式 `not_wired`；跨 L1/L2 冲突 id 拒载；entry/资产 `realpath`；任务按 pluginId 隔离。详见 [L2 执行索引](../里程碑/v2.0/L2第三方能力包_分期执行索引.md)。
 
 ---
 

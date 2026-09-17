@@ -4,6 +4,10 @@
  */
 import type { PromptProvider, PromptProviderContext } from "../runtime/composer.js";
 import type { PlayerProfile } from "../schema/profile.js";
+import type { RegisteredTool } from "../tools/types.js";
+
+/** tools.register：L1 静态贡献；merge 会强制写入 l1 来源归属。 */
+export type FirstPartyToolContribution = Omit<RegisteredTool, "source">;
 
 export type UserLocationSnapshot = {
 	country: string;

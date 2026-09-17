@@ -4,7 +4,10 @@
  */
 import type { CallCardDefinition } from "../../schema/callCard.js";
 import type { CharacterDef } from "../../schema/character.js";
-import { getBuiltinTool } from "../../tools/builtinRegistry.js";
+import { listEnabledCharacterToolCapabilityIds } from "../../schema/character.js";
+import { getRegisteredTool } from "../../tools/toolRegistry.js";
+import { toolAllowedForCardContext } from "../../tools/resolveToolPolicy.js";
+import type { ToolRegistry } from "../../tools/types.js";
 import type { ValidationIssue } from "../types.js";
 
 /** 引荐类工具：allowlist 时检查 owner 社交 canIntroduce */
@@ -24,6 +27,7 @@ export function validateToolPolicy(
 	warnings: ValidationIssue[],
 	isPlayback: boolean,
 	characters: Map<string, CharacterDef>,
+	toolRegistry: ToolRegistry,
 ): void {
 	const policy = card.toolPolicy;
 	if (!policy || typeof policy !== "object") return;
@@ -33,6 +37,7 @@ export function validateToolPolicy(
 	};
 
 	validatePlaybackDenyAll(p, cardPath, errors, isPlayback);
+	validateHangupOptions(card, cardPath, errors);
 
 	if (p.mode !== "allowlist" || !Array.isArray(p.allowedToolIds)) {
 		return;
@@ -43,6 +48,8 @@ export function validateToolPolicy(
 		p.allowedToolIds,
 		cardPath,
 		errors,
+		toolRegistry,
+		characters,
 	);
 	if (needsIntroduceGuard) {
 		validateIntroduceGuard(card, cardPath, characters, warnings);
@@ -73,20 +80,25 @@ function validateAllowlistTools(
 	allowedToolIds: string[],
 	cardPath: string,
 	errors: ValidationIssue[],
+	toolRegistry: ToolRegistry,
+	characters: Map<string, CharacterDef>,
 ): boolean {
 	let needsIntroduceGuard = false;
 	for (const toolId of allowedToolIds) {
-		const def = getBuiltinTool(toolId);
+		const registration = getRegisteredTool(toolRegistry, toolId);
+		const def = registration?.definition;
 		if (!def) {
 			push(errors, {
-				ruleId: "TOOL_UNKNOWN",
+				ruleId: toolId.startsWith("plugin:")
+					? "TOOL_PROVIDER_UNAVAILABLE"
+					: "TOOL_UNKNOWN",
 				level: "error",
 				path: `${cardPath}#toolPolicy.allowedToolIds`,
 				message: `unknown toolId: ${toolId}`,
 			});
 			continue;
 		}
-		if (!(def.allowedCardKinds as string[]).includes(card.cardKind)) {
+		if (!toolAllowedForCardContext(def, card)) {
 			push(errors, {
 				ruleId: "TOOL_KIND_MISMATCH",
 				level: "error",
@@ -94,11 +106,46 @@ function validateAllowlistTools(
 				message: `tool ${toolId} not allowed for cardKind ${card.cardKind}`,
 			});
 		}
+		if (
+			def.availability === "character_capability" &&
+			!listEnabledCharacterToolCapabilityIds(
+				characters.get(card.ownerAgentId),
+			).includes(toolId)
+		) {
+			push(errors, {
+				ruleId: "TOOL_CHARACTER_CAPABILITY",
+				level: "error",
+				path: `${cardPath}#toolPolicy.allowedToolIds`,
+				message: `tool ${toolId} requires owner capability declaration`,
+			});
+		}
 		if (INTRODUCE_TOOL_IDS.has(toolId)) {
 			needsIntroduceGuard = true;
 		}
 	}
 	return needsIntroduceGuard;
+}
+
+function validateHangupOptions(
+	card: CallCardDefinition,
+	cardPath: string,
+	errors: ValidationIssue[],
+): void {
+	const policy = card.toolPolicy;
+	if (!policy || policy.schemaVersion !== 2 || policy.mode === "deny_all") return;
+	const exposesHangup =
+		policy.mode === "inherit_free" ||
+		(policy.mode === "allowlist" &&
+			(policy.allowedToolIds ?? []).includes("request_hangup"));
+	if (!exposesHangup) return;
+	const reasons = policy.options?.request_hangup?.allowedReasonKinds ?? [];
+	if (reasons.length > 0) return;
+	push(errors, {
+		ruleId: "TOOL_HANGUP_REASON_REQUIRED",
+		level: "error",
+		path: `${cardPath}#toolPolicy.options.request_hangup`,
+		message: "request_hangup requires at least one allowedReasonKind",
+	});
 }
 
 function validateIntroduceGuard(

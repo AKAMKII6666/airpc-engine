@@ -1,8 +1,7 @@
 /**
  * Studio V2 统一质量入口（08§5.1 / §7）。
- * 汇总：ensure-modal-layout → ensure-migrated-layout → lint → typecheck → check:comments → check:studio-structure → test:studio → 门禁自测。
- *
- * ensure-* 须在 typecheck 之前：平铺空壳会导致 TS2306 / STRUCT-008/014，而结构门禁清理太晚。
+ * 汇总：lint → typecheck → check:comments → check:studio-structure → test:studio → 门禁自测。
+ * 本命令只验证、不迁移；布局迁移必须显式执行 migrate:studio-layout。
  *
  * 用法：node scripts/studio-quality/quality-studio.mjs
  * 任一步非零退出即失败。
@@ -10,8 +9,10 @@
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ensureModalNestedLayout } from "./ensure-modal-layout.mjs";
-import { ensureMigratedLayout } from "./ensure-migrated-layout.mjs";
+import {
+  assertWorktreeUnchanged,
+  captureWorktreeFingerprint,
+} from "../quality/worktree-fingerprint.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "../..");
@@ -43,21 +44,7 @@ function runStep(label, command, args) {
 }
 
 function main() {
-  console.log("\n==> ensure-modal-layout (pre-typecheck)");
-  const modalRemoved = ensureModalNestedLayout();
-  console.log(
-    modalRemoved === 0
-      ? "ensure-modal-layout: nothing to remove"
-      : `ensure-modal-layout: removed ${modalRemoved} file(s)`,
-  );
-
-  console.log("\n==> ensure-migrated-layout (pre-typecheck)");
-  const migratedRemoved = ensureMigratedLayout();
-  console.log(
-    migratedRemoved === 0
-      ? "ensure-migrated-layout: nothing to remove"
-      : `ensure-migrated-layout: removed ${migratedRemoved} file(s)`,
-  );
+  const fingerprint = captureWorktreeFingerprint(repoRoot);
 
   const steps = [
     ["lint (@airpc/studio-v2)", "npm", ["run", "lint", "-w", "@airpc/studio-v2"]],
@@ -95,10 +82,12 @@ function main() {
 
   for (const [label, cmd, args] of steps) {
     if (!runStep(label, cmd, args)) {
+      assertWorktreeUnchanged(repoRoot, fingerprint, "quality:studio");
       console.error("\nquality:studio FAILED");
-      process.exit(process.exitCode || 1);
+      return;
     }
   }
+  assertWorktreeUnchanged(repoRoot, fingerprint, "quality:studio");
   console.log("\nquality:studio ok");
 }
 

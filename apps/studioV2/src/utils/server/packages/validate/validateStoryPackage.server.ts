@@ -7,6 +7,7 @@ import {
 } from "@airpc/rpg-engine";
 import { createFsContentPort } from "@studio-v2/engineIOModule/content/port/fsContentPort";
 import { getStudioV2DataRoot } from "../../data/dataRoot.server";
+import { getStudioV2EngineHost } from "../../host/engineHost.server";
 import { readDiskPackageConf } from "../fs/package/packagesFs.server";
 
 /**
@@ -21,10 +22,12 @@ export async function validateStoryChapterOnDisk(
 		workspaceKey,
 		chapterId,
 	});
+	const host = await getStudioV2EngineHost();
 	return validatePackage({
 		bundle,
 		workspaceKey,
 		content,
+		toolRegistry: host.getToolRegistry(),
 	});
 }
 

@@ -6,6 +6,7 @@ import path from "node:path";
 import {
 	CallCardDefinitionSchema,
 	ChapterConfSchema,
+	normalizeCallCardToolPolicy,
 	type CallCardDefinition,
 	type ChapterConf,
 	type PackageConf,
@@ -155,7 +156,8 @@ function parseCardsPayload(
 		if (!parsed.success) {
 			packageFail("VALIDATION_FAILED", "one or more cards invalid");
 		}
-		byId.set(parsed.data.cardId, parsed.data);
+		const normalized = normalizeCallCardToolPolicy(parsed.data);
+		byId.set(normalized.cardId, normalized);
 	}
 	return byId;
 }

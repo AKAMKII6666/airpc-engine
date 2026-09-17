@@ -9,6 +9,7 @@ import {
 import type { OpenAiCompatibleTool } from "@studio-v2/src/utils/server/llm/llmToolAdapter.server";
 import { writeDtoLog } from "@studio-v2/src/utils/server/observability/dto/dtoLogStore.server";
 import { writeStudioLog } from "@studio-v2/src/utils/server/observability/logger/pinoLogger.server";
+import { runE2ELlmIfEnabled } from "@studio-v2/src/utils/server/llm/llmClientE2E.server";
 
 export type ServerLlmToolCall = {
 	/** 供应商 tool call id；回传 tool result 时必须带回 */
@@ -54,8 +55,8 @@ export type ServerLlmChatInput = {
 	responseFormat?: "json_object";
 	/** 本轮允许模型调用的 OpenAI-compatible tools；空数组等同不发 tools */
 	tools?: OpenAiCompatibleTool[];
-	/** OpenAI-compatible tool_choice；缺省交给供应商 auto */
-	toolChoice?: "auto" | "none";
+	/** OpenAI-compatible tool_choice；缺省交给供应商 auto；required 需配合关 thinking */
+	toolChoice?: "auto" | "none" | "required";
 };
 
 export type ServerLlmChatResult = {
@@ -260,6 +261,8 @@ export async function runServerLlmChat(
 		config?: ServerLlmRuntimeConfig;
 	} = {},
 ): Promise<ServerLlmChatResult> {
+	const e2eResult = runE2ELlmIfEnabled(input);
+	if (e2eResult) return e2eResult;
 	const config = opts.config ?? resolveServerLlmRuntimeConfig();
 	assertUsableConfig(config);
 	assertToolsAllowed(config, input);

@@ -35,8 +35,10 @@ import { pushCapabilityPackBootstrapEvents } from "./pushCapabilityPackBootstrap
 import { resolveCapabilityPackHostBindings } from "./resolveCapabilityPackHostBindings.js";
 import { buildBeginCallScheduleHints } from "./buildBeginCallScheduleHints.js";
 import { isEffectiveDialable } from "../schema/character.js";
-import { pickPendingForIntent } from "../runtime/pickPendingForUserDial.js";
-import { resolvePendingStoryCard } from "../runtime/resolvePendingStoryCard.js";
+import {
+	resolvePendingStoryCard,
+	selectPendingStoryCardInstance,
+} from "../runtime/resolvePendingStoryCard.js";
 import { cardForBeginCall } from "../runtime/voicemail/cardForBeginCall.js";
 import {
   evaluateStoryLockGate,
@@ -57,8 +59,10 @@ import {
   type EngineHost,
   type LoadWorkspaceOptions,
 } from "../ports/engineHostApi.js";
-import { invokeSessionTool } from "../tools/invokeSessionLocal.js";
 import type { ToolInvokeResult } from "../tools/types.js";
+import { DEFAULT_TOOL_REGISTRY } from "../tools/toolRegistry.js";
+import { prepareCallTools } from "../tools/prepareCallTools.js";
+import { invokeRegisteredTool } from "../tools/invokeRegisteredTool.js";
 import { createShellControlApi } from "./shellControl/createShellControlApi.js";
 import { createOutboundShellApi } from "./outbound/createOutboundShellApi.js";
 import { createDispatchingScheduleClockApi } from "./outbound/createDispatchingScheduleClockApi.js";
@@ -231,6 +235,7 @@ export function createEngineHost(
   const loreBootstrapPort =
     options.loreBootstrap === undefined ? null : options.loreBootstrap;
   const promptProviderRegistry = resolveOptionalPort(options.promptProviderRegistry);
+	const toolRegistry = options.toolRegistry ?? DEFAULT_TOOL_REGISTRY;
 	const {
 		afterHangupHooks,
 		packIdByHookId,
@@ -278,6 +283,7 @@ export function createEngineHost(
     },
     redact: redactLogRecord,
   });
+	const shellControlApi = createShellControlApi({ sessions, pushLog });
 
   pushCapabilityPackBootstrapEvents({
     events: capabilityPackEvents,
@@ -298,18 +304,30 @@ export function createEngineHost(
 
   async function preloadScheduleCallCardTargets(
     effects: readonly Record<string, unknown>[],
+    fallbackChapterId = "",
   ): Promise<void> {
     for (const effect of effects) {
-      if (effect.effect !== "schedule_call_card") continue;
+      if (
+        effect.effect !== "schedule_call_card" &&
+        effect.effect !== "attach_call_card"
+      ) {
+        continue;
+      }
       const cardId = typeof effect.cardId === "string" ? effect.cardId : "";
-      const chapterId = resolveChapterId(effect);
+      const chapterId = resolveChapterId(effect, fallbackChapterId);
       if (!cardId || !chapterId) continue;
       const pre = await host.preloadCard(chapterId, cardId);
       if (pre && isEngineError(pre)) {
         pushLog({
           at: new Date().toISOString(),
-          type: "schedule_call_card.preload_failed",
-          payload: { chapterId, cardId, code: pre.code, message: pre.message },
+          type: "call_card_effect.preload_failed",
+          payload: {
+            effect: effect.effect,
+            chapterId,
+            cardId,
+            code: pre.code,
+            message: pre.message,
+          },
         });
       }
     }
@@ -319,7 +337,10 @@ export function createEngineHost(
     session: CallSession,
   ): Promise<void> {
     for (const candidate of session.exitCandidates) {
-      await preloadScheduleCallCardTargets(candidate.effects);
+      await preloadScheduleCallCardTargets(
+        candidate.effects,
+        session.chapterId,
+      );
     }
   }
 
@@ -916,23 +937,14 @@ export function createEngineHost(
 				const ws = requireWorkspace();
 				const kind =
 					intent.kind === "user_dial" ? "user_dial" : "agent_outbound";
-				const pending = pickPendingForIntent(profile, intent.agentId, kind, {
-					resolveEntryMode(instance) {
-						if (instance.entryMode) {
-							return instance.entryMode;
-						}
-						return (
-							lookupCharacterSideCard(
-								ws,
-								instance.chapterId,
-								instance.cardId,
-							)?.entryMode ??
-							ws.chapters
-								.get(instance.chapterId)
-								?.cards.get(instance.cardId)?.entryMode
-						);
-					},
+				const pending = selectPendingStoryCardInstance({
+					profile,
+					workspace: ws,
+					agentId: intent.agentId,
+					kind,
+					intent,
 				});
+				if (isEngineError(pending)) return pending;
 				if (pending) {
 					const pre = await host.preloadCard(
 						pending.chapterId,
@@ -987,6 +999,14 @@ export function createEngineHost(
               : undefined;
         /** mailbox_open / voicemail：强制 playback_only + mailbox_open（与校验一致） */
         const beginCard = cardForBeginCall(result);
+        const characterDef =
+          requireWorkspace().characters.get(result.agentId) ?? null;
+        const preparedTools = prepareCallTools(
+          beginCard,
+          toolRegistry,
+          characterDef,
+        );
+        if (isEngineError(preparedTools)) return preparedTools;
         const composeScene = buildComposeScene({
           entryMode: beginCard.entryMode,
           actualEntry,
@@ -995,8 +1015,6 @@ export function createEngineHost(
           timeZone: opts.timeZone,
           sceneOverride: opts.sceneOverride,
         });
-        const characterDef =
-          requireWorkspace().characters.get(result.agentId) ?? null;
         const profileForBegin = profiles.get(userId);
         const scheduleHints = buildBeginCallScheduleHints({
           profile: profileForBegin,
@@ -1015,6 +1033,7 @@ export function createEngineHost(
           nowIso: now,
           memory,
           profile: profileForBegin,
+		  toolRegistry,
           composeScene,
           promptProviderRegistry,
           classifyBeginContext,
@@ -1076,6 +1095,7 @@ export function createEngineHost(
           },
           frozenCard: structuredClone(beginCard),
           frozenCharacter: characterDef ? structuredClone(characterDef) : null,
+          ...preparedTools,
           actualEntry,
           beginContext,
           composeScene,
@@ -1149,15 +1169,16 @@ export function createEngineHost(
           `session not in_call: ${session.status}`,
         );
       }
-      return invokeSessionTool({
+      return invokeRegisteredTool({
         session,
         toolId,
         args,
         memory,
+		registry: toolRegistry,
+		invokeShellControlTool: shellControlApi.invokeShellControlTool,
+		pushLog,
       });
     },
-
-    ...createShellControlApi({ sessions, pushLog }),
 
 		completePlayback(sessionId: string): CallSession | EngineError {
 			const session = sessions.get(sessionId);
@@ -1409,6 +1430,10 @@ export function createEngineHost(
       return memory;
     }),
 
+	getToolRegistry() {
+		return toolRegistry;
+	},
+
     async validatePackage(chapterId: string): Promise<ValidationReport> {
       const ws = requireWorkspace();
       if (!contentPort) {
@@ -1426,6 +1451,7 @@ export function createEngineHost(
         workspaceKey: ws.rootDir,
         content: contentPort,
         characters: ws.characters,
+		toolRegistry,
       });
     },
 

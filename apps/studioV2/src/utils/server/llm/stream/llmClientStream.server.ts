@@ -23,6 +23,7 @@ import {
 	handleStreamLine,
 	type StreamAccumulators,
 } from "./llmStreamChunk.server";
+import { runE2ELlmIfEnabled } from "../llmClientE2E.server";
 
 type FetchLike = typeof fetch;
 
@@ -139,6 +140,8 @@ export async function runServerLlmChatStream(
 	} = {},
 	callbacks: ServerLlmStreamCallbacks = {},
 ): Promise<ServerLlmChatResult> {
+	const e2eResult = runE2ELlmIfEnabled(input, callbacks);
+	if (e2eResult) return e2eResult;
 	const config = opts.config ?? resolveServerLlmRuntimeConfig();
 	assertUsableConfig(config);
 	assertToolsAllowed(config, input);

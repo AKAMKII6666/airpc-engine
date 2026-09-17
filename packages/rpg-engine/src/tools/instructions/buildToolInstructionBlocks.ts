@@ -81,14 +81,15 @@ function buildExpertBlockIfOpen(open: OpenSet, _opts: ToolInstructionBlockOpts):
 function buildReminderBlockIfOpen(open: OpenSet, _opts: ToolInstructionBlockOpts): string | null {
   if (!open.has("schedule_reminder_call")) return null;
   const hasRecurring = open.has("schedule_recurring_call");
-  const lines = [
-    "# 口头预约回电（Function Calling）",
-    "本工具只在自由通话卡开放；当用户**明确**说「过 X 分钟/小时打给我」「X 分钟后提醒我…」等，且你已理解提醒内容时：",
-    "1. 先用口语确认时间和提醒事项；",
-    "2. 再调用 `schedule_reminder_call`（只传 `topic_hint`；`delay_minutes` 或 `delay_hours` 二选一；**不要**传 `card_id`、`package_id` 或任何故事章/通话卡目标）。",
-    "不支持「明天早上」等未给出具体延迟的模糊预约（可引导改成「多少分钟后/小时后」）。",
-    "普通闲聊、没有明确回电时间的要求，**不要**调用该工具。",
-  ];
+	const lines = [
+		"# 口头预约回电（Function Calling）",
+		"本工具只在自由通话卡开放；当用户**明确**说「过 X 分钟/小时打给我」「X 分钟后提醒我…」等，且你已理解提醒内容时：",
+		"1. 先用口语确认时间和提醒事项；",
+		"2. 再调用 `schedule_reminder_call`（只传 `topic_hint`；`delay_minutes` 或 `delay_hours` 二选一；**不要**传 `card_id`、`package_id` 或任何故事章/通话卡目标）。",
+		"**口头答应回电/提醒后，必须在同轮调用工具**；禁止只说「记下了」「到点打给你」却不调 `schedule_reminder_call`。",
+		"不支持「明天早上」等未给出具体延迟的模糊预约（可引导改成「多少分钟后/小时后」）。",
+		"普通闲聊、没有明确回电时间的要求，**不要**调用该工具。",
+	];
   if (hasRecurring) {
     lines.push(
       "固定每天/每周钟点提醒 → 用 `schedule_recurring_call`，**不要**用本工具。",
@@ -191,6 +192,7 @@ function buildUserNameBlockIfOpen(
 			"仅当对方**明确**给出与已知称呼不同的新昵称/姓名，且你已口头确认要改记时：",
 			"1. 自然确认新称呼；",
 			"2. 再调用 `record_user_name`（`nickname`；可选 `full_name`）。",
+			"**口头答应改记后，必须在同轮调用工具**；禁止只说「以后这么叫」却不调 `record_user_name`。",
 			"对方还没说新名字、只是闲聊、或配置备用称呼时，**不要**调用。",
 			"不要编造名字。",
 			"通话中只登记；挂机后更新用户档案。",
@@ -201,6 +203,7 @@ function buildUserNameBlockIfOpen(
 		"当对方**明确**告诉你叫什么（如「我叫豆豆」），且你已口头确认要记下来时：",
 		"1. 先用口语认真回应（如「好，我记住啦」）；",
 		"2. 调用 `record_user_name`（`nickname` 日常昵称；可选 `full_name` 正式姓名）。",
+		"**口头答应记住后，必须在同轮调用工具**；禁止只说「记住啦」却不调 `record_user_name`。",
 		"对方还没说名字、或只是配置的备用称呼时，**不要**调用。",
 		"不要编造名字。",
 		"通话中只登记；挂机后更新用户档案。",

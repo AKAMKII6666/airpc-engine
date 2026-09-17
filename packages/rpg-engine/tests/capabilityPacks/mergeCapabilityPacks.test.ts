@@ -4,6 +4,7 @@
 import { describe, expect, it } from "vitest";
 import {
 	mergeCapabilityPacks,
+	type FirstPartyPack,
 } from "../../src/index.js";
 import { samplePack } from "./samplePackFixture.js";
 
@@ -53,5 +54,46 @@ describe("mergeCapabilityPacks L1-B unit", function () {
 				},
 			]),
 		);
+	});
+
+	it("normalizes L1 tools.register contributions into Registry entries", function () {
+		const pack: FirstPartyPack = {
+			manifest: {
+				packId: "l1-weather",
+				packVersion: "1.0.0",
+				apiVersion: 1,
+				domains: ["realtime"],
+			},
+			contribute: {
+				realtime: {
+					"tools.register": [{
+						definition: {
+							toolId: "l1_lookup_weather",
+							displayName: "查询天气",
+							description: "查询天气。",
+							inputSchema: { type: "object" },
+							allowedCardKinds: ["free"],
+							allowedInPlayback: false,
+							behavior: "external",
+						},
+						inheritByDefault: true,
+						invoke() {
+							return { weather: "sunny" };
+						},
+					}],
+				},
+			},
+		};
+		const merged = mergeCapabilityPacks({ packs: [pack], baseProviders: [] });
+		expect(merged.registeredTools[0]).toMatchObject({
+			definition: { toolId: "l1_lookup_weather", behavior: "external" },
+			source: {
+				kind: "l1",
+				providerId: "l1-weather",
+				displayName: "l1-weather",
+			},
+			inheritByDefault: true,
+		});
+		expect(merged.packIdByToolId.get("l1_lookup_weather")).toBe("l1-weather");
 	});
 });

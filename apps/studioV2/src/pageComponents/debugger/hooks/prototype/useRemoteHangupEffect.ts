@@ -12,6 +12,7 @@ import {
 	lockedPhoneUi,
 } from "./core/prototypeSessionHelpers";
 import type { LastMemoryTraceState } from "./core/prototypeSessionTypes";
+import { latestRemoteHangupEvent } from "@studio-v2/src/pageComponents/debugger/debuggerUiModel";
 
 export function useRemoteHangupEffect(input: {
 	activeRemoteHangupEventId: string | null;
@@ -43,6 +44,7 @@ export function useRemoteHangupEffect(input: {
 		if (remoteHangupHandledRef.current === activeRemoteHangupEventId) return;
 		remoteHangupHandledRef.current = activeRemoteHangupEventId;
 		const sessionId = callState.session.sessionId;
+		const hangupEvent = latestRemoteHangupEvent(callState.session);
 		clearPhoneTimers();
 		setDraft("");
 		setLocalError(undefined);
@@ -53,7 +55,17 @@ export function useRemoteHangupEffect(input: {
 			"对方已挂断，已返回拨号界面；副作用由 tip 跟踪",
 		);
 		void (async function () {
-			const end = await callBis.endCall({ sessionId, hangupEarly: false });
+			const end = await callBis.endCall({
+				sessionId,
+				hangupEarly: false,
+				termination: {
+					source: "npc",
+					...(hangupEvent?.reasonKind
+						? { reasonKind: hangupEvent.reasonKind }
+						: {}),
+					...(hangupEvent?.reason ? { reason: hangupEvent.reason } : {}),
+				},
+			});
 			if (end) {
 				for (const line of formatEndResultLines(end)) {
 					console.warn("[StudioV2][post-call]", line, end);

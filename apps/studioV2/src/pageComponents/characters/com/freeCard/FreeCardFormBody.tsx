@@ -4,15 +4,13 @@
 "use client";
 
 import type { ReactElement } from "react";
-import { FormControlLabel, Checkbox, Typography } from "@mui/material";
+import { Typography } from "@mui/material";
 import type { FormikProps } from "formik";
 import { AutoForm } from "@studio-v2/src/commonUiComponents/form/AutoForm";
 import type { AutoFormItem } from "@studio-v2/src/commonUiComponents/form/autoFormTypes";
 import type { FreeCardFormValues } from "@studio-v2/src/bis/pageBis/characters/freeCard/freeCardForm";
-import {
-	FREE_CAPABILITY_OPTIONS,
-	SHELL_HANGUP_CAPABILITY_OPTIONS,
-} from "@studio-v2/typeFiles/library/characters/freeCard/freeCapabilityOptions";
+import type { FormSelectOption } from "@studio-v2/src/commonUiComponents/form/formTypes";
+import { TOOL_POLICY_MODE_OPTIONS } from "@studio-v2/typeFiles/story/callCardLabels";
 
 const CONTEXT_ITEMS: AutoFormItem[] = [
 	{ label: "标题", name: "title", comType: "TextField", required: true },
@@ -47,60 +45,60 @@ const CONTEXT_ITEMS: AutoFormItem[] = [
 
 export function renderFreeCardFormBody(
 	formik: FormikProps<FreeCardFormValues>,
+	toolOptions: FormSelectOption[],
+	effectiveToolIds: string[],
 ): ReactElement {
+	const toolsVisible = formik.values.toolPolicyMode !== "deny_all";
+	const toolItems: AutoFormItem[] = [
+		{
+			label: "工具策略",
+			name: "toolPolicyMode",
+			comType: "Select",
+			options: [...TOOL_POLICY_MODE_OPTIONS],
+		},
+		{
+			label: "允许的工具",
+			name: "allowedToolIds",
+			comType: "OptionMultiSelect",
+			options: toolOptions,
+			hidden: !toolsVisible,
+			helperText:
+				formik.values.toolPolicyMode === "inherit_free"
+					? "修改任一项会冻结当前核心工具为白名单；插件不会自动继承。"
+					: "目录来自服务端 Registry；失效插件配置会保留。",
+			comProps: {
+				value: effectiveToolIds,
+				onChange(next: string[]) {
+					if (formik.values.toolPolicyMode === "inherit_free") {
+						void formik.setFieldValue("toolPolicyMode", "allowlist");
+					}
+					void formik.setFieldValue("allowedToolIds", next);
+				},
+			},
+		},
+		{
+			label: "主动挂机原因",
+			name: "allowedHangupReasonKinds",
+			comType: "OptionMultiSelect",
+			hidden: !toolsVisible || !effectiveToolIds.includes("request_hangup"),
+			options: [
+				{ label: "自然道别", value: "natural" },
+				{ label: "策略终止", value: "policy" },
+				{ label: "引荐完成", value: "handoff" },
+			],
+		},
+	];
 	return (
 		<>
 			{/* 引用了AutoForm组件，用于编排 Free 卡 context / 场景字段 */}
 			<AutoForm formik={formik} mode="edit" enabled items={CONTEXT_ITEMS} />
 
-			{/* 引用了Typography组件，用于固定出口能力分区标题 */}
-			<Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>
-				固定出口能力（仅开/关）
-			</Typography>
-			{FREE_CAPABILITY_OPTIONS.map(function (opt) {
-				return (
-					// 引用了FormControlLabel组件，用于能力开关
-					<FormControlLabel
-						key={opt.toolId}
-						control={
-							// 引用了Checkbox组件，用于切换 toolPolicy 是否包含该工具
-							<Checkbox
-								checked={formik.values.capabilities[opt.toolId]}
-								onChange={function (_e, checked) {
-									void formik.setFieldValue(
-										`capabilities.${opt.toolId}`,
-										checked,
-									);
-								}}
-							/>
-						}
-						label={opt.label}
-					/>
-				);
-			})}
-
-			{/* 引用了Typography组件，用于主动挂机预留分区标题 */}
-			<Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>
-				主动挂机（壳钩子预留）
-			</Typography>
-			{SHELL_HANGUP_CAPABILITY_OPTIONS.map(function (opt) {
-				return (
-					// 引用了FormControlLabel组件，用于壳侧挂机能力开关
-					<FormControlLabel
-						key={opt.id}
-						control={
-							// 引用了Checkbox组件，用于预留挂机能力配置
-							<Checkbox
-								checked={formik.values.shellHangup[opt.id]}
-								onChange={function (_e, checked) {
-									void formik.setFieldValue(`shellHangup.${opt.id}`, checked);
-								}}
-							/>
-						}
-						label={`${opt.label}（${opt.helperText}）`}
-					/>
-				);
-			})}
+			{/* 引用了Typography组件，用于统一工具策略分区标题 */}
+				<Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>
+					工具策略
+				</Typography>
+				{/* 引用了AutoForm组件，用于编排统一工具策略与挂机原因 */}
+				<AutoForm formik={formik} mode="edit" enabled items={toolItems} />
 		</>
 	);
 }

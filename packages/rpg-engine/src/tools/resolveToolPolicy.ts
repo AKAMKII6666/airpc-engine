@@ -7,22 +7,35 @@ import {
   type CharacterDef,
 } from "../schema/character.js";
 import type { CallSession } from "../host/types.js";
-import { BUILTIN_TOOL_DEFINITIONS } from "./builtinRegistry.js";
+import {
+  DEFAULT_TOOL_REGISTRY,
+  REQUEST_HANGUP_TOOL_ID,
+} from "./toolRegistry.js";
 import type {
   ToolDefinition,
-  ToolResolutionTrace,
-  ToolResolutionTraceItem,
+  ToolRegistry,
   ToolPolicyResolved,
 } from "./types.js";
 
 export interface ResolveToolPolicyOptions {
   characterDef?: CharacterDef | null;
+  registry?: ToolRegistry;
 }
 
-function toolAllowedForCardKind(
+function effectiveRegistry(options: ResolveToolPolicyOptions): ToolRegistry {
+  return options.registry ?? DEFAULT_TOOL_REGISTRY;
+}
+
+export function toolAllowedForCardContext(
   tool: ToolDefinition,
-  card: CallCardDefinition,
+  card: Pick<CallCardDefinition, "cardKind" | "interactionMode">,
 ): boolean {
+  if (
+    card.interactionMode === "playback_only" ||
+    card.cardKind === "voicemail"
+  ) {
+    return false;
+  }
   if (card.cardKind === "free" || card.cardKind === "schedule") {
     return (
       tool.allowedCardKinds.includes("free") ||
@@ -49,14 +62,18 @@ function characterToolIdSet(
 function toolIdsForCardAndCharacter(
   card: CallCardDefinition,
   characterDef: CharacterDef | null | undefined,
+  registry: ToolRegistry,
+  inheritOnly: boolean,
 ): string[] {
-  return BUILTIN_TOOL_DEFINITIONS.filter(function (tool) {
+  return registry.registrations.filter(function (registration) {
+    if (inheritOnly && !registration.inheritByDefault) return false;
+    const tool = registration.definition;
     return (
-      toolAllowedForCardKind(tool, card) &&
+      toolAllowedForCardContext(tool, card) &&
       toolAllowedForCharacter(tool, characterDef)
     );
-  }).map(function (tool) {
-    return tool.toolId;
+  }).map(function (registration) {
+    return registration.definition.toolId;
   });
 }
 
@@ -64,15 +81,17 @@ function filterPolicyIdsForCharacter(
   ids: readonly string[],
   card: CallCardDefinition,
   characterDef: CharacterDef | null | undefined,
+  registry: ToolRegistry,
 ): string[] {
   const allowed = new Set(
-    BUILTIN_TOOL_DEFINITIONS.filter(function (tool) {
+    registry.registrations.filter(function (registration) {
+      const tool = registration.definition;
       return (
-        toolAllowedForCardKind(tool, card) &&
+        toolAllowedForCardContext(tool, card) &&
         toolAllowedForCharacter(tool, characterDef)
       );
-    }).map(function (tool) {
-      return tool.toolId;
+    }).map(function (registration) {
+      return registration.definition.toolId;
     }),
   );
   return ids.filter(function (id) {
@@ -84,8 +103,25 @@ export function resolveToolPolicy(
   card: CallCardDefinition,
   options: ResolveToolPolicyOptions = {},
 ): ToolPolicyResolved {
+  if (
+    card.interactionMode === "playback_only" ||
+    card.cardKind === "voicemail"
+  ) {
+    return { mode: "deny_all", allowedToolIds: [] };
+  }
   const policy = readToolPolicy(card);
   if (!policy) {
+    if (card.cardKind === "free" || card.cardKind === "schedule") {
+      return {
+        mode: "inherit_free",
+        allowedToolIds: toolIdsForCardAndCharacter(
+          card,
+          options.characterDef,
+          effectiveRegistry(options),
+          true,
+        ),
+      };
+    }
     return { mode: "unknown", allowedToolIds: null };
   }
   const mode = policy.mode ?? "unknown";
@@ -94,13 +130,19 @@ export function resolveToolPolicy(
     mode,
     policy,
     options.characterDef,
+    effectiveRegistry(options),
   );
   if (explicit) return explicit;
 
   if (shouldInheritFreeTools(card, mode)) {
     return {
       mode: "inherit_free",
-      allowedToolIds: toolIdsForCardAndCharacter(card, options.characterDef),
+      allowedToolIds: toolIdsForCardAndCharacter(
+        card,
+        options.characterDef,
+        effectiveRegistry(options),
+        true,
+      ),
     };
   }
   return { mode: "unknown", allowedToolIds: null };
@@ -110,32 +152,59 @@ function readToolPolicy(card: CallCardDefinition):
   | {
       mode?: string;
       allowedToolIds?: string[];
+      schemaVersion?: number;
     }
   | null {
   const raw = card.toolPolicy;
   if (!raw || typeof raw !== "object") return null;
-  return raw as { mode?: string; allowedToolIds?: string[] };
+  return raw as {
+    mode?: string;
+    allowedToolIds?: string[];
+    schemaVersion?: number;
+  };
+}
+
+function withLegacyHangup(
+  card: CallCardDefinition,
+  policy: { schemaVersion?: number },
+  rawIds: readonly string[],
+): string[] {
+  const ids = [...rawIds];
+  const realtime = card.interactionMode !== "playback_only";
+  const supportsHangup = card.cardKind !== "voicemail";
+  if (
+    policy.schemaVersion !== 2 &&
+    realtime &&
+    supportsHangup &&
+    !ids.includes(REQUEST_HANGUP_TOOL_ID)
+  ) {
+    ids.push(REQUEST_HANGUP_TOOL_ID);
+  }
+  return ids;
 }
 
 function resolveExplicitToolPolicy(
   card: CallCardDefinition,
   mode: string,
-  policy: { mode?: string; allowedToolIds?: string[] },
+  policy: { mode?: string; allowedToolIds?: string[]; schemaVersion?: number },
   characterDef: CharacterDef | null | undefined,
+  registry: ToolRegistry,
 ): ToolPolicyResolved | null {
   if (mode === "deny_all") {
     return { mode: "deny_all", allowedToolIds: [] };
   }
   if (mode === "allowlist") {
-    const rawIds = Array.isArray(policy.allowedToolIds)
+    const storedIds = Array.isArray(policy.allowedToolIds)
       ? policy.allowedToolIds
       : [];
+    const rawIds = withLegacyHangup(card, policy, storedIds);
     return {
       mode: "allowlist",
       allowedToolIds: filterPolicyIdsForCharacter(
         rawIds,
         card,
         characterDef,
+        registry,
       ),
     };
   }
@@ -148,6 +217,8 @@ function resolveExplicitToolPolicy(
       allowedToolIds: toolIdsForCardAndCharacter(
         card,
         characterDef,
+        registry,
+        true,
       ).filter(function (id) {
         return !deny.has(id);
       }),
@@ -180,10 +251,26 @@ export function isToolAllowedOnCard(
   return resolved.allowedToolIds.includes(toolId);
 }
 
+/** allowlist 中当前 Registry 已不存在的 id；用于运行/导出硬阻断但保存仍保留原串。 */
+export function listUnavailablePolicyToolIds(
+  card: CallCardDefinition,
+  registry: ToolRegistry = DEFAULT_TOOL_REGISTRY,
+): string[] {
+  if (card.toolPolicy?.mode !== "allowlist") return [];
+  return [...new Set(card.toolPolicy.allowedToolIds ?? [])].filter(function (id) {
+    return !registry.byId.has(id);
+  });
+}
+
 export function isToolAllowedInSession(
   session: CallSession,
   toolId: string,
 ): boolean {
+  if (session.frozenTools) {
+    return session.frozenTools.some(function (tool) {
+      return tool.toolId === toolId;
+    });
+  }
   return isToolAllowedOnCard(session.frozenCard, toolId, {
     characterDef: session.frozenCharacter,
   });
@@ -198,98 +285,14 @@ export function listToolsForCard(
   options: ResolveToolPolicyOptions = {},
 ): ToolDefinition[] {
   const policy = resolveToolPolicy(card, options);
-  return BUILTIN_TOOL_DEFINITIONS.filter(function (t) {
+  return effectiveRegistry(options).registrations.map(function (registration) {
+    return registration.definition;
+  }).filter(function (t) {
+    if (!toolAllowedForCardContext(t, card)) return false;
     if (!toolAllowedForCharacter(t, options.characterDef)) return false;
     if (policy.allowedToolIds === null) {
       return t.toolId === "search_memory" || t.toolId === "get_memory_by_id";
     }
     return policy.allowedToolIds.includes(t.toolId);
   });
-}
-
-export function projectToolResolutionTrace(
-  card: CallCardDefinition,
-  options: ResolveToolPolicyOptions = {},
-): ToolResolutionTrace {
-  const policy = resolveToolPolicy(card, options);
-  const finalTools = listToolsForCard(card, options);
-  const finalToolIds = finalTools.map(function (tool) {
-    return tool.toolId;
-  });
-  const finalSet = new Set(finalToolIds);
-  const characterToolIds = listEnabledCharacterToolCapabilityIds(
-    options.characterDef,
-  );
-  const characterSet = new Set(characterToolIds);
-  return {
-    registryToolIds: BUILTIN_TOOL_DEFINITIONS.map(function (tool) {
-      return tool.toolId;
-    }),
-    characterCapabilityToolIds: characterToolIds,
-    cardPolicyMode: policy.mode,
-    cardPolicyToolIds: policy.allowedToolIds,
-    finalToolIds,
-    items: BUILTIN_TOOL_DEFINITIONS.map(function (tool) {
-      return projectToolResolutionTraceItem({
-        tool,
-        card,
-        policy,
-        characterSet,
-        finalSet,
-      });
-    }),
-  };
-}
-
-function projectToolResolutionTraceItem(input: {
-  tool: ToolDefinition;
-  card: CallCardDefinition;
-  policy: ToolPolicyResolved;
-  characterSet: ReadonlySet<string>;
-  finalSet: ReadonlySet<string>;
-}): ToolResolutionTraceItem {
-  const availability = input.tool.availability ?? "global";
-  const declaredByCharacter = input.characterSet.has(input.tool.toolId);
-  const allowedByCharacter =
-    availability === "global" || declaredByCharacter;
-  const allowedByCardKind = toolAllowedForCardKind(input.tool, input.card);
-  const includedByCardPolicy =
-    input.policy.allowedToolIds === null
-      ? input.tool.toolId === "search_memory" ||
-        input.tool.toolId === "get_memory_by_id"
-      : input.policy.allowedToolIds.includes(input.tool.toolId);
-  const exposedToLlm = input.finalSet.has(input.tool.toolId);
-  return {
-    toolId: input.tool.toolId,
-    displayName: input.tool.displayName,
-    availability,
-    declaredByCharacter,
-    allowedByCharacter,
-    allowedByCardKind,
-    includedByCardPolicy,
-    exposedToLlm,
-    reason: toolResolutionReason({
-      availability,
-      allowedByCharacter,
-      allowedByCardKind,
-      includedByCardPolicy,
-      exposedToLlm,
-    }),
-  };
-}
-
-function toolResolutionReason(input: {
-  availability: "global" | "character_capability";
-  allowedByCharacter: boolean;
-  allowedByCardKind: boolean;
-  includedByCardPolicy: boolean;
-  exposedToLlm: boolean;
-}): string {
-  if (input.exposedToLlm) return "exposed";
-  if (!input.allowedByCardKind) return "card_kind_blocked";
-  if (!input.allowedByCharacter && input.availability === "character_capability") {
-    return "character_capability_missing";
-  }
-  if (!input.includedByCardPolicy) return "card_policy_filtered";
-  return "filtered";
 }

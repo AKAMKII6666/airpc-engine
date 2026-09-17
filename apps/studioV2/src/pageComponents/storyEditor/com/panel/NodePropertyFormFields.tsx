@@ -108,6 +108,7 @@ export const NodePropertyFormFields: FC<NodePropertyFormFieldsProps> =
 				{/* 引用了NodePropertySubModules组件，用于子模块折叠区 */}
 				<NodePropertySubModules
 					formik={formik}
+					agentId={nodeData.ownerAgentId ?? ""}
 					showSchedule={derived.showSchedule}
 					showStoryExtras={derived.showStoryExtras}
 					effectPanelSources={derived.effectSources}

@@ -12,6 +12,8 @@ import {
 	type CommitExtractContributor,
 	type EngineHost,
 	type PromptProviderRegistry,
+	createToolRegistry,
+	type ToolRegistry,
 } from "@airpc/rpg-engine";
 import { assembleFirstPartyCapabilityPacks } from "@studio-v2/src/utils/server/capabilityPacks/assembleFirstPartyPacks.server";
 import {
@@ -40,6 +42,7 @@ export type AssembledCapabilityRuntime = {
 	uiPanels: PluginUiPanelDescriptor[];
 	loadedPlugins: PluginLoadedInfo[];
 	pluginFailures: PluginLoadFailure[];
+	toolRegistry: ToolRegistry;
 };
 
 let cached: AssembledCapabilityRuntime | null = null;
@@ -77,6 +80,10 @@ export async function assembleCapabilityRuntime(input: {
 		...plugins.extraProviders,
 	];
 	const promptProviderRegistry = createPromptProviderRegistry(providers);
+	const toolRegistry = createToolRegistry([
+		...l1.registeredTools,
+		...plugins.registeredTools,
+	]);
 
 	const packIdByHookId = new Map(l1.packIdByHookId);
 	for (const [k, v] of plugins.packIdByHookId) {
@@ -116,6 +123,7 @@ export async function assembleCapabilityRuntime(input: {
 		uiPanels: plugins.uiPanels,
 		loadedPlugins: plugins.loaded,
 		pluginFailures: plugins.failures,
+		toolRegistry,
 	};
 	return cached;
 }

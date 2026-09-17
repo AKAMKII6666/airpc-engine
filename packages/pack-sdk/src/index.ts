@@ -73,3 +73,11 @@ export {
 	type PluginLogEvent,
 	type PluginLogEventType,
 } from "./logEvents.js";
+
+export {
+	assertPluginToolContribution,
+	type JsonSchema,
+	type PluginToolCardKind,
+	type PluginToolContribution,
+	type PluginToolInvocation,
+} from "./tools.js";

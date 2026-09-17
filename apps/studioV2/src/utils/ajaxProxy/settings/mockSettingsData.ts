@@ -77,8 +77,8 @@ export const MOCK_VALIDATION_ISSUES: readonly ValidationIssue[] = [
 		title: "存在不可达卡片",
 		impact: "正式导出已禁用；调试包仍可导出。",
 		suggestion: "检查入口连线，或删除孤立卡。",
-		locateHref: "/packages/golden_handoff",
-		locateLabel: "打开演示包编辑器",
+		locateHref: "/packages/wrong_number_act1",
+		locateLabel: "打开剧情包编辑器",
 	},
 	{
 		id: "vi_warn_1",

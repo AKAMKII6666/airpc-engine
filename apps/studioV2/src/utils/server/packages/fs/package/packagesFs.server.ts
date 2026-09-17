@@ -199,7 +199,15 @@ export async function createDiskStoryPackage(input: {
 				speakableBrief: "",
 			},
 			objectives: { requiredBeats: [] },
-			toolPolicy: { mode: "inherit_free" },
+			toolPolicy: {
+				schemaVersion: 2,
+				mode: "inherit_free",
+				options: {
+					request_hangup: {
+						allowedReasonKinds: ["natural", "policy"],
+					},
+				},
+			},
 			exits: [],
 		});
 	}

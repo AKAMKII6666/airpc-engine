@@ -128,6 +128,66 @@ function projectPromptBlocks(
 	});
 }
 
+type OpeningSoftFilterPolicy = {
+	includeSoftContext: boolean;
+	includeMemory: boolean;
+	includeInertia: boolean;
+};
+
+/**
+	* 用户尚未开口时，Trace 按 opening llmContextPolicy 过滤 memory/inertia，
+	* 与 08§6.1 / appendRenderedPrompt 开场隔离对齐；用户发言后恢复完整 soft/hard。
+	*/
+function readOpeningSoftFilter(
+	session: CallSession | undefined,
+): OpeningSoftFilterPolicy | null {
+	if (!session) return null;
+	const policy = (
+		session as CallSession & {
+			openingFirstTurn?: {
+				llmContextPolicy?: {
+					includeSoftContext?: boolean;
+					includeMemory?: boolean;
+					includeInertia?: boolean;
+				};
+			};
+		}
+	).openingFirstTurn?.llmContextPolicy;
+	if (!policy) return null;
+	const hasUserTurn = (session.chatTurns ?? []).some(function (turn) {
+		return turn.role === "user";
+	});
+	if (hasUserTurn) return null;
+	return {
+		includeSoftContext: policy.includeSoftContext !== false,
+		includeMemory: policy.includeMemory !== false,
+		includeInertia: policy.includeInertia !== false,
+	};
+}
+
+function filterPromptBlocksForOpening(
+	blocks: readonly string[],
+	policy: OpeningSoftFilterPolicy | null,
+	kind: "systemHard" | "softContext",
+): readonly string[] {
+	if (!policy) return blocks;
+	if (kind === "softContext" && !policy.includeSoftContext) {
+		return [];
+	}
+	return blocks.filter(function (block) {
+		if (!policy.includeMemory && block.startsWith("[memory]")) {
+			return false;
+		}
+		if (
+			!policy.includeInertia &&
+			block.startsWith("[conversation.inertia")
+		) {
+			return false;
+		}
+		return true;
+	});
+}
+
 function blockBodyValue(block: string, key: string): string | null {
 	const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 	const match = block.match(new RegExp(`^- ${escaped}=(.*)$`, "m"));
@@ -227,7 +287,17 @@ export function projectPromptTrace(
 ): DebuggerPromptTraceView {
 	const prompt = session?.renderedPrompt;
 	const providerIds = prompt?.debug?.providerIds ?? [];
-	const systemHard = prompt?.systemHard ?? [];
+	const openingFilter = readOpeningSoftFilter(session);
+	const systemHard = filterPromptBlocksForOpening(
+		prompt?.systemHard ?? [],
+		openingFilter,
+		"systemHard",
+	);
+	const softContext = filterPromptBlocksForOpening(
+		prompt?.softContext ?? [],
+		openingFilter,
+		"softContext",
+	);
 	return {
 		providerIds,
 		providerRows: projectPromptProviders(providerIds),
@@ -245,14 +315,8 @@ export function projectPromptTrace(
 		openingSituation: projectOpeningSituationFromPrompt(
 			prompt as RenderedPromptWithOpeningFirstTurn | undefined,
 		),
-		systemHardBlocks: projectPromptBlocks(
-			systemHard,
-			"systemHard",
-		),
-		softContextBlocks: projectPromptBlocks(
-			prompt?.softContext ?? [],
-			"softContext",
-		),
+		systemHardBlocks: projectPromptBlocks(systemHard, "systemHard"),
+		softContextBlocks: projectPromptBlocks(softContext, "softContext"),
 		toolResolution: session
 			? projectToolResolutionTrace(session.frozenCard, {
 					characterDef: session.frozenCharacter,

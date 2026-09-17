@@ -13,6 +13,75 @@ export interface SelectedExit {
   candidateId?: string;
 }
 
+type MatchedExit = SelectedExit & { staticOrder: number };
+
+function collectStaticExits(
+  card: CallCardDefinition,
+  outcome: Outcome,
+): MatchedExit[] {
+  const matched: MatchedExit[] = [];
+  card.exits.forEach(function (exit, index) {
+    if (!evaluateExitCondition(exit.condition, outcome, card)) return;
+    matched.push({
+      exit,
+      source: "static",
+      priority: exit.priority,
+      staticOrder: index,
+    });
+  });
+  return matched;
+}
+
+function matchDynamicCandidate(
+  card: CallCardDefinition,
+  outcome: Outcome,
+  candidate: RuntimeExitCandidate,
+): MatchedExit | null {
+  if (candidate.exitId) {
+    const staticExit = card.exits.find((exit) => exit.exitId === candidate.exitId);
+    if (
+      !staticExit ||
+      !evaluateExitCondition(staticExit.condition, outcome, card)
+    ) {
+      return null;
+    }
+    const priority = Math.max(staticExit.priority, candidate.priority);
+    return {
+      exit: {
+        ...staticExit,
+        effects:
+          candidate.effects.length > 0 ? candidate.effects : staticExit.effects,
+        priority,
+      },
+      source: "dynamic",
+      priority,
+      candidateId: candidate.candidateId,
+      staticOrder: Number.MAX_SAFE_INTEGER,
+    };
+  }
+  if (candidate.effects.length === 0) return null;
+  return {
+    exit: {
+      exitId: `dynamic:${candidate.candidateId}`,
+      exitKind: "dynamic",
+      title: candidate.toolId,
+      priority: candidate.priority,
+      condition: { op: "always" },
+      effects: candidate.effects as Effect[],
+    },
+    source: "dynamic",
+    priority: candidate.priority,
+    candidateId: candidate.candidateId,
+    staticOrder: Number.MAX_SAFE_INTEGER,
+  };
+}
+
+function compareMatchedExit(a: MatchedExit, b: MatchedExit): number {
+  if (b.priority !== a.priority) return b.priority - a.priority;
+  if (a.source !== b.source) return a.source === "static" ? -1 : 1;
+  return a.staticOrder - b.staticOrder;
+}
+
 /**
  * 候选池 = 静态 exits ∪ 动态 candidates。
  * 同 priority：静态定义序优先于动态。
@@ -22,73 +91,18 @@ export function selectExit(
   outcome: Outcome,
   candidates: RuntimeExitCandidate[] = [],
 ): SelectedExit | null {
-  const matched: Array<SelectedExit & { staticOrder: number }> = [];
-
-  card.exits.forEach(function (exit, index) {
-    if (evaluateExitCondition(exit.condition, outcome, card)) {
-      matched.push({
-        exit,
-        source: "static",
-        priority: exit.priority,
-        staticOrder: index,
-      });
-    }
-  });
-
-  for (const cand of candidates) {
-    if (cand.exitId) {
-      const staticExit = card.exits.find(function (e) {
-        return e.exitId === cand.exitId;
-      });
-      if (!staticExit) continue;
-      if (!evaluateExitCondition(staticExit.condition, outcome, card)) {
-        continue;
-      }
-      matched.push({
-        exit: {
-          ...staticExit,
-          effects:
-            cand.effects.length > 0 ? cand.effects : staticExit.effects,
-          priority: Math.max(staticExit.priority, cand.priority),
-        },
-        source: "dynamic",
-        priority: Math.max(staticExit.priority, cand.priority),
-        candidateId: cand.candidateId,
-        staticOrder: Number.MAX_SAFE_INTEGER,
-      });
-      continue;
-    }
-
-    // 纯动态：隐式条件 = candidate 仍有效（v1：挂机即有效）
-    if (cand.effects.length === 0) continue;
-    const synthetic: CallCardExit = {
-      exitId: `dynamic:${cand.candidateId}`,
-      exitKind: "dynamic",
-      title: cand.toolId,
-      priority: cand.priority,
-      condition: { op: "always" },
-      effects: cand.effects as Effect[],
-    };
-    matched.push({
-      exit: synthetic,
-      source: "dynamic",
-      priority: cand.priority,
-      candidateId: cand.candidateId,
-      staticOrder: Number.MAX_SAFE_INTEGER,
-    });
+  const matched = collectStaticExits(card, outcome);
+  for (const candidate of candidates) {
+    const dynamic = matchDynamicCandidate(card, outcome, candidate);
+    if (dynamic) matched.push(dynamic);
   }
-
   if (matched.length === 0) return null;
-
-  matched.sort(function (a, b) {
-    if (b.priority !== a.priority) return b.priority - a.priority;
-    if (a.source !== b.source) {
-      return a.source === "static" ? -1 : 1;
-    }
-    return a.staticOrder - b.staticOrder;
+  const storyProgress = matched.filter(function (item) {
+    return !item.exit.exitId.startsWith("dynamic:");
   });
-
-  const top = matched[0]!;
+  const pool = storyProgress.length > 0 ? storyProgress : matched;
+  pool.sort(compareMatchedExit);
+  const top = pool[0]!;
   return {
     exit: top.exit,
     source: top.source,

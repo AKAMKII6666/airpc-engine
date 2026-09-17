@@ -63,13 +63,12 @@ describe("packagesFs against data/storis-packages", () => {
 		}
 	});
 
-	it("lists golden_handoff and wrong_number_act1 from disk", async () => {
+	it("lists only the maintained wrong_number_act1 package from disk", async () => {
 		const packages = await listDiskStoryPackages();
 		const ids = packages.map(function (p) {
 			return p.packageId;
 		});
-		expect(ids).toContain("golden_handoff");
-		expect(ids).toContain("wrong_number_act1");
+		expect(ids).toEqual(["wrong_number_act1"]);
 		const act1 = packages.find(function (p) {
 			return p.packageId === "wrong_number_act1";
 		});
@@ -94,13 +93,6 @@ describe("packagesFs against data/storis-packages", () => {
 			"lanxing_voicemail",
 		]);
 		expect(bundle.layout.nodes.length).toBeGreaterThanOrEqual(3);
-	});
-
-	it("reads golden_handoff entry chapter", async () => {
-		const bundle = await readDiskStoryPackage("golden_handoff");
-		expect(bundle.conf.chapterId).toBe("golden_handoff");
-		expect(bundle.cards.length).toBe(4);
-		expect(bundle.layout.chapterId).toBe("golden_handoff");
 	});
 
 	it("chapter write roundtrips and drops orphan cards", async () => {

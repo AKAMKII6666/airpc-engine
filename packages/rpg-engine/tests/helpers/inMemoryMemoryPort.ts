@@ -315,7 +315,8 @@ export function createTestHost(opts: {
 	packIdByHookId?: CreateEngineHostOptions["packIdByHookId"];
 	scheduleGates?: CreateEngineHostOptions["scheduleGates"];
 	packIdByGateId?: CreateEngineHostOptions["packIdByGateId"];
-	capabilityPackEvents?: CreateEngineHostOptions["capabilityPackEvents"];
+  capabilityPackEvents?: CreateEngineHostOptions["capabilityPackEvents"];
+	toolRegistry?: CreateEngineHostOptions["toolRegistry"];
 }): ReturnType<typeof createEngineHost> {
   return createEngineHost({
     persist: opts.persist,
@@ -332,5 +333,6 @@ export function createTestHost(opts: {
     scheduleGates: opts.scheduleGates,
     packIdByGateId: opts.packIdByGateId,
     capabilityPackEvents: opts.capabilityPackEvents,
+	toolRegistry: opts.toolRegistry,
   });
 }

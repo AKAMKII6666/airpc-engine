@@ -4,6 +4,10 @@
 	* 口径见需求 01 §8.1 / 技术设计 19 §3.4。
 	*/
 import {
+	CallCardDefinitionSchema,
+	normalizeCallCardToolPolicy,
+} from "@airpc/rpg-engine";
+import {
 	access,
 	mkdir,
 	readdir,
@@ -85,11 +89,17 @@ export async function writeScheduleCardJson(
 			code: "VALIDATION_FAILED",
 		});
 	}
+	const parsed = CallCardDefinitionSchema.safeParse(body);
+	if (!parsed.success || parsed.data.cardKind !== "schedule") {
+		throw Object.assign(new Error("invalid schedule card"), {
+			code: "VALIDATION_FAILED",
+		});
+	}
 	const root = scheduleCardsRoot();
 	await mkdir(root, { recursive: true });
 	await writeFile(
 		scheduleCardPath(cardId),
-		JSON.stringify(body, null, 2) + "\n",
+		JSON.stringify(normalizeCallCardToolPolicy(parsed.data), null, 2) + "\n",
 		"utf8",
 	);
 }

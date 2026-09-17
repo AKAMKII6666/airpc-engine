@@ -335,8 +335,18 @@ export {
   getBuiltinTool,
   BUILTIN_TOOL_DEFINITIONS,
 } from "./tools/builtinRegistry.js";
-export { resolveToolPolicy, isToolAllowedOnCard, isToolAllowedInSession, listToolsForCard, projectToolResolutionTrace } from "./tools/resolveToolPolicy.js";
+export {
+  createToolRegistry,
+  DEFAULT_TOOL_REGISTRY,
+  getRegisteredTool,
+  listRegisteredTools,
+  REQUEST_HANGUP_TOOL_DEFINITION,
+  REQUEST_HANGUP_TOOL_ID,
+} from "./tools/toolRegistry.js";
+export { resolveToolPolicy, isToolAllowedOnCard, isToolAllowedInSession, listToolsForCard, listUnavailablePolicyToolIds, toolAllowedForCardContext } from "./tools/resolveToolPolicy.js";
+export { projectToolResolutionTrace } from "./tools/projectToolResolutionTrace.js";
 export { buildToolInstructionBlocks } from "./tools/instructions/buildToolInstructionBlocks.js";
+export { normalizeCallCardToolPolicy } from "./tools/normalizeToolPolicy.js";
 export type { ToolInstructionBlockOpts } from "./tools/instructions/buildToolInstructionBlocks.js";
 export { buildAcquaintanceSoftExtra } from "./host/acquaintanceSoftExtra.js";
 export { buildBeginCallSoftExtras } from "./host/buildBeginCallSoftExtras.js";
@@ -356,8 +366,15 @@ export {
   type ComputeBaziChartLocalResult,
 } from "./tools/bazi/computeBaziChart.js";
 export type {
+  RegisteredTool,
+  ToolBehavior,
   ToolDefinition,
+  ToolInvokeHandler,
+  ToolInvokeHandlerInput,
   ToolInvokeResult,
+  ToolRegistry,
+  ToolSource,
+  ToolSourceKind,
   RuntimeExitCandidate,
   ToolResolutionTrace,
   ToolResolutionTraceItem,
@@ -398,6 +415,7 @@ export {
   CardKindSchema,
   ScheduleMetaSchema,
   ToolPolicySchema,
+  HangupReasonKindSchema,
   formatZodError,
   isScheduleCard,
   isVoicemailCard,
@@ -410,6 +428,8 @@ export {
   type ScheduleMeta,
   type CardKind,
   type EntryMode,
+  type HangupReasonKind,
+  type ToolPolicy,
 } from "./schema/callCard.js";
 
 export {

@@ -12,6 +12,8 @@ import type {
 	TaskTickHandler,
 } from "./contributeTypes.js";
 import type { FirstPartyPack } from "./types.js";
+import type { RegisteredTool } from "../tools/types.js";
+import { appendRegisteredTools } from "./collectRegisteredTools.js";
 
 export type CapabilityPackLogEvent =
 	| {
@@ -63,6 +65,8 @@ export type CollectedPackContributions = {
 	softExtraEnrichers: SoftExtraEnricher[];
 	commitContextEnrichers: CommitContextEnricher[];
 	commitExtractContributors: CommitExtractContributor[];
+	registeredTools: RegisteredTool[];
+	packIdByToolId: Map<string, string>;
 };
 
 function asPromptProviders(value: unknown, packId: string): PromptProvider[] {
@@ -216,6 +220,7 @@ function appendPackContribute(
 	out: CollectedPackContributions,
 ): void {
 	const packId = pack.manifest.packId;
+	appendRegisteredTools(pack, out);
 	for (const provider of asPromptProviders(
 		pack.contribute.realtime?.["compose.providers"],
 		packId,
@@ -291,6 +296,8 @@ export function collectPackContributions(
 		softExtraEnrichers: [],
 		commitContextEnrichers: [],
 		commitExtractContributors: [],
+		registeredTools: [],
+		packIdByToolId: new Map(),
 	};
 
 	for (const pack of packs) {

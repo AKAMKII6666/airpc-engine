@@ -6,104 +6,76 @@
   "entryMode": "outbound_auto",
   "interactionMode": "realtime_dialogue",
   "context": {
-    "privateBrief": "一位一位念号码。愿意聊再约；不愿也没关系。若未说清名号则走留言出口。",
-    "speakableBrief": "喂？还是刚才那个电话吗？太好了。我叫澜星，可以叫我澜星姐姐。你怎么称呼呀？……我的电话是 2267070。小皮好像真在收拾书包——饼干、雨衣、恐龙图鉴，还有没装电池的手电筒。今天谢谢你听我讲这些。晚点见。",
-    "background": "",
+    "privateBrief": "这一通纯粹是要达成节拍：自报名号&&自报电话号码&&拿到玩家称呼。尽量拖住玩家不让其挂电话，能聊就影聊，但是聊不下去也没关系。",
+    "speakableBrief": "喂？还是刚才那个电话吗？太好了。我叫澜星。你怎么称呼呀？\n喂，是我，刚刚打错电话给你的那位。嗯...感觉既然有缘份就互相认识一下，我叫澜星，怎么称呼你呀？\n我的电话是 2267070。\n有一种感觉...我觉得你的名字可能会很特别，可以告诉我吗？\n好吧，那下次再联系。",
+    "background": "上一通电话时打错了，但是这一通电话是你觉得打错的这个人可以再聊聊，说不定可以交一个新朋友。",
     "premise": "挂机后想起没自报；片刻后再拨同一号码。",
-    "emotion": "认真、带一点懊恼的笑",
-    "objective": "确认还是刚才那通；自报澜星姐姐；问称呼；留下 2267070；提及小皮在收拾露营。",
+    "emotion": "轻松",
+    "objective": "1.开场可说：“喂，是我，刚刚打错电话给你的那位。”\n2.带有强目的性，类似：“嗯...感觉既然有缘份就互相认识一下，我叫澜星，怎么称呼你呀？”\n3.这一通要想办法达成节拍：自报名号&&自报电话号码&&拿到玩家称呼",
     "forbidden": [
-      "替用户做决定是否接下小皮"
+      "本轮目标",
+      "私密提要"
     ],
     "promptScenes": [
       {
-        "layerId": "callback_open",
+        "layerId": "callback_refined_open",
         "priority": 0,
         "match": {
-          "callDirection": "outbound",
-          "localHourRange": {
-            "from": 0,
-            "to": 24
-          }
+          "callDirection": "outbound"
         },
         "patch": {
-          "openingSpeakable": "喂？还是刚才那个电话吗？",
-          "openingPrivate": "急忙确认没又打错；再自报姓名。",
-          "emotion": "急切转温和",
-          "toneHint": "认真留号",
-          "appendSpeakable": "",
-          "appendPrivate": ""
+          "openingSpeakable": "喂？还是刚才那个电话吗？太好了。我叫澜星。你怎么称呼呀？",
+          "openingPrivate": "确认接电话的是刚才那个人，再自然完成自报和询问称呼。"
         }
       }
     ]
   },
   "objectives": {
     "requiredBeats": [
-      "自报姓名",
-      "留下号码",
-      "提起小皮露营"
+      "自报名号&&自报电话号码&&拿到玩家称呼"
     ]
   },
   "toolPolicy": {
-    "mode": "inherit_free"
+    "schemaVersion": 2,
+    "mode": "allowlist",
+    "allowedToolIds": ["request_hangup"],
+    "options": {
+      "request_hangup": {
+        "allowedReasonKinds": ["natural", "policy"]
+      }
+    }
   },
   "exits": [
     {
-      "exitId": "exit_known",
-      "exitKind": "terminal",
-      "title": "记住名号",
+      "exitId": "exit_6eb24652b4bf45d2ac93a800f0a9f624",
+      "title": "自报名号&&自报电话号码&&拿到玩家称呼",
       "priority": 10,
       "condition": {
-        "op": "and",
-        "items": [
-          {
-            "op": "outcome_flag",
-            "flag": "answered_completed",
-            "equals": true
-          },
-          {
-            "op": "all_required_beats_completed"
-          }
-        ]
+        "op": "beat_completed",
+        "beatId": "自报名号&&自报电话号码&&拿到玩家称呼"
       },
       "effects": [
         {
-          "id": "fx_end_known",
+          "id": "fx_05f30cbce21647adaff4ef8d12772656",
           "effect": "end_story",
-          "reason": "初识成立"
+          "reason": "完成：自报名号&&自报电话号码&&拿到玩家称呼"
         }
       ]
     },
     {
-      "exitId": "exit_voicemail",
-      "exitKind": "callback",
-      "title": "没说清→留言",
-      "priority": 0,
+      "exitId": "exit_9ab52d03377a4db2b31192d7e613535f",
+      "title": "未达节拍：自报名号&&自报电话号码&&拿到玩家称呼",
+      "priority": 9,
       "condition": {
-        "op": "or",
-        "items": [
-          {
-            "op": "outcome_flag",
-            "flag": "hangup_early",
-            "equals": true
-          },
-          {
-            "op": "beat_missing",
-            "beatId": "自报姓名"
-          },
-          {
-            "op": "beat_missing",
-            "beatId": "留下号码"
-          }
-        ]
+        "op": "beat_missing",
+        "beatId": "自报名号&&自报电话号码&&拿到玩家称呼"
       },
       "effects": [
         {
-          "id": "fx_voicemail",
+          "id": "fx_c6e3ca1f79cd4e3991796b932ff13778",
           "effect": "attach_call_card",
-          "agentId": "lanxing",
           "cardId": "lanxing_voicemail",
-          "packageId": "wrong_number_act1"
+          "agentId": "lanxing"
         }
       ]
     }

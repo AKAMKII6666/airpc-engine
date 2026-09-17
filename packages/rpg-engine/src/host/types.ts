@@ -6,7 +6,10 @@ import type { CharacterDef } from "../schema/character.js";
 import type { ChatTurn } from "../schema/dialogueSession.js";
 import type { Effect, Outcome } from "../schema/outcome.js";
 import type { ShellControlEvent } from "./shellControl/shellControlTypes.js";
-import type { RuntimeExitCandidate } from "../tools/types.js";
+import type {
+	RuntimeExitCandidate,
+	ToolDefinition,
+} from "../tools/types.js";
 
 export type { ChatTurn };
 
@@ -42,7 +45,15 @@ export type CallSessionStatus =
 export type CallIntent =
   | { kind: "simulate_start"; chapterId: string; cardId: string }
   | { kind: "user_dial"; agentId: string }
-  | { kind: "agent_outbound"; agentId: string }
+  | {
+			kind: "agent_outbound";
+			agentId: string;
+			/**
+			 * 接听真实外呼时传入 IncomingCallShellEvent.instanceId，
+			 * 定点消费响铃实例，避免与 Board 其它 pending / Free 抢解析。
+			 */
+			instanceId?: string;
+		}
   | { kind: "free_call"; agentId: string }
   /** 信箱打开：听已物化留言；不从 Board.pending 挑选 */
   | {
@@ -229,6 +240,10 @@ export interface CallSession {
 	frozenCard: CallCardDefinition;
 	/** 本通角色快照；工具能力与 prompt 均以 beginCall 时角色定义为准。 */
 	frozenCharacter?: CharacterDef | null;
+	/** beginCall 时按 Registry × toolPolicy 冻结；插件热变更不影响本通。 */
+	frozenTools?: ToolDefinition[];
+	/** 冻结工具集所用 Registry revision；供 Trace 对齐。 */
+	toolRegistryRevision?: string;
 	/**
 	 * 真实入口：user_dial → inbound_user_dial；agent_outbound → outbound_auto。
 	 * 延迟外呼卡 entryMode=either 时仍依此区分开场姿态，而非卡定义 preferred。

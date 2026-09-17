@@ -30,6 +30,7 @@ type CallCommandActions = Pick<
 	| "applyCallCommandFailed"
 	| "applyCallCommandAborted"
 	| "resetActiveCall"
+	| "toggleOutcomeCompletedBeat"
 >;
 
 type MailboxActions = Pick<
@@ -93,10 +94,17 @@ function createCallCommandActions(set: DebuggerSet): CallCommandActions {
 		},
 
 		applyCallCommandResult(session: DebuggerCallSessionView) {
-			set({
-				activeCall: session,
-				callBusy: false,
-				callError: undefined,
+			set(function (prev) {
+				const isNewSession =
+					prev.activeCall?.sessionId !== session.sessionId;
+				return {
+					activeCall: session,
+					callBusy: false,
+					callError: undefined,
+					outcomeCompletedBeats: isNewSession
+						? []
+						: prev.outcomeCompletedBeats,
+				};
 			});
 		},
 
@@ -119,6 +127,22 @@ function createCallCommandActions(set: DebuggerSet): CallCommandActions {
 				activeCall: null,
 				callBusy: false,
 				callError: undefined,
+				outcomeCompletedBeats: [],
+			});
+		},
+
+		toggleOutcomeCompletedBeat(beatId) {
+			const id = beatId.trim();
+			if (id === "") return;
+			set(function (prev) {
+				const has = prev.outcomeCompletedBeats.includes(id);
+				return {
+					outcomeCompletedBeats: has
+						? prev.outcomeCompletedBeats.filter(function (item) {
+								return item !== id;
+							})
+						: [...prev.outcomeCompletedBeats, id],
+				};
 			});
 		},
 	};
@@ -226,6 +250,7 @@ export function createDebuggerSessionActions(
 	| "applyCallCommandFailed"
 	| "applyCallCommandAborted"
 	| "resetActiveCall"
+	| "toggleOutcomeCompletedBeat"
 	| "setMailboxUserId"
 	| "applyMailboxLoadStarted"
 	| "applyMailboxLoadResult"

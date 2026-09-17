@@ -21,10 +21,17 @@ export function createDataCopyFilter(dataSrc: string): (src: string) => boolean 
 	};
 }
 
-/** 递归复制 data 树到目标目录，应用 {@link createDataCopyFilter}。 */
+/**
+ * 递归复制正式 data 树，并叠加不会被产品扫描的历史 golden 回归夹具。
+ */
 export async function copyDataTree(dataSrc: string, dataRoot: string): Promise<void> {
 	await cp(dataSrc, dataRoot, {
 		recursive: true,
 		filter: createDataCopyFilter(dataSrc),
 	});
+	await cp(
+		path.resolve(dataSrc, "..", "test-fixtures", "storis-packages"),
+		path.join(dataRoot, "storis-packages"),
+		{ recursive: true },
+	);
 }

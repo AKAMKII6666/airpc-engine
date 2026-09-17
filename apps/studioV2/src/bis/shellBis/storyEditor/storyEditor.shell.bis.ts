@@ -3,7 +3,7 @@
 	*/
 "use client";
 
-import { useEffect, useLayoutEffect } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { loadPackageEditorSession } from "@studio-v2/src/bis/pageBis/storyEditor/package/session/packageSessionLoad";
 import { useStoryEditorStore } from "@studio-v2/src/stores/storyEditor/storyEditorStore";
 import type { StoryEditorLoadResult } from "@studio-v2/typeFiles/story/editor/store/storyEditorStoreState";
@@ -50,6 +50,7 @@ export function toStoryEditorLoadResult(
 
 /**
 	* 挂载于章编辑器页：按 packageId + chapterId + refreshStamp 拉盘灌 store。
+	* 用世代号避免 StrictMode / 路由闪断后 cancelled 丢结果导致 loading 永真。
 	*/
 export function useStoryEditorShellBis(
 	packageId: string,
@@ -67,6 +68,7 @@ export function useStoryEditorShellBis(
 	const resetStoryEditorSession = useStoryEditorStore(function (s) {
 		return s.resetStoryEditorSession;
 	});
+	const loadGenerationRef = useRef(0);
 
 	useEffect(
 		function () {
@@ -86,17 +88,24 @@ export function useStoryEditorShellBis(
 				return;
 			}
 
-			let cancelled = false;
+			const generation = loadGenerationRef.current + 1;
+			loadGenerationRef.current = generation;
 			applyPackageLoadStarted(pkg, ch);
 			void (async function () {
-				const raw = await loadPackageEditorSession(pkg, ch, errorMessage);
-				if (cancelled) return;
-				applyPackageLoadResult(toStoryEditorLoadResult(pkg, ch, raw));
+				try {
+					const raw = await loadPackageEditorSession(pkg, ch, errorMessage);
+					if (generation !== loadGenerationRef.current) return;
+					applyPackageLoadResult(toStoryEditorLoadResult(pkg, ch, raw));
+				} catch (error) {
+					if (generation !== loadGenerationRef.current) return;
+					applyPackageLoadResult({
+						ok: false,
+						packageId: pkg,
+						chapterId: ch,
+						message: errorMessage(error, "加载故事包失败"),
+					});
+				}
 			})();
-
-			return function () {
-				cancelled = true;
-			};
 		},
 		[
 			packageId,

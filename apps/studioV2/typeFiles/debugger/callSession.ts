@@ -21,6 +21,10 @@ export type {
 	DebuggerCallSessionResponse,
 	DebuggerIncomingCallsResponse,
 	DebuggerCallEndResponse,
+	DebuggerChapterEntryRingView,
+	DebuggerChapterEntryRingResponse,
+	DebuggerChapterEntryOutboundRingView,
+	DebuggerChapterEntrySimulateView,
 } from "./callSessionResponses";
 
 
@@ -137,6 +141,8 @@ export type DebuggerShellEventView = {
 	source: string;
 	/** 角色主动挂断原因；无则为 null */
 	reason: string | null;
+	/** 主动挂机语义；旧事件可能为空。 */
+	reasonKind: "natural" | "policy" | "handoff" | null;
 };
 
 /** 表示一段 Prompt 渲染块；已由 server 裁剪，供 trace 面板阅读 */
@@ -283,6 +289,11 @@ export type DebuggerCallSessionView = {
 	cardTitle: string;
 	/** 当前通话目标摘要 */
 	objective: string;
+	/**
+		* 本卡 requiredBeats；调试器手勾完成态后写入挂机 Outcome。
+		* 空数组表示无节拍门槛。
+		*/
+	requiredBeats: string[];
 	/** 当前交互阶段；playback 阶段不允许文本聊天 */
 	interactionPhase: DebuggerCallInteractionPhase;
 	/** 已登记聊天轮次；只投影 user/assistant */
@@ -444,10 +455,24 @@ export type DebuggerMessageStreamEvent =
 
 /** 表示挂断当前 Host session 的请求，生命周期仅覆盖当前通话 */
 export type EndDebuggerCallBody = {
-	/** Host CallSession id；server 用它执行 endCall */
+	/** Host CallSession id；禁止按 userId 猜测并结束其它页面的会话。 */
 	sessionId: string;
 	/** true 表示早挂；false/缺省表示完成接听后挂断 */
 	hangupEarly?: boolean;
+	/**
+		* 本通已完成节拍；对齐卡 requiredBeats。
+		* v1 调试器手勾，缺省空数组。
+		*/
+	completedBeats?: string[];
+	/** 断线来源与可选 NPC 原因；随 endCall 请求写入本通 Outcome。 */
+	termination?: {
+		/** 谁触发断线；用户按钮、NPC FC 或系统收口三选一。 */
+		source: "user" | "npc" | "system";
+		/** NPC 主动挂机原因；用户/系统断线通常省略。 */
+		reasonKind?: "natural" | "policy" | "handoff";
+		/** 仅用于调试与审计的简短原因，不驱动工具授权。 */
+		reason?: string;
+	};
 };
 
 /** 表示 Host endCall 后的调试摘要，供 UI/后续日志面板展示 */
@@ -470,4 +495,3 @@ export type DebuggerCallEndView = {
 	/** 挂机记忆提交摘要；异步未完成时 committed=false 且 skippedReason=background_pending */
 	memoryTrace: DebuggerMemoryCommitTraceView | null;
 };
-

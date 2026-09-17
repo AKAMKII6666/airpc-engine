@@ -12,11 +12,4 @@ describe("validateStoryPackageOnDisk (debugger S8-19)", () => {
 		expect(report.chapterId).toBe(packageConf.entryChapterId);
 		expect(report.errors).toEqual([]);
 	});
-
-	it("validates golden_handoff without blocking errors", async () => {
-		const packageConf = await readDiskPackageConf("golden_handoff");
-		const report = await validateStoryPackageOnDisk("golden_handoff");
-		expect(report.chapterId).toBe(packageConf.entryChapterId);
-		expect(report.errors).toEqual([]);
-	});
 });

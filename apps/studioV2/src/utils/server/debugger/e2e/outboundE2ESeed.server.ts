@@ -2,13 +2,12 @@
 	* 调试器外呼人工 E2E 种子与验证。
 	* 只写 Profile.schedule/Board，不直接派发 shell event，确保后续仍走 Host clock tick。
 	*/
-import { randomUUID } from "node:crypto";
 import {
-	isEngineError,
 	type EngineHost,
 	type PlayerProfile,
 	type ScheduledIntent,
 } from "@airpc/rpg-engine";
+import { stageDebuggerOutbound } from "@studio-v2/src/utils/server/debugger/schedule/debuggerOutboundQueue.server";
 import { getStudioV2EngineHost } from "@studio-v2/src/utils/server/host/engineHost.server";
 import { writeDtoLog } from "@studio-v2/src/utils/server/observability/dto/dtoLogStore.server";
 import { writeStudioLog } from "@studio-v2/src/utils/server/observability/logger/pinoLogger.server";
@@ -23,7 +22,10 @@ export type SeedDebuggerOutboundE2EInput = {
 	chapterId?: string;
 	/** 外呼目标通话卡；默认 lanxing_callback_intro */
 	cardId?: string;
-	/** 延迟毫秒；默认 10 秒，最短 1 秒，最长 5 分钟 */
+	/**
+		* 延迟毫秒；默认 10 秒，最短 0（立刻到期），最长 5 分钟。
+		* delay=0 时 fireAtMs=clockMs；仍须 advanceClock tick 才会点火派发。
+		*/
 	delayMs?: number;
 	/** 人工 E2E 备注，会进入 schedule topicHint */
 	topicHint?: string;
@@ -100,7 +102,7 @@ function boundedDelayMs(value: unknown): number {
 	if (typeof value !== "number" || !Number.isFinite(value)) {
 		return DEFAULT_DELAY_MS;
 	}
-	return Math.min(Math.max(Math.floor(value), 1_000), MAX_DELAY_MS);
+	return Math.min(Math.max(Math.floor(value), 0), MAX_DELAY_MS);
 }
 
 function assertValidUserId(userId: string): void {
@@ -121,40 +123,12 @@ function ensureSchedule(profile: PlayerProfile): NonNullable<PlayerProfile["sche
 	return profile.schedule;
 }
 
-function ensureBoard(
-	profile: PlayerProfile,
-	agentId: string,
-): { pending: PendingBoardEntry[] } {
-	const byAgent = profile.callCards.board.byAgent;
-	if (!byAgent[agentId]) {
-		byAgent[agentId] = { pending: [] };
-	}
-	return byAgent[agentId]!;
-}
-
 function isDebugIntent(raw: unknown): boolean {
 	const row = raw as { intentId?: unknown } | null;
 	return (
 		typeof row?.intentId === "string" &&
 		row.intentId.startsWith(DEBUG_INTENT_PREFIX)
 	);
-}
-
-function cleanupPreviousDebugSeeds(
-	profile: PlayerProfile,
-	agentId: string,
-): void {
-	const board = profile.callCards.board.byAgent[agentId];
-	if (board) {
-		board.pending = board.pending.filter(function (item) {
-			return !item.scheduledIntentId?.startsWith(DEBUG_INTENT_PREFIX);
-		});
-	}
-	const schedule = ensureSchedule(profile);
-	schedule.intents = schedule.intents.filter(function (intent) {
-		const row = intent as { agentId?: unknown };
-		return !(isDebugIntent(intent) && row.agentId === agentId);
-	});
 }
 
 function findIntent(
@@ -212,15 +186,6 @@ function findIncomingForIntent(
 	}) ?? null;
 }
 
-async function assertCardExists(
-	host: EngineHost,
-	chapterId: string,
-	cardId: string,
-): Promise<void> {
-	const loaded = await host.preloadCard(chapterId, cardId);
-	if (isEngineError(loaded)) throw loaded;
-}
-
 /** 写入一条短延迟真实外呼种子；后续由 wall-clock pump 自动触发 */
 export async function seedDebuggerOutboundE2E(
 	input: SeedDebuggerOutboundE2EInput,
@@ -233,57 +198,39 @@ export async function seedDebuggerOutboundE2E(
 	const cardId = textOrDefault(input.cardId, DEFAULT_CARD_ID);
 	const delayMs = boundedDelayMs(input.delayMs);
 	const activeHost = host ?? await getStudioV2EngineHost();
-	await assertCardExists(activeHost, chapterId, cardId);
-	const profile = await activeHost.ensureProfile(userId);
-	const schedule = ensureSchedule(profile);
-	cleanupPreviousDebugSeeds(profile, agentId);
-	const nowIso = new Date().toISOString();
-	const intentId = `${DEBUG_INTENT_PREFIX}${randomUUID()}`;
-	const instanceId = randomUUID();
-	const board = ensureBoard(profile, agentId);
-	board.pending.push({
-		instanceId,
-		cardId,
-		chapterId,
-		agentId,
-		status: "pending",
-		entryMode: "either",
-		activationHint: "outbound_auto",
-		scheduledIntentId: intentId,
-		priority: E2E_PENDING_PRIORITY,
-		createdAt: nowIso,
-		updatedAt: nowIso,
-	});
-	const clockMs = schedule.clockMs ?? 0;
-	const fireAtMs = clockMs + delayMs;
-	schedule.intents.push({
-		kind: "once",
-		intentId,
-		agentId,
-		cardId,
-		chapterId,
-		topicHint: textOrDefault(input.topicHint, "人工 E2E 外呼种子"),
-		fireAtMs,
-		status: "pending",
-		linkedInstanceId: instanceId,
-		createdAt: nowIso,
-	});
+	const staged = await stageDebuggerOutbound(
+		{
+			userId,
+			agentId,
+			chapterId,
+			cardId,
+			delayMs,
+			topicHint:
+				typeof input.topicHint === "string" && input.topicHint.trim() !== ""
+					? input.topicHint.trim()
+					: undefined,
+			intentIdPrefix: DEBUG_INTENT_PREFIX,
+			priority: E2E_PENDING_PRIORITY,
+			replaceExisting: "agent",
+		},
+		activeHost,
+	);
 	await activeHost.saveProfile(userId, "manual");
 	const view: DebuggerOutboundE2ESeedView = {
-		intentId,
-		instanceId,
+		intentId: staged.intentId,
+		instanceId: staged.instanceId,
 		userId,
 		agentId,
 		chapterId,
 		cardId,
-		clockMs,
-		fireAtMs,
+		clockMs: staged.clockMs,
+		fireAtMs: staged.fireAtMs,
 		delayMs,
-		dtoPath: `schedule-intents/${intentId}.json`,
+		dtoPath: `schedule-intents/${staged.intentId}.json`,
 	};
 	void writeDtoLog({
 		bucket: "schedule-intents",
-		id: intentId,
+		id: staged.intentId,
 		event: "debugger.e2e.outbound.seeded",
 		userId,
 		summary: { agentId, chapterId, cardId, delayMs },

@@ -3,11 +3,6 @@
 	*/
 import type { CallCardDefinition } from "@studio-v2/typeFiles/story/callCard/engineCallCard";
 import type { PromptSceneLayerForm } from "@studio-v2/typeFiles/library/characters/form/characterFormShapes";
-import {
-	FREE_CAPABILITY_OPTIONS,
-	type FreeCapabilityToolId,
-	type ShellHangupCapabilityId,
-} from "@studio-v2/typeFiles/library/characters/freeCard/freeCapabilityOptions";
 import { createStudioId } from "@studio-v2/typeFiles/ids/createStudioId";
 
 /** Free 卡弹窗 Formik 值；落盘经 applyFreeCardForm → free-cards JSON */
@@ -30,61 +25,21 @@ export type FreeCardFormValues = {
 	forbiddenText: string;
 	/** 场景提示词层；落盘 context.promptScenes；空数组表示未配置 */
 	promptScenes: PromptSceneLayerForm[];
-	/** toolId → 是否开放；固定键集，不可增删；映射 toolPolicy */
-	capabilities: Record<FreeCapabilityToolId, boolean>;
-	/** 壳侧主动挂机预留开关；落盘 context.studioShellHangup */
-	shellHangup: Record<ShellHangupCapabilityId, boolean>;
+	/** 工具策略模式；保存为 ToolPolicy v2，决定继承、显式白名单或全禁用。 */
+	toolPolicyMode: "inherit_free" | "allowlist" | "deny_all";
+	/** 当前草稿保留的完整 toolId；allowlist 保存，缺失 provider 的 id 也不静默删除。 */
+	allowedToolIds: string[];
+	/** NPC 主动挂机允许原因；仅 request_hangup 被选中或继承时生效。 */
+	allowedHangupReasonKinds: Array<"natural" | "policy" | "handoff">;
 };
 
 function emptyScenes(): PromptSceneLayerForm[] {
 	return [];
 }
 
-function defaultCapabilities(allOn: boolean): Record<FreeCapabilityToolId, boolean> {
-	const out = {} as Record<FreeCapabilityToolId, boolean>;
-	for (const opt of FREE_CAPABILITY_OPTIONS) {
-		out[opt.toolId] = allOn;
-	}
-	return out;
-}
-
-function capabilitiesFromToolPolicy(
-	policy: CallCardDefinition["toolPolicy"],
-): Record<FreeCapabilityToolId, boolean> {
-	if (!policy || policy.mode === "inherit_free" || policy.mode === undefined) {
-		return defaultCapabilities(true);
-	}
-	if (policy.mode === "deny_all") {
-		return defaultCapabilities(false);
-	}
-	const allowed = new Set(policy.allowedToolIds ?? []);
-	const out = {} as Record<FreeCapabilityToolId, boolean>;
-	for (const opt of FREE_CAPABILITY_OPTIONS) {
-		out[opt.toolId] = allowed.has(opt.toolId);
-	}
-	return out;
-}
-
-function toolPolicyFromCapabilities(
-	capabilities: Record<FreeCapabilityToolId, boolean>,
-): CallCardDefinition["toolPolicy"] {
-	const enabled = FREE_CAPABILITY_OPTIONS.filter(function (o) {
-		return capabilities[o.toolId];
-	}).map(function (o) {
-		return o.toolId;
-	});
-	if (enabled.length === FREE_CAPABILITY_OPTIONS.length) {
-		return { mode: "inherit_free" };
-	}
-	if (enabled.length === 0) {
-		return { mode: "deny_all" };
-	}
-	return { mode: "allowlist", allowedToolIds: enabled };
-}
-
 function readShellHangup(
 	context: CallCardDefinition["context"],
-): Record<ShellHangupCapabilityId, boolean> {
+): Array<"natural" | "policy"> {
 	const bag =
 		context &&
 		typeof context === "object" &&
@@ -95,10 +50,10 @@ function readShellHangup(
 			? ((context as { studioShellHangup: Record<string, unknown> })
 					.studioShellHangup)
 			: {};
-	return {
-		policyHangup: bag.policyHangup !== false,
-		naturalHangup: bag.naturalHangup !== false,
-	};
+	const reasons: Array<"natural" | "policy"> = [];
+	if (bag.naturalHangup !== false) reasons.push("natural");
+	if (bag.policyHangup !== false) reasons.push("policy");
+	return reasons;
 }
 
 function mapScenesFromCard(
@@ -144,22 +99,59 @@ function mapScenesFromCard(
 	});
 }
 
+function textOrEmpty(value: unknown): string {
+	return typeof value === "string" ? value : "";
+}
+
+function readContextValues(
+	context: CallCardDefinition["context"],
+): Pick<
+	FreeCardFormValues,
+	| "privateBrief"
+	| "speakableBrief"
+	| "background"
+	| "premise"
+	| "emotion"
+	| "objective"
+	| "forbiddenText"
+	| "promptScenes"
+> {
+	const ctx = context ?? {};
+	const forbidden = Array.isArray(ctx.forbidden) ? ctx.forbidden : [];
+	return {
+		privateBrief: textOrEmpty(ctx.privateBrief),
+		speakableBrief: textOrEmpty(ctx.speakableBrief),
+		background: textOrEmpty(ctx.background),
+		premise: textOrEmpty(ctx.premise),
+		emotion: textOrEmpty(ctx.emotion),
+		objective: textOrEmpty(ctx.objective),
+		forbiddenText: forbidden.join("\n"),
+		promptScenes: mapScenesFromCard(ctx.promptScenes),
+	};
+}
+
+function readAllowedToolIds(card: CallCardDefinition): string[] {
+	const ids = [...(card.toolPolicy?.allowedToolIds ?? [])];
+	const legacyAllowlist =
+		card.toolPolicy?.mode === "allowlist" &&
+		card.toolPolicy.schemaVersion !== 2;
+	if (legacyAllowlist && !ids.includes("request_hangup")) {
+		ids.push("request_hangup");
+	}
+	return ids;
+}
+
 /** 磁盘卡 → 弹窗初值 */
 export function toFreeCardFormValues(card: CallCardDefinition): FreeCardFormValues {
 	const ctx = card.context ?? {};
-	const forbidden = Array.isArray(ctx.forbidden) ? ctx.forbidden : [];
 	return {
-		title: card.title ?? "",
-		privateBrief: ctx.privateBrief ?? "",
-		speakableBrief: ctx.speakableBrief ?? "",
-		background: ctx.background ?? "",
-		premise: ctx.premise ?? "",
-		emotion: ctx.emotion ?? "",
-		objective: ctx.objective ?? "",
-		forbiddenText: forbidden.join("\n"),
-		promptScenes: mapScenesFromCard(ctx.promptScenes),
-		capabilities: capabilitiesFromToolPolicy(card.toolPolicy),
-		shellHangup: readShellHangup(ctx),
+		title: textOrEmpty(card.title),
+		...readContextValues(ctx),
+		toolPolicyMode: card.toolPolicy?.mode ?? "inherit_free",
+		allowedToolIds: readAllowedToolIds(card),
+		allowedHangupReasonKinds:
+			card.toolPolicy?.options?.request_hangup?.allowedReasonKinds ??
+			readShellHangup(ctx),
 	};
 }
 
@@ -204,6 +196,17 @@ export function applyFreeCardForm(
 		previous.context && typeof previous.context === "object"
 			? { ...previous.context }
 			: {};
+	delete (prevCtx as { studioShellHangup?: unknown }).studioShellHangup;
+	const allowedToolIds = [...new Set(values.allowedToolIds.map(function (id) {
+		return id.trim();
+	}).filter(Boolean))];
+	const options = values.allowedHangupReasonKinds.length > 0
+		? {
+			request_hangup: {
+				allowedReasonKinds: [...new Set(values.allowedHangupReasonKinds)],
+			},
+		}
+		: undefined;
 	return {
 		...previous,
 		cardId: previous.cardId,
@@ -222,13 +225,19 @@ export function applyFreeCardForm(
 			objective: values.objective.trim(),
 			forbidden,
 			promptScenes: scenesToDisk(values.promptScenes),
-			studioShellHangup: {
-				policyHangup: values.shellHangup.policyHangup,
-				naturalHangup: values.shellHangup.naturalHangup,
-			},
 		},
 		objectives: previous.objectives ?? { requiredBeats: [] },
-		toolPolicy: toolPolicyFromCapabilities(values.capabilities),
+		toolPolicy:
+			values.toolPolicyMode === "deny_all"
+				? { schemaVersion: 2, mode: "deny_all" }
+				: {
+					schemaVersion: 2,
+					mode: values.toolPolicyMode,
+					...(values.toolPolicyMode === "allowlist"
+						? { allowedToolIds }
+						: {}),
+					...(options ? { options } : {}),
+				},
 		exits: [],
 	};
 }

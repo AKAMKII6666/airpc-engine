@@ -42,10 +42,20 @@ export type ExitKind =
 
 /** 对齐引擎 ToolPolicySchema */
 export type ToolPolicy = {
+	/** 正式保存统一写 2；缺省仅用于读取旧内容。 */
+	schemaVersion?: 2;
 	/** 工具可见策略；缺省由引擎按 Free/卡继承解析 */
 	mode: "inherit_free" | "allowlist" | "deny_all";
 	/** allowlist 模式下允许的 toolId；其它 mode 可忽略 */
 	allowedToolIds?: string[];
+	/** 工具专属持久化选项；缺省表示使用该工具的兼容默认值。 */
+	options?: {
+		/** 主动挂机工具选项；仅 request_hangup 实际开放时生效。 */
+		request_hangup?: {
+			/** 卡作者允许模型使用的挂机原因集合；空数组表示不允许任何原因。 */
+			allowedReasonKinds: Array<"natural" | "policy" | "handoff">;
+		};
+	};
 };
 
 /**

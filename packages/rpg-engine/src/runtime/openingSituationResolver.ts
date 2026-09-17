@@ -2,6 +2,7 @@
  * Opening Situation Resolver：只判断电话开场事实，不生成文案。
  */
 import type { BeginCallContext, ComposeScene } from "../host/types.js";
+import { resolveScheduledOpening } from "./openingSituationScheduled.js";
 
 export type OpeningSituationKind =
   | "missed_outbound_resume"
@@ -46,14 +47,6 @@ export interface ResolveOpeningSituationInput {
   beginContext?: BeginCallContext;
   scene: ComposeScene;
 }
-
-const SCHEDULED_SOURCES = new Set<BeginCallContext["source"]>([
-  "schedule_reminder",
-  "expert_referral",
-  "story_scheduled_call",
-  "recurring_schedule",
-  "scheduled_call",
-]);
 
 function isInbound(input: ResolveOpeningSituationInput): boolean {
   if (input.beginContext?.actualEntry) {
@@ -150,22 +143,8 @@ export function resolveOpeningSituation(
     });
   }
 
-  if (ctx && SCHEDULED_SOURCES.has(ctx.source)) {
-    return situation({
-      kind: "scheduled_callback",
-      priority: 90,
-      control: "provider",
-      reason: "scheduled or planned callback should carry its topic",
-      tags: [
-        "scheduled_callback",
-        ctx.source,
-        ctx.actualEntry ?? input.scene.callDirection,
-        ctx.topicHint ? "has_topic" : "no_topic",
-        ctx.isEarlyUserDial ? "early_user_dial" : "on_time_or_outbound",
-      ],
-      firstTurn: knownOrIntendedFirstTurn(),
-    });
-  }
+  const scheduled = resolveScheduledOpening(input);
+  if (scheduled) return scheduled;
 
   if (ctx?.source === "story" || ctx?.source === "simulate") {
     return situation({

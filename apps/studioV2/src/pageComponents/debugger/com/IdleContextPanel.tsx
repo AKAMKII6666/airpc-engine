@@ -22,14 +22,18 @@ function chipClass(index: number): string {
 type RoleRowViewProps = {
 	/** 待机态角色行；由 server 角色投影提供 */
 	row: RoleRow;
+	/** 可拨时点击「自由通话」chip 发起 free call */
+	onFreeCall: (agentId: string) => void;
 };
 
 const RoleRowView: FC<RoleRowViewProps> = function RoleRowView({
 	// row 是角色行投影，用于展示号码与 free card
 	row,
+	// onFreeCall 是 chip 拨号命令，用于跳过号盘直拨
+	onFreeCall,
 }) {
 	return (
-		<div className={styles.roleRow}>
+		<div className={styles.roleRow} data-testid={`role-row-${row.agentId}`}>
 			<div className={styles.roleCell}>
 				<span
 					className={`${styles.roleAvatar} ${
@@ -50,6 +54,11 @@ const RoleRowView: FC<RoleRowViewProps> = function RoleRowView({
 						key={card}
 						type="button"
 						className={row.canFreeCall ? chipClass(index) : styles.cardChipMuted}
+						disabled={!row.canFreeCall}
+						onClick={function () {
+							if (!row.canFreeCall) return;
+							onFreeCall(row.agentId);
+						}}
 					>
 						{card}
 					</button>
@@ -71,6 +80,8 @@ type IdleContextPanelProps = {
 	error: string | undefined;
 	/** 手动刷新角色列表 */
 	onRefresh: () => Promise<void>;
+	/** 点击可拨「自由通话」chip */
+	onFreeCall: (agentId: string) => void;
 };
 
 export const IdleContextPanel: FC<IdleContextPanelProps> =
@@ -83,6 +94,8 @@ export const IdleContextPanel: FC<IdleContextPanelProps> =
 		error,
 		// onRefresh 是刷新命令，用于重新读取角色列表
 		onRefresh,
+		// onFreeCall 是 chip 直拨命令，用于发起 free card
+		onFreeCall,
 	}) {
 		return (
 			<>
@@ -121,7 +134,11 @@ export const IdleContextPanel: FC<IdleContextPanelProps> =
 						) : null}
 						{roles.map((row) => (
 							// 引用了RoleRowView组件，用于展示单个角色的可拨入口
-							<RoleRowView key={row.number} row={row} />
+							<RoleRowView
+								key={row.number}
+								row={row}
+								onFreeCall={onFreeCall}
+							/>
 						))}
 					</div>
 				</div>

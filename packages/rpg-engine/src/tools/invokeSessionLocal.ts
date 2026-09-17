@@ -6,46 +6,32 @@ import { engineError, isEngineError, type EngineError } from "../host/errors.js"
 import type { CallSession } from "../host/types.js";
 import type { MemoryPort } from "../memory/types.js";
 import { expandRegisterExitEffects } from "./expandExitEffects.js";
-import { getBuiltinTool } from "./builtinRegistry.js";
+import { getRegisteredTool } from "./toolRegistry.js";
+import { DEFAULT_TOOL_REGISTRY } from "./toolRegistry.js";
 import { isToolAllowedInSession } from "./resolveToolPolicy.js";
 import { parseToolArgs } from "./schemas/parseToolArgs.js";
 import { invokeSessionLocalBaziTool } from "./invokeSessionLocalBazi.js";
 import { invokeSessionLocalMemoryTool } from "./invokeSessionLocalMemory.js";
-import type { RuntimeExitCandidate, ToolInvokeResult } from "./types.js";
-
-function stableArgValue(value: unknown): unknown {
-  if (Array.isArray(value)) {
-    return value.map(stableArgValue);
-  }
-  if (value && typeof value === "object") {
-    const source = value as Record<string, unknown>;
-    const out: Record<string, unknown> = {};
-    for (const key of Object.keys(source).sort()) {
-      out[key] = stableArgValue(source[key]);
-    }
-    return out;
-  }
-  return value;
-}
-
-function registerExitDedupeKey(
-  toolId: string,
-  args: Record<string, unknown>,
-): string {
-  return JSON.stringify({
-    toolId,
-    args: stableArgValue(args),
-  });
-}
+import { registerExitDedupeKey } from "./registerExitDedupe.js";
+import type {
+  RuntimeExitCandidate,
+  ToolInvokeResult,
+  ToolRegistry,
+} from "./types.js";
 
 export async function invokeSessionTool(input: {
   session: CallSession;
   toolId: string;
   args: Record<string, unknown>;
   memory: MemoryPort | null;
+  registry?: ToolRegistry;
 }): Promise<ToolInvokeResult | EngineError> {
-  const def = getBuiltinTool(input.toolId);
-  if (!def) {
+  const registration = getRegisteredTool(
+    input.registry ?? DEFAULT_TOOL_REGISTRY,
+    input.toolId,
+  );
+  const def = registration?.definition;
+  if (!def || (def.behavior !== "register_exit" && def.behavior !== "session_local")) {
     return engineError(
       "VALIDATION_FAILED",
       `unknown toolId: ${input.toolId}`,

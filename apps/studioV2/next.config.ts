@@ -3,8 +3,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const studioV2Root = path.dirname(fileURLToPath(import.meta.url));
+const nextDistDir = process.env.AIRPC_NEXT_DIST_DIR?.trim();
 
 const nextConfig: NextConfig = {
+	distDir: nextDistDir || ".next",
 	transpilePackages: ["@airpc/rpg-engine"],
 	experimental: {
 		extensionAlias: {

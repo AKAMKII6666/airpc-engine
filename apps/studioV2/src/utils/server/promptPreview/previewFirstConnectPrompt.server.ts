@@ -77,7 +77,10 @@ export async function previewFirstConnectPrompt(
 	if (acquaintance) {
 		softExtras.push(acquaintance);
 	}
-	const toolsForCard = listToolsForCard(v.card, { characterDef });
+	const toolsForCard = listToolsForCard(v.card, {
+		characterDef,
+		registry: host.getToolRegistry(),
+	});
 	softExtras.push(
 		...buildToolInstructionBlocks(
 			toolsForCard.map(function (t) {

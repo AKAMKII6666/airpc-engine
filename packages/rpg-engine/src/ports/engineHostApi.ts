@@ -15,7 +15,6 @@ import type {
 	ResolveResult,
 	SaveReason,
 } from "../host/types.js";
-import type { ShellControlToolResult } from "../host/shellControl/shellControlTypes.js";
 import type {
 	IncomingCallShellEvent,
 	IncomingCallShellEventStatus,
@@ -48,7 +47,7 @@ import type { CapabilityPackLogEvent } from "../capabilityPacks/mergeCapabilityP
 import type { Outcome } from "../schema/outcome.js";
 import type { PlayerProfile } from "../schema/profile.js";
 import type { WorldLoreDoc } from "../schema/worldLore.js";
-import type { ToolInvokeResult } from "../tools/types.js";
+import type { ToolInvokeResult, ToolRegistry } from "../tools/types.js";
 import type { ValidationReport } from "../validation/types.js";
 import type { ContentPort } from "./contentPort.js";
 import type { EngineLogPort } from "./engineLogPort.js";
@@ -117,12 +116,6 @@ export interface EngineHost {
 		toolId: string,
 		args?: Record<string, unknown>,
 	): Promise<ToolInvokeResult | EngineError>;
-	/** 电话壳控制工具：只登记 shell event，不跑剧情业务工具与 Effect */
-	invokeShellControlTool(
-		sessionId: string,
-		toolId: string,
-		args?: Record<string, unknown>,
-	): ShellControlToolResult | EngineError;
 	/**
 	 * 播放完成（桩）：置 playback_completed；
 	 * hybrid → dialogue；playback_only 仍可挂机收 Outcome。
@@ -184,6 +177,8 @@ export interface EngineHost {
 	getContentPort(): ContentPort | null;
 	/** 已注入的 EngineLogPort；未注入为 null（无则仅内存 ring，不落盘） */
 	getEngineLogPort(): EngineLogPort | null;
+	/** Host 当前统一工具目录；活动通话仍使用 beginCall 时冻结的 revision。 */
+	getToolRegistry(): ToolRegistry;
 	validatePackage(chapterId: string): Promise<ValidationReport>;
 	/**
 	 * 推进 Profile.schedule.clockMs：物化到期 recurring→once，再 tick once → outbound pending。
@@ -249,6 +244,8 @@ export interface EngineHost {
  */
 export interface CreateEngineHostOptions {
 	persist?: boolean;
+	/** Studio Server 合流内置、L1 与已启用 L2 后注入；引擎不扫描插件目录。 */
+	toolRegistry?: ToolRegistry | null;
 	/**
 	 * Memory Port。未注入 → null（Host 跳过投影/commit/工具记忆口）。
 	 * 本机实现：`apps/studioV2/engineIOModule` 的 `createSqliteMemoryPort`。

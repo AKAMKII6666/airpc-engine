@@ -15,6 +15,13 @@ export const OutcomeSchema = z.object({
   completedBeats: z.array(z.string()).default([]),
   missedRequiredBeats: z.array(z.string()).default([]),
   optionalBeatsCompleted: z.array(z.string()).optional(),
+  termination: z
+    .object({
+      source: z.enum(["user", "npc", "system"]),
+      reasonKind: z.enum(["natural", "policy", "handoff"]).optional(),
+      reason: z.string().optional(),
+    })
+    .optional(),
 });
 
 export type Outcome = z.infer<typeof OutcomeSchema>;

@@ -20,6 +20,10 @@ import type {
 	StartDebuggerCallBody,
 } from "@studio-v2/typeFiles/debugger/callSession";
 import type {
+	DebuggerChapterEntryRingResponse,
+	DebuggerChapterEntryRingView,
+} from "@studio-v2/typeFiles/debugger/callSessionResponses";
+import type {
 	DebuggerDialableRole,
 	DebuggerDialableRolesResponse,
 } from "@studio-v2/typeFiles/debugger/dialableRole";
@@ -143,4 +147,21 @@ export async function postDebuggerIncomingReject(
 	});
 	const data = await parseStudioApiJson<DebuggerIncomingCallsResponse>(res);
 	return data.incomingCalls;
+}
+
+/**
+	* POST /api/debug/call/chapter-entry-ring
+	* 编辑器章节开局：outbound_auto → delay=0 来电；否则回落 simulate。
+	*/
+export async function postDebuggerChapterEntryRing(body: {
+	userId: string;
+	chapterId: string;
+}): Promise<DebuggerChapterEntryRingView> {
+	const res = await fetch("/api/debug/call/chapter-entry-ring", {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({ ...body, requestId: crypto.randomUUID() }),
+	});
+	const data = await parseStudioApiJson<DebuggerChapterEntryRingResponse>(res);
+	return data.ring;
 }

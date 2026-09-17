@@ -101,10 +101,13 @@ describe("debuggerLlmMessages.server", () => {
 		const messages = buildOpeningLlmMessages(sessionFixture());
 		expect(messages.map(function (message) {
 			return message.role;
-		})).toEqual(["system", "system", "system", "system", "system", "user"]);
-		expect(messages.at(-2)?.content).toContain("[phone-shell-controls]");
-		expect(messages.at(-2)?.content).toContain("拜拜");
-		expect(messages.at(-2)?.content).toContain("不要重复调用业务工具");
+		})).toEqual(["system", "system", "system", "system", "user"]);
+		expect(messages.some(function (message) {
+			return message.content.includes("[phone-shell-controls]");
+		})).toBe(false);
+		expect(messages.some(function (message) {
+			return message.content.includes("request_hangup");
+		})).toBe(false);
 		expect(messages.at(-1)?.content).toContain("喂？你找我吗？");
 		expect(messages.at(-1)?.content).toContain("不要把开场扩写成完整段落");
 		expect(messages.at(-1)?.content).toContain("小作文式环境描写");
@@ -160,6 +163,9 @@ describe("debuggerLlmMessages.server", () => {
 			"[conversation.inertia.recent_turns]\nassistant: 喂，棍子哥哥～",
 			"[scheduled.callback]\n回电话题：提醒睡午觉",
 		];
+		session.renderedPrompt!.systemHard.push(
+			"[conversation.inertia]\n- 这不是完全重启的一通",
+		);
 
 		const messages = buildOpeningLlmMessages(session);
 		const text = messages.map((message) => message.content).join("\n\n");
@@ -168,8 +174,13 @@ describe("debuggerLlmMessages.server", () => {
 		expect(text).toContain("可说内容");
 		expect(text).toContain("私有目标");
 		expect(text).not.toContain("棍子哥哥");
-		expect(text).not.toContain("conversation.inertia");
+		// soft/hard 里的 inertia 块应被隔离；shell 纪律可提及「conversation.inertia」作禁止对象
+		expect(text).not.toContain("[conversation.inertia]");
+		expect(text).not.toContain("[conversation.inertia.recent_turns]");
 		expect(text).not.toContain("提醒睡午觉");
+		expect(text).not.toContain("这不是完全重启的一通");
+		expect(text).not.toContain("[phone-shell-controls]");
+		expect(text).not.toContain("request_hangup");
 	});
 
 	it("builds turn messages from prompt plus recorded Host chatTurns", () => {

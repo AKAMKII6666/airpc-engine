@@ -445,7 +445,7 @@ describe("composeRenderedPrompt provider golden summaries", () => {
 
     expect(goldenSummary(prompt)).toMatchInlineSnapshot(`
       {
-        "hasWrongNumberGuard": true,
+        "hasWrongNumberGuard": false,
         "matchedLayerIds": [
           "outbound_short",
         ],
@@ -456,12 +456,11 @@ describe("composeRenderedPrompt provider golden summaries", () => {
             "预设已经听到用户声音",
             "客服式长自我介绍",
             "未识别用户前直呼姓名",
-            "打错电话剧情开场",
           ],
           "maxSentences": 2,
           "mode": "phone_short",
         },
-        "openingSpeakable": "喂，是我。",
+        "openingSpeakable": "喂？我是澜星。",
         "providerIds": [
           "base.card_context",
           "scene.card_promptScenes",
@@ -490,7 +489,6 @@ describe("composeRenderedPrompt provider golden summaries", () => {
           "style.phone",
           "call.source",
           "scheduled.callback.story_plan",
-          "opening.guard",
           "persona.systemPrompt",
           "persona.personality",
           "persona.style",

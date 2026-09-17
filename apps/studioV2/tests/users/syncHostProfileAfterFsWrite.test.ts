@@ -47,8 +47,8 @@ async function setupIsolatedDataRoot(): Promise<string> {
 		{ recursive: true },
 	);
 	await cp(
-		path.join(repoData, "storis-packages", "golden_handoff"),
-		path.join(tmpRoot, "storis-packages", "golden_handoff"),
+		path.join(repoData, "storis-packages", "wrong_number_act1"),
+		path.join(tmpRoot, "storis-packages", "wrong_number_act1"),
 		{ recursive: true },
 	);
 	return tmpRoot;

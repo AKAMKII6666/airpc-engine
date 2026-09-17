@@ -126,10 +126,20 @@ export type EditorCallCardContextProjection = {
 
 /** toolPolicy 投影；属性浮窗可编辑 mode / allowlist */
 export type EditorToolPolicyProjection = {
+	/** 编辑器读取旧卡时可缺省；规范化保存统一写 schemaVersion=2。 */
+	schemaVersion?: 2;
 	/** 工具策略模式；对齐 ToolPolicySchema.mode */
 	mode: "inherit_free" | "allowlist" | "deny_all";
 	/** allowlist 模式下允许的工具 id；其它 mode 可缺省 */
 	allowedToolIds?: string[];
+	/** 工具专属编辑投影；缺省表示当前卡未配置附加限制。 */
+	options?: {
+		/** request_hangup 的卡片级原因配置；随卡 JSON 持久化。 */
+		request_hangup?: {
+			/** 允许原因集合；自然、策略、引荐完成可独立勾选。 */
+			allowedReasonKinds: Array<"natural" | "policy" | "handoff">;
+		};
+	};
 };
 
 /** schedule 元信息投影；仅 cardKind=schedule 时有意义 */

@@ -22,6 +22,7 @@ import {
 	validatePlaybackClipRequired,
 	validateVoicemailCardModes,
 } from "./voicemail.js";
+import type { ToolRegistry } from "../../tools/types.js";
 
 const KNOWN_EFFECTS = new Set<string>(KNOWN_EFFECT_NAMES);
 
@@ -47,6 +48,7 @@ export async function validatePackageCards(input: {
 	characters: Map<string, CharacterDef>;
 	errors: ValidationIssue[];
 	warnings: ValidationIssue[];
+	toolRegistry: ToolRegistry;
 }): Promise<CallCardDefinition[]> {
 	const {
 		cardRefs,
@@ -98,6 +100,7 @@ export async function validatePackageCards(input: {
 			warnings,
 			isPlayback,
 			characters,
+			input.toolRegistry,
 		);
 
 		const playbackClipId = (

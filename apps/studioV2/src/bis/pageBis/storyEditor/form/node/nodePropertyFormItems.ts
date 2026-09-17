@@ -6,7 +6,6 @@ import type { AutoFormItem } from "@studio-v2/src/commonUiComponents/form/autoFo
 import type { FormSelectOption } from "@studio-v2/src/commonUiComponents/form/formTypes";
 import type { CardKind } from "@studio-v2/typeFiles/story/callCard/engineCallCard";
 import {
-	BUILTIN_TOOL_OPTIONS,
 	cardKindOptionsForStoryPackage,
 	entryModeOptionsForEditor,
 	interactionModeOptionsForEditor,
@@ -171,8 +170,14 @@ export const NODE_PROMPT_SCENE_ITEMS: AutoFormItem[] = [
 	* toolPolicy：mode + allowlist 多选。
 	* 非 allowlist 时隐藏 allowedToolIds，禁止自由文本手填 toolId。
 	*/
-export function buildNodeToolPolicyItems(mode: string): AutoFormItem[] {
-	const allowlistActive = mode === "allowlist";
+export function buildNodeToolPolicyItems(
+	mode: string,
+	toolOptions: FormSelectOption[] = [],
+	effectiveToolIds: string[] = [],
+	onToolsChange?: (value: string[]) => void,
+): AutoFormItem[] {
+	const toolsVisible = mode === "allowlist" || mode === "inherit_free";
+	const hangupSelected = effectiveToolIds.includes("request_hangup");
 	return [
 		{
 			name: "toolPolicy.mode",
@@ -184,11 +189,28 @@ export function buildNodeToolPolicyItems(mode: string): AutoFormItem[] {
 			name: "toolPolicy.allowedToolIds",
 			label: "允许的工具",
 			comType: "OptionMultiSelect",
-			options: [...BUILTIN_TOOL_OPTIONS],
-			hidden: !allowlistActive,
-			helperText: allowlistActive
-				? "从内置工具多选；写入 toolId[]，禁止手填。"
-				: "非白名单模式可留空。",
+			options: toolOptions,
+			hidden: !toolsVisible,
+			helperText:
+				mode === "inherit_free"
+					? "当前为继承；修改任一项会冻结为白名单。插件能力不会自动继承。"
+					: "目录来自当前服务端 Registry；失效插件配置会保留并标红。",
+			comProps: {
+				value: effectiveToolIds,
+				onChange: onToolsChange,
+			},
+		},
+		{
+			name: "toolPolicy.allowedHangupReasonKinds",
+			label: "主动挂机原因",
+			comType: "OptionMultiSelect",
+			options: [
+				{ label: "自然道别", value: "natural" },
+				{ label: "策略终止", value: "policy" },
+				{ label: "引荐完成", value: "handoff" },
+			],
+			hidden: !toolsVisible || !hangupSelected,
+			helperText: "handoff 运行时还要求本通已登记引荐候选。",
 		},
 	];
 }

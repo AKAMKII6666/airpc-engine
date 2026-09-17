@@ -48,12 +48,10 @@ describe("projectEditorPackageConfFromBundle", () => {
 
 	it("lists chapter next-package and entry-card Select options from disk index", async () => {
 		const act1 = await readDiskStoryPackage("wrong_number_act1");
-		const golden = await readDiskStoryPackage("golden_handoff");
 		const { cardIndex, entryCardIdByChapter } = buildPackageCardIndex([
 			act1,
-			golden,
 		]);
-		const summaries = [act1, golden].map(function (b) {
+		const summaries = [act1].map(function (b) {
 			return diskSummaryToPackageSummary({
 				packageId: b.conf.chapterId,
 				title: b.conf.title ?? b.conf.chapterId,
@@ -70,22 +68,22 @@ describe("projectEditorPackageConfFromBundle", () => {
 		});
 		expect(summaries[0]?.characterCount).toBe(1);
 		const packages = listChapterNextPackageOptions(summaries);
-		expect(packages.some((p) => p.value === "golden_handoff")).toBe(true);
+		expect(packages.some((p) => p.value === "wrong_number_act1")).toBe(true);
 		expect(listChapterEntryCardOptions(undefined, cardIndex)).toEqual([]);
 		expect(listChapterEntryCardOptions("", cardIndex)).toEqual([]);
-		const goldenCards = listChapterEntryCardOptions(
-			"golden_handoff",
+		const act1Cards = listChapterEntryCardOptions(
+			"wrong_number_act1",
 			cardIndex,
 		);
-		expect(goldenCards.length).toBeGreaterThan(0);
+		expect(act1Cards.length).toBeGreaterThan(0);
 		expect(
 			resolveChapterEntryCardId(
-				"golden_handoff",
+				"wrong_number_act1",
 				"missing",
 				cardIndex,
 				entryCardIdByChapter,
 			),
-		).toBe(entryCardIdByChapter.golden_handoff);
+		).toBe(entryCardIdByChapter.wrong_number_act1);
 	});
 });
 

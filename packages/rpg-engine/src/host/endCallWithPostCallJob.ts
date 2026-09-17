@@ -64,6 +64,7 @@ export interface EndCallHandlerDeps {
 	preloadExitCandidateScheduleTargets: (session: CallSession) => Promise<void>;
 	preloadScheduleCallCardTargets: (
 		effects: readonly Record<string, unknown>[],
+		fallbackChapterId?: string,
 	) => Promise<void>;
 	mirrorPostCallJob: (job: PostCallJob) => Promise<void>;
 	setPostCallJob: (
@@ -456,7 +457,10 @@ async function endStoryCallWithPostCallJob(
 	}
 	applyStorySelectedExit(endSession, selected);
 	endSession.status = "executing_effects";
-	await deps.preloadScheduleCallCardTargets(selected.exit.effects);
+	await deps.preloadScheduleCallCardTargets(
+		selected.exit.effects,
+		endSession.chapterId,
+	);
 	const { sync: syncEffects, media: mediaEffects } = splitEffects(selected.exit.effects);
 	const jobId = await registerClosingJob(
 		deps,

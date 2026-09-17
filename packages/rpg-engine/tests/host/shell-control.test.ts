@@ -44,24 +44,40 @@ describe("Host shell-control tools", () => {
 		});
 		if (isEngineError(session)) throw session;
 
-		const invoked = host.invokeShellControlTool(
+		host.recordChatTurn(session.sessionId, {
+			role: "user",
+			text: "再见",
+		});
+		const invoked = await host.invokeTool(
 			session.sessionId,
 			"request_hangup",
-			{ reason: "角色说完道别后主动挂断" },
+			{
+				reasonKind: "natural",
+				reason: "角色说完道别后主动挂断",
+			},
 		);
 
 		expect(isEngineError(invoked)).toBe(false);
 		if (isEngineError(invoked)) return;
-		expect(invoked.event).toMatchObject({
+		expect(invoked).toMatchObject({
+			behavior: "shell_control",
+			localResult: {
+				accepted: true,
+				eventType: "call.hangup_requested",
+			},
+		});
+		const event = session.shellEvents?.[0];
+		expect(event).toMatchObject({
 			type: "call.hangup_requested",
 			sessionId: session.sessionId,
 			userId: "demo-user",
 			agentId: "lanxing",
+			reasonKind: "natural",
 			reason: "角色说完道别后主动挂断",
 		});
 		expect(session.status).toBe("in_call");
 		expect(session.phoneFlags.remote_hangup_requested).toBe(true);
-		expect(session.shellEvents).toEqual([invoked.event]);
+		expect(session.shellEvents).toEqual([event]);
 		expect(host.getRecentLogs({ userId: "demo-user", limit: 5 }).some(
 			function (log) {
 				return log.type === "shell.control_event";

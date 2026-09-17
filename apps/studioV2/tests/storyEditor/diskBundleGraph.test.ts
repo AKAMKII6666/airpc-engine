@@ -251,6 +251,17 @@ describe("diskBundleGraph", () => {
 
 	it("preserves nested exit.condition when only title changes (V2-S8-8)", async () => {
 		const bundle = await readDiskStoryPackage("wrong_number_act1");
+		const callbackSource = bundle.cards.find(function (card) {
+			return card.cardId === "lanxing_callback_intro";
+		});
+		expect(callbackSource).toBeTruthy();
+		callbackSource!.exits[0]!.condition = {
+			op: "and",
+			items: [
+				{ op: "outcome_flag", flag: "answered_completed", equals: true },
+				{ op: "all_required_beats_completed" },
+			],
+		};
 		const seed = bundleToEditorGraph(bundle, {
 			lanxing: { displayName: "澜星姐姐" },
 		});

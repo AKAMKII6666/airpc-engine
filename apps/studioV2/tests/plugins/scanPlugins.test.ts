@@ -97,6 +97,84 @@ describe("scanAndLoadPlugins", () => {
 			await rm(root, { recursive: true, force: true });
 		}
 	});
+
+	it("wires tools.register into qualified external Registry contributions", async () => {
+		const root = await mkdtemp(path.join(tmpdir(), "airpc-plugin-tools-"));
+		try {
+			const dir = path.join(root, "weather-kit");
+			await mkdir(dir);
+			await writeFile(
+				path.join(dir, "capability-packs.json"),
+				JSON.stringify({
+					id: "weather-kit",
+					name: "天气能力",
+					version: "1.0.0",
+					apiVersion: 1,
+					enabled: true,
+					realtime: {
+						enabled: true,
+						pipelines: [{ slot: "tools.register", entry: "./tool.mjs" }],
+					},
+				}),
+			);
+			await writeFile(
+				path.join(dir, "tool.mjs"),
+				[
+					`export default {`,
+					`  localToolId: "lookup_weather",`,
+					`  displayName: "查询天气",`,
+					`  description: "查询指定城市的测试天气。",`,
+					`  inputSchema: { type: "object", properties: { city: { type: "string" } }, required: ["city"], additionalProperties: false },`,
+					`  allowedCardKinds: ["free", "story"],`,
+					`  allowedInPlayback: false,`,
+					`  async invoke(input) { return { city: input.args.city, sessionId: input.session.sessionId, pluginId: input.capabilities.pluginId }; }`,
+					`};`,
+					``,
+				].join("\n"),
+			);
+			const result = await scanAndLoadPlugins({
+				pluginsRoot: root,
+				getHost: function () {
+					throw new Error("host unused");
+				},
+			});
+			expect(result.failures).toEqual([]);
+			const tool = result.registeredTools[0];
+			expect(tool).toMatchObject({
+				definition: {
+					toolId: "plugin:weather-kit:lookup_weather",
+					behavior: "external",
+				},
+				source: {
+					kind: "plugin",
+					providerId: "weather-kit",
+					displayName: "天气能力",
+				},
+				inheritByDefault: false,
+			});
+			await expect(tool?.invoke?.({
+				sessionId: "s1",
+				userId: "u1",
+				agentId: "a1",
+				chapterId: "c1",
+				cardId: "card1",
+				args: { city: "杭州" },
+			})).resolves.toEqual({
+				city: "杭州",
+				sessionId: "s1",
+				pluginId: "weather-kit",
+			});
+			expect(
+				listPluginLogEvents().some(function (event) {
+					return event.type === "plugin.load_skipped" &&
+						"reason" in event &&
+						event.reason === "slot_not_wired:tools.register";
+				}),
+			).toBe(false);
+		} finally {
+			await rm(root, { recursive: true, force: true });
+		}
+	});
 });
 
 describe("pluginTaskScheduler", () => {

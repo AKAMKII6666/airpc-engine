@@ -33,8 +33,8 @@ describe("golden_handoff", () => {
 
   it("layout sidecar exists on disk but is never required by engine", async () => {
     const layoutPath = path.join(
-      dataSrc,
-      "storis-packages/golden_handoff/chapters/golden_handoff/canvas.layout.json",
+      repoRoot,
+      "test-fixtures/storis-packages/golden_handoff/chapters/golden_handoff/canvas.layout.json",
     );
     await access(layoutPath);
 

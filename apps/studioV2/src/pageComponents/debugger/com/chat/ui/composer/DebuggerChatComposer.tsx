@@ -66,18 +66,20 @@ export const DebuggerChatComposer: FC<DebuggerChatComposerProps> =
 					/>
 					{/* 引用了Tooltip组件，用于展示发送/中断按钮提示 */}
 					<Tooltip title={buttonLabel}>
-						{/* 引用了Button组件，用于发送消息或中断回复 */}
-						<Button
-							variant="contained"
-							color={isBusy ? "warning" : "primary"}
-							disabled={disabled || (!isBusy && draft.trim().length === 0)}
-							onClick={function () {
-								if (isBusy) onAbort();
-								else onSend();
-							}}
-						>
-							{isBusy ? "中断" : "发送"}
-						</Button>
+						<span>
+							{/* 引用了Button组件，用于发送消息或中断回复 */}
+							<Button
+								variant="contained"
+								color={isBusy ? "warning" : "primary"}
+								disabled={disabled || (!isBusy && draft.trim().length === 0)}
+								onClick={function () {
+									if (isBusy) onAbort();
+									else onSend();
+								}}
+							>
+								{isBusy ? "中断" : "发送"}
+							</Button>
+						</span>
 					</Tooltip>
 				</div>
 				<div className={styles.footer}>
