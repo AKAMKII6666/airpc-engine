@@ -6,8 +6,8 @@
 import { useEffect, useState, type FC } from "react";
 import { Alert, CircularProgress, Box } from "@mui/material";
 import { AppModal } from "@studio-v2/src/commonUiComponents/modal/app/AppModal";
-import type { FreeCardFormValues } from "@studio-v2/src/bis/pageBis/characters/freeCard/freeCardForm";
-import { loadFreeCardEditor } from "@studio-v2/src/bis/pageBis/characters/freeCard/saveFreeCard_bis";
+import type { FreeCardFormValues } from "@studio-v2/src/bis/pageBis/characters/freeCard/form/freeCardForm";
+import { loadFreeCardEditor } from "@studio-v2/src/bis/pageBis/characters/freeCard/save/saveFreeCard_bis";
 import type { CallCardDefinition } from "@studio-v2/typeFiles/story/callCard/engineCallCard";
 // 引用了FreeCardEditReady组件，用于已加载态编辑与预览
 import { FreeCardEditReady } from "./FreeCardEditReady";
@@ -25,6 +25,40 @@ type LoadState =
 	| { status: "error"; message: string }
 	| { status: "ready"; card: CallCardDefinition; initial: FreeCardFormValues };
 
+function useFreeCardLoad(open: boolean, freeCardId: string) {
+	const [load, setLoad] = useState<LoadState>({ status: "idle" });
+
+	useEffect(
+		function () {
+			if (!open || !freeCardId) return;
+			let cancelled = false;
+			setLoad({ status: "loading" });
+			void loadFreeCardEditor(freeCardId)
+				.then(function (result) {
+					if (cancelled) return;
+					setLoad({
+						status: "ready",
+						card: result.card,
+						initial: result.formValues,
+					});
+				})
+				.catch(function (err: unknown) {
+					if (cancelled) return;
+					setLoad({
+						status: "error",
+						message: err instanceof Error ? err.message : String(err),
+					});
+				});
+			return function () {
+				cancelled = true;
+			};
+		},
+		[open, freeCardId],
+	);
+
+	return load;
+}
+
 export const FreeCardEditModal: FC<FreeCardEditModalProps> =
 	function FreeCardEditModal({
 		// open 表示弹层是否打开，用于显隐控制
@@ -36,38 +70,7 @@ export const FreeCardEditModal: FC<FreeCardEditModalProps> =
 		// onSaved 用于保存成功后可选刷新列表
 		onSaved,
 	}) {
-		const [load, setLoad] = useState<LoadState>({ status: "idle" });
-
-		useEffect(
-			function () {
-				if (!open || !freeCardId) return;
-				let cancelled = false;
-				setLoad({ status: "loading" });
-				void loadFreeCardEditor(freeCardId)
-					.then(function (result) {
-						if (cancelled) return;
-						setLoad({
-							status: "ready",
-							card: result.card,
-							initial: result.formValues,
-						});
-					})
-					.catch(function (err: unknown) {
-						if (cancelled) return;
-						setLoad({
-							status: "error",
-							message:
-								err instanceof Error
-									? err.message
-									: String(err),
-						});
-					});
-				return function () {
-					cancelled = true;
-				};
-			},
-			[open, freeCardId],
-		);
+		const load = useFreeCardLoad(open, freeCardId);
 
 		if (!open) return null;
 

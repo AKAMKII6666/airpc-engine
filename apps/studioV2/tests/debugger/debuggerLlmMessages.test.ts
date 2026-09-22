@@ -6,7 +6,7 @@ import type { CallSession } from "@airpc/rpg-engine";
 import {
 	buildOpeningLlmMessages,
 	buildTurnLlmMessages,
-} from "@studio-v2/src/utils/server/debugger/session/debuggerLlmMessages.server";
+} from "@studio-v2/src/utils/server/debugger/session/llm/debuggerLlmMessages.server";
 
 type CallSessionWithOpeningFirstTurn = CallSession & {
 	openingFirstTurn?: {

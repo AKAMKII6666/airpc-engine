@@ -2,8 +2,8 @@
  * 模块名称：经 ContentPort 按需载卡
  * 模块说明：free/schedule 用快照内存；故事章卡经 Port.readCard 并写入 Host 缓存。
  */
-import type { CallCardDefinition } from "../schema/callCard.js";
-import type { ContentPort } from "../ports/contentPort.js";
+import type { CallCardDefinition } from "../schema/call/callCard.js";
+import type { ContentPort } from "../ports/persist/contentPort.js";
 import { engineError, isEngineError, type EngineError } from "../host/errors.js";
 import { FREE_CHAPTER_ID, SCHEDULE_CHAPTER_ID } from "../constants.js";
 import {

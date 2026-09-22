@@ -5,7 +5,7 @@
 import { randomUUID } from "node:crypto";
 import { engineError } from "../../src/host/errors.js";
 import { createEngineHost } from "../../src/host/createEngineHost.js";
-import type { CreateEngineHostOptions } from "../../src/ports/engineHostApi.js";
+import type { CreateEngineHostOptions } from "../../src/ports/host/engineHostSurface.js";
 import type {
   MemoryCommitInput,
   MemoryCommitResult,
@@ -18,7 +18,7 @@ import type {
 import { validateMemoryPatchInput } from "../../src/memory/patchMemoryPolicy.js";
 import { summarizeUserFactTranscript } from "../../src/memory/factMemoryTranscript.js";
 import { MEMORY_SEARCH_DEFAULTS } from "../../src/constants.js";
-import type { EffectSink } from "../../src/runtime/effectSink.js";
+import type { EffectSink } from "../../src/runtime/effect/effectSink.js";
 import type { LoreBootstrapPort } from "../../src/lore/types.js";
 import { createFsProfilePort } from "./fsProfilePort.js";
 import { createFsContentPort } from "./fsContentPort.js";

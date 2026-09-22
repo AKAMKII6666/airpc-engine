@@ -2,7 +2,7 @@
 	* 角色记忆只读分页：经 ajaxProxy 拉 Memory；无写口。
 	* UI hook 不得直引 memoryApi。
 	*/
-import { fetchMemoryPage } from "@studio-v2/src/utils/ajaxProxy/library/api/memoryApi";
+import { fetchMemoryPage } from "@studio-v2/src/utils/ajaxProxy/library/api/memory/memoryApi";
 import type { MemoryListPageDto } from "@studio-v2/typeFiles/library/characters/memory/memoryReadModel";
 
 /** 记忆区默认分页大小；与 FrontendPagination 展示对齐 */

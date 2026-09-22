@@ -16,10 +16,10 @@ import {
 	type PackageSessionCanvasApi,
 } from "@studio-v2/src/bis/pageBis/storyEditor/package/session/packageSessionMutate.bis";
 import { parseValidationLocate } from "@studio-v2/src/bis/pageBis/storyEditor/package/validate/parseValidationLocate";
-import { useStoryEditorStore } from "@studio-v2/src/stores/storyEditor/storyEditorStore";
 import type { DiskStoryPackageBundle } from "@studio-v2/typeFiles/story/package/diskStoryPackage";
 import type { StoryPackageSummary } from "@studio-v2/typeFiles/story/summary/storyPackageSummary";
 import type { StoryEditorSavePhase } from "@studio-v2/typeFiles/story/editor/store/storyEditorStoreState";
+import { usePackageSessionStoreSlice } from "./packageSession.helpers";
 
 /** 顶栏保存相位；与 store.savePhase 同构，非磁盘真源 */
 export type EditorPackageSaveState = StoryEditorSavePhase;
@@ -100,38 +100,7 @@ export function useStoryEditorPackageSessionBis(
 	args: PackageSessionBisArgs,
 ): PackageSessionBisResult {
 	const { packageId, chapterId, flushCanvasToStore, getCanvasApi } = args;
-
-	const loading = useStoryEditorStore(function (s) {
-		return s.loading;
-	});
-	const loadError = useStoryEditorStore(function (s) {
-		return s.loadError;
-	});
-	const graphSeedRaw = useStoryEditorStore(function (s) {
-		return s.graphSeed;
-	});
-	const diskPackages = useStoryEditorStore(function (s) {
-		return s.diskPackages;
-	});
-	const cardIndex = useStoryEditorStore(function (s) {
-		return s.cardIndex;
-	});
-	const entryCardIdByChapter = useStoryEditorStore(function (s) {
-		return s.entryCardIdByChapter;
-	});
-	const chapterSummaries = useStoryEditorStore(function (s) {
-		return s.chapterSummaries;
-	});
-	const saveState = useStoryEditorStore(function (s) {
-		return s.savePhase;
-	});
-	const saveError = useStoryEditorStore(function (s) {
-		return s.saveError;
-	});
-	const saveValidation = useStoryEditorStore(function (s) {
-		return s.saveValidation;
-	});
-
+	const slice = usePackageSessionStoreSlice();
 	const mutations = usePackageSessionMutateBis({
 		packageId,
 		chapterId,
@@ -147,30 +116,30 @@ export function useStoryEditorPackageSessionBis(
 		[getCanvasApi],
 	);
 
-	const graphSeed = asEditorGraphSeed(graphSeedRaw);
+	const graphSeed = asEditorGraphSeed(slice.graphSeedRaw);
 	const trimmedTitle = mutations.bundle?.conf.title?.trim();
 	const packageTitle = trimmedTitle ? trimmedTitle : chapterId;
 	const chapterChapterOptions = useMemo(
 		function () {
-			return listChapterNextChapterOptions(chapterSummaries, chapterId);
+			return listChapterNextChapterOptions(slice.chapterSummaries, chapterId);
 		},
-		[chapterSummaries, chapterId],
+		[slice.chapterSummaries, chapterId],
 	);
 
 	return {
-		loading,
-		loadError,
+		loading: slice.loading,
+		loadError: slice.loadError,
 		bundle: mutations.bundle,
 		graphSeed,
 		packageTitle,
-		diskPackages,
-		cardIndex,
-		entryCardIdByChapter,
-		chapterSummaries,
+		diskPackages: slice.diskPackages,
+		cardIndex: slice.cardIndex,
+		entryCardIdByChapter: slice.entryCardIdByChapter,
+		chapterSummaries: slice.chapterSummaries,
 		chapterChapterOptions,
-		saveState,
-		saveError,
-		saveValidation,
+		saveState: slice.saveState,
+		saveError: slice.saveError,
+		saveValidation: slice.saveValidation,
 		onSave: mutations.onSave,
 		onEntryCardIdChange: mutations.onEntryCardIdChange,
 		onAssetRefsChange: mutations.onAssetRefsChange,

@@ -2,9 +2,9 @@
  * F-10 样板：将 Profile.user.location 注入 compose soft（Prompt Provider）。
  * 真源只读 Profile；禁止当墙钟。
  */
-import type { PromptProvider } from "../../../runtime/composer.js";
+import type { PromptProvider } from "../../../runtime/prompt/compose/composer.js";
 import type { FirstPartyPack } from "../../types.js";
-import type { UserLocationSnapshot } from "../../contributeTypes.js";
+import type { UserLocationSnapshot } from "../../types/contributeTypes.js";
 
 export const USER_LOCATION_PACK_ID = "user-location";
 export const USER_LOCATION_PROVIDER_ID = "user.location";

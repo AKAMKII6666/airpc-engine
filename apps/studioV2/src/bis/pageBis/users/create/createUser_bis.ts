@@ -2,8 +2,8 @@
 	* 新建玩家：经 API 落盘 data/users/<userId>/profile.save.json 的 user 段。
 	* userId / 时间戳由系统生成；禁止 Host 写口。
 	*/
-import { postProfileUser } from "@studio-v2/src/utils/ajaxProxy/library/api/usersApi";
-import type { UserProfileSummary } from "@studio-v2/typeFiles/library/users/userProfileSummary";
+import { postProfileUser } from "@studio-v2/src/utils/ajaxProxy/library/api/users/usersApi";
+import type { UserProfileSummary } from "@studio-v2/typeFiles/library/users/summary/userProfileSummary";
 import {
 	summaryToUser,
 	userToSummary,

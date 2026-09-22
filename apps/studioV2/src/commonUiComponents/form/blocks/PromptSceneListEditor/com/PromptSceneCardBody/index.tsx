@@ -1,22 +1,17 @@
 /**
-	* 场景卡折叠正文：layerId / 方向 / 本地小时；patch 委托子组件。
+	* 场景卡折叠正文：匹配字段 + patch；委托子组件以降行数。
 	*/
 "use client";
 
 import type { FC } from "react";
-import { MenuItem, TextField } from "@mui/material";
 import type { PromptSceneLayerForm } from "@studio-v2/typeFiles/library/characters/form/characterFormShapes";
-import type { FormFieldMode } from "../../../../formTypes";
+import type { FormFieldMode } from "../../../../types/formTypes";
 import type { FormBoundFieldProps } from "../../../../fields/types/formBoundTypes";
-import { FormLocalHourRangeField } from "../../../LocalHourRangeField";
 import styles from "../../index.module.scss";
+// 引用了PromptSceneMatchFields组件，用于 layerId/方向/小时
+import { PromptSceneMatchFields } from "../PromptSceneMatchFields";
+// 引用了PromptScenePatchFields组件，用于 opening/emotion 等 patch
 import { PromptScenePatchFields } from "../PromptScenePatchFields";
-
-const DIRECTION_OPTIONS = [
-	{ label: "呼入", value: "inbound" },
-	{ label: "呼出", value: "outbound" },
-	{ label: "呼入+呼出", value: "either" },
-] as const;
 
 export type PromptSceneCardBodyProps = {
 	scene: PromptSceneLayerForm;
@@ -49,65 +44,15 @@ export const PromptSceneCardBody: FC<PromptSceneCardBodyProps> =
 	}) {
 		return (
 			<div className={styles.body}>
-				{/* 引用了TextField组件，用于编辑 layerId */}
-				<TextField
-					label="场景 id"
-					value={scene.layerId}
-					onChange={(e) =>
-						onPatch((s) => ({
-							...s,
-							layerId: e.target.value,
-						}))
-					}
-					size="small"
-					fullWidth
-					disabled={disabled}
-				/>
-				{/* 引用了TextField组件，用于选择呼入呼出方向 */}
-				<TextField
-					label="呼入 / 呼出"
-					select
-					value={scene.match.callDirection}
-					onChange={(e) =>
-						onPatch((s) => ({
-							...s,
-							match: {
-								...s.match,
-								callDirection: e.target
-									.value as PromptSceneLayerForm["match"]["callDirection"],
-							},
-						}))
-					}
-					size="small"
-					fullWidth
-					disabled={disabled}
-				>
-					{DIRECTION_OPTIONS.map((opt) => (
-						// 引用了MenuItem组件，用于方向选项
-						<MenuItem key={opt.value} value={opt.value}>
-							{opt.label}
-						</MenuItem>
-					))}
-				</TextField>
-				{/* 引用了FormLocalHourRangeField组件，用于编辑本场景本地小时区间 */}
-				<FormLocalHourRangeField
-					name={`${name}[${index}].match.localHourRange`}
-					label="本地小时区间"
+				{/* 引用了PromptSceneMatchFields组件，用于 layerId/方向/小时 */}
+				<PromptSceneMatchFields
+					scene={scene}
+					index={index}
+					name={name}
 					formik={formik}
 					mode={mode}
-					required
 					disabled={disabled}
-					value={scene.match.localHourRange}
-					onChange={(next) => {
-						onPatch((s) => ({
-							...s,
-							match: {
-								...s.match,
-								localHourRange:
-									next as PromptSceneLayerForm["match"]["localHourRange"],
-							},
-						}));
-					}}
+					onPatch={onPatch}
 				/>
 				{/* 引用了PromptScenePatchFields组件，用于编辑 opening/emotion 等 patch */}
 				<PromptScenePatchFields

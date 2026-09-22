@@ -4,8 +4,8 @@
 	*/
 import type { ComponentType } from "react";
 import type { FormBoundFieldProps } from "../fields/types/formBoundTypes";
-import type { FormSelectOption } from "../formTypes";
-import type { AutoFormComType } from "../autoFormTypes";
+import type { FormSelectOption } from "../types/formTypes";
+import type { AutoFormComType } from "../types/autoFormTypes";
 import { FormTextField } from "../fields/FormTextField";
 import { FormSelectField } from "../fields/FormSelectField";
 import { FormCheckboxField } from "../fields/FormCheckboxField";

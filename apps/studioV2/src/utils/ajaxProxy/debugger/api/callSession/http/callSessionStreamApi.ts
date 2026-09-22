@@ -2,8 +2,8 @@
 	* 调试通话 message SSE 流式客户端。
 	* 上游：`useDebuggerChatStream`；下游：server message stream API → LLM stream。
 	*/
-import type { SendDebuggerMessageBody } from "@studio-v2/typeFiles/debugger/callSession";
-import type { DebuggerMessageStreamEvent } from "@studio-v2/typeFiles/debugger/callSession";
+import type { SendDebuggerMessageBody } from "@studio-v2/typeFiles/debugger/callSession/callSession";
+import type { DebuggerMessageStreamEvent } from "@studio-v2/typeFiles/debugger/callSession/callSession";
 import { readSseResponseBody } from "../sse/callSessionSseParser";
 
 export type DebuggerMessageStreamHandlers = {

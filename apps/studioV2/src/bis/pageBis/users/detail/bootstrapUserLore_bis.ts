@@ -2,12 +2,12 @@
 	* 玩家详情：强制重生成世界背景（Host bootstrapLore force）。
 	* 有未保存表单修改时须先落盘，再 bootstrap，避免用旧 location 生成 lore。
 	*/
-import { postBootstrapUserLore } from "@studio-v2/src/utils/ajaxProxy/library/api/usersApi";
-import type { UserProfileSummary } from "@studio-v2/typeFiles/library/users/userProfileSummary";
+import { postBootstrapUserLore } from "@studio-v2/src/utils/ajaxProxy/library/api/users/usersApi";
+import type { UserProfileSummary } from "@studio-v2/typeFiles/library/users/summary/userProfileSummary";
 import type {
 	LoreBootstrapResultDto,
 	LorePreviewDto,
-} from "@studio-v2/typeFiles/library/users/loreBootstrap";
+} from "@studio-v2/typeFiles/library/users/lore/loreBootstrap";
 import type { UserDetailFormValues } from "./userDetailForm";
 import {
 	commitSaveUserDetail,

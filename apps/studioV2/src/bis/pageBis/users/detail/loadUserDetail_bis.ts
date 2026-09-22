@@ -1,10 +1,10 @@
 /**
 	* 玩家详情：回读 user 段 + lore 预览（禁止 UI 直引 ajaxProxy）。
 	*/
-import { fetchProfileUser } from "@studio-v2/src/utils/ajaxProxy/library/api/usersApi";
+import { fetchProfileUser } from "@studio-v2/src/utils/ajaxProxy/library/api/users/usersApi";
 import { userToSummary } from "../form/mapper/mapUserProfile";
-import type { UserProfileSummary } from "@studio-v2/typeFiles/library/users/userProfileSummary";
-import type { LorePreviewDto } from "@studio-v2/typeFiles/library/users/loreBootstrap";
+import type { UserProfileSummary } from "@studio-v2/typeFiles/library/users/summary/userProfileSummary";
+import type { LorePreviewDto } from "@studio-v2/typeFiles/library/users/lore/loreBootstrap";
 
 /**
 	* 详情挂载时 GET 回读结果；lore 预览来自 Profile.world。

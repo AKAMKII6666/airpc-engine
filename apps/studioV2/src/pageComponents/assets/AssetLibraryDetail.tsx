@@ -11,10 +11,10 @@ import {
 	toAssetDetailFormValues,
 	validateAssetDetailForm,
 	type AssetDetailFormValues,
-} from "@studio-v2/src/bis/pageBis/assets/assetDetailForm";
+} from "@studio-v2/src/bis/pageBis/assets/form/assetDetailForm";
 import { commitSaveAssetDetail } from "@studio-v2/src/bis/pageBis/assets/save/saveAsset_bis";
 // 引用了AssetDetailEditForm组件，用于详情分段表单
-import { AssetDetailEditForm } from "@studio-v2/src/pageComponents/assets/com/AssetDetailEditForm";
+import { AssetDetailEditForm } from "@studio-v2/src/pageComponents/assets/com/detail/AssetDetailEditForm";
 import styles from "@studio-v2/src/pageComponents/library/LibrarySplit.module.scss";
 
 function toErrorMessage(error: unknown): string {

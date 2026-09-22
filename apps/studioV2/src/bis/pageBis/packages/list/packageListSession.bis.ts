@@ -6,13 +6,13 @@
 "use client";
 
 import { useCallback } from "react";
-import { commitCreatePackage } from "@studio-v2/src/bis/pageBis/packages/createPackage_bis";
-import type { CreatePackageFormValues } from "@studio-v2/src/bis/pageBis/packages/createPackageForm";
+import { commitCreatePackage } from "@studio-v2/src/bis/pageBis/packages/create/createPackage_bis";
+import type { CreatePackageFormValues } from "@studio-v2/src/bis/pageBis/packages/create/createPackageForm";
 import { commitDeletePackage } from "@studio-v2/src/bis/pageBis/packages/delete/deletePackage_bis";
-import { commitEditPackage } from "@studio-v2/src/bis/pageBis/packages/editPackage_bis";
-import type { EditPackageFormValues } from "@studio-v2/src/bis/pageBis/packages/editPackageForm";
-import { usePackagesStore } from "@studio-v2/src/stores/packages/packagesStore";
+import { commitEditPackage } from "@studio-v2/src/bis/pageBis/packages/edit/editPackage_bis";
+import type { EditPackageFormValues } from "@studio-v2/src/bis/pageBis/packages/edit/editPackageForm";
 import type { StoryPackageSummary } from "@studio-v2/typeFiles/story/summary/storyPackageSummary";
+import { usePackageListStoreSlice } from "./packageListSession.helpers";
 
 /**
 	* 故事包列表会话投影：供 page hook 绑 UI，不含搜索/分页/Modal 瞬时态。
@@ -51,40 +51,26 @@ export type PackageListSessionBis = {
 	* 订 packages store 列表切片 + create/导入/删除后 bump；供页 hook 消费。
 	*/
 export function usePackageListSessionBis(): PackageListSessionBis {
-	const packages = usePackagesStore(function (s) {
-		return s.packages;
-	});
-	const loading = usePackagesStore(function (s) {
-		return s.loading;
-	});
-	const loadError = usePackagesStore(function (s) {
-		return s.loadError;
-	});
-	const setPreferSelectedId = usePackagesStore(function (s) {
-		return s.setPreferSelectedId;
-	});
-	const bumpPackagesRefreshStamp = usePackagesStore(function (s) {
-		return s.bumpPackagesRefreshStamp;
-	});
+	const slice = usePackageListStoreSlice();
 
 	const onCreateSubmit = useCallback(
 		async function (
 			values: CreatePackageFormValues,
 		): Promise<{ packageId: string }> {
 			const { packageId } = await commitCreatePackage(values);
-			setPreferSelectedId(packageId);
-			bumpPackagesRefreshStamp();
+			slice.setPreferSelectedId(packageId);
+			slice.bumpPackagesRefreshStamp();
 			return { packageId };
 		},
-		[setPreferSelectedId, bumpPackagesRefreshStamp],
+		[slice.setPreferSelectedId, slice.bumpPackagesRefreshStamp],
 	);
 
 	const onImported = useCallback(
 		function (packageId: string) {
-			setPreferSelectedId(packageId);
-			bumpPackagesRefreshStamp();
+			slice.setPreferSelectedId(packageId);
+			slice.bumpPackagesRefreshStamp();
 		},
-		[setPreferSelectedId, bumpPackagesRefreshStamp],
+		[slice.setPreferSelectedId, slice.bumpPackagesRefreshStamp],
 	);
 
 	const onEditSubmit = useCallback(
@@ -93,25 +79,25 @@ export function usePackageListSessionBis(): PackageListSessionBis {
 			values: EditPackageFormValues,
 		): Promise<{ packageId: string }> {
 			const result = await commitEditPackage(packageId, values);
-			setPreferSelectedId(packageId);
-			bumpPackagesRefreshStamp();
+			slice.setPreferSelectedId(packageId);
+			slice.bumpPackagesRefreshStamp();
 			return result;
 		},
-		[setPreferSelectedId, bumpPackagesRefreshStamp],
+		[slice.setPreferSelectedId, slice.bumpPackagesRefreshStamp],
 	);
 
 	const onDelete = useCallback(
 		async function (packageId: string): Promise<void> {
 			await commitDeletePackage(packageId);
-			bumpPackagesRefreshStamp();
+			slice.bumpPackagesRefreshStamp();
 		},
-		[bumpPackagesRefreshStamp],
+		[slice.bumpPackagesRefreshStamp],
 	);
 
 	return {
-		packages,
-		loading,
-		loadError,
+		packages: slice.packages,
+		loading: slice.loading,
+		loadError: slice.loadError,
 		onCreateSubmit,
 		onEditSubmit,
 		onImported,

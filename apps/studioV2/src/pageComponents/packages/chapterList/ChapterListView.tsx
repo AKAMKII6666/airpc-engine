@@ -23,6 +23,7 @@ export type ChapterListViewProps = {
 };
 
 export const ChapterListView: FC<ChapterListViewProps> = function ({
+	// packageId 是路由中的故事包 id，用于加载章列表
 	packageId,
 }) {
 	const page = useChapterListPage({ packageId });
@@ -36,38 +37,47 @@ export const ChapterListView: FC<ChapterListViewProps> = function ({
 		);
 	}
 
+	return renderChapterListLoaded(packageId, page);
+};
+
+function renderChapterListHeader(
+	packageId: string,
+	page: ReturnType<typeof useChapterListPage>,
+) {
+	return (
+		<header className={styles.header}>
+			<div>
+				{/* 引用了Typography组件，用于包标题 */}
+				<Typography variant="h5" component="h1" className={styles.title}>
+					{page.title}
+				</Typography>
+				{/* 引用了Typography组件，用于包摘要说明 */}
+				<Typography variant="body2" className={styles.sub}>
+					包 {packageId} · {page.chapters.length} 章 · 入口章{" "}
+					{page.entryChapterId}
+				</Typography>
+			</div>
+			<div className={styles.actions}>
+				{/* 引用了Button组件，用于打开新建章弹层 */}
+				<Button variant="contained" onClick={() => page.setCreateOpen(true)}>
+					新建章
+				</Button>
+				{/* 引用了Button组件，用于返回包列表 */}
+				<Button component={Link} href="/packages" variant="outlined">
+					返回包列表
+				</Button>
+			</div>
+		</header>
+	);
+}
+
+function renderChapterListLoaded(
+	packageId: string,
+	page: ReturnType<typeof useChapterListPage>,
+) {
 	return (
 		<main className={styles.root}>
-			<header className={styles.header}>
-				<div>
-					{/* 引用了Typography组件，用于包标题 */}
-					<Typography
-						variant="h5"
-						component="h1"
-						className={styles.title}
-					>
-						{page.title}
-					</Typography>
-					{/* 引用了Typography组件，用于包摘要说明 */}
-					<Typography variant="body2" className={styles.sub}>
-						包 {packageId} · {page.chapters.length} 章 · 入口章{" "}
-						{page.entryChapterId}
-					</Typography>
-				</div>
-				<div className={styles.actions}>
-					{/* 引用了Button组件，用于打开新建章弹层 */}
-					<Button
-						variant="contained"
-						onClick={() => page.setCreateOpen(true)}
-					>
-						新建章
-					</Button>
-					{/* 引用了Button组件，用于返回包列表 */}
-					<Button component={Link} href="/packages" variant="outlined">
-						返回包列表
-					</Button>
-				</div>
-			</header>
+			{renderChapterListHeader(packageId, page)}
 
 			{page.error ? (
 				// 引用了Alert组件，用于操作或加载错误
@@ -98,4 +108,4 @@ export const ChapterListView: FC<ChapterListViewProps> = function ({
 			/>
 		</main>
 	);
-};
+}

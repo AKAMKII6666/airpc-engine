@@ -14,17 +14,7 @@
       "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
     },
     {
-      "file": "packages/rpg-engine/src/runtime/composer.ts",
-      "effectiveLines": 203,
-      "maxFnLines": 68,
-      "maxComplexity": 23,
-      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
-      "owner": "rpg-engine",
-      "recordedAt": "2026-07-16",
-      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
-    },
-    {
-      "file": "packages/rpg-engine/src/runtime/effectExecutor.ts",
+      "file": "packages/rpg-engine/src/runtime/effect/effectExecutor.ts",
       "effectiveLines": 642,
       "maxFnLines": 369,
       "maxComplexity": 104,
@@ -34,7 +24,7 @@
       "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
     },
     {
-      "file": "packages/rpg-engine/src/runtime/scheduleTick.ts",
+      "file": "packages/rpg-engine/src/runtime/schedule/scheduleTick.ts",
       "effectiveLines": 737,
       "maxFnLines": 83,
       "maxComplexity": 39,
@@ -44,7 +34,7 @@
       "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
     },
     {
-      "file": "packages/rpg-engine/src/tools/expandExitEffects.ts",
+      "file": "packages/rpg-engine/src/tools/prepare/expandExitEffects.ts",
       "effectiveLines": 197,
       "maxFnLines": 180,
       "maxComplexity": 50,
@@ -54,7 +44,7 @@
       "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
     },
     {
-      "file": "packages/rpg-engine/src/tools/invokeSessionLocal.ts",
+      "file": "packages/rpg-engine/src/tools/invoke/session/invokeSessionLocal.ts",
       "effectiveLines": 138,
       "maxFnLines": 121,
       "maxComplexity": 21,
@@ -204,16 +194,6 @@
       "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
     },
     {
-      "file": "packages/rpg-engine/tests/lore/bootstrap-fallback.test.ts",
-      "effectiveLines": 206,
-      "maxFnLines": 155,
-      "maxComplexity": 4,
-      "reason": "休整期止血：既有超限遗留，触碰不得净增长",
-      "owner": "rpg-engine/tests",
-      "recordedAt": "2026-07-16",
-      "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
-    },
-    {
       "file": "packages/rpg-engine/tests/runtime/composer.test.ts",
       "effectiveLines": 437,
       "maxFnLines": 407,
@@ -264,7 +244,7 @@
       "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
     },
     {
-      "file": "packages/rpg-engine/src/runtime/memoryCommitContext.ts",
+      "file": "packages/rpg-engine/src/runtime/memory/memoryCommitContext.ts",
       "effectiveLines": 143,
       "maxFnLines": 40,
       "maxComplexity": 16,
@@ -274,7 +254,7 @@
       "exitCondition": "三项指标均降至硬上限以下后移出基线且不得加回"
     },
     {
-      "file": "packages/rpg-engine/src/runtime/openingSituationResolver.ts",
+      "file": "packages/rpg-engine/src/runtime/opening/openingSituationResolver.ts",
       "effectiveLines": 260,
       "maxFnLines": 148,
       "maxComplexity": 29,

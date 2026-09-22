@@ -13,6 +13,75 @@ import {
 import type { AssetSummary } from "@studio-v2/typeFiles/library/assets/assetSummary";
 import styles from "./EditorLibraryFloat.module.scss";
 
+function AssetPickerRow({
+	// asset 表示一条磁盘资源，用于展示与操作
+	asset,
+	// canUseAsPlaybackClip 表示是否可回填当前卡，用于显示「用作播放片段」
+	canUseAsPlaybackClip,
+	// onUseAsPlaybackClip 是回填回调，用于写入当前卡 playbackClipId
+	onUseAsPlaybackClip,
+	// onEdit 打开编辑弹层，用于改资源投影
+	onEdit,
+	// onRequestDelete 打开删除确认，用于落盘移除
+	onRequestDelete,
+}: {
+	asset: AssetSummary;
+	canUseAsPlaybackClip: boolean;
+	onUseAsPlaybackClip: (assetId: string) => void;
+	onEdit: (asset: AssetSummary) => void;
+	onRequestDelete: (assetId: string) => void;
+}) {
+	return (
+		<li className={styles.item}>
+			<span className={styles.itemBody}>
+				{asset.displayName}
+				<br />
+				<span className={styles.itemMeta}>
+					{assetKindLabel(asset.kind)}
+					{" · "}
+					{asset.availability === "missing" ? (
+						<span className={styles.warn}>
+							{assetAvailabilityLabel(asset.availability)}
+						</span>
+					) : (
+						assetAvailabilityLabel(asset.availability)
+					)}
+				</span>
+			</span>
+			<span className={styles.itemActions}>
+				{canUseAsPlaybackClip ? (
+					// 引用了Button组件，用于回填当前卡 playbackClipId
+					<Button
+						size="small"
+						variant="outlined"
+						onClick={() => onUseAsPlaybackClip(asset.assetId)}
+						aria-label={`将 ${asset.displayName} 用作播放片段`}
+					>
+						用作播放片段
+					</Button>
+				) : null}
+				{/* 引用了Button组件，用于打开编辑 FormModal */}
+				<Button
+					size="small"
+					onClick={() => onEdit(asset)}
+					aria-label={`编辑 ${asset.displayName}`}
+				>
+					编辑
+				</Button>
+				{/* 引用了Button组件，用于打开删除确认 */}
+				<Button
+					size="small"
+					color="warning"
+					onClick={() => onRequestDelete(asset.assetId)}
+					aria-label={`删除 ${asset.displayName}`}
+				>
+					删除
+				</Button>
+			</span>
+		</li>
+	);
+}
+
 export type AssetPickerFloatProps = {
 	open: boolean;
 	onClose: () => void;
@@ -84,54 +153,16 @@ export const AssetPickerFloat: FC<AssetPickerFloatProps> =
 					</Typography>
 				) : (
 					<ul className={styles.list}>
-						{assets.map((a) => (
-							<li key={a.assetId} className={styles.item}>
-								<span className={styles.itemBody}>
-									{a.displayName}
-									<br />
-									<span className={styles.itemMeta}>
-										{assetKindLabel(a.kind)}
-										{" · "}
-										{a.availability === "missing" ? (
-											<span className={styles.warn}>
-												{assetAvailabilityLabel(a.availability)}
-											</span>
-										) : (
-											assetAvailabilityLabel(a.availability)
-										)}
-									</span>
-								</span>
-								<span className={styles.itemActions}>
-									{canUseAsPlaybackClip ? (
-										// 引用了Button组件，用于回填当前卡 playbackClipId
-										<Button
-											size="small"
-											variant="outlined"
-											onClick={() => onUseAsPlaybackClip(a.assetId)}
-											aria-label={`将 ${a.displayName} 用作播放片段`}
-										>
-											用作播放片段
-										</Button>
-									) : null}
-									{/* 引用了Button组件，用于打开编辑 FormModal */}
-									<Button
-										size="small"
-										onClick={() => onEdit(a)}
-										aria-label={`编辑 ${a.displayName}`}
-									>
-										编辑
-									</Button>
-									{/* 引用了Button组件，用于打开删除确认 */}
-									<Button
-										size="small"
-										color="warning"
-										onClick={() => onRequestDelete(a.assetId)}
-										aria-label={`删除 ${a.displayName}`}
-									>
-										删除
-									</Button>
-								</span>
-							</li>
+						{assets.map((asset) => (
+							// 引用了AssetPickerRow组件，用于单条资源操作
+							<AssetPickerRow
+								key={asset.assetId}
+								asset={asset}
+								canUseAsPlaybackClip={canUseAsPlaybackClip}
+								onUseAsPlaybackClip={onUseAsPlaybackClip}
+								onEdit={onEdit}
+								onRequestDelete={onRequestDelete}
+							/>
 						))}
 					</ul>
 				)}

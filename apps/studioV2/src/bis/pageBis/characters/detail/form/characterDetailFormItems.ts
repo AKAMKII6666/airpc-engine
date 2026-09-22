@@ -2,7 +2,7 @@
 	* 角色详情 AutoForm items[]（需求 §4 IA）。
 	* 编辑态展示字段全部 required；无 timeBuckets、无扁平 mock 字段。
 	*/
-import type { AutoFormItem } from "@studio-v2/src/commonUiComponents/form/autoFormTypes";
+import type { AutoFormItem } from "@studio-v2/src/commonUiComponents/form/types/autoFormTypes";
 import { PERSONALITY_CODE_OPTIONS } from "@studio-v2/typeFiles/library/characters/persona/personalityCodeOptions";
 import { REALTIME_VOICE_OPTIONS } from "@studio-v2/typeFiles/library/characters/realtime/realtimeVoiceOptions";
 import { CHARACTER_GENDER_OPTIONS } from "@studio-v2/typeFiles/library/labels/libraryLabels";

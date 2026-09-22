@@ -4,40 +4,19 @@
 "use client";
 
 import type { FC } from "react";
-import { Button, IconButton, TextField } from "@mui/material";
 import type { PromptVariantForm } from "@studio-v2/typeFiles/library/characters/form/characterFormShapes";
-import { createStudioId } from "@studio-v2/typeFiles/ids/createStudioId";
 import { FormFieldShell } from "../../FormFieldShell";
 import type { FormBoundFieldProps } from "../../fields/types/formBoundTypes";
 import {
 	readFormikFieldError,
 	readFormikFieldRaw,
 } from "../../fields/formBoundFieldProps";
-import styles from "./index.module.scss";
-
-/** 新变体稳定键；隐藏字段，禁止作者手填 */
-function newVariantId(): string {
-	return createStudioId("variant");
-}
-
-function asVariantList(raw: unknown): PromptVariantForm[] {
-	if (!Array.isArray(raw)) return [];
-	return raw.map((item, index) => {
-		if (typeof item !== "object" || item === null) {
-			return { variantId: newVariantId(), text: "" };
-		}
-		const row = item as { variantId?: unknown; text?: unknown };
-		const existing =
-			typeof row.variantId === "string" && row.variantId.trim() !== ""
-				? row.variantId
-				: newVariantId();
-		void index;
-		return {
-			variantId: existing,
-			text: typeof row.text === "string" ? row.text : "",
-		};
-	});
-}
+// 引用了PromptVariantListPanel组件，用于变体卡片与添加
+import { PromptVariantListPanel } from "./com/PromptVariantListPanel";
+import {
+	asVariantList,
+	buildVariantWatchText,
+} from "./com/promptVariantListHelpers";
 
 export const FormPromptVariantListEditor: FC<
 	FormBoundFieldProps<Record<string, unknown>>
@@ -67,10 +46,7 @@ export const FormPromptVariantListEditor: FC<
 			? valueOverride
 			: readFormikFieldRaw(formik, name),
 	);
-	const watchText =
-		list.length === 0
-			? "（空列表）"
-			: list.map((v) => v.text || "（空正文）").join("；");
+	const watchText = buildVariantWatchText(list);
 
 	function writeList(next: PromptVariantForm[]): void {
 		if (onChangeOverride) {
@@ -91,55 +67,14 @@ export const FormPromptVariantListEditor: FC<
 			helperText={helperText}
 			watchText={watchText}
 		>
-			<ul className={styles.list}>
-				{list.map((row, index) => (
-					<li key={row.variantId || `${name}-${index}`} className={styles.card}>
-						<div className={styles.cardHead}>
-							<span className={styles.cardIndex}>变体 {index + 1}</span>
-							{/* 引用了IconButton组件，用于删除本变体 */}
-							<IconButton
-								type="button"
-								size="small"
-								disabled={disabled}
-								aria-label={`删除变体 ${index + 1}`}
-								onClick={() => {
-									writeList(list.filter((_, i) => i !== index));
-								}}
-							>
-								×
-							</IconButton>
-						</div>
-						{/* 引用了TextField组件，用于编辑话术正文 */}
-						<TextField
-							label="话术正文"
-							value={row.text}
-							onChange={(e) => {
-								const next = list.slice();
-								next[index] = { ...row, text: e.target.value };
-								writeList(next);
-							}}
-							size="small"
-							fullWidth
-							multiline
-							minRows={2}
-							disabled={disabled}
-							inputProps={{ "aria-label": `${label} 正文 ${index + 1}` }}
-						/>
-					</li>
-				))}
-			</ul>
-			{/* 引用了Button组件，用于追加变体（variantId 自动 UUID） */}
-			<Button
-				type="button"
-				size="small"
-				variant="outlined"
+			{/* 引用了PromptVariantListPanel组件，用于变体卡片与添加 */}
+			<PromptVariantListPanel
+				name={name}
+				list={list}
 				disabled={disabled}
-				onClick={() =>
-					writeList([...list, { variantId: newVariantId(), text: "" }])
-				}
-			>
-				添加变体
-			</Button>
+				label={label}
+				onWriteList={writeList}
+			/>
 		</FormFieldShell>
 	);
 };

@@ -5,7 +5,7 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { readDebuggerMemoryTrace } from "@studio-v2/src/utils/server/debugger/session/debuggerMemoryTrace.server";
+import { readDebuggerMemoryTrace } from "@studio-v2/src/utils/server/debugger/session/memoryTrace/debuggerMemoryTrace.server";
 
 describe("readDebuggerMemoryTrace", () => {
 	let tmp: string | undefined;

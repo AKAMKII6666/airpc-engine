@@ -4,23 +4,14 @@
 "use client";
 
 import type { FC } from "react";
-// 引用了FormModal组件，用于新建故事包落盘
-import { FormModal } from "@studio-v2/src/commonUiComponents/modal/form/FormModal";
 // 引用了DeleteConfirmModal组件，用于删除故事包确认
 import { DeleteConfirmModal } from "@studio-v2/src/commonUiComponents/modal/confirm/DeleteConfirmModal";
-import {
-	CREATE_PACKAGE_FORM_ITEMS,
-	CREATE_PACKAGE_INITIAL_VALUES,
-	validateCreatePackageForm,
-	type CreatePackageFormValues,
-} from "@studio-v2/src/bis/pageBis/packages/createPackageForm";
-import {
-	EDIT_PACKAGE_FORM_ITEMS,
-	validateEditPackageForm,
-	type EditPackageFormValues,
-} from "@studio-v2/src/bis/pageBis/packages/editPackageForm";
-// 引用了ImportPackageModal组件，用于导入故事包弹层
-import { ImportPackageModal } from "@studio-v2/src/pageComponents/packages/import/ImportPackageModal";
+import type { CreatePackageFormValues } from "@studio-v2/src/bis/pageBis/packages/create/createPackageForm";
+import type { EditPackageFormValues } from "@studio-v2/src/bis/pageBis/packages/edit/editPackageForm";
+// 引用了PackageListImportModal组件，用于导入弹层
+import { PackageListImportModal } from "./PackageListImportModal";
+// 引用了PackageListFormModals组件，用于新建/编辑弹层
+import { PackageListFormModals } from "./PackageListFormModals";
 
 type Props = {
 	importOpen: boolean;
@@ -41,57 +32,58 @@ type Props = {
 	onConfirmDelete: () => void;
 };
 
-export const PackageListModals: FC<Props> = function (props) {
-	// importOpen / onCloseImport / onImported：单包导入弹层
-	const { importOpen, onCloseImport, onImported } = props;
-	// createOpen / onCloseCreate / onCreateSubmit：新建弹层
-	const { createOpen, onCloseCreate, onCreateSubmit } = props;
-	const { editOpen, editInitialTitle, onCloseEdit, onEditSubmit } = props;
-	// delete*：删除确认弹层
-	const {
-		deleteOpen,
-		deleteDisplayName,
-		deleteReferenceLines,
-		deleteError,
-		onCloseDelete,
-		onConfirmDelete,
-	} = props;
-
+export const PackageListModals: FC<Props> = function PackageListModals({
+	// importOpen 导入弹层开合，用于组件入参
+	importOpen,
+	// onCloseImport 关闭导入弹层，用于组件入参
+	onCloseImport,
+	// onImported 导入成功回调，用于组件入参
+	onImported,
+	// createOpen 新建弹层开合，用于组件入参
+	createOpen,
+	// onCloseCreate 关闭新建弹层，用于组件入参
+	onCloseCreate,
+	// onCreateSubmit 新建提交，用于组件入参
+	onCreateSubmit,
+	// editOpen 编辑弹层开合，用于组件入参
+	editOpen,
+	// editInitialTitle 编辑初始标题，用于组件入参
+	editInitialTitle,
+	// onCloseEdit 关闭编辑弹层，用于组件入参
+	onCloseEdit,
+	// onEditSubmit 编辑提交，用于组件入参
+	onEditSubmit,
+	// deleteOpen 删除确认开合，用于组件入参
+	deleteOpen,
+	// deleteDisplayName 删除确认展示名，用于组件入参
+	deleteDisplayName,
+	// deleteReferenceLines 删除引用提示行，用于组件入参
+	deleteReferenceLines,
+	// deleteError 删除失败文案，用于组件入参
+	deleteError,
+	// onCloseDelete 关闭删除确认，用于组件入参
+	onCloseDelete,
+	// onConfirmDelete 确认删除，用于组件入参
+	onConfirmDelete,
+}) {
 	return (
 		<>
-			{/* 引用了ImportPackageModal组件，用于导入故事包 */}
-			<ImportPackageModal
+			{/* 引用了PackageListImportModal组件，用于导入故事包 */}
+			<PackageListImportModal
 				open={importOpen}
 				onClose={onCloseImport}
 				onImported={onImported}
 			/>
-
-			{/* 引用了FormModal组件，用于 POST /api/stories 新建 */}
-			<FormModal<CreatePackageFormValues>
-				open={createOpen}
-				title="新建故事包"
-				mode="add"
-				initialValues={CREATE_PACKAGE_INITIAL_VALUES}
-				items={CREATE_PACKAGE_FORM_ITEMS}
-				validate={validateCreatePackageForm}
-				onClose={onCloseCreate}
-				onSubmit={onCreateSubmit}
-				submitLabel="创建并进入故事包"
+			{/* 引用了PackageListFormModals组件，用于新建/编辑 */}
+			<PackageListFormModals
+				createOpen={createOpen}
+				onCloseCreate={onCloseCreate}
+				onCreateSubmit={onCreateSubmit}
+				editOpen={editOpen}
+				editInitialTitle={editInitialTitle}
+				onCloseEdit={onCloseEdit}
+				onEditSubmit={onEditSubmit}
 			/>
-
-			{/* 引用了FormModal组件，用于 PATCH /api/stories/:packageId 改名 */}
-			<FormModal<EditPackageFormValues>
-				open={editOpen}
-				title="编辑故事包"
-				mode="edit"
-				initialValues={{ title: editInitialTitle }}
-				items={EDIT_PACKAGE_FORM_ITEMS}
-				validate={validateEditPackageForm}
-				onClose={onCloseEdit}
-				onSubmit={onEditSubmit}
-				submitLabel="保存"
-			/>
-
 			{/* 引用了DeleteConfirmModal组件，用于删除故事包确认 */}
 			<DeleteConfirmModal
 				open={deleteOpen}

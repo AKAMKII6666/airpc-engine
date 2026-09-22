@@ -20,16 +20,16 @@ import {
 	withWorldFacts,
 } from "@studio-v2/src/bis/pageBis/storyEditor/package/session/packageSessionLoad";
 import { buildNodeContextItems } from "@studio-v2/src/bis/pageBis/storyEditor/form/node/nodePropertyFormItems";
-import { diskSummaryToPackageSummary } from "@studio-v2/src/bis/pageBis/packages/diskSummaryMapper";
+import { diskSummaryToPackageSummary } from "@studio-v2/src/bis/pageBis/packages/mappers/diskSummaryMapper";
 import { readDiskStoryPackage } from "@studio-v2/src/utils/server/packages/fs/package/packagesFs.server";
 import {
 	CREATE_ASSET_FORM_ITEMS,
 	CREATE_ASSET_INITIAL_VALUES,
 	validateCreateAssetForm,
-} from "@studio-v2/src/bis/pageBis/assets/createAssetForm";
+} from "@studio-v2/src/bis/pageBis/assets/create/createAssetForm";
 import {
 	ASSET_BASIC_ITEMS,
-} from "@studio-v2/src/bis/pageBis/assets/assetDetailForm";
+} from "@studio-v2/src/bis/pageBis/assets/form/assetDetailForm";
 
 describe("projectEditorPackageConfFromBundle", () => {
 	it("projects StoryPackageConf-aligned readonly fields from wrong_number_act1 disk", async () => {

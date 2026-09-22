@@ -1,7 +1,7 @@
 /**
  * 加载/tick 前重解析 recurring intent：失效引用 → disabled，禁止 once/pending/fired。
  */
-import type { PlayerProfile } from "../schema/profile.js";
+import type { PlayerProfile } from "../schema/identity/profile.js";
 import {
   resolveScheduledCardReference,
   type ScheduledCardLookup,
@@ -34,57 +34,65 @@ function asRecurring(raw: unknown): {
   };
 }
 
+function isTerminalRecurringStatus(status: string): boolean {
+	return (
+		status === "paused" ||
+		status === "cancelled" ||
+		status === "disabled"
+	);
+}
+
+function disableUnresolvedRecurring(
+	rec: NonNullable<ReturnType<typeof asRecurring>>,
+	lookup: ScheduledCardLookup,
+): { disabled: true; row: unknown; intentId: string } | { disabled: false } {
+	const resolved = resolveScheduledCardReference(
+		{
+			agentId: rec.agentId,
+			scheduleCardId:
+				typeof rec.scheduleCardId === "string" ? rec.scheduleCardId : undefined,
+			cardId: typeof rec.cardId === "string" ? rec.cardId : undefined,
+			chapterId: typeof rec.chapterId === "string" ? rec.chapterId : undefined,
+		},
+		lookup,
+	);
+	if (resolved.ok) return { disabled: false };
+	return {
+		disabled: true,
+		intentId: rec.intentId,
+		row: {
+			...rec,
+			status: "disabled",
+			disabledReason: `${resolved.code}: ${resolved.reason}`,
+		},
+	};
+}
+
 /**
  * 就地修复 profile.schedule.intents：无法解析的 recurring 标 disabled 并写入 disabledReason。
  * @returns 被 disabled 的 intentId 列表
  */
 export function reconcileRecurringIntents(
-  profile: PlayerProfile,
-  lookup: ScheduledCardLookup,
+	profile: PlayerProfile,
+	lookup: ScheduledCardLookup,
 ): string[] {
-  if (!profile.schedule?.intents?.length) return [];
-  const disabledIds: string[] = [];
-  const next: unknown[] = [];
-
-  for (const raw of profile.schedule.intents) {
-    const rec = asRecurring(raw);
-    if (!rec) {
-      next.push(raw);
-      continue;
-    }
-    if (
-      rec.status === "paused" ||
-      rec.status === "cancelled" ||
-      rec.status === "disabled"
-    ) {
-      next.push(raw);
-      continue;
-    }
-
-    const resolved = resolveScheduledCardReference(
-      {
-        agentId: rec.agentId,
-        scheduleCardId:
-          typeof rec.scheduleCardId === "string" ? rec.scheduleCardId : undefined,
-        cardId: typeof rec.cardId === "string" ? rec.cardId : undefined,
-        chapterId: typeof rec.chapterId === "string" ? rec.chapterId : undefined,
-      },
-      lookup,
-    );
-
-    if (!resolved.ok) {
-      disabledIds.push(rec.intentId);
-      next.push({
-        ...rec,
-        status: "disabled",
-        disabledReason: `${resolved.code}: ${resolved.reason}`,
-      });
-      continue;
-    }
-
-    next.push(raw);
-  }
-
-  profile.schedule.intents = next;
-  return disabledIds;
+	if (!profile.schedule?.intents?.length) return [];
+	const disabledIds: string[] = [];
+	const next: unknown[] = [];
+	for (const raw of profile.schedule.intents) {
+		const rec = asRecurring(raw);
+		if (!rec || isTerminalRecurringStatus(rec.status)) {
+			next.push(raw);
+			continue;
+		}
+		const result = disableUnresolvedRecurring(rec, lookup);
+		if (result.disabled) {
+			disabledIds.push(result.intentId);
+			next.push(result.row);
+			continue;
+		}
+		next.push(raw);
+	}
+	profile.schedule.intents = next;
+	return disabledIds;
 }

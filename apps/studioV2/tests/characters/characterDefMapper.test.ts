@@ -8,7 +8,7 @@ import {
 	characterDefToSummary,
 	findTimeBucketsRejectReason,
 	mergeDetailFormIntoCharacterDef,
-} from "@studio-v2/src/bis/pageBis/characters/detail/form/characterDefMapper";
+} from "@studio-v2/src/bis/pageBis/characters/detail/form/mapper/characterDefMapper";
 import { toCharacterDetailFormValues } from "@studio-v2/src/bis/pageBis/characters/detail/form/characterDetailForm";
 
 describe("characterDefMapper", () => {

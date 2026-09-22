@@ -1,10 +1,10 @@
 /**
  * 模块名称：CallSession / Resolve / BeginCall 类型（P1）
  */
-import type { CallCardDefinition } from "../schema/callCard.js";
-import type { CharacterDef } from "../schema/character.js";
-import type { ChatTurn } from "../schema/dialogueSession.js";
-import type { Effect, Outcome } from "../schema/outcome.js";
+import type { CallCardDefinition } from "../schema/call/callCard.js";
+import type { CharacterDef } from "../schema/identity/character.js";
+import type { ChatTurn } from "../schema/call/dialogueSession.js";
+import type { Effect, Outcome } from "../schema/call/outcome.js";
 import type { ShellControlEvent } from "./shellControl/shellControlTypes.js";
 import type {
 	RuntimeExitCandidate,

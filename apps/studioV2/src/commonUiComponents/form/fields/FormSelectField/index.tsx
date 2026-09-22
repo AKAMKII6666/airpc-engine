@@ -4,33 +4,21 @@
 	*/
 "use client";
 
-import type { FC, ReactNode } from "react";
-import { MenuItem, TextField, Tooltip } from "@mui/material";
+import type { FC } from "react";
 import { FormFieldShell } from "../../FormFieldShell";
-import type { FormSelectOption } from "../../formTypes";
-import { formatSelectOptionTooltip } from "../../formatSelectOptionTooltip";
+import type { FormSelectOption } from "../../types/formTypes";
 import type { FormBoundFieldProps } from "../types/formBoundTypes";
 import {
 	readFormikFieldError,
 	resolveBoundDisplayString,
 	resolveBoundStringChangeHandler,
 } from "../formBoundFieldProps";
+// 引用了FormSelectControl组件，用于 Select 控件本体
+import { FormSelectControl } from "./com/FormSelectControl";
 
 type Props = FormBoundFieldProps<Record<string, unknown>> & {
 	options: FormSelectOption[];
 };
-
-/** 单选项：有 tooltip 字段时包 Tooltip，否则只渲染 label */
-function renderSelectOptionLabel(opt: FormSelectOption): ReactNode {
-	const tip = formatSelectOptionTooltip(opt);
-	if (tip == null) return opt.label;
-	return (
-		// 引用了Tooltip组件，用于选项作用与典型场景
-		<Tooltip title={tip} placement="right">
-			<span>{opt.label}</span>
-		</Tooltip>
-	);
-}
 
 export const FormSelectField: FC<Props> = function FormSelectField({
 	// name 是 Formik 路径，用于嵌套读写
@@ -76,47 +64,20 @@ export const FormSelectField: FC<Props> = function FormSelectField({
 			helperText={helperText}
 			watchText={watchText}
 		>
-			{/* 引用了TextField组件，用于下拉选择写回 */}
-			<TextField
+			{/* 引用了FormSelectControl组件，用于 Select 控件本体 */}
+			<FormSelectControl
 				name={name}
-				value={valueStr}
-				onChange={handleChange}
-				onBlur={() => {
-					void formik.setFieldTouched(name, true);
-				}}
-				id={`field-${name}`}
-				select
-				size="small"
-				fullWidth
+				label={label}
+				valueStr={valueStr}
+				options={options}
+				placeholder={placeholder}
 				disabled={disabled}
 				error={Boolean(errorMsg)}
-				SelectProps={{
-					displayEmpty: Boolean(placeholder),
-					inputProps: { "aria-label": label },
-					// 空值时强制显示占位文案，避免 MUI 把空串渲染成第一项可用标签（如「男」）
-					renderValue: function (selected) {
-						const current = String(selected ?? "");
-						if (current === "" && placeholder) {
-							return placeholder;
-						}
-						const hit = options.find(function (opt) {
-							return opt.value === current;
-						});
-						return hit?.label ?? current;
-					},
+				onChange={handleChange}
+				onBlur={function () {
+					void formik.setFieldTouched(name, true);
 				}}
-			>
-				{placeholder ? (
-					// 引用了MenuItem组件，用于占位空选项（可选，勿 disabled，否则折叠态易误显首项）
-					<MenuItem value="">{placeholder}</MenuItem>
-				) : null}
-				{options.map((opt) => (
-					// 引用了MenuItem组件，用于渲染下拉选项
-					<MenuItem key={opt.value} value={opt.value}>
-						{renderSelectOptionLabel(opt)}
-					</MenuItem>
-				))}
-			</TextField>
+			/>
 		</FormFieldShell>
 	);
 };

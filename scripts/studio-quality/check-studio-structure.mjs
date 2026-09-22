@@ -16,6 +16,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ensureModalNestedLayout } from "./ensure-modal-layout.mjs";
 import { ensureMigratedLayout } from "./ensure-migrated-layout.mjs";
+import {
+  analyzeDirectoryClusteringShared,
+  studioResponsibilityGroup,
+} from "../quality/directory-clustering.mjs";
 
 const require = createRequire(import.meta.url);
 const ts = require("typescript");
@@ -52,6 +56,10 @@ const RULE = {
   BIS_NAVIGATION: "STUDIO-STRUCT-023",
   /** bis 禁 value import UI 区 */
   BIS_UI_IMPORT: "STUDIO-STRUCT-024",
+  /** 根层异责堆叠（有子目录仍堆） */
+  CLUSTER_ROOT_STACK: "STUDIO-STRUCT-025",
+  /** stub 森林 */
+  CLUSTER_STUB_FOREST: "STUDIO-STRUCT-026",
 };
 
 /** @typedef {{ ruleId: string, file: string, line: number, column: number, message: string, suggestion: string, severity?: "error"|"warn" }} Violation */
@@ -1271,78 +1279,26 @@ async function analyzeTouchedEntryStyle(studioRootAbs, ctx) {
 }
 
 /**
- * 目录聚类：同层 ≥4 个 ts/tsx，且文件名职责前缀 ≥2 组、无子目录承载 → 违规。
+ * 目录聚类：008 无子目录平铺；025 根层异责堆叠；026 stub 森林。
  * @param {string} studioRootAbs
  * @param {object} ctx
  */
 async function analyzeDirectoryClustering(studioRootAbs, ctx) {
-  /** @type {Violation[]} */
-  const violations = [];
   const exclude = new Set(ctx.config.excludeDirNames ?? []);
   // app 路由树由 Next 约定，不做聚类硬门禁
   exclude.add("app");
-
-  /**
-   * @param {string} name
-   */
-  function responsibilityGroup(name) {
-    const stem = name.replace(/\.(module\.scss|scss|ts|tsx)$/, "");
-    // 同壳层组件不因 Logo/Nav/Strip 等后缀拆成异责
-    if (
-      /Shell|Chrome|Providers|Layout|Logo|Nav|Placeholder|Strip|DesignSystem/i.test(
-        stem,
-      )
-    ) {
-      return "shell";
-    }
-    if (/Store$/.test(stem) || stem.endsWith(".store")) return "store";
-    if (/Command/.test(stem) || stem.endsWith("Commands")) return "command";
-    if (/Panel|Card|Node|Canvas/.test(stem)) return "panel";
-    if (/theme|Tokens|token/i.test(stem)) return "theme";
-    if (/ajax|Api|service|Probe/i.test(stem)) return "service";
-    const m = stem.match(/^([A-Z][a-z]+)/);
-    return m ? m[1].toLowerCase() : stem.slice(0, 6).toLowerCase();
-  }
-
-  const walk = async (dir) => {
-    let entries;
-    try {
-      entries = await readdir(dir, { withFileTypes: true });
-    } catch {
-      return;
-    }
-    const codeFiles = entries
-      .filter((e) => e.isFile() && /\.(ts|tsx)$/.test(e.name) && !e.name.endsWith(".d.ts"))
-      .map((e) => e.name);
-    const subdirs = entries.filter(
-      (e) => e.isDirectory() && !exclude.has(e.name),
-    );
-
-    if (codeFiles.length >= 4 && subdirs.length === 0) {
-      const groups = new Set(codeFiles.map(responsibilityGroup));
-      if (groups.size >= 2) {
-        const rel = path.relative(ctx.repoRoot, dir).split(path.sep).join("/");
-        if (!isAllowlisted(ctx, RULE.CLUSTER, rel)) {
-          violations.push({
-            ruleId: RULE.CLUSTER,
-            file: rel,
-            line: 1,
-            column: 1,
-            severity: "error",
-            message: `目录含 ${codeFiles.length} 个源文件且职责组≥2（${[...groups].join(",")}），应分子目录`,
-            suggestion: "按 domain/commands/features 等职责拆分子目录，禁止长前缀代目录",
-          });
-        }
-      }
-    }
-
-    for (const d of subdirs) {
-      await walk(path.join(dir, d.name));
-    }
-  };
-
-  await walk(studioRootAbs);
-  return violations;
+  return analyzeDirectoryClusteringShared({
+    scanRootAbs: studioRootAbs,
+    repoRoot: ctx.repoRoot,
+    excludeDirNames: exclude,
+    responsibilityGroup: studioResponsibilityGroup,
+    ruleIds: {
+      noSubdir: RULE.CLUSTER,
+      rootStack: RULE.CLUSTER_ROOT_STACK,
+      stubForest: RULE.CLUSTER_STUB_FOREST,
+    },
+    isAllowlisted: (ruleId, rel) => isAllowlisted(ctx, ruleId, rel),
+  });
 }
 
 /**

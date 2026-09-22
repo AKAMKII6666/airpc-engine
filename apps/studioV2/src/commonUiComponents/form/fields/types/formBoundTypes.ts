@@ -4,7 +4,7 @@
 	* value / onChange / checked 来自 AutoForm comProps 逃生口，优先于 Formik 自动绑。
 	*/
 import type { FormikProps } from "formik";
-import type { FormFieldMode } from "../../formTypes";
+import type { FormFieldMode } from "../../types/formTypes";
 
 export type FormBoundFieldProps<TValues extends Record<string, unknown>> = {
 	name: string;

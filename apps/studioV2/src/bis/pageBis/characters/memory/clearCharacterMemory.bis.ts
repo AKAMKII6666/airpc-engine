@@ -4,7 +4,7 @@
 import {
 	clearMemoryForAgent,
 	type ClearMemoryResult,
-} from "@studio-v2/src/utils/ajaxProxy/library/api/memoryApi";
+} from "@studio-v2/src/utils/ajaxProxy/library/api/memory/memoryApi";
 
 /**
 	* 清空当前角色对指定玩家的记忆与对话惯性。

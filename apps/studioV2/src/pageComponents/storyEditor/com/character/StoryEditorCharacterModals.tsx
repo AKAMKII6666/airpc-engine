@@ -19,7 +19,7 @@ import {
 	validateCharacterDetailForm,
 	type CharacterDetailFormValues,
 } from "@studio-v2/src/bis/pageBis/characters/detail/form/characterDetailForm";
-import { withAvatarUploadItems } from "@studio-v2/src/bis/pageBis/assets/withAvatarUploadItems";
+import { withAvatarUploadItems } from "@studio-v2/src/bis/pageBis/assets/upload/avatar/withAvatarUploadItems";
 import type { CharacterSummary } from "@studio-v2/typeFiles/library/characters/form/characterSummary";
 
 const EDIT_CHARACTER_FORM_ITEMS = withAvatarUploadItems([

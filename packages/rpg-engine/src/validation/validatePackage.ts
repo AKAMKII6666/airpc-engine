@@ -4,15 +4,15 @@
  * 卡片 / 资产 / 调度子规则已拆到同目录模块，避免触碰基线净增。
  */
 import { FREE_CHAPTER_ID } from "../constants.js";
-import type { ContentPort, PackageValidateBundle } from "../ports/contentPort.js";
-import type { CharacterDef } from "../schema/character.js";
+import type { ContentPort, PackageValidateBundle } from "../ports/persist/contentPort.js";
+import type { CharacterDef } from "../schema/identity/character.js";
 import type { ValidationIssue, ValidationReport } from "./types.js";
-import { validateReferencedAgents } from "./validateReferencedAgents.js";
-import { validateAssetRef } from "./package/assets.js";
-import { validatePackageCards } from "./package/cards.js";
+import { validateReferencedAgents } from "./agents/validateReferencedAgents.js";
+import { validateAssetRef } from "./package/content/assets.js";
+import { validatePackageCards } from "./package/content/cards.js";
 import type { ToolRegistry } from "../tools/types.js";
-import { DEFAULT_TOOL_REGISTRY } from "../tools/toolRegistry.js";
-export { VALIDATE_PACKAGE_ERROR_COVERAGE } from "./errorCoverage.js";
+import { DEFAULT_TOOL_REGISTRY } from "../tools/registry/toolRegistry.js";
+export { VALIDATE_PACKAGE_ERROR_COVERAGE } from "./coverage/errorCoverage.js";
 
 const SUPPORTED_SCHEMA = 1;
 
@@ -47,6 +47,58 @@ function charactersMapFromBundle(
 	return map;
 }
 
+function pushUnsupportedSchemaVersion(
+	conf: NonNullable<PackageValidateBundle["conf"]>,
+	confPath: string,
+	errors: ValidationIssue[],
+): void {
+	if (conf.schemaVersion === SUPPORTED_SCHEMA) return;
+	push(errors, {
+		ruleId: "SCHEMA_UNSUPPORTED",
+		level: "error",
+		path: confPath,
+		message: `schemaVersion ${conf.schemaVersion} unsupported`,
+	});
+}
+
+function pushUnknownEntryCard(
+	conf: NonNullable<PackageValidateBundle["conf"]>,
+	confPath: string,
+	errors: ValidationIssue[],
+): void {
+	if (!conf.entryCardId) return;
+	const inIndex = conf.cards.some((c) => c.cardId === conf.entryCardId);
+	if (inIndex) return;
+	push(errors, {
+		ruleId: "ENTRY_CARD_UNKNOWN",
+		level: "error",
+		path: `${confPath}#entryCardId`,
+		message: `entryCardId ${conf.entryCardId} not in cards[]`,
+	});
+}
+
+async function validateConfAssetRefs(input: {
+	conf: NonNullable<PackageValidateBundle["conf"]>;
+	confPath: string;
+	content: ContentPort;
+	workspaceKey: string;
+	errors: ValidationIssue[];
+	warnings: ValidationIssue[];
+}): Promise<void> {
+	if (!Array.isArray(input.conf.assetRefs)) return;
+	for (const assetId of input.conf.assetRefs) {
+		await validateAssetRef(
+			input.content,
+			input.workspaceKey,
+			assetId,
+			`${input.confPath}#assetRefs`,
+			input.errors,
+			input.warnings,
+			{ checkKindForPlayback: false },
+		);
+	}
+}
+
 export async function validatePackage(
 	input: ValidatePackageInput,
 ): Promise<ValidationReport> {
@@ -54,8 +106,7 @@ export async function validatePackage(
 	const warnings: ValidationIssue[] = [];
 	const { bundle, workspaceKey, content } = input;
 	const chapterId = bundle.chapterId;
-	const characters =
-		input.characters ?? charactersMapFromBundle(bundle);
+	const characters = input.characters ?? charactersMapFromBundle(bundle);
 	const pkgSegment = bundle.containerPackageId ?? chapterId;
 	const confPath = `storis-packages/${pkgSegment}/chapters/${chapterId}/story.conf.json`;
 
@@ -68,52 +119,22 @@ export async function validatePackage(
 		});
 		return { chapterId, errors, warnings };
 	}
-
 	if (!validateConfOrReturn(bundle, confPath, errors, warnings)) {
 		return { chapterId, errors, warnings };
 	}
 	const conf = bundle.conf!;
-
-	if (conf.schemaVersion !== SUPPORTED_SCHEMA) {
-		push(errors, {
-			ruleId: "SCHEMA_UNSUPPORTED",
-			level: "error",
-			path: confPath,
-			message: `schemaVersion ${conf.schemaVersion} unsupported`,
-		});
-	}
-
-	if (conf.entryCardId) {
-		const inIndex = conf.cards.some((c) => c.cardId === conf.entryCardId);
-		if (!inIndex) {
-			push(errors, {
-				ruleId: "ENTRY_CARD_UNKNOWN",
-				level: "error",
-				path: `${confPath}#entryCardId`,
-				message: `entryCardId ${conf.entryCardId} not in cards[]`,
-			});
-		}
-	}
-
-	if (Array.isArray(conf.assetRefs)) {
-		for (const assetId of conf.assetRefs) {
-			await validateAssetRef(
-				content,
-				workspaceKey,
-				assetId,
-				`${confPath}#assetRefs`,
-				errors,
-				warnings,
-				{ checkKindForPlayback: false },
-			);
-		}
-	}
-
+	pushUnsupportedSchemaVersion(conf, confPath, errors);
+	pushUnknownEntryCard(conf, confPath, errors);
+	await validateConfAssetRefs({
+		conf,
+		confPath,
+		content,
+		workspaceKey,
+		errors,
+		warnings,
+	});
 	pushCardIndexIssues(conf.cards, bundle.diskCardIds ?? [], errors, warnings);
-
-	const cardsById = new Map(
-		bundle.cards.map((entry) => [entry.cardId, entry]),
-	);
+	const cardsById = new Map(bundle.cards.map((entry) => [entry.cardId, entry]));
 	const parsedCards = await validatePackageCards({
 		cardRefs: conf.cards,
 		cardsById,
@@ -124,7 +145,6 @@ export async function validatePackage(
 		warnings,
 		toolRegistry: input.toolRegistry ?? DEFAULT_TOOL_REGISTRY,
 	});
-
 	await validateReferencedAgents({
 		conf,
 		parsedCards,
@@ -135,7 +155,6 @@ export async function validatePackage(
 		errors,
 		warnings,
 	});
-
 	return { chapterId, errors, warnings };
 }
 

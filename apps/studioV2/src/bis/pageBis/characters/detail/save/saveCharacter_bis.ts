@@ -6,11 +6,11 @@ import type { CharacterSummary } from "@studio-v2/typeFiles/library/characters/f
 import {
 	fetchCharacterDef,
 	putCharacterDef,
-} from "@studio-v2/src/utils/ajaxProxy/library/api/charactersApi";
+} from "@studio-v2/src/utils/ajaxProxy/library/api/characters/charactersApi";
 import {
 	characterDefToSummary,
 	mergeDetailFormIntoCharacterDef,
-} from "../form/characterDefMapper";
+} from "../form/mapper/characterDefMapper";
 import type { CharacterDetailFormValues } from "../form/characterDetailFormValues";
 
 /**

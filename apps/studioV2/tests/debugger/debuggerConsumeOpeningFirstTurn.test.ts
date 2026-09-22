@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CallSession, EngineHost } from "@airpc/rpg-engine";
-import { consumeDebuggerOpeningFirstTurn } from "@studio-v2/src/utils/server/debugger/session/debuggerConsumeOpeningFirstTurn.server";
+import { consumeDebuggerOpeningFirstTurn } from "@studio-v2/src/utils/server/debugger/session/callSession/debuggerConsumeOpeningFirstTurn.server";
 
 function sessionFixture(): CallSession {
 	return {

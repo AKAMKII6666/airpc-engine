@@ -129,14 +129,34 @@ export type SchemaEnginePanelProps = {
 	onToggleReport: () => void;
 };
 
+function renderSchemaKindTags(label: string, kinds: readonly string[]) {
+	return (
+		<>
+			{/* 引用了Typography组件，用于类型标签说明 */}
+			<Typography variant="caption" className={styles.prefLabel}>
+				{label}
+			</Typography>
+			<div className={styles.tagList}>
+				{kinds.map(function (k) {
+					return (
+						<span key={k} className={styles.tag}>
+							{k}
+						</span>
+					);
+				})}
+			</div>
+		</>
+	);
+}
+
 export const SchemaEnginePanel: FC<SchemaEnginePanelProps> = function ({
-	// status 是 Schema / 引擎兼容投影
+	// status 是 Schema / 引擎兼容投影，用于兼容卡片
 	status,
-	// issues 是校验报告条目
+	// issues 是校验报告条目，用于报告面板
 	issues,
-	// showReport 控制报告展开
+	// showReport 表示报告是否展开
 	showReport,
-	// onToggleReport 切换报告开合
+	// onToggleReport 用于切换报告开合
 	onToggleReport,
 }) {
 	return (
@@ -165,32 +185,8 @@ export const SchemaEnginePanel: FC<SchemaEnginePanelProps> = function ({
 							: "尚未同步"}
 					</span>
 				</div>
-				{/* 引用了Typography组件，用于 CallCard 类型标签说明 */}
-				<Typography variant="caption" className={styles.prefLabel}>
-					可用 CallCard 类型
-				</Typography>
-				<div className={styles.tagList}>
-					{status.availableCardKinds.map(function (k) {
-						return (
-							<span key={k} className={styles.tag}>
-								{k}
-							</span>
-						);
-					})}
-				</div>
-				{/* 引用了Typography组件，用于 Effect 类型标签说明 */}
-				<Typography variant="caption" className={styles.prefLabel}>
-					可用 Effect 类型
-				</Typography>
-				<div className={styles.tagList}>
-					{status.availableEffects.map(function (k) {
-						return (
-							<span key={k} className={styles.tag}>
-								{k}
-							</span>
-						);
-					})}
-				</div>
+				{renderSchemaKindTags("可用 CallCard 类型", status.availableCardKinds)}
+				{renderSchemaKindTags("可用 Effect 类型", status.availableEffects)}
 			</div>
 			<button
 				type="button"

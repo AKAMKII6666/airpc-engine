@@ -3,7 +3,7 @@
 	* 显示名 / 类型 / 简介；agentId 系统生成；创建后经 API 落盘。
 	*/
 import type { FormikErrors } from "formik";
-import type { AutoFormItem } from "@studio-v2/src/commonUiComponents/form/autoFormTypes";
+import type { AutoFormItem } from "@studio-v2/src/commonUiComponents/form/types/autoFormTypes";
 import type {
 	CharacterKind,
 	CharacterSummary,

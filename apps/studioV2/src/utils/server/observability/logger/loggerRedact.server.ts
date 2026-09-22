@@ -50,19 +50,22 @@ function errorToLogObject(error: Error): Record<string, unknown> {
 	};
 }
 
+/** 标量与其它非对象类型；字符串会脱敏并截断 */
+function redactScalar(value: unknown): unknown {
+	if (typeof value === "string") return trimString(value);
+	if (typeof value === "number" || typeof value === "boolean") return value;
+	if (value === null || typeof value === "undefined") return value;
+	if (typeof value === "bigint") return value.toString();
+	return String(value);
+}
+
 /** 递归脱敏任意日志 payload；返回值可安全 JSON 序列化 */
 export function redactForLog(value: unknown, depth = 0): unknown {
 	if (depth > MAX_DEPTH) return "[MaxDepth]";
 	if (value instanceof Error) return errorToLogObject(value);
-	if (typeof value === "string") return trimString(value);
-	if (typeof value === "number" || typeof value === "boolean" || value === null) {
-		return value;
-	}
-	if (typeof value === "bigint") return value.toString();
-	if (typeof value === "undefined") return undefined;
 	if (Array.isArray(value)) return redactArray(value, depth);
-	if (typeof value === "object") {
+	if (value !== null && typeof value === "object") {
 		return redactObject(value as Record<string, unknown>, depth);
 	}
-	return String(value);
+	return redactScalar(value);
 }

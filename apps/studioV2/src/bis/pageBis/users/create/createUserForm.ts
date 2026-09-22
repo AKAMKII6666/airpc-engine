@@ -3,7 +3,7 @@
 	* userId / createdAt / updatedAt 由系统生成；落盘见 createUser_bis。
 	*/
 import { createStudioId } from "@studio-v2/typeFiles/ids/createStudioId";
-import type { UserProfileSummary } from "@studio-v2/typeFiles/library/users/userProfileSummary";
+import type { UserProfileSummary } from "@studio-v2/typeFiles/library/users/summary/userProfileSummary";
 import { USER_EDITABLE_FORM_ITEMS } from "../form/userFormItems";
 import {
 	USER_FORM_INITIAL_VALUES,

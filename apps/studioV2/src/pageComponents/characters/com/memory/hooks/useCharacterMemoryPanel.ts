@@ -8,7 +8,7 @@ import type {
 	MemoryAttitudeListItemDto,
 	MemoryListItemDto,
 } from "@studio-v2/typeFiles/library/characters/memory/memoryReadModel";
-import type { DiskUserSummaryDto } from "@studio-v2/typeFiles/library/users/diskUserSummary";
+import type { DiskUserSummaryDto } from "@studio-v2/typeFiles/library/users/summary/diskUserSummary";
 import { useCharacterMemoryList } from "./useCharacterMemoryList";
 import { useCharacterMemoryUsers } from "./useCharacterMemoryUsers";
 

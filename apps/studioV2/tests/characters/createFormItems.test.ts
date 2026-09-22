@@ -2,7 +2,7 @@
 	* 创建弹窗 AutoForm items 契约：角色 / 资源 / 用户不再走 fields kind 主路径。
 	*/
 import { describe, expect, it } from "vitest";
-import { CREATE_ASSET_FORM_ITEMS } from "@studio-v2/src/bis/pageBis/assets/createAssetForm";
+import { CREATE_ASSET_FORM_ITEMS } from "@studio-v2/src/bis/pageBis/assets/create/createAssetForm";
 import { CREATE_CHARACTER_FORM_ITEMS } from "@studio-v2/src/bis/pageBis/characters/create/createCharacterForm";
 import { CREATE_USER_FORM_ITEMS } from "@studio-v2/src/bis/pageBis/users/create/createUserForm";
 

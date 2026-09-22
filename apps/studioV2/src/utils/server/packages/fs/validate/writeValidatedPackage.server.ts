@@ -18,7 +18,7 @@ import {
 	readDiskPackageConf,
 	writeDiskChapterBundle,
 } from "../package/packagesFs.server";
-import { rematerializeDuplicateEffectIds } from "../package/rematerializeDuplicateEffectIds.server";
+import { rematerializeDuplicateEffectIds } from "../package/rematerialize/rematerializeDuplicateEffectIds.server";
 
 export type WriteValidatedChapterInput = {
 	conf: unknown;

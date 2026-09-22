@@ -19,6 +19,7 @@ import {
 import { deleteFreeCardJson } from "@studio-v2/src/utils/server/characters/freeCards/freeCardsFs.server";
 import { findTimeBucketsRejectReason } from "@studio-v2/src/utils/server/characters/timeBucketsReject.server";
 import { reloadStudioV2WorkspaceIfBooted } from "@studio-v2/src/utils/server/host/engineHost.server";
+import { failFromUnknown, readFreeCardIdForDelete } from "./route.helpers";
 
 export async function GET(
 	_req: Request,
@@ -39,15 +40,7 @@ export async function GET(
 		}
 		return apiOk({ character: parsed.data });
 	} catch (err) {
-		const code =
-			err && typeof err === "object" && "code" in err
-				? String((err as { code: string }).code)
-				: "ENGINE_INTERNAL";
-		return apiFail(
-			code,
-			err instanceof Error ? err.message : String(err),
-			httpStatusForCode(code),
-		);
+		return failFromUnknown(err);
 	}
 }
 
@@ -97,19 +90,7 @@ export async function DELETE(
 	try {
 		const { agentId } = await ctx.params;
 		// 先读 freeCardId，删角色 JSON 前幂等清 Free 卡文件
-		let freeCardId: string | undefined;
-		try {
-			const raw = await readCharacterJson(agentId);
-			if (
-				typeof raw === "object" &&
-				raw !== null &&
-				typeof (raw as { freeCardId?: unknown }).freeCardId === "string"
-			) {
-				freeCardId = (raw as { freeCardId: string }).freeCardId;
-			}
-		} catch {
-			freeCardId = undefined;
-		}
+		const freeCardId = await readFreeCardIdForDelete(agentId);
 		await deleteCharacterJson(agentId);
 		if (freeCardId) {
 			await deleteFreeCardJson(freeCardId);
@@ -117,14 +98,6 @@ export async function DELETE(
 		await reloadStudioV2WorkspaceIfBooted();
 		return apiOk({ ok: true });
 	} catch (err) {
-		const code =
-			err && typeof err === "object" && "code" in err
-				? String((err as { code: string }).code)
-				: "ENGINE_INTERNAL";
-		return apiFail(
-			code,
-			err instanceof Error ? err.message : String(err),
-			httpStatusForCode(code),
-		);
+		return failFromUnknown(err);
 	}
 }

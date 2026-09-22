@@ -4,7 +4,7 @@
 import {
 	diskSummaryToPackageSummary,
 	sortPackagesStartupFirst,
-} from "@studio-v2/src/bis/pageBis/packages/diskSummaryMapper";
+} from "@studio-v2/src/bis/pageBis/packages/mappers/diskSummaryMapper";
 import { fetchDiskStoryPackagesList } from "@studio-v2/src/utils/ajaxProxy/packages/api/storiesApi";
 import type { StoryPackageSummary } from "@studio-v2/typeFiles/story/summary/storyPackageSummary";
 

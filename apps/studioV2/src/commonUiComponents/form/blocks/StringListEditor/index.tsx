@@ -5,14 +5,14 @@
 "use client";
 
 import type { FC } from "react";
-import { Button, IconButton, TextField } from "@mui/material";
 import { FormFieldShell } from "../../FormFieldShell";
 import type { FormBoundFieldProps } from "../../fields/types/formBoundTypes";
 import {
 	readFormikFieldError,
 	readFormikFieldRaw,
 } from "../../fields/formBoundFieldProps";
-import styles from "./index.module.scss";
+// 引用了StringListPanel组件，用于多行编辑与添加
+import { StringListPanel } from "./com/StringListPanel";
 
 function asStringList(raw: unknown): string[] {
 	if (!Array.isArray(raw)) return [];
@@ -69,48 +69,14 @@ export const FormStringListEditor: FC<
 			helperText={helperText}
 			watchText={watchText}
 		>
-			<ul className={styles.list}>
-				{list.map((line, index) => (
-					<li key={`${name}-${index}`} className={styles.row}>
-						{/* 引用了TextField组件，用于单行样例句编辑 */}
-						<TextField
-							value={line}
-							onChange={(e) => {
-								const next = list.slice();
-								next[index] = e.target.value;
-								writeList(next);
-							}}
-							size="small"
-							fullWidth
-							disabled={disabled}
-							placeholder={`第 ${index + 1} 行`}
-							inputProps={{ "aria-label": `${label} 第 ${index + 1} 行` }}
-						/>
-						{/* 引用了IconButton组件，用于删除本行 */}
-						<IconButton
-							type="button"
-							size="small"
-							disabled={disabled}
-							aria-label={`删除第 ${index + 1} 行`}
-							onClick={() => {
-								writeList(list.filter((_, i) => i !== index));
-							}}
-						>
-							×
-						</IconButton>
-					</li>
-				))}
-			</ul>
-			{/* 引用了Button组件，用于追加空行 */}
-			<Button
-				type="button"
-				size="small"
-				variant="outlined"
+			{/* 引用了StringListPanel组件，用于多行编辑与添加 */}
+			<StringListPanel
+				name={name}
+				list={list}
+				label={label}
 				disabled={disabled}
-				onClick={() => writeList([...list, ""])}
-			>
-				添加一行
-			</Button>
+				onWriteList={writeList}
+			/>
 		</FormFieldShell>
 	);
 };

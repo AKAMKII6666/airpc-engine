@@ -1,9 +1,12 @@
 "use client";
 
 import type { FC, KeyboardEvent } from "react";
-import { Button, TextField, Tooltip } from "@mui/material";
+import { TextField } from "@mui/material";
 import styles from "../container/DebuggerChat.module.scss";
 import type { DebuggerChatStatus } from "../../stream/reduce/debuggerChatStreamReducer";
+// 引用了DebuggerChatComposerSendButton组件，用于发送/中断
+import { DebuggerChatComposerSendButton } from "./DebuggerChatComposerSendButton";
+import { composerPlaceholder } from "./composerPlaceholder";
 
 export type DebuggerChatComposerProps = {
 	draft: string;
@@ -39,7 +42,6 @@ export const DebuggerChatComposer: FC<DebuggerChatComposerProps> =
 			onSend();
 		}
 
-		const buttonLabel = isBusy ? "中断回复" : "发送消息";
 		return (
 			<div className={styles.composer}>
 				<div className={styles.composerRow}>
@@ -52,35 +54,20 @@ export const DebuggerChatComposer: FC<DebuggerChatComposerProps> =
 						fullWidth
 						value={draft}
 						disabled={disabled || isBusy}
-						placeholder={
-							disabled
-								? "对方已挂断，无法继续发送"
-								: isBusy
-									? "正在回复消息，请稍候..."
-									: "输入玩家在通话中说的话..."
-						}
+						placeholder={composerPlaceholder(disabled, isBusy)}
 						onChange={function (event) {
 							onDraftChange(event.target.value);
 						}}
 						onKeyDown={handleKeyDown}
 					/>
-					{/* 引用了Tooltip组件，用于展示发送/中断按钮提示 */}
-					<Tooltip title={buttonLabel}>
-						<span>
-							{/* 引用了Button组件，用于发送消息或中断回复 */}
-							<Button
-								variant="contained"
-								color={isBusy ? "warning" : "primary"}
-								disabled={disabled || (!isBusy && draft.trim().length === 0)}
-								onClick={function () {
-									if (isBusy) onAbort();
-									else onSend();
-								}}
-							>
-								{isBusy ? "中断" : "发送"}
-							</Button>
-						</span>
-					</Tooltip>
+					{/* 引用了DebuggerChatComposerSendButton组件，用于发送或中断 */}
+					<DebuggerChatComposerSendButton
+						isBusy={isBusy}
+						disabled={disabled}
+						canSend={draft.trim().length > 0}
+						onSend={onSend}
+						onAbort={onAbort}
+					/>
 				</div>
 				<div className={styles.footer}>
 					<span>

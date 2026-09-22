@@ -106,6 +106,40 @@ function runWindowOnly(
 	return db.prepare(sql).all(...params) as EntryRow[];
 }
 
+/** 按 text / 时间窗 / FTS 可用性选查询路径；FTS 零命中降级 LIKE。 */
+function selectSearchRows(
+	db: SqlDb,
+	ftsReady: boolean,
+	input: MemorySearchQuery,
+	textQ: string,
+	hasText: boolean,
+	hasWindow: boolean,
+	internalLimit: number,
+): EntryRow[] {
+	if (!hasText) {
+		return runWindowOnly(db, input, internalLimit);
+	}
+	if (!ftsReady) {
+		return runLike(db, input, textQ, internalLimit);
+	}
+	const ftsQ = escapeFtsQuery(textQ);
+	if (!ftsQ && !hasWindow) {
+		throw engineError(
+			"VALIDATION_FAILED",
+			"textQuery too short/invalid for FTS",
+			{ rule: "MEMORY_SEARCH_REJECT" },
+		);
+	}
+	if (!ftsQ) {
+		return [];
+	}
+	const rows = runFts(db, input, ftsQ, internalLimit);
+	if (rows.length === 0) {
+		return runLike(db, input, textQ, internalLimit);
+	}
+	return rows;
+}
+
 /** 冷召回：须 textQuery 或时间窗；FTS 零命中降级 LIKE。 */
 export async function searchMemory(
 	db: SqlDb,
@@ -124,28 +158,15 @@ export async function searchMemory(
 	}
 	const maxResults = clampMaxResults(input.maxResults);
 	const internalLimit = Math.min(Math.max(maxResults * 5, maxResults), 50);
-	let rows: EntryRow[] = [];
-
-	if (hasText && ftsReady) {
-		const ftsQ = escapeFtsQuery(textQ);
-		if (!ftsQ && !hasWindow) {
-			throw engineError(
-				"VALIDATION_FAILED",
-				"textQuery too short/invalid for FTS",
-				{ rule: "MEMORY_SEARCH_REJECT" },
-			);
-		}
-		if (ftsQ) {
-			rows = runFts(db, input, ftsQ, internalLimit);
-			if (rows.length === 0) {
-				rows = runLike(db, input, textQ, internalLimit);
-			}
-		}
-	} else if (hasText) {
-		rows = runLike(db, input, textQ, internalLimit);
-	} else {
-		rows = runWindowOnly(db, input, internalLimit);
-	}
+	const rows = selectSearchRows(
+		db,
+		ftsReady,
+		input,
+		textQ,
+		hasText,
+		hasWindow,
+		internalLimit,
+	);
 
 	return rows.slice(0, maxResults).map(function (r) {
 		return {

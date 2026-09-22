@@ -9,9 +9,9 @@ import type {
 	DebuggerValidatePackagesLoadResult,
 	DebuggerValidateRunResult,
 } from "@studio-v2/typeFiles/debugger/store/debuggerStoreState";
-import type { DebuggerMailboxSnapshot } from "@studio-v2/typeFiles/debugger/mailboxView";
-import type { DebuggerCallSessionView } from "@studio-v2/typeFiles/debugger/callSession";
-import type { DebuggerPostCallJobView } from "@studio-v2/typeFiles/debugger/callSession";
+import type { DebuggerMailboxSnapshot } from "@studio-v2/typeFiles/debugger/mailbox/mailboxView";
+import type { DebuggerCallSessionView } from "@studio-v2/typeFiles/debugger/callSession/callSession";
+import type { DebuggerPostCallJobView } from "@studio-v2/typeFiles/debugger/callSession/callSession";
 import type { StoryPackageSummary } from "@studio-v2/typeFiles/story/summary/storyPackageSummary";
 import type { ValidationReport } from "@studio-v2/typeFiles/story/validate/engineValidation";
 

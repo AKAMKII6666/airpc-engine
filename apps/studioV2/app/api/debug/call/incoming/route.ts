@@ -7,13 +7,13 @@ import {
 	apiOk,
 	httpStatusForCode,
 } from "@studio-v2/src/utils/server/http/apiResponse.server";
-import { ServerLlmError } from "@studio-v2/src/utils/server/llm/llmClient.server";
+import { ServerLlmError } from "@studio-v2/src/utils/server/llm/client/llmClient.server";
 import {
 	acceptDebuggerIncomingCall,
 	listDebuggerIncomingCalls,
 	rejectDebuggerIncomingCall,
 	type DebuggerIncomingCallCommandInput,
-} from "@studio-v2/src/utils/server/debugger/session/debuggerIncomingCall.server";
+} from "@studio-v2/src/utils/server/debugger/session/incoming/debuggerIncomingCall.server";
 import { writeStudioLog } from "@studio-v2/src/utils/server/observability/logger/pinoLogger.server";
 
 type IncomingPostBody = DebuggerIncomingCallCommandInput & {

@@ -7,7 +7,7 @@ import {
 	apiOk,
 	httpStatusForCode,
 } from "@studio-v2/src/utils/server/http/apiResponse.server";
-import { listDebuggerDialableRoles } from "@studio-v2/src/utils/server/debugger/session/debuggerDialableRoles.server";
+import { listDebuggerDialableRoles } from "@studio-v2/src/utils/server/debugger/session/dialable/debuggerDialableRoles.server";
 
 function handleDebuggerRolesError(err: unknown): Response {
 	if (isEngineError(err)) {

@@ -16,33 +16,41 @@ import {
 } from "./hooks/usePackageListPage";
 import styles from "./PackageListView.module.scss";
 
+function renderPackageListHeader(
+	list: ReturnType<typeof usePackageListPage>,
+) {
+	return (
+		<header className={styles.header}>
+			<div>
+				{/* 引用了Typography组件，用于页标题 */}
+				<Typography variant="h5" component="h1" className={styles.title}>
+					故事包
+				</Typography>
+				{/* 引用了Typography组件，用于页说明 */}
+				<Typography variant="body2" className={styles.sub}>
+					管理章节工程：列表来自磁盘扫描。每个故事包的首入口在包内章节列表中设定。
+				</Typography>
+			</div>
+			<div className={styles.actions}>
+				{/* 引用了Button组件，用于打开导入弹层 */}
+				<Button variant="outlined" onClick={() => list.setImportOpen(true)}>
+					导入故事包
+				</Button>
+				{/* 引用了Button组件，用于打开新建 FormModal */}
+				<Button variant="contained" onClick={() => list.setCreateOpen(true)}>
+					新建故事包
+				</Button>
+			</div>
+		</header>
+	);
+}
+
 export const PackageListView: FC = function PackageListView() {
 	const list = usePackageListPage();
 
 	return (
 		<main className={styles.root}>
-			<header className={styles.header}>
-				<div>
-					{/* 引用了Typography组件，用于页标题 */}
-					<Typography variant="h5" component="h1" className={styles.title}>
-						故事包
-					</Typography>
-					{/* 引用了Typography组件，用于页说明 */}
-					<Typography variant="body2" className={styles.sub}>
-						管理章节工程：列表来自磁盘扫描。每个故事包的首入口在包内章节列表中设定。
-					</Typography>
-				</div>
-				<div className={styles.actions}>
-					{/* 引用了Button组件，用于打开导入弹层 */}
-					<Button variant="outlined" onClick={() => list.setImportOpen(true)}>
-						导入故事包
-					</Button>
-					{/* 引用了Button组件，用于打开新建 FormModal */}
-					<Button variant="contained" onClick={() => list.setCreateOpen(true)}>
-						新建故事包
-					</Button>
-				</div>
-			</header>
+			{renderPackageListHeader(list)}
 
 			{list.loadError ? (
 				// 引用了Alert组件，用于列表加载失败

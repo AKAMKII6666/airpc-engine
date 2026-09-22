@@ -15,7 +15,7 @@ import type {
   ResolveResult,
   SaveReason,
 } from "./types.js";
-import type { PlayerProfile } from "../schema/profile.js";
+import type { PlayerProfile } from "../schema/identity/profile.js";
 import {
   getFreeCard,
   lookupCharacterSideCard,
@@ -27,42 +27,41 @@ import {
   loadProfileViaPort,
   reloadProfileViaPort,
   saveProfileViaPort,
-} from "./profileViaPort.js";
-import { loadWorkspaceViaPort } from "./contentViaPort.js";
-import { buildComposeScene } from "../runtime/composeScene.js";
-import { composeBeginCallRenderedPrompt } from "./composeBeginCallRenderedPrompt.js";
-import { pushCapabilityPackBootstrapEvents } from "./pushCapabilityPackBootstrapEvents.js";
-import { resolveCapabilityPackHostBindings } from "./resolveCapabilityPackHostBindings.js";
-import { buildBeginCallScheduleHints } from "./buildBeginCallScheduleHints.js";
-import { isEffectiveDialable } from "../schema/character.js";
+} from "./viaPort/profileViaPort.js";
+import { loadWorkspaceViaPort } from "./viaPort/contentViaPort.js";
+import { buildComposeScene } from "../runtime/prompt/compose/composeScene.js";
+import { composeBeginCallRenderedPrompt } from "./beginCall/prompt/composeBeginCallRenderedPrompt.js";
+import { pushCapabilityPackBootstrapEvents } from "./capabilityBootstrap/pushCapabilityPackBootstrapEvents.js";
+import { resolveCapabilityPackHostBindings } from "./capabilityBootstrap/resolveCapabilityPackHostBindings.js";
+import { buildBeginCallScheduleHints } from "./beginCall/hints/buildBeginCallScheduleHints.js";
+import { isEffectiveDialable } from "../schema/identity/character.js";
 import {
 	resolvePendingStoryCard,
 	selectPendingStoryCardInstance,
-} from "../runtime/resolvePendingStoryCard.js";
-import { cardForBeginCall } from "../runtime/voicemail/cardForBeginCall.js";
+} from "../runtime/classify/pending/resolvePendingStoryCard.js";
+import { cardForBeginCall } from "../runtime/voicemail/begin/cardForBeginCall.js";
 import {
   evaluateStoryLockGate,
   findActiveStoryLock,
   type StoryLockIntentKind,
-} from "../runtime/activeStoryLock.js";
+} from "../runtime/lock/activeStoryLock.js";
 import {
   maybeActivateStoryOnBegin,
   sessionIsFreeLike,
-} from "./callNarrativeGate.js";
+} from "./beginCall/gate/callNarrativeGate.js";
 import { FREE_CHAPTER_ID } from "../constants.js";
 import type { MemoryPort } from "../memory/types.js";
+import type { EngineHost, LoadWorkspaceOptions } from "../ports/host/engineHostSurface.js";
 import {
-  createHostPushLog,
-  createInjectedPortAccessorsFromOptions,
-  resolveOptionalPort,
-  type CreateEngineHostOptions,
-  type EngineHost,
-  type LoadWorkspaceOptions,
-} from "../ports/engineHostApi.js";
+	createHostPushLog,
+	createInjectedPortAccessorsFromOptions,
+	resolveOptionalPort,
+	type CreateEngineHostOptions,
+} from "../ports/host/createEngineHostOptions.js";
 import type { ToolInvokeResult } from "../tools/types.js";
-import { DEFAULT_TOOL_REGISTRY } from "../tools/toolRegistry.js";
-import { prepareCallTools } from "../tools/prepareCallTools.js";
-import { invokeRegisteredTool } from "../tools/invokeRegisteredTool.js";
+import { DEFAULT_TOOL_REGISTRY } from "../tools/registry/toolRegistry.js";
+import { prepareCallTools } from "../tools/prepare/prepareCallTools.js";
+import { invokeRegisteredTool } from "../tools/invoke/invokeRegisteredTool.js";
 import { createShellControlApi } from "./shellControl/createShellControlApi.js";
 import { createOutboundShellApi } from "./outbound/createOutboundShellApi.js";
 import { createDispatchingScheduleClockApi } from "./outbound/createDispatchingScheduleClockApi.js";
@@ -70,43 +69,40 @@ import {
   validatePackage as runValidatePackage,
 } from "../validation/validatePackage.js";
 import type { ValidationReport } from "../validation/types.js";
-import { createScheduleClockApi } from "./createScheduleClockApi.js";
-import { consumeLinkedOnceIntent } from "../runtime/scheduleTick.js";
-import type { EffectSink } from "../runtime/effectSink.js";
-import { createNoopEffectSink } from "../runtime/effectSink.js";
-import { resolveMailboxOpenIntent } from "../runtime/voicemail/resolveMailboxOpen.js";
-import { createEndCallHandler } from "./endCallWithPostCallJob.js";
-import { createPostCallJobHostApi } from "./postCallJobHostApi.js";
+import { createScheduleClockApi } from "./scheduleClock/createScheduleClockApi.js";
+import { consumeLinkedOnceIntent } from "../runtime/schedule/scheduleTick.js";
+import type { EffectSink } from "../runtime/effect/effectSink.js";
+import { createNoopEffectSink } from "../runtime/effect/effectSink.js";
+import { resolveMailboxOpenIntent } from "../runtime/voicemail/mailbox/resolveMailboxOpen.js";
+import { createEndCallHandler } from "./endCall/endCallWithPostCallJob.js";
+import { createPostCallJobHostApi } from "./postCallJob/api/postCallJobHostApi.js";
 import {
   ACTIVE_POST_CALL_STATUSES,
   createPostCallJobRuntime,
-} from "./postCallJobRuntime.js";
+} from "./postCallJob/runtime/postCallJobRuntime.js";
 import {
   redactLogRecord,
   readLogFileSliceViaPort,
   queryWetViaPort,
-} from "./engineLogViaPort.js";
+} from "./viaPort/engineLogViaPort.js";
 import {
   buildWetAppendRecord,
   buildWetReplayView,
   validateWetAppend,
-} from "./wet.js";
+} from "./wet/wet.js";
 import {
   selectCallFlowPrompt,
   type CallFlowSimEventKind,
-} from "../runtime/selectCallFlowPrompt.js";
+} from "../runtime/prompt/blocks/selectCallFlowPrompt.js";
 import { bootstrapLoreOntoProfile } from "../lore/bootstrapLore.js";
 import { resolveChapterId } from "../chapter/resolveChapterId.js";
 import {
   buildSessionConversationInertia,
   readPersistedConversationInertia,
-} from "./conversationInertiaStore.js";
+} from "./beginCall/inertia/conversationInertiaStore.js";
 
-export type {
-  CreateEngineHostOptions,
-  EngineHost,
-  LoadWorkspaceOptions,
-} from "../ports/engineHostApi.js";
+export type { CreateEngineHostOptions } from "../ports/host/createEngineHostOptions.js";
+export type { EngineHost, LoadWorkspaceOptions } from "../ports/host/engineHostSurface.js";
 
 const ACTIVE_STATUSES = new Set<CallSession["status"]>([
   "resolving",

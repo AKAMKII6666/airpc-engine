@@ -3,9 +3,9 @@
  * 模块说明：由 ContentPort.loadWorkspaceSnapshot 投影而来；引擎不再直读 fs。
  * 按需读故事卡经 ContentPort.readCard（见 loadCardViaPort）。
  */
-import type { CallCardDefinition, ChapterConf } from "../schema/callCard.js";
-import type { CharacterDef } from "../schema/character.js";
-import type { WorkspaceSnapshot } from "../ports/contentPort.js";
+import type { CallCardDefinition, ChapterConf } from "../schema/call/callCard.js";
+import type { CharacterDef } from "../schema/identity/character.js";
+import type { WorkspaceSnapshot } from "../ports/persist/contentPort.js";
 import { engineError, type EngineError } from "../host/errors.js";
 import { FREE_CHAPTER_ID, SCHEDULE_CHAPTER_ID } from "../constants.js";
 

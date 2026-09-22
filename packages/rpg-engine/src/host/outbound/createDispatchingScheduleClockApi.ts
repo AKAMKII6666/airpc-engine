@@ -2,7 +2,7 @@
  * 模块名称：带外呼派发的 schedule clock API
  */
 import { isEngineError } from "../errors.js";
-import type { EngineHost } from "../../ports/engineHostApi.js";
+import type { EngineHost } from "../../ports/host/engineHostSurface.js";
 import type { OutboundShellApi } from "./createOutboundShellApi.js";
 
 type ScheduleClockApi = Pick<

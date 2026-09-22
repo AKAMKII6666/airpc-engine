@@ -2,8 +2,8 @@
 	* 属性浮窗 AutoForm items：基本 / context / promptScenes / toolPolicy / schedule。
 	* 从 nodePropertyForm 拆出，避免编排表与 values 合并超行数告警。
 	*/
-import type { AutoFormItem } from "@studio-v2/src/commonUiComponents/form/autoFormTypes";
-import type { FormSelectOption } from "@studio-v2/src/commonUiComponents/form/formTypes";
+import type { AutoFormItem } from "@studio-v2/src/commonUiComponents/form/types/autoFormTypes";
+import type { FormSelectOption } from "@studio-v2/src/commonUiComponents/form/types/formTypes";
 import type { CardKind } from "@studio-v2/typeFiles/story/callCard/engineCallCard";
 import {
 	cardKindOptionsForStoryPackage,
@@ -12,6 +12,9 @@ import {
 	SCHEDULE_MODE_OPTIONS,
 	TOOL_POLICY_MODE_OPTIONS,
 } from "@studio-v2/typeFiles/story/callCardLabels";
+import { buildNodeContextItems } from "./nodePropertyFormItemsContext.helpers";
+
+export { buildNodeContextItems };
 
 /** 标题单独一项：浮窗里排在归属角色之上 */
 export const NODE_TITLE_ITEMS: AutoFormItem[] = [
@@ -67,91 +70,6 @@ export function buildNodeBasicItems(
 
 /** 静态默认项（非 voicemail）；运行时请用 buildNodeBasicItems(cardKind, …) */
 export const NODE_BASIC_ITEMS: AutoFormItem[] = buildNodeBasicItems("story");
-
-/**
-	* context 标量与列表（不含 promptScenes）。
-	* voicemail：只留本轮目标（留言按该提示词生成）；不选手动播放片段。
-	*/
-export function buildNodeContextItems(
-	clipOptions: readonly FormSelectOption[],
-	cardKind: CardKind = "story",
-): AutoFormItem[] {
-	const playbackOptions: FormSelectOption[] = [
-		{ value: "", label: "（未设）" },
-		...clipOptions,
-	];
-	const playbackItem: AutoFormItem = {
-		name: "context.playbackClipId",
-		label: "播放片段",
-		comType: "Select",
-		options: playbackOptions,
-		helperText:
-			clipOptions.length === 0
-				? "资源库暂无资产；请先在资源浮窗或资源库新建。"
-				: "候选来自 /api/assets；空表示未设 playbackClipId。",
-	};
-	if (cardKind === "voicemail") {
-		return [
-			{
-				name: "context.objective",
-				label: "本轮目标",
-				comType: "AutoTextArea",
-				minRows: 2,
-				helperText:
-					"留言内容按此提示词生成；出口在下方「出口列表」配置。",
-			},
-		];
-	}
-	return [
-		{
-			name: "context.objective",
-			label: "本轮目标",
-			comType: "AutoTextArea",
-			minRows: 2,
-			helperText: "对应 CallCard context.objective。",
-		},
-		{
-			name: "context.privateBrief",
-			label: "私密提要",
-			comType: "AutoTextArea",
-			minRows: 2,
-		},
-		{
-			name: "context.speakableBrief",
-			label: "可说提要",
-			comType: "AutoTextArea",
-			minRows: 2,
-		},
-		{
-			name: "context.background",
-			label: "背景",
-			comType: "AutoTextArea",
-			minRows: 2,
-		},
-		{
-			name: "context.premise",
-			label: "前提",
-			comType: "AutoTextArea",
-			minRows: 2,
-		},
-		{
-			name: "context.emotion",
-			label: "情绪",
-			comType: "TextField",
-		},
-		playbackItem,
-		{
-			name: "context.forbidden",
-			label: "禁说项",
-			comType: "StringListEditor",
-		},
-		{
-			name: "objectives.requiredBeats",
-			label: "必达节拍",
-			comType: "StringListEditor",
-		},
-	];
-}
 
 /** 无资产候选时的静态兜底；运行时请用 buildNodeContextItems(clips, cardKind) */
 export const NODE_CONTEXT_ITEMS: AutoFormItem[] = buildNodeContextItems([]);

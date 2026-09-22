@@ -7,10 +7,10 @@ import type {
 	DiskPackageContainer,
 } from "@studio-v2/typeFiles/story/package/diskStoryPackage";
 import type { ImportPrecheckReport } from "@studio-v2/typeFiles/story/transfer/packageTransfer";
-import {
-	STORYPACK_FORMAT_ID,
-	type StorypackFileV1,
-} from "@studio-v2/typeFiles/story/transfer/storypackFile";
+import type { StorypackFileV1 } from "@studio-v2/typeFiles/story/transfer/storypackFile";
+import { parseStorypackJsonText } from "./importPrecheckParse.helpers";
+
+export { parseStorypackJsonText } from "./importPrecheckParse.helpers";
 
 /** 预检成功时携带待导入载荷，供确认步提交 */
 export type ImportPrecheckOk = {
@@ -38,14 +38,6 @@ export type ImportPrecheckFail = {
 
 /** 预检联合结果；成功与失败互斥 */
 export type ImportPrecheckOutcome = ImportPrecheckOk | ImportPrecheckFail;
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-	return value !== null && typeof value === "object";
-}
-
-type ParsedStorypack =
-	| { kind: "container"; container: DiskPackageContainer }
-	| { kind: "legacy"; bundle: DiskChapterBundle; packageId: string };
 
 type PrecheckStats = {
 	packageId: string;
@@ -100,92 +92,6 @@ function resolvePrecheckStats(file: StorypackFileV1): PrecheckStats {
 		return collectLegacyPrecheckStats(file.bundle);
 	}
 	throw new Error("交换文件缺少有效载荷");
-}
-
-function parseStorypackRaw(raw: Record<string, unknown>): ParsedStorypack {
-	if (isRecord(raw.container)) {
-		const container = raw.container as DiskPackageContainer;
-		const packageId = container.packageConf?.packageId;
-		if (typeof packageId !== "string" || packageId.trim() === "") {
-			throw new Error("container.packageConf.packageId 缺失");
-		}
-		if (!Array.isArray(container.chapters) || container.chapters.length === 0) {
-			throw new Error("container.chapters 须为非空数组");
-		}
-		return { kind: "container", container };
-	}
-
-	if (!isRecord(raw.bundle)) {
-		throw new Error("交换文件缺少 container 或 bundle");
-	}
-	const bundle = raw.bundle as DiskChapterBundle;
-	const conf = bundle.conf;
-	const chapterId =
-		typeof conf.chapterId === "string" && conf.chapterId.trim() !== ""
-			? conf.chapterId.trim()
-			: typeof conf.packageId === "string" && conf.packageId.trim() !== ""
-				? conf.packageId.trim()
-				: "";
-	if (chapterId === "") {
-		throw new Error("bundle.conf.chapterId 缺失");
-	}
-	if (!Array.isArray(bundle.cards)) {
-		throw new Error("bundle.cards 须为数组");
-	}
-	const packageId =
-		typeof raw.packageId === "string" && raw.packageId.trim() !== ""
-			? raw.packageId.trim()
-			: chapterId;
-	return { kind: "legacy", bundle, packageId };
-}
-
-/**
-	* 从用户选择的文本解析交换文件；支持 v2 container 或 legacy bundle。
-	*/
-export function parseStorypackJsonText(text: string): StorypackFileV1 {
-	let raw: unknown;
-	try {
-		raw = JSON.parse(text) as unknown;
-	} catch {
-		throw new Error("不是合法 JSON，请选择 .storypack.json 导出文件");
-	}
-	if (!isRecord(raw)) {
-		throw new Error("交换文件顶层须为对象");
-	}
-	if (raw.format !== STORYPACK_FORMAT_ID) {
-		throw new Error(
-			`不支持的交换格式（期望 ${STORYPACK_FORMAT_ID}）`,
-		);
-	}
-	const parsed = parseStorypackRaw(raw);
-	if (parsed.kind === "container") {
-		return {
-			format: STORYPACK_FORMAT_ID,
-			exportedAt:
-				typeof raw.exportedAt === "string"
-					? raw.exportedAt
-					: new Date().toISOString(),
-			kind:
-				raw.kind === "formal" ||
-				raw.kind === "debug" ||
-				raw.kind === "source"
-					? raw.kind
-					: "source",
-			container: parsed.container,
-		};
-	}
-	return {
-		format: STORYPACK_FORMAT_ID,
-		exportedAt:
-			typeof raw.exportedAt === "string"
-				? raw.exportedAt
-				: new Date().toISOString(),
-		kind:
-			raw.kind === "formal" || raw.kind === "debug" || raw.kind === "source"
-				? raw.kind
-				: "source",
-		bundle: parsed.bundle,
-	};
 }
 
 /**

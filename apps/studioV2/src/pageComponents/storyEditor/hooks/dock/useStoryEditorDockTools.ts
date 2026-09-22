@@ -9,7 +9,7 @@ import {
 	activeDockToolIdFromState,
 	reduceDockToolClick,
 } from "@studio-v2/src/bis/pageBis/storyEditor/dock/dockToolMode";
-import type { StoryCanvasStageApi } from "@studio-v2/src/pageComponents/storyEditor/canvas/storyCanvasTypes";
+import type { StoryCanvasStageApi } from "@studio-v2/src/pageComponents/storyEditor/canvas/stage/storyCanvasTypes";
 import type {
 	DockToolId,
 	DockToolModeState,

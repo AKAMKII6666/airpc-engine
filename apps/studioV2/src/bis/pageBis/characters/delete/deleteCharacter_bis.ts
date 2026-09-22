@@ -1,7 +1,7 @@
 /**
 	* 删除角色：经 API 删除 data/characters/<agentId>.json。
 	*/
-import { deleteCharacterDef } from "@studio-v2/src/utils/ajaxProxy/library/api/charactersApi";
+import { deleteCharacterDef } from "@studio-v2/src/utils/ajaxProxy/library/api/characters/charactersApi";
 
 /**
 	* 删除写盘成功后的回执：供列表移除选中态；不回滚 Memory/Profile。

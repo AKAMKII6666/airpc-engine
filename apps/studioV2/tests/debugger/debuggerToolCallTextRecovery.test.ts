@@ -6,7 +6,7 @@ import {
 	parseQwenXmlToolCallsFromText,
 	recoverToolCallsFromAssistantText,
 	stripQwenXmlToolCalls,
-} from "@studio-v2/src/utils/server/debugger/session/debuggerToolCallTextRecovery.server";
+} from "@studio-v2/src/utils/server/debugger/session/toolCalling/debuggerToolCallTextRecovery.server";
 
 describe("debuggerToolCallTextRecovery", () => {
 	it("parses qwen xml-ish tool calls from assistant text", () => {

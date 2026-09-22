@@ -10,8 +10,8 @@ import {
   FREE_CHAPTER_ID,
   isEngineError,
 } from "../../src/index.js";
-import type { RegisterExitContext } from "../../src/tools/expandExitEffects.js";
-import { expandRegisterExitEffects } from "../../src/tools/expandExitEffects.js";
+import type { RegisterExitContext } from "../../src/tools/prepare/expandExitEffects.js";
+import { expandRegisterExitEffects } from "../../src/tools/prepare/expandExitEffects.js";
 import { copyDataTree, createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(

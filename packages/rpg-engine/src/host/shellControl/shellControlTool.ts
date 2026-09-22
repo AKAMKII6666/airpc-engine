@@ -9,7 +9,7 @@ import type {
 	ShellControlToolId,
 	ShellControlToolResult,
 } from "./shellControlTypes.js";
-import type { HangupReasonKind } from "../../schema/callCard.js";
+import type { HangupReasonKind } from "../../schema/call/callCard.js";
 
 export function isShellControlToolId(toolId: string): toolId is ShellControlToolId {
 	return toolId === "request_hangup";

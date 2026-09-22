@@ -6,7 +6,7 @@ import {
 	pickUsersSelectedId,
 	useUsersStore,
 } from "@studio-v2/src/stores/users/usersStore";
-import type { UserProfileSummary } from "@studio-v2/typeFiles/library/users/userProfileSummary";
+import type { UserProfileSummary } from "@studio-v2/typeFiles/library/users/summary/userProfileSummary";
 
 function summary(userId: string, nickname = userId): UserProfileSummary {
 	return {

@@ -1,0 +1,184 @@
+/**
+ * 模块名称：voicemail attach / schedule / once 到点分流
+ * 模块说明：Effect 入栈与 schedule tick 入栈；禁止 Board / agent_outbound。
+ * 需求：语音留言改造 §3.3；执行索引 V2-VM-4 / V2-VM-5
+ */
+import { randomUUID } from "node:crypto";
+import { resolveChapterId } from "../../../../chapter/resolveChapterId.js";
+import { FREE_CHAPTER_ID } from "../../../../constants.js";
+import type { CallSession } from "../../../../host/types.js";
+import type { Effect } from "../../../../schema/call/outcome.js";
+import type { PlayerProfile } from "../../../../schema/identity/profile.js";
+import type { ScheduledCardLookup } from "../../../../schedule/scheduleCardReferenceResolver.js";
+import {
+	isLookupVoicemailCard,
+	pushVoicemailGenStack,
+	VOICEMAIL_MAILBOX_DELIVERY,
+} from "../gen/voicemailGenStack.js";
+
+export type VoicemailAttachCtx = {
+	profile: PlayerProfile;
+	session: CallSession;
+	nowIso: string;
+	lookupCard?: ScheduledCardLookup | null;
+};
+
+export type VoicemailScheduleCtx = {
+	profile: PlayerProfile;
+	nowIso: string;
+	lookupCard?: ScheduledCardLookup | null;
+};
+
+export type VoicemailOnceIntentRef = {
+	intentId: string;
+	agentId: string;
+	cardId: string;
+	chapterId: string;
+	topicHint?: string;
+	delivery?: string;
+};
+
+function resolveAttachPackageId(
+	effect: Effect,
+	session: CallSession,
+): string {
+	const fromEffect = resolveChapterId(effect as Record<string, unknown>);
+	if (fromEffect) {
+		return fromEffect;
+	}
+	return session.chapterId === FREE_CHAPTER_ID
+		? FREE_CHAPTER_ID
+		: session.chapterId;
+}
+
+/**
+ * @returns true 已按留言路径处理；false 应由调用方走普通 Board attach
+ */
+export function tryAttachVoicemailCallCard(
+	effect: Effect,
+	ctx: VoicemailAttachCtx,
+): boolean {
+	const agentId = String(effect.agentId ?? "");
+	const cardId = String(effect.cardId ?? "");
+	if (!agentId || !cardId) {
+		return false;
+	}
+	const chapterId = resolveAttachPackageId(effect, ctx.session);
+	if (!isLookupVoicemailCard(ctx.lookupCard, chapterId, cardId)) {
+		return false;
+	}
+	pushVoicemailGenStack(ctx.profile, {
+		id: typeof effect.id === "string" && effect.id ? effect.id : randomUUID(),
+		agentId,
+		cardId,
+		chapterId,
+		source: "attach",
+		createdAt: ctx.nowIso,
+		topicHint:
+			typeof effect.topicHint === "string" ? effect.topicHint : undefined,
+	});
+	return true;
+}
+
+function resolveScheduleDelayMs(effect: Effect): number {
+	if (typeof effect.minMs === "number") {
+		return effect.minMs;
+	}
+	const delayMinutes =
+		typeof effect.delayMinutes === "number" ? effect.delayMinutes : 5;
+	return delayMinutes * 60_000;
+}
+
+function canScheduleVoicemailTarget(effect: Effect): {
+	agentId: string;
+	cardId: string;
+	chapterId: string;
+} | null {
+	const agentId = String(effect.agentId ?? "");
+	const cardId = String(effect.cardId ?? "");
+	const chapterId = String(effect.chapterId ?? "");
+	if (!agentId || !cardId || !chapterId) return null;
+	return { agentId, cardId, chapterId };
+}
+
+function ensureProfileSchedule(profile: PlayerProfile): {
+	clockMs: number;
+	intents: unknown[];
+} {
+	if (!profile.schedule) {
+		profile.schedule = { clockMs: 0, intents: [] };
+	}
+	return profile.schedule;
+}
+
+/**
+ * @returns true 已登记留言延迟 intent；false 走普通 schedule（Board + outbound）
+ */
+export function tryScheduleVoicemailCallCard(
+	effect: Effect,
+	ctx: VoicemailScheduleCtx,
+): boolean {
+	const ids = canScheduleVoicemailTarget(effect);
+	if (!ids) return false;
+	if (!isLookupVoicemailCard(ctx.lookupCard, ids.chapterId, ids.cardId)) {
+		return false;
+	}
+	const schedule = ensureProfileSchedule(ctx.profile);
+	const clockMs = schedule.clockMs ?? 0;
+	schedule.intents.push({
+		kind: "once",
+		intentId: effect.id,
+		agentId: ids.agentId,
+		cardId: ids.cardId,
+		chapterId: ids.chapterId,
+		topicHint:
+			typeof effect.topicHint === "string" ? effect.topicHint : undefined,
+		fireAtMs: clockMs + resolveScheduleDelayMs(effect),
+		status: "pending",
+		delivery: VOICEMAIL_MAILBOX_DELIVERY,
+		createdAt: ctx.nowIso,
+	});
+	return true;
+}
+
+function onceMarkedVoicemailMailbox(raw: unknown): boolean {
+	if (!raw || typeof raw !== "object") return false;
+	return (
+		(raw as { delivery?: unknown }).delivery === VOICEMAIL_MAILBOX_DELIVERY
+	);
+}
+
+/**
+ * delivery 标记优先；否则依赖 lookupCard 的 cardKind。
+ */
+export function isVoicemailMailboxOnce(
+	once: VoicemailOnceIntentRef,
+	raw: unknown,
+	lookupCard?: ScheduledCardLookup | null,
+): boolean {
+	if (
+		once.delivery === VOICEMAIL_MAILBOX_DELIVERY ||
+		onceMarkedVoicemailMailbox(raw)
+	) {
+		return true;
+	}
+	return isLookupVoicemailCard(lookupCard, once.chapterId, once.cardId);
+}
+
+/** 留言 once 到点：入 GenStack（调用方标 fired，勿挂 Board） */
+export function fireVoicemailMailboxOnce(
+	profile: PlayerProfile,
+	once: VoicemailOnceIntentRef,
+	nowIso: string,
+): void {
+	pushVoicemailGenStack(profile, {
+		id: once.intentId,
+		agentId: once.agentId,
+		cardId: once.cardId,
+		chapterId: once.chapterId,
+		source: "schedule",
+		createdAt: nowIso,
+		topicHint: once.topicHint,
+		intentId: once.intentId,
+	});
+}

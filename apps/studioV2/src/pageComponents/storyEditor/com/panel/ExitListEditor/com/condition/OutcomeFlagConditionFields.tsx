@@ -7,7 +7,7 @@ import type { FC } from "react";
 import { MenuItem, TextField, Tooltip } from "@mui/material";
 import type { ExitCondition } from "@studio-v2/typeFiles/story/callCard/engineOutcome";
 import { OUTCOME_FLAG_OPTIONS } from "@studio-v2/src/bis/pageBis/storyEditor/form/exitList/exitConditionForm";
-import { formatSelectOptionTooltip } from "@studio-v2/src/commonUiComponents/form/formatSelectOptionTooltip";
+import { formatSelectOptionTooltip } from "@studio-v2/src/commonUiComponents/form/types/formatSelectOptionTooltip";
 
 export type OutcomeFlagConditionFieldsProps = {
 	condition: Extract<ExitCondition, { op: "outcome_flag" }>;

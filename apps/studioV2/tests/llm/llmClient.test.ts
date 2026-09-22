@@ -7,8 +7,8 @@ import {
 	runServerLlmChat,
 	runServerLlmChatStream,
 	type ServerLlmChatMessage,
-} from "@studio-v2/src/utils/server/llm/llmClient.server";
-import { resolveServerLlmRuntimeConfig } from "@studio-v2/src/utils/server/llm/llmConfig.server";
+} from "@studio-v2/src/utils/server/llm/client/llmClient.server";
+import { resolveServerLlmRuntimeConfig } from "@studio-v2/src/utils/server/llm/config/llmConfig.server";
 
 function readyConfig() {
 	return resolveServerLlmRuntimeConfig({

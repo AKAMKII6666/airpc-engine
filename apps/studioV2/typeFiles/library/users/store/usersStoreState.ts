@@ -2,7 +2,7 @@
 	* 用户库 domain store 契约（FE）。
 	* 非 Profile / Board / Memory 真源；shell 灌列表；UI 经 feature bis 读。
 	*/
-import type { UserProfileSummary } from "@studio-v2/typeFiles/library/users/userProfileSummary";
+import type { UserProfileSummary } from "@studio-v2/typeFiles/library/users/summary/userProfileSummary";
 
 /** shell 拉列表成功后一次灌入的载荷 */
 export type UsersLoadOkPayload = {

@@ -21,6 +21,7 @@ import {
 } from "../helpers/inMemoryMemoryPort.js";
 import { copyDataTree } from "../helpers/copyDataTree.js";
 import type { MemoryPort } from "../../src/memory/types.js";
+import { inMemoryPostCallJobStore } from "./post-call-job-async.store.helpers.js";
 
 const repoRoot = path.resolve(
 	path.dirname(fileURLToPath(import.meta.url)),
@@ -42,64 +43,6 @@ async function copiedDataRoot(): Promise<string> {
 	const dataRoot = path.join(tmpRoot, "data");
 	await copyDataTree(dataSrc, dataRoot);
 	return dataRoot;
-}
-
-const RUNNING = new Set([
-	"closing",
-	"committed",
-	"memory_committing",
-	"rollup_running",
-	"media_running",
-	"voicemail_running",
-]);
-
-function inMemoryPostCallJobStore(
-	seed: PostCallJob[] = [],
-): PostCallJobStorePort {
-	const jobs = new Map<string, PostCallJob>();
-	for (const job of seed) jobs.set(job.jobId, job);
-	return {
-		async createJob(job) {
-			const clash = [...jobs.values()].some((j) => j.sessionId === job.sessionId);
-			if (!clash) jobs.set(job.jobId, job);
-		},
-		async updateJob(jobId, patch) {
-			const job = jobs.get(jobId);
-			if (!job) return null;
-			const next = { ...job, ...patch, jobId };
-			jobs.set(jobId, next);
-			return next;
-		},
-		async getJob(jobId) {
-			return jobs.get(jobId) ?? null;
-		},
-		async listJobs(filter) {
-			return Array.from(jobs.values()).filter(function match(job) {
-				if (filter?.userId && job.userId !== filter.userId) return false;
-				if (filter?.agentId && job.primaryAgentId !== filter.agentId) {
-					return false;
-				}
-				if (filter?.statuses?.length && !filter.statuses.includes(job.status)) {
-					return false;
-				}
-				return true;
-			});
-		},
-		async claimJob(jobId) {
-			const job = jobs.get(jobId);
-			if (!job || job.status !== "background_pending") return null;
-			return this.updateJob(jobId, { status: "memory_committing" });
-		},
-		async reclaimRunningJobs() {
-			const ids: string[] = [];
-			for (const [id, job] of jobs) {
-				if (!RUNNING.has(job.status)) continue;
-				jobs.set(id, { ...job, status: "background_pending" });
-				ids.push(id);
-			}
-			return ids;
-		},
-	};
 }
 
 function delayedMemory(ms: number): MemoryPort {
@@ -319,68 +262,76 @@ describe("PostCallJob busy", () => {
 
 });
 
+async function assertRollupRunningSeen(): Promise<void> {
+	const dataRoot = await copiedDataRoot();
+	const host = createHost(dataRoot, delayedMemory(40), inMemoryPostCallJobStore());
+	await host.loadWorkspace(dataRoot);
+	const { session } = await startFreeCall(host);
+	host.recordChatTurn(session.sessionId, {
+		role: "user",
+		text: "记住今天吃了蛋糕",
+	});
+	const end = await host.endCall(session.sessionId, {
+		flags: { answered_completed: true },
+		completedBeats: [],
+		missedRequiredBeats: [],
+	});
+	if (isEngineError(end)) throw end;
+
+	const seen = new Set<string>();
+	const timer = setInterval(() => {
+		const job = host.getPostCallJob(end.postCallJobId);
+		if (job) seen.add(job.status);
+	}, 5);
+	await host.drainPostCallJobs();
+	clearInterval(timer);
+	expect(seen.has("rollup_running")).toBe(true);
+	expect(host.getPostCallJob(end.postCallJobId)?.status).toBe("completed");
+}
+
+async function assertRetryAfterFailedCommit(): Promise<void> {
+	const dataRoot = await copiedDataRoot();
+	const base = createInMemoryMemoryPort();
+	let failOnce = true;
+	const memory: MemoryPort = {
+		...base,
+		async commitAfterCall(input) {
+			if (failOnce) {
+				failOnce = false;
+				throw new Error("memory boom");
+			}
+			return base.commitAfterCall(input);
+		},
+	};
+	const host = createHost(dataRoot, memory, inMemoryPostCallJobStore());
+	await host.loadWorkspace(dataRoot);
+	const { session } = await startFreeCall(host);
+	host.recordChatTurn(session.sessionId, {
+		role: "user",
+		text: "记得我喜欢喝茶",
+	});
+	const end = await host.endCall(session.sessionId, {
+		flags: { answered_completed: true },
+		completedBeats: [],
+		missedRequiredBeats: [],
+	});
+	if (isEngineError(end)) throw end;
+	await host.drainPostCallJobs();
+	expect(host.getPostCallJob(end.postCallJobId)?.status).toBe("failed_retryable");
+
+	const retried = await host.retryPostCallJob(end.postCallJobId);
+	if (isEngineError(retried)) throw retried;
+	await host.drainPostCallJobs();
+	expect(host.getPostCallJob(end.postCallJobId)?.status).toBe("completed");
+}
+
 describe("PostCallJob rollup + retry", () => {
 	it("后台经历 rollup_running", async () => {
-		const dataRoot = await copiedDataRoot();
-		const host = createHost(dataRoot, delayedMemory(40), inMemoryPostCallJobStore());
-		await host.loadWorkspace(dataRoot);
-		const { session } = await startFreeCall(host);
-		host.recordChatTurn(session.sessionId, {
-			role: "user",
-			text: "记住今天吃了蛋糕",
-		});
-		const end = await host.endCall(session.sessionId, {
-			flags: { answered_completed: true },
-			completedBeats: [],
-			missedRequiredBeats: [],
-		});
-		if (isEngineError(end)) throw end;
-
-		const seen = new Set<string>();
-		const timer = setInterval(() => {
-			const job = host.getPostCallJob(end.postCallJobId);
-			if (job) seen.add(job.status);
-		}, 5);
-		await host.drainPostCallJobs();
-		clearInterval(timer);
-		expect(seen.has("rollup_running")).toBe(true);
-		expect(host.getPostCallJob(end.postCallJobId)?.status).toBe("completed");
+		await assertRollupRunningSeen();
 	});
 
 	it("failed_retryable → retryPostCallJob → completed", async () => {
-		const dataRoot = await copiedDataRoot();
-		const base = createInMemoryMemoryPort();
-		let failOnce = true;
-		const memory: MemoryPort = {
-			...base,
-			async commitAfterCall(input) {
-				if (failOnce) {
-					failOnce = false;
-					throw new Error("memory boom");
-				}
-				return base.commitAfterCall(input);
-			},
-		};
-		const host = createHost(dataRoot, memory, inMemoryPostCallJobStore());
-		await host.loadWorkspace(dataRoot);
-		const { session } = await startFreeCall(host);
-		host.recordChatTurn(session.sessionId, {
-			role: "user",
-			text: "记得我喜欢喝茶",
-		});
-		const end = await host.endCall(session.sessionId, {
-			flags: { answered_completed: true },
-			completedBeats: [],
-			missedRequiredBeats: [],
-		});
-		if (isEngineError(end)) throw end;
-		await host.drainPostCallJobs();
-		expect(host.getPostCallJob(end.postCallJobId)?.status).toBe("failed_retryable");
-
-		const retried = await host.retryPostCallJob(end.postCallJobId);
-		if (isEngineError(retried)) throw retried;
-		await host.drainPostCallJobs();
-		expect(host.getPostCallJob(end.postCallJobId)?.status).toBe("completed");
+		await assertRetryAfterFailedCommit();
 	});
 });
 

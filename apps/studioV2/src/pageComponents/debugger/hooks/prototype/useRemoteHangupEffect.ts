@@ -5,14 +5,11 @@
 
 import { useEffect, type Dispatch, type MutableRefObject, type SetStateAction } from "react";
 import type { CallState, PhoneUiState } from "@studio-v2/src/pageComponents/debugger/debuggerUiModel";
-import type { DebuggerCallSessionBis } from "@studio-v2/src/bis/pageBis/debugger/callSession.bis";
-import {
-	appendMemoryTraceDetail,
-	formatEndResultLines,
-	lockedPhoneUi,
-} from "./core/prototypeSessionHelpers";
+import type { DebuggerCallSessionBis } from "@studio-v2/src/bis/pageBis/debugger/callSession/callSession.bis";
+import { lockedPhoneUi } from "./core/prototypeSessionHelpers";
 import type { LastMemoryTraceState } from "./core/prototypeSessionTypes";
 import { latestRemoteHangupEvent } from "@studio-v2/src/pageComponents/debugger/debuggerUiModel";
+import { runRemoteHangupEndCall } from "./runRemoteHangupEndCall";
 
 export function useRemoteHangupEffect(input: {
 	activeRemoteHangupEventId: string | null;
@@ -39,59 +36,29 @@ export function useRemoteHangupEffect(input: {
 		setLastMemoryTrace,
 	} = input;
 
-	useEffect(function () {
-		if (!activeRemoteHangupEventId || callState.mode !== "inCall") return;
-		if (remoteHangupHandledRef.current === activeRemoteHangupEventId) return;
-		remoteHangupHandledRef.current = activeRemoteHangupEventId;
-		const sessionId = callState.session.sessionId;
-		const hangupEvent = latestRemoteHangupEvent(callState.session);
-		clearPhoneTimers();
-		setDraft("");
-		setLocalError(undefined);
-		setPhoneUi(lockedPhoneUi());
-		showHangupToast("对方已挂断");
-		console.warn(
-			"[StudioV2][post-call]",
-			"对方已挂断，已返回拨号界面；副作用由 tip 跟踪",
-		);
-		void (async function () {
-			const end = await callBis.endCall({
+	useEffect(
+		function () {
+			if (!activeRemoteHangupEventId || callState.mode !== "inCall") return;
+			if (remoteHangupHandledRef.current === activeRemoteHangupEventId) return;
+			remoteHangupHandledRef.current = activeRemoteHangupEventId;
+			const sessionId = callState.session.sessionId;
+			const hangupEvent = latestRemoteHangupEvent(callState.session);
+			clearPhoneTimers();
+			setDraft("");
+			setLocalError(undefined);
+			setPhoneUi(lockedPhoneUi());
+			showHangupToast("对方已挂断");
+			console.warn(
+				"[StudioV2][post-call]",
+				"对方已挂断，已返回拨号界面；副作用由 tip 跟踪",
+			);
+			void runRemoteHangupEndCall({
 				sessionId,
-				hangupEarly: false,
-				termination: {
-					source: "npc",
-					...(hangupEvent?.reasonKind
-						? { reasonKind: hangupEvent.reasonKind }
-						: {}),
-					...(hangupEvent?.reason ? { reason: hangupEvent.reason } : {}),
-				},
+				hangupEvent,
+				callBis,
+				setLastMemoryTrace,
 			});
-			if (end) {
-				for (const line of formatEndResultLines(end)) {
-					console.warn("[StudioV2][post-call]", line, end);
-				}
-				callBis.refreshPostCallJobs();
-				if (end.memoryTrace?.committed) {
-					const trace = await appendMemoryTraceDetail(
-						end,
-						callBis.fetchMemoryTrace,
-						function (line, detail) {
-							console.warn("[StudioV2][post-call]", line, detail);
-						},
-					);
-					if (trace && end.memoryTrace) {
-						setLastMemoryTrace({
-							dtoId: end.memoryTrace.dtoId,
-							detail: trace,
-						});
-					}
-				}
-			} else {
-				console.warn(
-					"[StudioV2][post-call]",
-					"挂机请求失败，请查看控制台或接口错误",
-				);
-			}
-		})();
-	}, [activeRemoteHangupEventId, callState, callBis]);
+		},
+		[activeRemoteHangupEventId, callState, callBis],
+	);
 }

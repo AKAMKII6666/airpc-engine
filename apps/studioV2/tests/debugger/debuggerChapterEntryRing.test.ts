@@ -7,10 +7,10 @@ import type {
 	PlayerProfile,
 	ScheduledIntent,
 } from "@airpc/rpg-engine";
-import { ringDebuggerChapterEntry } from "../../src/utils/server/debugger/session/debuggerChapterEntryRing.server";
+import { ringDebuggerChapterEntry } from "../../src/utils/server/debugger/session/chapterEntry/debuggerChapterEntryRing.server";
 
 vi.mock(
-	"@studio-v2/src/utils/server/debugger/session/debuggerChapterEntry.server",
+	"@studio-v2/src/utils/server/debugger/session/chapterEntry/debuggerChapterEntry.server",
 	() => ({
 		findDebuggerChapterEntry: vi.fn(async () => ({
 			packageId: "wrong_number_act1",

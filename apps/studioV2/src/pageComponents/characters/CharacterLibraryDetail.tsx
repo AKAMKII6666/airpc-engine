@@ -16,8 +16,8 @@ import { commitSaveCharacterDetail } from "@studio-v2/src/bis/pageBis/characters
 import { usePluginPanelsBis } from "@studio-v2/src/bis/pageBis/plugins/pluginPanels.bis";
 // 引用了PluginPanelHost组件，用于 L2 character.plugin 面板挂载
 import { PluginPanelHost } from "@studio-v2/src/commonUiComponents/PluginPanelHost";
-import { CharacterDetailEditForm } from "@studio-v2/src/pageComponents/characters/com/CharacterDetailEditForm";
-import { CharacterMemoryPanel } from "@studio-v2/src/pageComponents/characters/com/CharacterMemoryPanel";
+import { CharacterDetailEditForm } from "@studio-v2/src/pageComponents/characters/com/detail/CharacterDetailEditForm";
+import { CharacterMemoryPanel } from "@studio-v2/src/pageComponents/characters/com/memory/panel/CharacterMemoryPanel";
 import styles from "@studio-v2/src/pageComponents/library/LibrarySplit.module.scss";
 
 function initialOf(name: string): string {

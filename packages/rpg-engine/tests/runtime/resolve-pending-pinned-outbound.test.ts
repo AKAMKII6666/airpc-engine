@@ -3,9 +3,9 @@
  */
 import { describe, expect, it } from "vitest";
 import { isEngineError } from "../../src/host/errors.js";
-import { resolvePendingStoryCard } from "../../src/runtime/resolvePendingStoryCard.js";
-import type { CallCardDefinition } from "../../src/schema/callCard.js";
-import type { PlayerProfile } from "../../src/schema/profile.js";
+import { resolvePendingStoryCard } from "../../src/runtime/classify/pending/resolvePendingStoryCard.js";
+import type { CallCardDefinition } from "../../src/schema/call/callCard.js";
+import type { PlayerProfile } from "../../src/schema/identity/profile.js";
 import type { WorkspaceState } from "../../src/workspace/loadWorkspace.js";
 
 function cardDef(cardId: string): CallCardDefinition {

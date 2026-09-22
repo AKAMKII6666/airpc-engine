@@ -25,7 +25,7 @@ alwaysApply: false
 - **第一方 CapabilityPack：** 代码落 `src/capabilityPacks/`；由 Studio server / 测试静态 import + `mergeCapabilityPacks` 注入；**禁止**引擎内核 `readdir(plugins)`；引擎内**禁止**裸目录名 `plugins/`（workspace `plugins/` 属 L2，见技术设计 24/25）。
 - **Client 禁深挖** `capabilityPacks/**`（与禁 import 引擎一致；含 type）。
 - **测试**放 `packages/rpg-engine/tests/`，禁止与 `src/` 平放 `*.test.ts`。
-- **目录职责聚类：** 内部域文件增多时按异责 ≥4 分子目录（host/session/memory…）；不为空壳先建单文件空目录。
+- **目录职责聚类：** 同目录 ≥2 组异责且可分类文件 ≥4 须分子目录；有子目录时根层异责堆叠同样禁止；禁 stub 森林（仅包门面 `src/index.ts` 可聚合）；不为空壳先建单文件空目录。门禁 `ENGINE-STRUCT-009` / `010` / `011` 硬失败。
 
 ## 默认执行
 

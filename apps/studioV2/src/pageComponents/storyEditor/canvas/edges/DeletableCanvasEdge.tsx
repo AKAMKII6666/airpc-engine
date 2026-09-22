@@ -11,7 +11,7 @@ import {
 	getBezierPath,
 	type EdgeProps,
 } from "@xyflow/react";
-import { useStoryCanvasUi } from "@studio-v2/src/pageComponents/storyEditor/canvas/storyCanvasUiContext";
+import { useStoryCanvasUi } from "@studio-v2/src/pageComponents/storyEditor/canvas/stage/storyCanvasUiContext";
 import styles from "./DeletableCanvasEdge.module.scss";
 
 export const DeletableCanvasEdge: FC<EdgeProps> = function DeletableCanvasEdge({

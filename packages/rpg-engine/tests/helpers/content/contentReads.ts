@@ -190,6 +190,39 @@ async function loadAllCharacters(
 	return out;
 }
 
+async function listDiskCardIds(chapterDir: string): Promise<string[]> {
+	try {
+		const diskFiles = await readdir(path.join(chapterDir, "cards"));
+		return diskFiles
+			.filter((f) => f.endsWith(".s-card.json"))
+			.map((f) => f.replace(/\.s-card\.json$/, ""));
+	} catch {
+		return [];
+	}
+}
+
+async function loadIndexedCards(
+	chapterDir: string,
+	indexedIds: string[],
+): Promise<PackageValidateBundle["cards"]> {
+	const cards: PackageValidateBundle["cards"] = [];
+	for (const cardId of indexedIds) {
+		const cardPath = path.join(chapterDir, "cards", `${cardId}.s-card.json`);
+		try {
+			const cardRaw = await readJsonFile(cardPath);
+			const parsed = CallCardDefinitionSchema.safeParse(cardRaw);
+			cards.push({
+				cardId,
+				card: parsed.success ? parsed.data : null,
+				cardRaw,
+			});
+		} catch {
+			cards.push({ cardId, card: null, cardRaw: null });
+		}
+	}
+	return cards;
+}
+
 /**
  * 校验装章：一次取出 confRaw/conf + 声明卡(含 cardRaw) + diskCardIds + 角色表。
  */
@@ -230,33 +263,11 @@ export async function loadPackageForValidateFromFs(input: {
 
 	const confParsed = ChapterConfSchema.safeParse(confRaw);
 	const conf = confParsed.success ? confParsed.data : null;
-
-	let diskCardIds: string[] = [];
-	try {
-		const diskFiles = await readdir(path.join(found.dir, "cards"));
-		diskCardIds = diskFiles
-			.filter((f) => f.endsWith(".s-card.json"))
-			.map((f) => f.replace(/\.s-card\.json$/, ""));
-	} catch {
-		diskCardIds = [];
-	}
-
-	const cards: PackageValidateBundle["cards"] = [];
-	const indexedIds = conf?.cards.map((c) => c.cardId) ?? [];
-	for (const cardId of indexedIds) {
-		const cardPath = path.join(found.dir, "cards", `${cardId}.s-card.json`);
-		try {
-			const cardRaw = await readJsonFile(cardPath);
-			const parsed = CallCardDefinitionSchema.safeParse(cardRaw);
-			cards.push({
-				cardId,
-				card: parsed.success ? parsed.data : null,
-				cardRaw,
-			});
-		} catch {
-			cards.push({ cardId, card: null, cardRaw: null });
-		}
-	}
+	const diskCardIds = await listDiskCardIds(found.dir);
+	const cards = await loadIndexedCards(
+		found.dir,
+		conf?.cards.map((c) => c.cardId) ?? [],
+	);
 
 	return {
 		chapterId,

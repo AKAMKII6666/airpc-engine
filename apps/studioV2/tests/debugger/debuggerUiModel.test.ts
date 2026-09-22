@@ -13,8 +13,8 @@ import type {
 	DebuggerCallSessionView,
 	DebuggerIncomingCallView,
 	DebuggerToolResolutionTrace,
-} from "@studio-v2/typeFiles/debugger/callSession";
-import type { DebuggerVoicemailSlotView } from "@studio-v2/typeFiles/debugger/mailboxView";
+} from "@studio-v2/typeFiles/debugger/callSession/callSession";
+import type { DebuggerVoicemailSlotView } from "@studio-v2/typeFiles/debugger/mailbox/mailboxView";
 
 function emptyToolResolutionTrace(): DebuggerToolResolutionTrace {
 	return {

@@ -2,18 +2,18 @@
  * commitBootstrapUserLoreWithOptionalSave：dirty 时先 PUT 再 POST bootstrap。
  */
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { UserProfileSummary } from "@studio-v2/typeFiles/library/users/userProfileSummary";
+import type { UserProfileSummary } from "@studio-v2/typeFiles/library/users/summary/userProfileSummary";
 
 vi.mock("@studio-v2/src/bis/pageBis/users/detail/save/saveUser_bis", () => ({
 	commitSaveUserDetail: vi.fn(),
 }));
 
-vi.mock("@studio-v2/src/utils/ajaxProxy/library/api/usersApi", () => ({
+vi.mock("@studio-v2/src/utils/ajaxProxy/library/api/users/usersApi", () => ({
 	postBootstrapUserLore: vi.fn(),
 }));
 
 import { commitSaveUserDetail } from "@studio-v2/src/bis/pageBis/users/detail/save/saveUser_bis";
-import { postBootstrapUserLore } from "@studio-v2/src/utils/ajaxProxy/library/api/usersApi";
+import { postBootstrapUserLore } from "@studio-v2/src/utils/ajaxProxy/library/api/users/usersApi";
 import {
 	commitBootstrapUserLoreWithOptionalSave,
 } from "../../src/bis/pageBis/users/detail/bootstrapUserLore_bis";

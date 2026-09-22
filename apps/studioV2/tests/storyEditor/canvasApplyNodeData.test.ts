@@ -3,7 +3,7 @@
 	*/
 import { describe, expect, it, vi } from "vitest";
 import type { Edge, Node } from "@xyflow/react";
-import { createApplyCallCardNodeData } from "@studio-v2/src/pageComponents/storyEditor/canvas/canvasApplyNodeData";
+import { createApplyCallCardNodeData } from "@studio-v2/src/pageComponents/storyEditor/canvas/mutations/canvasApplyNodeData";
 import { isEffectEdge } from "@studio-v2/src/bis/pageBis/storyEditor/canvas/effectEdgeSync";
 import type { EditorCallCardProjection } from "@studio-v2/typeFiles/story/editor/callCard/editorCallCardProjection";
 

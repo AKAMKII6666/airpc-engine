@@ -223,52 +223,67 @@ function parseOpeningSituation(
 	};
 }
 
-type RenderedPromptWithOpeningFirstTurn = RenderedPrompt & {
-	openingFirstTurn?: {
-		mode?: unknown;
-		status?: unknown;
-		callerVisibility?: unknown;
-		llmContextPolicy?: {
-			includeSoftContext?: unknown;
-			includeMemory?: unknown;
-			includeInertia?: unknown;
-		};
+type OpeningFirstTurnRaw = {
+	mode?: unknown;
+	status?: unknown;
+	callerVisibility?: unknown;
+	llmContextPolicy?: {
+		includeSoftContext?: unknown;
+		includeMemory?: unknown;
+		includeInertia?: unknown;
 	};
 };
+
+type RenderedPromptWithOpeningFirstTurn = RenderedPrompt & {
+	openingFirstTurn?: OpeningFirstTurnRaw;
+};
+
+function asOptionalString(value: unknown): string | null {
+	return typeof value === "string" ? value : null;
+}
+
+function projectLlmContextPolicy(
+	policy: OpeningFirstTurnRaw["llmContextPolicy"],
+): DebuggerOpeningSituationView["llmContextPolicy"] {
+	if (!policy) return null;
+	return {
+		includeSoftContext: policy.includeSoftContext !== false,
+		includeMemory: policy.includeMemory !== false,
+		includeInertia: policy.includeInertia !== false,
+	};
+}
+
+function pickOr<T>(value: T | null | undefined, fallback: T): T {
+	return value ?? fallback;
+}
+
+function mergeOpeningSituation(
+	parsed: DebuggerOpeningSituationView | null,
+	firstTurn: OpeningFirstTurnRaw,
+): DebuggerOpeningSituationView {
+	return {
+		kind: pickOr(parsed?.kind, "unknown"),
+		control: pickOr(parsed?.control, "unknown"),
+		priority: pickOr(parsed?.priority, null),
+		reason: pickOr(parsed?.reason, ""),
+		tags: pickOr(parsed?.tags, []),
+		overridden: pickOr(parsed?.overridden, false),
+		firstTurnMode: pickOr(
+			asOptionalString(firstTurn.mode),
+			pickOr(parsed?.firstTurnMode, null),
+		),
+		firstTurnStatus: asOptionalString(firstTurn.status),
+		callerVisibility: asOptionalString(firstTurn.callerVisibility),
+		llmContextPolicy: projectLlmContextPolicy(firstTurn.llmContextPolicy),
+	};
+}
 
 function projectOpeningSituationFromPrompt(
 	prompt: RenderedPromptWithOpeningFirstTurn | undefined,
 ): DebuggerOpeningSituationView | null {
 	const parsed = parseOpeningSituation(prompt?.systemHard ?? []);
 	if (!prompt?.openingFirstTurn) return parsed;
-	const policy = prompt.openingFirstTurn.llmContextPolicy;
-	return {
-		kind: parsed?.kind ?? "unknown",
-		control: parsed?.control ?? "unknown",
-		priority: parsed?.priority ?? null,
-		reason: parsed?.reason ?? "",
-		tags: parsed?.tags ?? [],
-		overridden: parsed?.overridden ?? false,
-		firstTurnMode:
-			typeof prompt.openingFirstTurn.mode === "string"
-				? prompt.openingFirstTurn.mode
-				: parsed?.firstTurnMode ?? null,
-		firstTurnStatus:
-			typeof prompt.openingFirstTurn.status === "string"
-				? prompt.openingFirstTurn.status
-				: null,
-		callerVisibility:
-			typeof prompt.openingFirstTurn.callerVisibility === "string"
-				? prompt.openingFirstTurn.callerVisibility
-				: null,
-		llmContextPolicy: policy
-			? {
-					includeSoftContext: policy.includeSoftContext !== false,
-					includeMemory: policy.includeMemory !== false,
-					includeInertia: policy.includeInertia !== false,
-				}
-			: null,
-	};
+	return mergeOpeningSituation(parsed, prompt.openingFirstTurn);
 }
 
 function emptyToolResolutionTrace(): ToolResolutionTrace {

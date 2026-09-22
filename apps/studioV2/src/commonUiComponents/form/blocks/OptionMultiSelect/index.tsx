@@ -5,20 +5,20 @@
 "use client";
 
 import type { FC } from "react";
-import { Checkbox, FormControlLabel } from "@mui/material";
 import { FormFieldShell } from "../../FormFieldShell";
-import type { FormSelectOption } from "../../formTypes";
+import type { FormSelectOption } from "../../types/formTypes";
 import type { FormBoundFieldProps } from "../../fields/types/formBoundTypes";
 import {
 	readFormikFieldError,
 	readFormikFieldRaw,
 } from "../../fields/formBoundFieldProps";
-import styles from "./index.module.scss";
-
-function asStringList(raw: unknown): string[] {
-	if (!Array.isArray(raw)) return [];
-	return raw.map((item) => (item == null ? "" : String(item))).filter(Boolean);
-}
+// 引用了OptionMultiSelectList组件，用于勾选列表
+import { OptionMultiSelectList } from "./com/OptionMultiSelectList";
+import {
+	asStringList,
+	buildOptionMultiWatchText,
+	toggleOptionValue,
+} from "./com/optionMultiSelectHelpers";
 
 type Props = FormBoundFieldProps<Record<string, unknown>> & {
 	/** 固定枚举选项；value 写入数组，label 为中文展示 */
@@ -54,13 +54,7 @@ export const FormOptionMultiSelect: FC<Props> = function FormOptionMultiSelect({
 			: readFormikFieldRaw(formik, name),
 	);
 	const selectedSet = new Set(selected);
-	const watchText =
-		selected.length === 0
-			? "（未选）"
-			: options
-					.filter((opt) => selectedSet.has(opt.value))
-					.map((opt) => opt.label)
-					.join("；") || selected.join("；");
+	const watchText = buildOptionMultiWatchText(selected, options);
 
 	function writeList(next: string[]): void {
 		if (onChangeOverride) {
@@ -69,15 +63,6 @@ export const FormOptionMultiSelect: FC<Props> = function FormOptionMultiSelect({
 		}
 		void formik.setFieldValue(name, next);
 		void formik.setFieldTouched(name, true);
-	}
-
-	function toggleValue(toolId: string, checked: boolean): void {
-		if (checked) {
-			if (selectedSet.has(toolId)) return;
-			writeList([...selected, toolId]);
-			return;
-		}
-		writeList(selected.filter((id) => id !== toolId));
 	}
 
 	return (
@@ -90,41 +75,16 @@ export const FormOptionMultiSelect: FC<Props> = function FormOptionMultiSelect({
 			helperText={helperText}
 			watchText={watchText}
 		>
-			<ul className={styles.list}>
-				{options.map((opt, index) => (
-					<li key={opt.value} className={styles.row}>
-						{opt.group && options[index - 1]?.group !== opt.group ? (
-							<strong>{opt.group}</strong>
-						) : null}
-						{/* 引用了FormControlLabel组件，用于枚举项勾选 */}
-						<FormControlLabel
-							className={styles.row}
-							control={
-								// 引用了Checkbox组件，用于多选写回 toolId[]
-								<Checkbox
-									size="small"
-									checked={selectedSet.has(opt.value)}
-									disabled={
-										disabled ||
-										(Boolean(opt.disabled) && !selectedSet.has(opt.value))
-									}
-									onChange={(e) => {
-										toggleValue(opt.value, e.target.checked);
-									}}
-									inputProps={{
-										"aria-label": `${label}：${opt.label}`,
-									}}
-								/>
-							}
-							label={opt.label}
-							disabled={
-								disabled ||
-								(Boolean(opt.disabled) && !selectedSet.has(opt.value))
-							}
-						/>
-					</li>
-				))}
-			</ul>
+			{/* 引用了OptionMultiSelectList组件，用于勾选列表 */}
+			<OptionMultiSelectList
+				label={label}
+				options={options}
+				selectedSet={selectedSet}
+				disabled={disabled}
+				onToggle={function (toolId, checked) {
+					writeList(toggleOptionValue(selected, toolId, checked));
+				}}
+			/>
 		</FormFieldShell>
 	);
 };

@@ -27,10 +27,79 @@ export type WorkbenchSideColProps = {
 	sideLoading: boolean;
 };
 
+function renderEngineeringStatus(
+	engineeringStatus: readonly EngineeringStatusItem[],
+	sideLoading: boolean,
+) {
+	return (
+		<section className={styles.panel} aria-labelledby="eng-status-title">
+			<h3 id="eng-status-title" className={styles.panelTitle}>
+				工程状态
+			</h3>
+			{sideLoading && engineeringStatus.length === 0 ? (
+				// 引用了CircularProgress组件，用于侧栏灌入中
+				<CircularProgress size={20} sx={{ my: 1 }} />
+			) : (
+				<ul className={styles.statusList}>
+					{engineeringStatus.map(function (item) {
+						return (
+							<li key={item.id} className={styles.statusItem}>
+								<span className={styles.statusLabel}>
+									<span className={workbenchBadgeClass(item.level)}>
+										{validationLabel(item.level)}
+									</span>{" "}
+									{item.label}
+								</span>
+								<span className={styles.statusDetail}>{item.detail}</span>
+							</li>
+						);
+					})}
+				</ul>
+			)}
+			{/* 引用了Button组件，用于跳转设置页校验报告 */}
+			<Button component={Link} href="/settings" size="small" sx={{ mt: 1, px: 0 }}>
+				打开校验报告 / 工程状态
+			</Button>
+		</section>
+	);
+}
+
+function renderRecentDebugs(recentDebugs: readonly RecentDebugSummary[]) {
+	return (
+		<section className={styles.panel} aria-labelledby="recent-debug-title">
+			<h3 id="recent-debug-title" className={styles.panelTitle}>
+				最近调试
+			</h3>
+			{recentDebugs.map(function (d) {
+				return (
+					<div key={d.sessionId} className={styles.debugItem}>
+						<div className={styles.debugTitle}>{d.packageTitle}</div>
+						<div className={styles.debugMeta}>
+							起始：{d.startCardTitle}
+							{d.hitExitTitle ? ` · 出口：${d.hitExitTitle}` : ""}
+							<br />
+							{d.resultLabel} · {formatRelativeEdit(d.at)}
+						</div>
+						{/* 引用了Button组件，用于打开调试记录 */}
+						<Button
+							component={Link}
+							href="/debugger"
+							size="small"
+							sx={{ mt: 0.5, px: 0 }}
+						>
+							打开调试记录
+						</Button>
+					</div>
+				);
+			})}
+		</section>
+	);
+}
+
 export const WorkbenchSideCol: FC<WorkbenchSideColProps> = function ({
-	// engineeringStatus 是工程状态条投影
+	// engineeringStatus 是工程状态条投影，用于右侧状态列表
 	engineeringStatus,
-	// recentDebugs 是最近调试摘要
+	// recentDebugs 是最近调试摘要，用于最近调试区
 	recentDebugs,
 	// sideLoading 表示侧栏是否仍在灌入
 	sideLoading,
@@ -63,68 +132,9 @@ export const WorkbenchSideCol: FC<WorkbenchSideColProps> = function ({
 				</ul>
 			</section>
 
-			<section className={styles.panel} aria-labelledby="eng-status-title">
-				<h3 id="eng-status-title" className={styles.panelTitle}>
-					工程状态
-				</h3>
-				{sideLoading && engineeringStatus.length === 0 ? (
-					// 引用了CircularProgress组件，用于侧栏灌入中
-					<CircularProgress size={20} sx={{ my: 1 }} />
-				) : (
-					<ul className={styles.statusList}>
-						{engineeringStatus.map(function (item) {
-							return (
-								<li key={item.id} className={styles.statusItem}>
-									<span className={styles.statusLabel}>
-										<span className={workbenchBadgeClass(item.level)}>
-											{validationLabel(item.level)}
-										</span>{" "}
-										{item.label}
-									</span>
-									<span className={styles.statusDetail}>{item.detail}</span>
-								</li>
-							);
-						})}
-					</ul>
-				)}
-				{/* 引用了Button组件，用于跳转设置页校验报告 */}
-				<Button
-					component={Link}
-					href="/settings"
-					size="small"
-					sx={{ mt: 1, px: 0 }}
-				>
-					打开校验报告 / 工程状态
-				</Button>
-			</section>
+			{renderEngineeringStatus(engineeringStatus, sideLoading)}
 
-			<section className={styles.panel} aria-labelledby="recent-debug-title">
-				<h3 id="recent-debug-title" className={styles.panelTitle}>
-					最近调试
-				</h3>
-				{recentDebugs.map(function (d) {
-					return (
-						<div key={d.sessionId} className={styles.debugItem}>
-							<div className={styles.debugTitle}>{d.packageTitle}</div>
-							<div className={styles.debugMeta}>
-								起始：{d.startCardTitle}
-								{d.hitExitTitle ? ` · 出口：${d.hitExitTitle}` : ""}
-								<br />
-								{d.resultLabel} · {formatRelativeEdit(d.at)}
-							</div>
-							{/* 引用了Button组件，用于打开调试记录 */}
-							<Button
-								component={Link}
-								href="/debugger"
-								size="small"
-								sx={{ mt: 0.5, px: 0 }}
-							>
-								打开调试记录
-							</Button>
-						</div>
-					);
-				})}
-			</section>
+			{renderRecentDebugs(recentDebugs)}
 		</aside>
 	);
 };

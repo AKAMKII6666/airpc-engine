@@ -1,6 +1,6 @@
 /**
 	* 与引擎同构镜像，不以 import 同步。
-	* 对齐 packages/rpg-engine/src/schema/outcome.ts 的 ExitConditionSchema / EffectSchema。
+	* 对齐 packages/rpg-engine/src/schema/call/outcome.ts 的 ExitConditionSchema / EffectSchema。
 	*/
 
 /** 对齐引擎 ExitConditionSchema 判别式联合；条件求值结构化谓词，禁 eval */

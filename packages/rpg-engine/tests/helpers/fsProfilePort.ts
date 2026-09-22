@@ -9,8 +9,8 @@ import { engineError } from "../../src/host/errors.js";
 import {
 	PlayerProfileSchema,
 	type PlayerProfile,
-} from "../../src/schema/profile.js";
-import type { ProfilePort } from "../../src/ports/profilePort.js";
+} from "../../src/schema/identity/profile.js";
+import type { ProfilePort } from "../../src/ports/persist/profilePort.js";
 
 function profileFilePath(dataRoot: string, userId: string): string {
 	return path.join(dataRoot, "users", userId, "profile.save.json");

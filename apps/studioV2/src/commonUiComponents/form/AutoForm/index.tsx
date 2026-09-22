@@ -12,7 +12,7 @@ import {
 import type { FormikProps } from "formik";
 import { getIn } from "formik";
 import { FormFieldShell } from "../FormFieldShell";
-import type { AutoFormItem, AutoFormProps } from "../autoFormTypes";
+import type { AutoFormItem, AutoFormProps } from "../types/autoFormTypes";
 import { AutoFormComsMap, type AutoFormMappedFieldProps } from "./comsMap";
 import styles from "./index.module.scss";
 

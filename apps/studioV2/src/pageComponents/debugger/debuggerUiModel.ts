@@ -2,14 +2,14 @@
 	* 调试器第一版 UI 原型模型。
 	* 待机角色来自 server 投影；本文件只保留 UI 状态和格式化函数。
 	*/
-import type { DebuggerLlmPublicStatus } from "@studio-v2/typeFiles/debugger/llmStatus";
+import type { DebuggerLlmPublicStatus } from "@studio-v2/typeFiles/debugger/labels/llmStatus";
 import type {
 	DebuggerCallSessionView,
 	DebuggerIncomingCallView,
 	DebuggerShellEventView,
-} from "@studio-v2/typeFiles/debugger/callSession";
-import type { DebuggerDialableRole } from "@studio-v2/typeFiles/debugger/dialableRole";
-import type { DebuggerVoicemailSlotView } from "@studio-v2/typeFiles/debugger/mailboxView";
+} from "@studio-v2/typeFiles/debugger/callSession/callSession";
+import type { DebuggerDialableRole } from "@studio-v2/typeFiles/debugger/incoming/dialableRole";
+import type { DebuggerVoicemailSlotView } from "@studio-v2/typeFiles/debugger/mailbox/mailboxView";
 
 /** 电话号码盘键位；后续真实接线仍可复用该展示顺序 */
 export const DIAL_KEYS = [

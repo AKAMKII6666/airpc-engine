@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   matchesEntryModeForIntent,
   pickPendingForIntent,
-} from "../../src/runtime/pickPendingForUserDial.js";
+} from "../../src/runtime/classify/pending/pickPendingForUserDial.js";
 import type { PlayerProfile } from "../../src/index.js";
 
 function baseProfile(

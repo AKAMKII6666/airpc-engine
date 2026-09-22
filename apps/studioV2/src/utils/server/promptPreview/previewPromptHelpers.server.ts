@@ -9,8 +9,11 @@ import {
 	formatLoreSoftContext,
 	type CallCardDefinition,
 	type CharacterDef,
+	type ComposeScene,
 	type MemoryPort,
 	type PlayerProfile,
+	type RenderedPrompt,
+	type ToolDefinition,
 } from "@airpc/rpg-engine";
 import { readCharacterJson } from "@studio-v2/src/utils/server/characters/charactersFs.server";
 
@@ -30,6 +33,18 @@ export type PreviewValidateOk = {
 	packageId: string;
 	callDirection: PromptPreviewCallDirection;
 	localHour: number;
+};
+
+export type PromptPreviewResult = {
+	userId: string;
+	packageId: string;
+	composeScene: ComposeScene;
+	renderedPrompt: RenderedPrompt;
+	matchedLayerIds: string[];
+	tools: ToolDefinition[];
+	systemMessages: string[];
+	systemJoined: string;
+	softExtras: string[];
 };
 
 export function validatePromptPreviewRequest(

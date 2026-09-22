@@ -7,7 +7,7 @@ import {
 	buildUploadedImageAssetMeta,
 	extFromMimeOrName,
 	imageExtFromMime,
-} from "@studio-v2/src/bis/pageBis/assets/uploadAssetBinary";
+} from "@studio-v2/src/bis/pageBis/assets/upload/uploadAssetBinary";
 
 describe("uploadAssetBinary", () => {
 	it("maps allowed avatar MIME to extension", () => {

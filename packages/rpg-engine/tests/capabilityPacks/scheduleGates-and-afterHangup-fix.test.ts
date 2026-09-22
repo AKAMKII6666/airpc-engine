@@ -21,7 +21,7 @@ import {
 	type PlayerProfile,
 } from "../../src/index.js";
 import { copyDataTree, createTestHost } from "../helpers/inMemoryMemoryPort.js";
-import { shouldDeferOutboundForPlayerWindow } from "../../src/runtime/scheduleOutboundPending.js";
+import { shouldDeferOutboundForPlayerWindow } from "../../src/runtime/schedule/scheduleOutboundPending.js";
 
 const repoRoot = path.resolve(
 	path.dirname(fileURLToPath(import.meta.url)),

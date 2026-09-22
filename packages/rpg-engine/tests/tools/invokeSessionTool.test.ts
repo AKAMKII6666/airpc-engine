@@ -4,7 +4,7 @@
 import { describe, expect, it } from "vitest";
 import { isEngineError } from "../../src/index.js";
 import type { CallSession } from "../../src/host/types.js";
-import { invokeSessionTool } from "../../src/tools/invokeSessionLocal.js";
+import { invokeSessionTool } from "../../src/tools/invoke/session/invokeSessionLocal.js";
 
 function sessionFixture(): CallSession {
   return {

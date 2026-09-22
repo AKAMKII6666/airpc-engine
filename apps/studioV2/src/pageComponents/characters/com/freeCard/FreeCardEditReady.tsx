@@ -12,8 +12,8 @@ import {
 	applyFreeCardForm,
 	validateFreeCardForm,
 	type FreeCardFormValues,
-} from "@studio-v2/src/bis/pageBis/characters/freeCard/freeCardForm";
-import { commitSaveFreeCard } from "@studio-v2/src/bis/pageBis/characters/freeCard/saveFreeCard_bis";
+} from "@studio-v2/src/bis/pageBis/characters/freeCard/form/freeCardForm";
+import { commitSaveFreeCard } from "@studio-v2/src/bis/pageBis/characters/freeCard/save/saveFreeCard_bis";
 import type { CallCardDefinition } from "@studio-v2/typeFiles/story/callCard/engineCallCard";
 import { renderFreeCardFormBody } from "./FreeCardFormBody";
 import { useToolCatalogBis } from "@studio-v2/src/bis/pageBis/tools/toolCatalog.bis";
@@ -27,6 +27,49 @@ export type FreeCardEditReadyProps = {
 	onClose: () => void;
 	onSaved?: () => void;
 };
+
+function renderFreeCardEditorFields(input: {
+	formik: Parameters<typeof renderFreeCardFormBody>[0];
+	catalog: ReturnType<typeof useToolCatalogBis>["catalog"];
+	loading: boolean;
+	error: string | null | undefined;
+	card: CallCardDefinition;
+	setPreviewCard: (card: unknown) => void;
+	setPreviewOpen: (open: boolean) => void;
+}) {
+	const choices = projectToolCatalogChoices({
+		catalog: input.catalog,
+		storedIds: input.formik.values.allowedToolIds,
+		mode: input.formik.values.toolPolicyMode,
+	});
+	return (
+		<>
+			{/* 引用了LinearProgress组件，用于展示动态工具目录加载态 */}
+			{input.loading ? <LinearProgress /> : null}
+			{input.error ? (
+				// 引用了Alert组件，用于展示工具目录加载失败
+				<Alert severity="error">工具目录加载失败：{input.error}</Alert>
+			) : null}
+			{renderFreeCardFormBody(
+				input.formik,
+				choices.options,
+				choices.effectiveToolIds,
+			)}
+			{/* 引用了Button组件，用于打开首通提示词预览 */}
+			<Button
+				sx={{ mt: 2 }}
+				variant="outlined"
+				size="small"
+				onClick={function () {
+					input.setPreviewCard(applyFreeCardForm(input.card, input.formik.values));
+					input.setPreviewOpen(true);
+				}}
+			>
+				首通提示词预览
+			</Button>
+		</>
+	);
+}
 
 export const FreeCardEditReady: FC<FreeCardEditReadyProps> = function ({
 	// open 表示弹层是否打开，用于显隐
@@ -74,40 +117,17 @@ export const FreeCardEditReady: FC<FreeCardEditReadyProps> = function ({
 				mode="edit"
 				maxWidth="md"
 			>
-				{(formik) => {
-					const choices = projectToolCatalogChoices({
+				{(formik) =>
+					renderFreeCardEditorFields({
+						formik,
 						catalog,
-						storedIds: formik.values.allowedToolIds,
-						mode: formik.values.toolPolicyMode,
-					});
-					return (
-						<>
-							{/* 引用了LinearProgress组件，用于展示动态工具目录加载态 */}
-							{loading ? <LinearProgress /> : null}
-							{/* 引用了Alert组件，用于展示工具目录加载失败 */}
-							{error ? <Alert severity="error">工具目录加载失败：{error}</Alert> : null}
-							{renderFreeCardFormBody(
-								formik,
-								choices.options,
-								choices.effectiveToolIds,
-							)}
-							{/* 引用了Button组件，用于打开首通提示词预览 */}
-							<Button
-								sx={{ mt: 2 }}
-								variant="outlined"
-								size="small"
-								onClick={function () {
-									setPreviewCard(
-										applyFreeCardForm(card, formik.values),
-									);
-									setPreviewOpen(true);
-								}}
-							>
-								首通提示词预览
-							</Button>
-						</>
-					);
-				}}
+						loading,
+						error,
+						card,
+						setPreviewCard,
+						setPreviewOpen,
+					})
+				}
 			</FormModal>
 
 			{/* 引用了FirstConnectPromptPreviewModal组件，用于 Free 卡首通预览 */}

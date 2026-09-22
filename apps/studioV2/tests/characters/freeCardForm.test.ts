@@ -6,7 +6,7 @@ import type { CallCardDefinition } from "@studio-v2/typeFiles/story/callCard/eng
 import {
 	applyFreeCardForm,
 	toFreeCardFormValues,
-} from "@studio-v2/src/bis/pageBis/characters/freeCard/freeCardForm";
+} from "@studio-v2/src/bis/pageBis/characters/freeCard/form/freeCardForm";
 
 function sampleCard(): CallCardDefinition {
 	return {

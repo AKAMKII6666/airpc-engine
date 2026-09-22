@@ -1,9 +1,9 @@
 /**
  * 模块名称：MemoryPort 类型（需求 12 / 技术设计 20）
  */
-import type { CallCardDefinition } from "../schema/callCard.js";
-import type { Outcome } from "../schema/outcome.js";
-import type { ChatTurn } from "../schema/dialogueSession.js";
+import type { CallCardDefinition } from "../schema/call/callCard.js";
+import type { Outcome } from "../schema/call/outcome.js";
+import type { ChatTurn } from "../schema/call/dialogueSession.js";
 
 export interface MemorySearchQuery {
   userId: string;

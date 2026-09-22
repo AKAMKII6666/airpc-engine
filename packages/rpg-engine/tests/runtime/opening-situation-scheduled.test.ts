@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { BeginCallContext, ComposeScene } from "../../src/host/types.js";
-import { resolveOpeningSituation } from "../../src/runtime/openingSituationResolver.js";
+import { resolveOpeningSituation } from "../../src/runtime/opening/openingSituationResolver.js";
 
 function scene(): ComposeScene {
 	return {

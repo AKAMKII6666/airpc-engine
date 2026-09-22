@@ -4,15 +4,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import {
-	createChapterOnDisk,
-	listChaptersForPackage,
-	loadPackageMeta,
-	removeChapter,
-	setEntryChapter,
-} from "@studio-v2/src/bis/pageBis/packages/chapterList/chapterListSession.bis";
-import type { CreateChapterFormValues } from "@studio-v2/src/bis/pageBis/packages/chapterList/chapterCreateForm";
 import type { DiskChapterSummary } from "@studio-v2/typeFiles/story/package/diskStoryPackage";
+import { bindChapterListPageActions } from "./bind/bindChapterListPageActions";
+import { reloadChapterListPage } from "./bind/reloadChapterListPage";
 
 export type UseChapterListPageArgs = {
 	packageId: string;
@@ -29,21 +23,14 @@ export function useChapterListPage(args: UseChapterListPageArgs) {
 	const [busy, setBusy] = useState(false);
 
 	const reload = useCallback(async function () {
-		setLoading(true);
-		setError(undefined);
-		try {
-			const [meta, list] = await Promise.all([
-				loadPackageMeta(packageId),
-				listChaptersForPackage(packageId),
-			]);
-			setTitle(meta.title);
-			setEntryChapterId(meta.entryChapterId);
-			setChapters(list);
-		} catch (err) {
-			setError(err instanceof Error ? err.message : "加载失败");
-		} finally {
-			setLoading(false);
-		}
+		await reloadChapterListPage({
+			packageId,
+			setLoading,
+			setError,
+			setTitle,
+			setEntryChapterId,
+			setChapters,
+		});
 	}, [packageId]);
 
 	useEffect(
@@ -53,50 +40,13 @@ export function useChapterListPage(args: UseChapterListPageArgs) {
 		[reload],
 	);
 
-	async function onCreateSubmit(
-		values: CreateChapterFormValues,
-	): Promise<void> {
-		const t = values.title.trim();
-		if (t === "") return;
-		setBusy(true);
-		try {
-			await createChapterOnDisk({
-				packageId,
-				title: t,
-			});
-			setCreateOpen(false);
-			await reload();
-		} catch (err) {
-			setError(err instanceof Error ? err.message : "新建章失败");
-		} finally {
-			setBusy(false);
-		}
-	}
-
-	async function onSetEntry(chapterId: string): Promise<void> {
-		setBusy(true);
-		try {
-			await setEntryChapter({ packageId, entryChapterId: chapterId });
-			await reload();
-		} catch (err) {
-			setError(err instanceof Error ? err.message : "设定入口章失败");
-		} finally {
-			setBusy(false);
-		}
-	}
-
-	async function onDelete(chapterId: string): Promise<void> {
-		if (!window.confirm(`确定删除章「${chapterId}」？`)) return;
-		setBusy(true);
-		try {
-			await removeChapter({ packageId, chapterId });
-			await reload();
-		} catch (err) {
-			setError(err instanceof Error ? err.message : "删除章失败");
-		} finally {
-			setBusy(false);
-		}
-	}
+	const actions = bindChapterListPageActions({
+		packageId,
+		setBusy,
+		setError,
+		setCreateOpen,
+		reload,
+	});
 
 	return {
 		loading,
@@ -107,8 +57,6 @@ export function useChapterListPage(args: UseChapterListPageArgs) {
 		createOpen,
 		setCreateOpen,
 		busy,
-		onCreateSubmit,
-		onSetEntry,
-		onDelete,
+		...actions,
 	};
 }

@@ -2,7 +2,7 @@
 	* 玩家档案删除：经 API 删除 data/users/<userId>（含 profile.save.json）。
 	* demo-user 由服务端拒绝。
 	*/
-import { deleteProfileUser } from "@studio-v2/src/utils/ajaxProxy/library/api/usersApi";
+import { deleteProfileUser } from "@studio-v2/src/utils/ajaxProxy/library/api/users/usersApi";
 
 /** 删除玩家落盘结果 */
 export type DeleteUserResult = {

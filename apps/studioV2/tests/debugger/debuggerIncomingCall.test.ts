@@ -13,7 +13,7 @@ import {
 	acceptDebuggerIncomingCall,
 	listDebuggerIncomingCalls,
 	rejectDebuggerIncomingCall,
-} from "../../src/utils/server/debugger/session/debuggerIncomingCall.server";
+} from "../../src/utils/server/debugger/session/incoming/debuggerIncomingCall.server";
 
 function incomingEventFixture(): IncomingCallShellEvent {
 	return {

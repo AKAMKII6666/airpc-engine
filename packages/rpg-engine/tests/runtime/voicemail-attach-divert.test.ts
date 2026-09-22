@@ -1,15 +1,17 @@
 /**
  * V2-VM-4：attach(voicemail) → GenStack，不写 Board.pending
  */
-import { describe, expect, it } from "vitest";
+import { describe, it } from "vitest";
 import {
 	PlayerProfileSchema,
-	listVoicemailGenStack,
 	type CallCardDefinition,
 	type CallSession,
-	type Effect,
 } from "../../src/index.js";
-import { executeEffects } from "../../src/runtime/effectExecutor.js";
+import {
+	assertAttachBlindStillBoards,
+	assertAttachStoryStillBoards,
+	assertAttachVoicemailToGenStack,
+} from "./voicemail-attach-divert.helpers.js";
 
 function baseProfile() {
 	const profile = PlayerProfileSchema.parse({
@@ -83,85 +85,28 @@ function lookupFromMap(
 
 describe("attach_call_card voicemail divert (V2-VM-4)", () => {
 	it("目标 voicemail → GenStack，Board.pending 为空", async () => {
-		const profile = baseProfile();
-		const session = baseSession("wrong_number_act1");
-		const effects: Effect[] = [
-			{
-				id: "fx_attach_vm",
-				effect: "attach_call_card",
-				agentId: "lanxing",
-				cardId: "lanxing_voicemail",
-				chapterId: "wrong_number_act1",
-			},
-		];
-		const plan = await executeEffects(effects, {
-			profile,
-			session,
-			nowIso: "2026-07-23T00:00:00.000Z",
-			lookupCard: lookupFromMap({ lanxing_voicemail: voicemailCard }),
+		await assertAttachVoicemailToGenStack({
+			profile: baseProfile(),
+			session: baseSession("wrong_number_act1"),
+			voicemailCard,
+			lookupFromMap,
 		});
-		expect(plan.results[0]?.status).toBe("executed");
-		expect(profile.callCards.board.byAgent.lanxing?.pending ?? []).toEqual(
-			[],
-		);
-		const stack = listVoicemailGenStack(profile);
-		expect(stack).toHaveLength(1);
-		expect(stack[0]?.cardId).toBe("lanxing_voicemail");
-		expect(stack[0]?.source).toBe("attach");
-		expect(stack[0]?.chapterId).toBe("wrong_number_act1");
 	});
 
 	it("负向：普通 story 卡仍写 Board.pending", async () => {
-		const profile = baseProfile();
-		const session = baseSession("wrong_number_act1");
-		const plan = await executeEffects(
-			[
-				{
-					id: "fx_attach_story",
-					effect: "attach_call_card",
-					agentId: "lanxing",
-					cardId: "lanxing_callback_intro",
-					chapterId: "wrong_number_act1",
-				},
-			],
-			{
-				profile,
-				session,
-				nowIso: "2026-07-23T00:00:00.000Z",
-				lookupCard: lookupFromMap({
-					lanxing_callback_intro: storyCard,
-					lanxing_voicemail: voicemailCard,
-				}),
-			},
-		);
-		expect(plan.results[0]?.status).toBe("executed");
-		expect(listVoicemailGenStack(profile)).toHaveLength(0);
-		expect(profile.callCards.board.byAgent.lanxing?.pending).toHaveLength(1);
-		expect(profile.callCards.board.byAgent.lanxing?.pending[0]?.cardId).toBe(
-			"lanxing_callback_intro",
-		);
+		await assertAttachStoryStillBoards({
+			profile: baseProfile(),
+			session: baseSession("wrong_number_act1"),
+			storyCard,
+			voicemailCard,
+			lookupFromMap,
+		});
 	});
 
 	it("负向：无 lookupCard 时不误判为留言（仍进 Board）", async () => {
-		const profile = baseProfile();
-		const session = baseSession();
-		await executeEffects(
-			[
-				{
-					id: "fx_attach_blind",
-					effect: "attach_call_card",
-					agentId: "lanxing",
-					cardId: "lanxing_voicemail",
-					chapterId: "wrong_number_act1",
-				},
-			],
-			{
-				profile,
-				session,
-				nowIso: "2026-07-23T00:00:00.000Z",
-			},
-		);
-		expect(listVoicemailGenStack(profile)).toHaveLength(0);
-		expect(profile.callCards.board.byAgent.lanxing?.pending).toHaveLength(1);
+		await assertAttachBlindStillBoards({
+			profile: baseProfile(),
+			session: baseSession(),
+		});
 	});
 });

@@ -2,13 +2,8 @@
 	* 故事包 BFF：包容器读 / 写 / 建 / 删；章 API 见 chapterFs.server。
 	* 读章前 ensureFlatPackageMigrated；仅 Next API 调用。
 	*/
-import { randomUUID } from "node:crypto";
 import { mkdir, readFile, rm } from "node:fs/promises";
-import {
-	type CallCardDefinition,
-	type ChapterConf,
-	type PackageConf,
-} from "@airpc/rpg-engine";
+import { type PackageConf } from "@airpc/rpg-engine";
 import { ensureFlatPackageMigrated } from "@studio-v2/engineIOModule/content/migrate/packageMigrate";
 import { listDiskStoryPackages } from "@studio-v2/src/utils/server/packages/list/packagesList.server";
 import { buildNewPackageCanvasLayout } from "../../layout/newPackageCanvasLayout.server";
@@ -35,6 +30,10 @@ import {
 	writeDiskChapterBundle,
 	writeDiskStoryPackage,
 } from "../chapter/chapterFs.server";
+import {
+	buildNewPackageChapterBundle,
+	resolveNewPackageIds,
+} from "./create/createDiskStoryPackageHelpers.server";
 import {
 	ensurePackageReady,
 	parsePackageConfOrFail,
@@ -169,77 +168,28 @@ export async function createDiskStoryPackage(input: {
 	/** 默认章 id；缺省与 packageId 同形 */
 	entryChapterId?: string;
 }): Promise<DiskChapterBundle> {
-	const packageId = input.packageId.trim();
-	if (!isValidPackageId(packageId)) {
-		packageFail("VALIDATION_FAILED", "invalid packageId");
-	}
+	const { packageId, chapterId } = resolveNewPackageIds(input);
 	if (await packageExists(packageId)) {
 		packageFail("CONFLICT", `package already exists: ${packageId}`);
 	}
 
-	const chapterId = (input.entryChapterId?.trim() || packageId).slice(0, 64);
-	if (!isValidChapterId(chapterId)) {
-		packageFail("VALIDATION_FAILED", "invalid entryChapterId");
-	}
-
-	const title = input.title.trim() || packageId;
-	const cards: CallCardDefinition[] = [];
-	let entryCardId: string | undefined;
-	if (input.withStartCard) {
-		entryCardId = `card_${randomUUID().replace(/-/g, "").toLowerCase()}`;
-		cards.push({
-			cardId: entryCardId,
-			cardKind: "story",
-			title: "第一张通话卡",
-			ownerAgentId: "",
-			entryMode: "inbound_user_dial",
-			interactionMode: "realtime_dialogue",
-			context: {
-				privateBrief: input.description?.trim() ?? "",
-				speakableBrief: "",
-			},
-			objectives: { requiredBeats: [] },
-			toolPolicy: {
-				schemaVersion: 2,
-				mode: "inherit_free",
-				options: {
-					request_hangup: {
-						allowedReasonKinds: ["natural", "policy"],
-					},
-				},
-			},
-			exits: [],
-		});
-	}
-
-	const chapterConf: ChapterConf = {
-		schemaVersion: 1,
-		chapterId,
-		title,
-		participants: [],
-		cards: cards.map(function (c) {
-			return { cardId: c.cardId };
-		}),
-		...(entryCardId ? { entryCardId } : {}),
-	};
-
-	const packageConf: PackageConf = {
-		schemaVersion: 1,
+	const built = buildNewPackageChapterBundle({
 		packageId,
-		title,
-		entryChapterId: chapterId,
-		chapters: [{ chapterId }],
-	};
+		chapterId,
+		title: input.title,
+		description: input.description,
+		withStartCard: input.withStartCard,
+	});
 
 	await mkdir(packageDir(packageId), { recursive: true });
-	await writeJson(packageConfPath(packageId), packageConf);
+	await writeJson(packageConfPath(packageId), built.packageConf);
 	return writeDiskChapterBundle(packageId, chapterId, {
-		conf: chapterConf,
-		cards,
+		conf: built.chapterConf,
+		cards: built.cards,
 		layout: buildNewPackageCanvasLayout({
 			chapterId,
-			chapterTitle: title,
-			entryCardId,
+			chapterTitle: built.title,
+			entryCardId: built.entryCardId,
 		}),
 	});
 }

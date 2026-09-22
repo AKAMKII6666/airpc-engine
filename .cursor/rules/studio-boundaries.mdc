@@ -24,7 +24,7 @@ alwaysApply: false
 - Zustand **不得**当 Profile/Memory 真源；不得灌十年记忆大数组。
 - **隐私**：playtest 隐藏 privateBrief；导出日志不落 private 原文。
 - **禁止** `bis/` · `store/` · `ajaxHelper/` · `uiComponents/` · `types/frontEnd/` 等处的 `index.ts` barrel；直引具体文件。
-- **目录职责聚类**：异责可分类文件 ≥4 须分子目录（见 [05 §1.1](../../docs/AI和人类/技术设计文档/05-技术选型与工程边界.md)）。
+- **目录职责聚类**：同目录 ≥2 组异责且可分类文件 ≥4 须分子目录；有子目录时根层异责堆叠同样禁止；禁 stub 森林（见 [05 §1.1](../../docs/AI和人类/技术设计文档/05-技术选型与工程边界.md)；门禁 `STUDIO-STRUCT-008` / `025` / `026`）。
 - **测试**不进 `app/**` / `bis/**` 旁；进独立 `tests/`。
 
 ## 默认执行

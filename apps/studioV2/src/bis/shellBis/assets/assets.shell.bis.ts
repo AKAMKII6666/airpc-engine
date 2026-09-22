@@ -6,7 +6,7 @@
 
 import { useEffect, useLayoutEffect } from "react";
 import { useAssetsStore } from "@studio-v2/src/stores/assets/assetsStore";
-import { fetchAssetSummaries } from "@studio-v2/src/utils/ajaxProxy/library/api/assetsApi";
+import { fetchAssetSummaries } from "@studio-v2/src/utils/ajaxProxy/library/api/assets/assetsApi";
 import type { AssetsLoadResult } from "@studio-v2/typeFiles/library/assets/store/assetsStoreState";
 
 function errorMessage(error: unknown, fallback: string): string {

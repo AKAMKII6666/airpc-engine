@@ -5,17 +5,16 @@
 "use client";
 
 import type { FC } from "react";
-import { useEffect, useState } from "react";
-import { Alert, Button } from "@mui/material";
 // 引用了AppModal组件，用于预览弹层壳
 import { AppModal } from "@studio-v2/src/commonUiComponents/modal/app/AppModal";
-// 引用了UserGate组件，用于无玩家时硬门禁
-import { UserGate } from "@studio-v2/src/commonUiComponents/userGate/UserGate";
-// 引用了PromptPreviewControls组件，用于方向/小时控制
-import { PromptPreviewControls } from "./com/PromptPreviewControls";
-// 引用了PromptPreviewResultPanels组件，用于渲染结果区
-import { PromptPreviewResultPanels } from "./com/PromptPreviewResultPanels";
+// 引用了FirstConnectPromptPreviewActions组件，用于关闭/渲染按钮
+import { FirstConnectPromptPreviewActions } from "./com/FirstConnectPromptPreviewActions";
+// 引用了FirstConnectPromptPreviewBody组件，用于控制区与结果
+import { FirstConnectPromptPreviewBody } from "./com/FirstConnectPromptPreviewBody";
+// 引用了FirstConnectPromptPreviewGate组件，用于无玩家硬门禁
+import { FirstConnectPromptPreviewGate } from "./com/FirstConnectPromptPreviewGate";
 import { useFirstConnectPromptPreviewBis } from "@studio-v2/src/bis/pageBis/storyEditor/promptPreview/firstConnectPromptPreview.bis";
+import { useFirstConnectPromptPreviewModalState } from "./hooks/useFirstConnectPromptPreviewModalState";
 
 export type FirstConnectPromptPreviewModalProps = {
 	open: boolean;
@@ -27,27 +26,23 @@ export type FirstConnectPromptPreviewModalProps = {
 
 export const FirstConnectPromptPreviewModal: FC<
 	FirstConnectPromptPreviewModalProps
-> = function (props) {
+> = function FirstConnectPromptPreviewModal({
 	// open 表示弹层是否打开，用于显隐
-	const { open } = props;
+	open,
 	// onClose 用于关闭预览
-	const { onClose } = props;
+	onClose,
 	// card 表示草稿卡 JSON，用于渲染请求
-	const { card } = props;
+	card,
 	// packageId 表示故事章 chapterId（Free 可省略），用于渲染请求
-	const { packageId } = props;
+	packageId,
 	// title 表示弹层标题，用于展示
-	const { title = "首通提示词预览" } = props;
-
+	title = "首通提示词预览",
+}) {
 	const preview = useFirstConnectPromptPreviewBis();
-	const [gateOpen, setGateOpen] = useState(false);
-
-	useEffect(
-		function () {
-			if (open) preview.resetResult();
-		},
-		[open, preview.resetResult],
-	);
+	const gate = useFirstConnectPromptPreviewModalState({
+		open,
+		resetResult: preview.resetResult,
+	});
 
 	return (
 		<>
@@ -60,66 +55,40 @@ export const FirstConnectPromptPreviewModal: FC<
 				busy={preview.busy}
 				maxWidth="lg"
 				actions={
-					<>
-						{/* 引用了Button组件，用于关闭 */}
-						<Button onClick={onClose} disabled={preview.busy}>
-							关闭
-						</Button>
-						{/* 引用了Button组件，用于触发渲染 */}
-						<Button
-							variant="contained"
-							disabled={preview.busy}
-							onClick={function () {
-								void preview
-									.renderPreview({ card, packageId })
-									.then(function (ok) {
-										if (!ok) setGateOpen(true);
-									});
-							}}
-						>
-							渲染提示词
-						</Button>
-					</>
+					// 引用了FirstConnectPromptPreviewActions组件，用于关闭/渲染按钮
+					<FirstConnectPromptPreviewActions
+						busy={preview.busy}
+						onClose={onClose}
+						onRender={function () {
+							void preview
+								.renderPreview({ card, packageId })
+								.then(function (ok) {
+									if (!ok) gate.openGate();
+								});
+						}}
+					/>
 				}
 			>
-				{/* 引用了PromptPreviewControls组件，用于方向/小时控制 */}
-				<PromptPreviewControls
+				{/* 引用了FirstConnectPromptPreviewBody组件，用于控制区与结果 */}
+				<FirstConnectPromptPreviewBody
 					hasUser={preview.hasUser}
 					userLabel={preview.userLabel}
 					userId={preview.userId}
 					callDirection={preview.callDirection}
 					localHour={preview.localHour}
-					onSwitchUser={function () {
-						setGateOpen(true);
-					}}
+					error={preview.error}
+					result={preview.result}
+					onSwitchUser={gate.openGate}
 					onCallDirectionChange={preview.setCallDirection}
 					onLocalHourChange={preview.setLocalHour}
 				/>
-
-				{preview.error ? (
-					// 引用了Alert组件，用于渲染失败
-					<Alert severity="error">{preview.error}</Alert>
-				) : null}
-
-				{/* 引用了PromptPreviewResultPanels组件，用于渲染结果区 */}
-				<PromptPreviewResultPanels result={preview.result} />
 			</AppModal>
-
-			{preview.sessionReady && gateOpen ? (
-				// 引用了UserGate组件，用于无玩家时硬门禁（水合后按需挂载）
-				<UserGate
-					open
-					currentUserId={preview.userId}
-					allowDismissWhenSelected
-					onClose={function () {
-						setGateOpen(false);
-					}}
-					onSelected={function () {
-						setGateOpen(false);
-					}}
-					title="选择玩家（提示词预览需要 Memory 上下文）"
-				/>
-			) : null}
+			{/* 引用了FirstConnectPromptPreviewGate组件，用于无玩家硬门禁 */}
+			<FirstConnectPromptPreviewGate
+				open={preview.sessionReady && gate.gateOpen}
+				userId={preview.userId}
+				onClose={gate.closeGate}
+			/>
 		</>
 	);
 };

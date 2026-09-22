@@ -6,18 +6,18 @@ import { describe, expect, it } from "vitest";
 import {
 	validateCreateAssetForm,
 	CREATE_ASSET_INITIAL_VALUES,
-} from "@studio-v2/src/bis/pageBis/assets/createAssetForm";
+} from "@studio-v2/src/bis/pageBis/assets/create/createAssetForm";
 import {
 	applyAssetDetailForm,
 	toAssetDetailFormValues,
 	validateAssetDetailForm,
-} from "@studio-v2/src/bis/pageBis/assets/assetDetailForm";
+} from "@studio-v2/src/bis/pageBis/assets/form/assetDetailForm";
 import {
 	assetMetaToSummary,
 	buildAssetMetaFromCreateForm,
 	mergeDetailFormIntoAssetMeta,
 	resolveAssetAvailability,
-} from "@studio-v2/src/bis/pageBis/assets/assetMetaMapper";
+} from "@studio-v2/src/bis/pageBis/assets/form/assetMetaMapper";
 import { resetStudioIdSeq } from "@studio-v2/typeFiles/ids/createStudioId";
 import { createStudioId } from "@studio-v2/typeFiles/ids/createStudioId";
 

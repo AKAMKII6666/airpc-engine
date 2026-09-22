@@ -7,7 +7,7 @@
 import { useEffect, useLayoutEffect } from "react";
 import { userToSummary } from "@studio-v2/src/bis/pageBis/users/form/mapper/mapUserProfile";
 import { useUsersStore } from "@studio-v2/src/stores/users/usersStore";
-import { fetchProfileUsers } from "@studio-v2/src/utils/ajaxProxy/library/api/usersApi";
+import { fetchProfileUsers } from "@studio-v2/src/utils/ajaxProxy/library/api/users/usersApi";
 import type { UsersLoadResult } from "@studio-v2/typeFiles/library/users/store/usersStoreState";
 
 function errorMessage(error: unknown, fallback: string): string {

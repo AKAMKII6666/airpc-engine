@@ -7,10 +7,10 @@
 import type { FC } from "react";
 // 引用了AppModal组件，用于导入三步弹层容器
 import { AppModal } from "@studio-v2/src/commonUiComponents/modal/app/AppModal";
-import {
-	ImportActiveStep,
-	ImportStepNav,
-} from "./ImportStepPanels";
+// 引用了ImportActiveStep组件，用于当前步骤面板
+import { ImportActiveStep } from "./com/shell/ImportActiveStep";
+// 引用了ImportStepNav组件，用于三步进度指示
+import { ImportStepNav } from "./com/shell/ImportStepNav";
 import { useImportPackageModal } from "./hooks/useImportPackageModal";
 
 export type ImportPackageModalProps = {

@@ -1,6 +1,6 @@
 /**
 	* 与引擎同构镜像，不以 import 同步。
-	* 对齐 packages/rpg-engine/src/schema/schedule.ts 的 ScheduledIntentSchema（discriminatedUnion）。
+	* 对齐 packages/rpg-engine/src/schema/schedule/schedule.ts 的 ScheduledIntentSchema（discriminatedUnion）。
 	*/
 
 /** 一次性外呼意图；对齐 ScheduledIntentOnceSchema */

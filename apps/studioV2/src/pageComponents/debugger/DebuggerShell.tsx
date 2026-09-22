@@ -5,15 +5,15 @@
 
 import { useEffect, useMemo, useRef, type FC } from "react";
 import { Alert, Snackbar } from "@mui/material";
-import { useDebuggerDialableRolesBis } from "@studio-v2/src/bis/pageBis/debugger/dialableRoles.bis";
-import { useDebuggerLlmStatusBis } from "@studio-v2/src/bis/pageBis/debugger/llmStatus.bis";
-import { useDebuggerIncomingCallsBis } from "@studio-v2/src/bis/pageBis/debugger/incomingCalls.bis";
-import { useDebuggerMailboxSessionBis } from "@studio-v2/src/bis/pageBis/debugger/mailboxSession.bis";
+import { useDebuggerDialableRolesBis } from "@studio-v2/src/bis/pageBis/debugger/dialable/dialableRoles.bis";
+import { useDebuggerLlmStatusBis } from "@studio-v2/src/bis/pageBis/debugger/llm/llmStatus.bis";
+import { useDebuggerIncomingCallsBis } from "@studio-v2/src/bis/pageBis/debugger/incoming/incomingCalls.bis";
+import { useDebuggerMailboxSessionBis } from "@studio-v2/src/bis/pageBis/debugger/mailbox/mailboxSession.bis";
 import { useDebuggerShellBis } from "@studio-v2/src/bis/shellBis/debugger/debugger.shell.bis";
-import { DebuggerTopBar } from "@studio-v2/src/pageComponents/debugger/com/DebuggerTopBar";
-import { DebuggerShellWorkspace } from "@studio-v2/src/pageComponents/debugger/com/DebuggerShellWorkspace";
-import { IncomingCallModal } from "@studio-v2/src/pageComponents/debugger/com/IncomingCallModal";
-import { PostCallJobTip } from "@studio-v2/src/pageComponents/debugger/com/PostCallJobTip";
+import { DebuggerTopBar } from "@studio-v2/src/pageComponents/debugger/com/shell/DebuggerTopBar";
+import { DebuggerShellWorkspace } from "@studio-v2/src/pageComponents/debugger/com/shell/DebuggerShellWorkspace";
+import { IncomingCallModal } from "@studio-v2/src/pageComponents/debugger/com/incoming/IncomingCallModal";
+import { PostCallJobTip } from "@studio-v2/src/pageComponents/debugger/com/postCallJob/tip/PostCallJobTip";
 import { useDebuggerPrototypeSession } from "@studio-v2/src/pageComponents/debugger/hooks/prototype/useDebuggerPrototypeSession";
 import {
 	phoneStatusLabel,
@@ -29,26 +29,19 @@ export type DebuggerShellProps = {
 	initialCardId?: string;
 };
 
-export const DebuggerShell: FC<DebuggerShellProps> = function DebuggerShell({
-	// initialChapterId 来自路由 query，用于编辑器定点调试
-	initialChapterId,
-	// initialCardId 来自路由 query，用于编辑器定点调试
-	initialCardId,
-}) {
-	useDebuggerShellBis();
-	const llmStatus = useDebuggerLlmStatusBis();
-	const roleBis = useDebuggerDialableRolesBis();
-	const mailboxBis = useDebuggerMailboxSessionBis();
-	const incomingBis = useDebuggerIncomingCallsBis();
-	const roleRows = useMemo(() => toRoleRows(roleBis.roles), [roleBis.roles]);
-	const session = useDebuggerPrototypeSession(roleRows, mailboxBis);
-	const isInCall = session.callState.mode === "inCall";
+function useEditorEntryAutoStart(
+	initialChapterId: string | undefined,
+	initialCardId: string | undefined,
+	isInCall: boolean,
+	sessionRef: {
+		current: {
+			startSimulateCall: (chapterId: string, cardId: string) => void;
+			startChapterEntryRing: (chapterId: string) => Promise<boolean>;
+		};
+	},
+	refreshIncomingRef: { current: () => void | Promise<void> },
+) {
 	const autoStartKeyRef = useRef<string | null>(null);
-	const sessionRef = useRef(session);
-	sessionRef.current = session;
-	const refreshIncomingRef = useRef(incomingBis.refresh);
-	refreshIncomingRef.current = incomingBis.refresh;
-
 	useEffect(function () {
 		if (!initialChapterId || isInCall) return;
 		const key = `${initialChapterId}:${initialCardId ?? "__entry__"}`;
@@ -65,7 +58,59 @@ export const DebuggerShell: FC<DebuggerShellProps> = function DebuggerShell({
 					void refreshIncomingRef.current();
 				}
 			});
-	}, [initialChapterId, initialCardId, isInCall]);
+	}, [initialChapterId, initialCardId, isInCall, sessionRef, refreshIncomingRef]);
+}
+
+function renderHangupToast(session: {
+	hangupToast: { id: string | number; message: string } | null;
+	dismissHangupToast: () => void;
+}) {
+	return (
+		// 引用了Snackbar组件，用于短暂提示挂断结果
+		<Snackbar
+			key={session.hangupToast?.id}
+			open={session.hangupToast !== null}
+			autoHideDuration={2200}
+			onClose={session.dismissHangupToast}
+			anchorOrigin={{ vertical: "top", horizontal: "center" }}
+		>
+			{/* 引用了Alert组件，用于展示挂断 toast 文案 */}
+			<Alert
+				severity="info"
+				variant="filled"
+				onClose={session.dismissHangupToast}
+			>
+				{session.hangupToast?.message}
+			</Alert>
+		</Snackbar>
+	);
+}
+
+export const DebuggerShell: FC<DebuggerShellProps> = function DebuggerShell({
+	// initialChapterId 来自路由 query，用于编辑器定点调试
+	initialChapterId,
+	// initialCardId 来自路由 query，用于编辑器定点调试
+	initialCardId,
+}) {
+	useDebuggerShellBis();
+	const llmStatus = useDebuggerLlmStatusBis();
+	const roleBis = useDebuggerDialableRolesBis();
+	const mailboxBis = useDebuggerMailboxSessionBis();
+	const incomingBis = useDebuggerIncomingCallsBis();
+	const roleRows = useMemo(() => toRoleRows(roleBis.roles), [roleBis.roles]);
+	const session = useDebuggerPrototypeSession(roleRows, mailboxBis);
+	const isInCall = session.callState.mode === "inCall";
+	const sessionRef = useRef(session);
+	sessionRef.current = session;
+	const refreshIncomingRef = useRef(incomingBis.refresh);
+	refreshIncomingRef.current = incomingBis.refresh;
+	useEditorEntryAutoStart(
+		initialChapterId,
+		initialCardId,
+		isInCall,
+		sessionRef,
+		refreshIncomingRef,
+	);
 
 	return (
 		<main className={styles.root}>
@@ -99,23 +144,7 @@ export const DebuggerShell: FC<DebuggerShellProps> = function DebuggerShell({
 				onRetry={session.retryPostCallJob}
 				retryingJobId={session.postCallRetryingJobId}
 			/>
-			{/* 引用了Snackbar组件，用于短暂提示挂断结果 */}
-			<Snackbar
-				key={session.hangupToast?.id}
-				open={session.hangupToast !== null}
-				autoHideDuration={2200}
-				onClose={session.dismissHangupToast}
-				anchorOrigin={{ vertical: "top", horizontal: "center" }}
-			>
-				{/* 引用了Alert组件，用于展示挂断 toast 文案 */}
-				<Alert
-					severity="info"
-					variant="filled"
-					onClose={session.dismissHangupToast}
-				>
-					{session.hangupToast?.message}
-				</Alert>
-			</Snackbar>
+			{renderHangupToast(session)}
 		</main>
 	);
 };

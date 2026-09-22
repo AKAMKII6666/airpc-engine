@@ -8,8 +8,8 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { sliceForPage } from "@studio-v2/src/commonUiComponents/pagination/sliceForPage";
-import type { CreatePackageFormValues } from "@studio-v2/src/bis/pageBis/packages/createPackageForm";
-import type { EditPackageFormValues } from "@studio-v2/src/bis/pageBis/packages/editPackageForm";
+import type { CreatePackageFormValues } from "@studio-v2/src/bis/pageBis/packages/create/createPackageForm";
+import type { EditPackageFormValues } from "@studio-v2/src/bis/pageBis/packages/edit/editPackageForm";
 import { usePackageListSessionBis } from "@studio-v2/src/bis/pageBis/packages/list/packageListSession.bis";
 import { usePackagesShellBis } from "@studio-v2/src/bis/shellBis/packages/packages.shell.bis";
 import { usePackageListDelete } from "./usePackageListDelete";
@@ -25,6 +25,47 @@ function matchesSearch(pkg: StoryPackageSummary, raw: string): boolean {
 		pkg.title.toLowerCase().includes(q) ||
 		pkg.packageId.toLowerCase().includes(q)
 	);
+}
+
+function usePackageListQuery(
+	packages: readonly StoryPackageSummary[],
+	search: string,
+	page: number,
+	setSearch: (next: string) => void,
+	setPage: (page: number) => void,
+) {
+	const filtered = useMemo(
+		function () {
+			return packages.filter(function (pkg) {
+				return matchesSearch(pkg, search);
+			});
+		},
+		[packages, search],
+	);
+	const pageItems = useMemo(
+		function () {
+			return sliceForPage(filtered, page, PACKAGE_LIST_PAGE_SIZE);
+		},
+		[filtered, page],
+	);
+
+	function onSearchChange(next: string): void {
+		setSearch(next);
+		setPage(1);
+	}
+
+	return { filtered, pageItems, onSearchChange };
+}
+
+function openImportedPackage(
+	packageId: string,
+	session: { onImported: (packageId: string) => void },
+	setImportOpen: (open: boolean) => void,
+	router: { push: (href: string) => void },
+): void {
+	session.onImported(packageId);
+	setImportOpen(false);
+	router.push(`/packages/${encodeURIComponent(packageId)}`);
 }
 
 /**
@@ -45,32 +86,16 @@ export function usePackageListPage() {
 		onDelete: session.onDelete,
 		packageCount: session.packages.length,
 	});
-
-	const filtered = useMemo(
-		function () {
-			return session.packages.filter(function (pkg) {
-				return matchesSearch(pkg, search);
-			});
-		},
-		[session.packages, search],
+	const query = usePackageListQuery(
+		session.packages,
+		search,
+		page,
+		setSearch,
+		setPage,
 	);
-
-	const pageItems = useMemo(
-		function () {
-			return sliceForPage(filtered, page, PACKAGE_LIST_PAGE_SIZE);
-		},
-		[filtered, page],
-	);
-
-	function onSearchChange(next: string): void {
-		setSearch(next);
-		setPage(1);
-	}
 
 	function onImported(packageId: string): void {
-		session.onImported(packageId);
-		setImportOpen(false);
-		router.push(`/packages/${encodeURIComponent(packageId)}`);
+		openImportedPackage(packageId, session, setImportOpen, router);
 	}
 
 	async function onCreateSubmit(
@@ -89,30 +114,23 @@ export function usePackageListPage() {
 
 	return {
 		packages: session.packages,
-		filteredCount: filtered.length,
+		filteredCount: query.filtered.length,
 		loading: session.loading,
 		loadError: session.loadError,
 		page,
 		setPage,
 		search,
-		onSearchChange,
+		onSearchChange: query.onSearchChange,
 		importOpen,
 		setImportOpen,
 		createOpen,
 		setCreateOpen,
 		editTarget,
 		setEditTarget,
-		pageItems,
+		pageItems: query.pageItems,
 		onImported,
 		onCreateSubmit,
 		onEditSubmit,
-		deleteTarget: deleteFlow.deleteTarget,
-		deleteError: deleteFlow.deleteError,
-		deleteBusy: deleteFlow.deleteBusy,
-		canDeletePackage: deleteFlow.canDeletePackage,
-		deleteBlockedReason: deleteFlow.deleteBlockedReason,
-		openDeleteModal: deleteFlow.openDeleteModal,
-		closeDeleteModal: deleteFlow.closeDeleteModal,
-		onConfirmDelete: deleteFlow.onConfirmDelete,
+		...deleteFlow,
 	};
 }

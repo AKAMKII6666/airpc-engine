@@ -11,11 +11,11 @@ import {
 import {
 	ServerLlmError,
 	runServerLlmChat,
-} from "@studio-v2/src/utils/server/llm/llmClient.server";
+} from "@studio-v2/src/utils/server/llm/client/llmClient.server";
 import {
 	resolveLoreLlmRuntimeConfig,
 	type ServerLlmRuntimeConfig,
-} from "@studio-v2/src/utils/server/llm/llmConfig.server";
+} from "@studio-v2/src/utils/server/llm/config/llmConfig.server";
 
 /** 供单测：拼 LLM user prompt。 */
 export function buildLoreBootstrapPrompt(input: LoreBootstrapInput): string {

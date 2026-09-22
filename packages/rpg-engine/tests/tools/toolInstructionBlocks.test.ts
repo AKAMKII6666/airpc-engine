@@ -7,11 +7,13 @@ import {
 	buildToolInstructionBlocks,
 } from "../../src/index.js";
 
-describe("buildToolInstructionBlocks", () => {
+describe("buildToolInstructionBlocks empty", () => {
 	it("returns empty for empty allowlist", () => {
 		expect(buildToolInstructionBlocks([])).toEqual([]);
 	});
+});
 
+describe("buildToolInstructionBlocks single", () => {
 	it("wraps blocks under [tools] for a single business tool", () => {
 		const blocks = buildToolInstructionBlocks(["schedule_reminder_call"]);
 		expect(blocks).toHaveLength(1);
@@ -21,7 +23,9 @@ describe("buildToolInstructionBlocks", () => {
 		expect(blocks[0]).toMatch(/禁止只说/);
 		expect(blocks[0]).not.toMatch(/专家介绍优先/);
 	});
+});
 
+describe("buildToolInstructionBlocks expert cross", () => {
 	it("adds expert-priority line when research and expert tools both open", () => {
 		const both = buildToolInstructionBlocks([
 			"refer_to_expert",
@@ -39,7 +43,9 @@ describe("buildToolInstructionBlocks", () => {
 		expect(only).toMatch(/研究回拨/);
 		expect(only).not.toMatch(/专家介绍优先/);
 	});
+});
 
+describe("buildToolInstructionBlocks reminder cross", () => {
 	it("cross-links reminder and recurring when both open", () => {
 		const text = buildToolInstructionBlocks([
 			"schedule_reminder_call",
@@ -49,7 +55,9 @@ describe("buildToolInstructionBlocks", () => {
 		expect(text).toMatch(/schedule_reminder_call/);
 		expect(text).toMatch(/固定每天|过 X 分钟/);
 	});
+});
 
+describe("buildToolInstructionBlocks path mutex", () => {
 	it("includes path A/B mutex when both expert tools open", () => {
 		const text = buildToolInstructionBlocks([
 			"share_expert_number",
@@ -59,7 +67,9 @@ describe("buildToolInstructionBlocks", () => {
 		expect(text).toMatch(/路径 B/);
 		expect(text).toMatch(/不可再走/);
 	});
+});
 
+describe("buildToolInstructionBlocks memory", () => {
 	it("includes memory guidance when memory tools open", () => {
 		const text = buildToolInstructionBlocks([
 			"search_memory",
@@ -69,7 +79,9 @@ describe("buildToolInstructionBlocks", () => {
 		expect(text).toMatch(/search_memory/);
 		expect(text).toMatch(/get_memory_by_id/);
 	});
+});
 
+describe("buildToolInstructionBlocks nickname", () => {
 	it("unknown name: keeps first-learn script for record_user_name", () => {
 		const text = buildToolInstructionBlocks(["record_user_name"]).join("\n");
 		expect(text).toMatch(/好，我记住啦/);

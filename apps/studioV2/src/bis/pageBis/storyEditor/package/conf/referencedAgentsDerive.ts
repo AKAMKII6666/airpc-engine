@@ -33,7 +33,7 @@ function collectFromEffect(
 
 /**
 	* Studio 侧 collectReferencedAgentIds 镜像（纯函数）。
-	* 变更时须与 packages/rpg-engine/src/validation/collectReferencedAgentIds.ts 同步。
+	* 变更时须与 packages/rpg-engine/src/validation/agents/collectReferencedAgentIds.ts 同步。
 	*/
 function collectReferencedAgentIdsLocal(
 	cards: readonly CallCardDefinition[],

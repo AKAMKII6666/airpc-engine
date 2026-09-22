@@ -5,8 +5,8 @@
 import {
 	isLocalHourInOutboundWindow,
 	localHourFromIso,
-} from "../../../runtime/outboundWindow.js";
-import type { ScheduleGate } from "../../contributeTypes.js";
+} from "../../../runtime/classify/window/outboundWindow.js";
+import type { ScheduleGate } from "../../types/contributeTypes.js";
 import type { FirstPartyPack } from "../../types.js";
 
 export const OUTBOUND_WINDOW_GATE_PACK_ID = "outbound-window-gate";

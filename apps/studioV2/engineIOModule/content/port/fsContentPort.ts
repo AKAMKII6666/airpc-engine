@@ -10,11 +10,11 @@ import { loadWorkspaceSnapshotFromFs } from "../snapshot/workspaceSnapshot";
 import {
 	assetMetaExistsFromFs,
 	assetUriExistsFromFs,
-	loadPackageForValidateFromFs,
 	readAssetMetaFromFs,
 	readCardFromFs,
 	readChapterConfFromFs,
 } from "../reads/contentReads";
+import { loadPackageForValidateFromFs } from "../reads/loadPackageForValidate";
 
 export function createFsContentPort(): ContentPort {
 	return {

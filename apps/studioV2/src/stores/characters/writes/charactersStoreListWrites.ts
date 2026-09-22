@@ -12,18 +12,12 @@ import {
 
 type CharactersSet = StoreApi<CharactersStoreState>["setState"];
 
-/** 列表灌账、选中、upsert、stamp、reset */
-export function createCharactersListActions(
+/** 列表灌账（started / result） */
+function createCharactersListLoadActions(
 	set: CharactersSet,
 ): Pick<
 	CharactersStoreState,
-	| "applyListLoadStarted"
-	| "applyListLoadResult"
-	| "setSelectedId"
-	| "applyCharacterUpsertResult"
-	| "setPreferSelectedId"
-	| "bumpCharactersRefreshStamp"
-	| "resetCharactersSession"
+	"applyListLoadStarted" | "applyListLoadResult"
 > {
 	return {
 		applyListLoadStarted() {
@@ -59,7 +53,21 @@ export function createCharactersListActions(
 				};
 			});
 		},
+	};
+}
 
+/** 选中、upsert、prefer、stamp、reset */
+function createCharactersListMutationActions(
+	set: CharactersSet,
+): Pick<
+	CharactersStoreState,
+	| "setSelectedId"
+	| "applyCharacterUpsertResult"
+	| "setPreferSelectedId"
+	| "bumpCharactersRefreshStamp"
+	| "resetCharactersSession"
+> {
+	return {
 		setSelectedId(agentId) {
 			set({ selectedId: agentId });
 		},
@@ -100,5 +108,24 @@ export function createCharactersListActions(
 				};
 			});
 		},
+	};
+}
+
+/** 列表灌账、选中、upsert、stamp、reset */
+export function createCharactersListActions(
+	set: CharactersSet,
+): Pick<
+	CharactersStoreState,
+	| "applyListLoadStarted"
+	| "applyListLoadResult"
+	| "setSelectedId"
+	| "applyCharacterUpsertResult"
+	| "setPreferSelectedId"
+	| "bumpCharactersRefreshStamp"
+	| "resetCharactersSession"
+> {
+	return {
+		...createCharactersListLoadActions(set),
+		...createCharactersListMutationActions(set),
 	};
 }

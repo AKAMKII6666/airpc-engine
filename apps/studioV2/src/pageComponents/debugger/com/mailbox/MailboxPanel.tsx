@@ -4,13 +4,14 @@
 "use client";
 
 import type { FC, ReactNode } from "react";
-import { Button, TextField } from "@mui/material";
 import type {
 	DebuggerMailboxSnapshot,
 	DebuggerVoicemailSlotView,
-} from "@studio-v2/typeFiles/debugger/mailboxView";
+} from "@studio-v2/typeFiles/debugger/mailbox/mailboxView";
 // 引用了MailboxSlotItem组件，用于单条留言展示
 import { MailboxSlotItem } from "./MailboxSlotItem";
+// 引用了MailboxToolbar组件，用于用户与操作按钮
+import { MailboxToolbar } from "./MailboxToolbar";
 import styles from "./MailboxPanel.module.scss";
 
 export type MailboxPanelProps = {
@@ -48,6 +49,26 @@ function renderSlotList(
 	);
 }
 
+function resolveMailboxBody(
+	loading: boolean,
+	mailbox: DebuggerMailboxSnapshot | null,
+	slots: readonly DebuggerVoicemailSlotView[],
+	busy: boolean,
+	onListen: (slot: DebuggerVoicemailSlotView) => void,
+): ReactNode {
+	if (loading && !mailbox) {
+		return <p className={styles.hint}>加载信箱…</p>;
+	}
+	if (slots.length === 0) {
+		return (
+			<p className={styles.hint}>
+				信箱为空。可「注入测试未读」或先跑带 attach 留言卡的通话。
+			</p>
+		);
+	}
+	return renderSlotList(slots, busy, onListen);
+}
+
 export const MailboxPanel: FC<MailboxPanelProps> = function MailboxPanel({
 	// userId 是当前调试用户，用于绑定信箱查询
 	userId,
@@ -72,18 +93,7 @@ export const MailboxPanel: FC<MailboxPanelProps> = function MailboxPanel({
 }) {
 	const slots = mailbox?.slots ?? [];
 	const hasUnread = mailbox?.hasUnread === true;
-	let body: ReactNode;
-	if (loading && !mailbox) {
-		body = <p className={styles.hint}>加载信箱…</p>;
-	} else if (slots.length === 0) {
-		body = (
-			<p className={styles.hint}>
-				信箱为空。可「注入测试未读」或先跑带 attach 留言卡的通话。
-			</p>
-		);
-	} else {
-		body = renderSlotList(slots, busy, onListen);
-	}
+	const body = resolveMailboxBody(loading, mailbox, slots, busy, onListen);
 
 	return (
 		<section className={styles.root} aria-label="语音留言信箱">
@@ -96,38 +106,15 @@ export const MailboxPanel: FC<MailboxPanelProps> = function MailboxPanel({
 				)}
 			</h2>
 
-			{/* 引用了TextField组件，用于选择调试用户 */}
-			<TextField
-				size="small"
-				label="用户 ID"
-				value={userId}
-				onChange={function (e) {
-					onUserIdChange(e.target.value.trim());
-				}}
-				fullWidth
-				className={styles.userField}
+			{/* 引用了MailboxToolbar组件，用于用户与操作 */}
+			<MailboxToolbar
+				userId={userId}
+				onUserIdChange={onUserIdChange}
+				loading={loading}
+				busy={busy}
+				onRefresh={onRefresh}
+				onSeed={onSeed}
 			/>
-
-			<div className={styles.actions}>
-				{/* 引用了Button组件，用于刷新信箱 */}
-				<Button
-					size="small"
-					variant="outlined"
-					disabled={loading || busy || !userId}
-					onClick={onRefresh}
-				>
-					刷新
-				</Button>
-				{/* 引用了Button组件，用于注入未读测试留言 */}
-				<Button
-					size="small"
-					variant="outlined"
-					disabled={loading || busy || !userId}
-					onClick={onSeed}
-				>
-					注入测试未读
-				</Button>
-			</div>
 
 			{error ? <p className={styles.error}>{error}</p> : null}
 			{lastListenSummary ? (

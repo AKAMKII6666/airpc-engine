@@ -10,8 +10,8 @@ import type {
 	DebugRoleBoardItem,
 	DebugSceneSetup,
 	DebugTimelineItem,
-} from "@studio-v2/typeFiles/debugger/debugSessionView";
-import type { DebuggerMailboxSnapshot } from "@studio-v2/typeFiles/debugger/mailboxView";
+} from "@studio-v2/typeFiles/debugger/labels/debugSessionView";
+import type { DebuggerMailboxSnapshot } from "@studio-v2/typeFiles/debugger/mailbox/mailboxView";
 import type { StoryPackageSummary } from "@studio-v2/typeFiles/story/summary/storyPackageSummary";
 import type { ValidationReport } from "@studio-v2/typeFiles/story/validate/engineValidation";
 

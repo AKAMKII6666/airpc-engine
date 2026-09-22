@@ -16,7 +16,7 @@ import {
 import { useCharactersShellBis } from "@studio-v2/src/bis/shellBis/characters/characters.shell.bis";
 import { CharacterLibraryList } from "@studio-v2/src/pageComponents/characters/CharacterLibraryList";
 import { CharacterLibraryDetail } from "@studio-v2/src/pageComponents/characters/CharacterLibraryDetail";
-import { CharacterLibraryHeader } from "@studio-v2/src/pageComponents/characters/com/CharacterLibraryHeader";
+import { CharacterLibraryHeader } from "@studio-v2/src/pageComponents/characters/com/library/CharacterLibraryHeader";
 import { DeleteConfirmModal } from "@studio-v2/src/commonUiComponents/modal/confirm/DeleteConfirmModal";
 import { useCharacterLibraryPage } from "@studio-v2/src/pageComponents/characters/hooks/useCharacterLibraryPage";
 import styles from "@studio-v2/src/pageComponents/library/LibrarySplit.module.scss";
@@ -80,6 +80,16 @@ export const CharacterLibraryView: FC = function () {
 				)}
 			</div>
 
+			{renderCharacterLibraryModals(page)}
+		</main>
+	);
+};
+
+function renderCharacterLibraryModals(
+	page: ReturnType<typeof useCharacterLibraryPage>,
+) {
+	return (
+		<>
 			{/* 引用了FormModal组件，用于新建角色 AutoForm */}
 			<FormModal<CreateCharacterFormValues>
 				open={page.createOpen}
@@ -107,6 +117,6 @@ export const CharacterLibraryView: FC = function () {
 					void page.onConfirmDelete();
 				}}
 			/>
-		</main>
+		</>
 	);
-};
+}

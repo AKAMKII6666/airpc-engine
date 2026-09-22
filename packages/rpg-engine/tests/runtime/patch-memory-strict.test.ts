@@ -3,7 +3,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { PlayerProfileSchema } from "../../src/index.js";
-import { executeEffects } from "../../src/runtime/effectExecutor.js";
+import { executeEffects } from "../../src/runtime/effect/effectExecutor.js";
 import type { CallSession } from "../../src/host/types.js";
 import type { MemoryPort } from "../../src/memory/types.js";
 
@@ -65,7 +65,7 @@ function recordingMemoryPort(patches: unknown[]): MemoryPort {
   };
 }
 
-describe("patch_memory strict policy", function () {
+describe("patch_memory strict normalize", function () {
   it("normalizes valid semantic insert payload", async function () {
     const patches: unknown[] = [];
     const ok = await executeEffects(
@@ -85,7 +85,9 @@ describe("patch_memory strict policy", function () {
       payload: { kind: "semantic", text: "用户喜欢桂花乌龙。" },
     });
   });
+});
 
+describe("patch_memory strict reject layer", function () {
   it("rejects state-like layers before MemoryPort write", async function () {
     const patches: unknown[] = [];
     const bad = await executeEffects(
@@ -108,7 +110,9 @@ describe("patch_memory strict policy", function () {
     expect(bad.results[0]).toMatchObject({ effectId: "m2", status: "failed" });
     expect(patches).toHaveLength(0);
   });
+});
 
+describe("patch_memory strict reject kind", function () {
   it("rejects non-semantic kinds before MemoryPort write", async function () {
     const patches: unknown[] = [];
     const bad = await executeEffects(

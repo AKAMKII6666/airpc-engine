@@ -1,12 +1,12 @@
 /**
  * 模块名称：bootstrapLore（port → fallback）
  */
-import type { CharacterDef } from "../schema/character.js";
-import type { PlayerProfile } from "../schema/profile.js";
+import type { CharacterDef } from "../schema/identity/character.js";
+import type { PlayerProfile } from "../schema/identity/profile.js";
 import {
   WorldLoreDocSchema,
   type WorldLoreDoc,
-} from "../schema/worldLore.js";
+} from "../schema/world/worldLore.js";
 import { buildFallbackLore } from "./fallbackLore.js";
 import type { LoreBootstrapPort } from "./types.js";
 

@@ -5,7 +5,6 @@
 "use client";
 
 import type { ChangeEvent, FC } from "react";
-import { MenuItem, TextField } from "@mui/material";
 import type { LocalHourRangeForm } from "@studio-v2/typeFiles/library/characters/form/characterFormShapes";
 import { FormFieldShell } from "../../FormFieldShell";
 import type { FormBoundFieldProps } from "../../fields/types/formBoundTypes";
@@ -13,12 +12,13 @@ import {
 	readFormikFieldError,
 	readFormikFieldRaw,
 } from "../../fields/formBoundFieldProps";
-import styles from "./index.module.scss";
+// 引用了LocalHourRangeSelects组件，用于 from/to 双 Select
+import {
+	hourLabel,
+	LocalHourRangeSelects,
+} from "./com/LocalHourRangeSelects";
 
 const DEFAULT_RANGE: LocalHourRangeForm = { from: 0, to: 24 };
-
-const FROM_HOURS = Array.from({ length: 24 }, (_, h) => h);
-const TO_HOURS = Array.from({ length: 25 }, (_, h) => h);
 
 function asRange(raw: unknown): LocalHourRangeForm {
 	if (typeof raw !== "object" || raw === null) return { ...DEFAULT_RANGE };
@@ -26,10 +26,6 @@ function asRange(raw: unknown): LocalHourRangeForm {
 	const from = typeof row.from === "number" ? row.from : DEFAULT_RANGE.from;
 	const to = typeof row.to === "number" ? row.to : DEFAULT_RANGE.to;
 	return { from, to };
-}
-
-function hourLabel(h: number): string {
-	return `${String(h).padStart(2, "0")}:00`;
 }
 
 export const FormLocalHourRangeField: FC<
@@ -71,14 +67,6 @@ export const FormLocalHourRangeField: FC<
 		void formik.setFieldTouched(name, true);
 	}
 
-	function handleFrom(e: ChangeEvent<HTMLInputElement>): void {
-		writeRange({ from: Number(e.target.value), to: range.to });
-	}
-
-	function handleTo(e: ChangeEvent<HTMLInputElement>): void {
-		writeRange({ from: range.from, to: Number(e.target.value) });
-	}
-
 	return (
 		// 引用了FormFieldShell组件，用于统一 label/必填星/错误/watch 外壳
 		<FormFieldShell
@@ -89,49 +77,18 @@ export const FormLocalHourRangeField: FC<
 			helperText={helperText ?? "半开区间：本地小时 h 满足 from ≤ h < to"}
 			watchText={watchText}
 		>
-			<div className={styles.row}>
-				{/* 引用了TextField组件，用于 Select 起始小时 */}
-				<TextField
-					label="从"
-					select
-					className={styles.hourInput}
-					value={String(range.from)}
-					onChange={handleFrom}
-					size="small"
-					disabled={disabled}
-					SelectProps={{
-						inputProps: { "aria-label": `${label} 起始小时` },
-					}}
-				>
-					{FROM_HOURS.map((h) => (
-						// 引用了MenuItem组件，用于 from 选项
-						<MenuItem key={`from-${h}`} value={String(h)}>
-							{hourLabel(h)}
-						</MenuItem>
-					))}
-				</TextField>
-				<span className={styles.sep}>≤ h &lt;</span>
-				{/* 引用了TextField组件，用于 Select 结束小时 */}
-				<TextField
-					label="到"
-					select
-					className={styles.hourInput}
-					value={String(range.to)}
-					onChange={handleTo}
-					size="small"
-					disabled={disabled}
-					SelectProps={{
-						inputProps: { "aria-label": `${label} 结束小时` },
-					}}
-				>
-					{TO_HOURS.map((h) => (
-						// 引用了MenuItem组件，用于 to 选项
-						<MenuItem key={`to-${h}`} value={String(h)}>
-							{hourLabel(h)}
-						</MenuItem>
-					))}
-				</TextField>
-			</div>
+			{/* 引用了LocalHourRangeSelects组件，用于 from/to 双 Select */}
+			<LocalHourRangeSelects
+				label={label}
+				range={range}
+				disabled={disabled}
+				onFromChange={function (e: ChangeEvent<HTMLInputElement>) {
+					writeRange({ from: Number(e.target.value), to: range.to });
+				}}
+				onToChange={function (e: ChangeEvent<HTMLInputElement>) {
+					writeRange({ from: range.from, to: Number(e.target.value) });
+				}}
+			/>
 		</FormFieldShell>
 	);
 };

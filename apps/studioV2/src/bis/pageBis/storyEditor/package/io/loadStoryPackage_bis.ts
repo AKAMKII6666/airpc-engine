@@ -3,7 +3,7 @@
 	* 锚点真源 = fetchCharacterDefs()（路径 B）；不再按 conf.participants 裁剪。
 	*/
 import { bundleToEditorGraph } from "@studio-v2/src/bis/pageBis/storyEditor/package/graph/diskBundleGraph";
-import { fetchCharacterDefs } from "@studio-v2/src/utils/ajaxProxy/library/api/charactersApi";
+import { fetchCharacterDefs } from "@studio-v2/src/utils/ajaxProxy/library/api/characters/charactersApi";
 import { fetchDiskChapterBundle } from "@studio-v2/src/utils/ajaxProxy/packages/api/storiesApi";
 import type { CharacterDisplayLookup } from "@studio-v2/src/bis/pageBis/storyEditor/package/graph/diskBundleGraph";
 import type { EditorGraphSeed } from "@studio-v2/src/bis/pageBis/storyEditor/package/graph/diskBundleGraph";

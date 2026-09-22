@@ -1,9 +1,9 @@
 /**
 	* 玩家详情保存：经 API 写 Profile.user，回读投影；禁止写 Board / Memory。
 	*/
-import type { UserProfileSummary } from "@studio-v2/typeFiles/library/users/userProfileSummary";
-import type { LorePreviewDto } from "@studio-v2/typeFiles/library/users/loreBootstrap";
-import { putProfileUser } from "@studio-v2/src/utils/ajaxProxy/library/api/usersApi";
+import type { UserProfileSummary } from "@studio-v2/typeFiles/library/users/summary/userProfileSummary";
+import type { LorePreviewDto } from "@studio-v2/typeFiles/library/users/lore/loreBootstrap";
+import { putProfileUser } from "@studio-v2/src/utils/ajaxProxy/library/api/users/usersApi";
 import {
 	summaryToUser,
 	userToSummary,

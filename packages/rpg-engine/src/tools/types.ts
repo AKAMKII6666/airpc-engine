@@ -1,8 +1,8 @@
 /**
  * 模块名称：工具与 RuntimeExitCandidate 类型
  */
-import type { CardKind } from "../schema/callCard.js";
-import type { Effect } from "../schema/outcome.js";
+import type { CardKind } from "../schema/call/callCard.js";
+import type { Effect } from "../schema/call/outcome.js";
 
 export type ToolBehavior =
   | "register_exit"

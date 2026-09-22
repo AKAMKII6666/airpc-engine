@@ -1,4 +1,4 @@
-import type { FormSelectOption } from "@studio-v2/src/commonUiComponents/form/formTypes";
+import type { FormSelectOption } from "@studio-v2/src/commonUiComponents/form/types/formTypes";
 import type { ToolCatalogDto } from "@studio-v2/typeFiles/tools/toolCatalog";
 
 const GROUP_LABELS: Record<string, string> = {

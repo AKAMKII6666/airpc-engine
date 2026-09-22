@@ -32,7 +32,7 @@ alwaysApply: true
 - **调试与编辑分离**：调试不改卡；本通 `frozenCard`。
 - **不设 Relay**；条件为结构化谓词；**不对标实现、不迁移**旧话机（能力参考见需求 13；新壳另建）。
 - **Barrel：** `@airpc/rpg-engine` **允许且鼓励** `src/index.ts` 统一门面倒出；**仅** Next `app/api` / `*.server.ts` / `utils/server` / 壳 Node / Vitest 可 `import from "@airpc/rpg-engine"`；**Studio V2 Client 区禁止**对引擎的任何 import（含 type）；禁深挖引擎内部。**`apps/studio` / `studioV2` 内禁止** `index.ts` barrel（bis/store/ajaxHelper/uiComponents/types 等直引具体文件）。
-- **目录职责聚类（反平铺）：** 同目录 ≥2 组异责且可分类文件 **≥4** → 必须分子目录；禁止长前缀代目录；不为空壳未来域建单文件空目录；本任务新增若恶化平铺须当场收目录。
+- **目录职责聚类（反平铺）：** 放置顺序为归属 → 职责 → 私有就近 → 确共享再上提。同目录 ≥2 组异责且可分类文件 **≥4** → 必须分子目录；**有子目录时根层仍适用**（根层异责堆叠）；禁止长前缀代目录；不为空壳未来域建单文件空目录；拆大文件后须同步收目录。实体进子目录后**禁止**根上保留纯 `export *` / 单行 re-export 的 stub 森林（仅 `@airpc/rpg-engine` 包门面 `src/index.ts` 允许聚合）。薄入口可留在根且不计入堆叠：`index.ts(x)`、`types.ts`、`*.types.ts`、Studio `route.ts` / `route.helpers.ts`。本任务新增若恶化平铺须当场收目录；硬门禁扫到的违规必须修到绿。机检：Studio `STUDIO-STRUCT-008` / `025` / `026`；引擎 `ENGINE-STRUCT-009` / `010` / `011`。
 - **测试隔离：** 用例进独立 `tests/`；禁止与 `src`/`app`/`bis` 业务文件平放 `*.test.ts`。
 - 修改聚焦任务；**不要自动 commit**，除非用户明确要求。
 

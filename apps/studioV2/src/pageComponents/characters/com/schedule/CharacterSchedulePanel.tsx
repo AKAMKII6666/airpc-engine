@@ -9,7 +9,7 @@ import type { SelectChangeEvent } from "@mui/material/Select";
 import libraryStyles from "@studio-v2/src/pageComponents/library/LibrarySplit.module.scss";
 import { useCharacterSchedulePanel } from "./hooks/useCharacterSchedulePanel";
 // 引用了ScheduleIntentPlayerSelect组件，用于选择玩家
-import { ScheduleIntentPlayerSelect } from "./com/list/ScheduleIntentPlayerSelect";
+import { ScheduleIntentPlayerSelect } from "./com/list/select/ScheduleIntentPlayerSelect";
 // 引用了ScheduleIntentListSection组件，用于列表加载空态与行
 import { ScheduleIntentListSection } from "./com/list/ScheduleIntentListSection";
 // 引用了ScheduleIntentModals组件，用于新增编辑与删除弹层
@@ -20,6 +20,59 @@ export type CharacterSchedulePanelProps = {
 	/** 当前角色 agentId；写入 intents 时强制对齐 */
 	agentId: string;
 };
+
+function renderScheduleUserGate(
+	panel: ReturnType<typeof useCharacterSchedulePanel>,
+) {
+	const { usersState } = panel;
+	if (usersState.usersLoading) {
+		return (
+			// 引用了Typography组件，用于玩家列表加载态
+			<Typography variant="body2" color="text.secondary">
+				加载玩家…
+			</Typography>
+		);
+	}
+	if (usersState.usersError) {
+		return (
+			// 引用了Alert组件，用于玩家列表错误
+			<Alert severity="error">{usersState.usersError}</Alert>
+		);
+	}
+	if (usersState.users.length === 0) {
+		return (
+			// 引用了Typography组件，用于无玩家空态
+			<Typography variant="body2" color="text.secondary">
+				暂无玩家。请先在玩家配置中新建。
+			</Typography>
+		);
+	}
+	return (
+		<>
+			{/* 引用了ScheduleIntentPlayerSelect组件，用于选择玩家 */}
+			<ScheduleIntentPlayerSelect
+				users={usersState.users}
+				userId={usersState.userId}
+				onUserChange={
+					usersState.onUserChange as (e: SelectChangeEvent<string>) => void
+				}
+			/>
+			{/* 引用了ScheduleIntentListSection组件，用于列表区 */}
+			<ScheduleIntentListSection
+				loading={panel.loading}
+				error={panel.error}
+				intents={panel.intents}
+				onEdit={panel.openEdit}
+				onDelete={panel.requestDelete}
+				onTogglePause={(intent) => {
+					void panel.togglePause(intent).catch((err: unknown) => {
+						panel.setError(err instanceof Error ? err.message : "更新失败");
+					});
+				}}
+			/>
+		</>
+	);
+}
 
 export const CharacterSchedulePanel: FC<CharacterSchedulePanelProps> =
 	function CharacterSchedulePanel({
@@ -45,48 +98,7 @@ export const CharacterSchedulePanel: FC<CharacterSchedulePanelProps> =
 					) : null}
 				</div>
 
-				{usersState.usersLoading ? (
-					// 引用了Typography组件，用于玩家列表加载态
-					<Typography variant="body2" color="text.secondary">
-						加载玩家…
-					</Typography>
-				) : usersState.usersError ? (
-					// 引用了Alert组件，用于玩家列表错误
-					<Alert severity="error">{usersState.usersError}</Alert>
-				) : usersState.users.length === 0 ? (
-					// 引用了Typography组件，用于无玩家空态
-					<Typography variant="body2" color="text.secondary">
-						暂无玩家。请先在玩家配置中新建。
-					</Typography>
-				) : (
-					<>
-						{/* 引用了ScheduleIntentPlayerSelect组件，用于选择玩家 */}
-						<ScheduleIntentPlayerSelect
-							users={usersState.users}
-							userId={usersState.userId}
-							onUserChange={
-								usersState.onUserChange as (
-									e: SelectChangeEvent<string>,
-								) => void
-							}
-						/>
-						{/* 引用了ScheduleIntentListSection组件，用于列表区 */}
-						<ScheduleIntentListSection
-							loading={panel.loading}
-							error={panel.error}
-							intents={panel.intents}
-							onEdit={panel.openEdit}
-							onDelete={panel.requestDelete}
-							onTogglePause={(intent) => {
-								void panel.togglePause(intent).catch((err: unknown) => {
-									panel.setError(
-										err instanceof Error ? err.message : "更新失败",
-									);
-								});
-							}}
-						/>
-					</>
-				)}
+				{renderScheduleUserGate(panel)}
 
 				{/* 引用了ScheduleIntentModals组件，用于新增编辑与删除弹层 */}
 				<ScheduleIntentModals

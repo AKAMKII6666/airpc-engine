@@ -5,7 +5,7 @@ import type { ScheduledIntent } from "@studio-v2/typeFiles/library/schedule/engi
 import {
 	deleteAgentScheduleIntent,
 	upsertAgentScheduleIntent,
-} from "@studio-v2/src/utils/ajaxProxy/library/api/scheduleApi";
+} from "@studio-v2/src/utils/ajaxProxy/library/api/schedule/scheduleApi";
 import {
 	formValuesToIntent,
 	type ScheduleIntentFormValues,

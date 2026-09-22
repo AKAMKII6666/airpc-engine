@@ -3,7 +3,7 @@
 	* 只读脱敏状态；浏览器不接触 API Key。
 	*/
 import { parseStudioApiJson } from "@studio-v2/src/utils/ajaxHelper/studioApiClient";
-import type { DebuggerLlmPublicStatus } from "@studio-v2/typeFiles/debugger/llmStatus";
+import type { DebuggerLlmPublicStatus } from "@studio-v2/typeFiles/debugger/labels/llmStatus";
 
 export type DebuggerLlmStatusData = {
 	status: DebuggerLlmPublicStatus;

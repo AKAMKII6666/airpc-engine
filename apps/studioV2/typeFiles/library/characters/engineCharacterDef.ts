@@ -1,6 +1,6 @@
 /**
 	* 与引擎同构镜像，不以 import 同步。
-	* 对齐 packages/rpg-engine/src/schema/character.ts 的 CharacterDefSchema（passthrough）。
+	* 对齐 packages/rpg-engine/src/schema/identity/character.ts 的 CharacterDefSchema（passthrough）。
 	* 引擎侧字段多为 optional + passthrough；本镜像同样宽松，供 characterDefMapper 读写。
 	*/
 
@@ -13,7 +13,7 @@ export type EngineCallFlowVariant = {
 };
 
 /**
-	* 对齐 packages/rpg-engine/src/schema/promptScene.ts 的 PromptSceneLayerSchema。
+	* 对齐 packages/rpg-engine/src/schema/prompt/promptScene.ts 的 PromptSceneLayerSchema。
 	* match / patch 在引擎侧各带 `.default({})`，z.infer 输出为必填对象（内部字段各自 optional）；
 	* CallCard.context.promptScenes 与 CharacterDef.defaultPromptScenes 共用同一引擎 schema，
 	* 此处为唯一镜像来源，story/callCard/engineCallCard 复用本类型，禁止再各写一份。

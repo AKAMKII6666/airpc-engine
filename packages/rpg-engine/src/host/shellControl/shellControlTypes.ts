@@ -1,7 +1,7 @@
 /**
  * 模块名称：电话壳控制事件类型
  */
-import type { HangupReasonKind } from "../../schema/callCard.js";
+import type { HangupReasonKind } from "../../schema/call/callCard.js";
 
 export type ShellControlToolId = "request_hangup";
 

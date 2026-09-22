@@ -10,7 +10,7 @@ import {
 } from "@airpc/pack-sdk";
 import type { EngineHost } from "@airpc/rpg-engine";
 import { emitPluginLog } from "@studio-v2/src/utils/server/plugins/log/pluginLog.server";
-import { loadOnePlugin } from "@studio-v2/src/utils/server/plugins/load/pipeline/loadOnePlugin.server";
+import { loadOnePlugin } from "@studio-v2/src/utils/server/plugins/load/pipeline/load/loadOnePlugin.server";
 import type { ScannedPluginContributions } from "@studio-v2/src/utils/server/plugins/load/scan/scannedPluginTypes.server";
 import {
 	conflictReasonAgainstAcceptedL2,

@@ -2,7 +2,7 @@
 	* 玩家配置 AutoForm items[]（细化修改 2 §3.2）。
 	* 详情与新建共用同一套可编辑字段；时间戳只读不在此列。
 	*/
-import type { AutoFormItem } from "@studio-v2/src/commonUiComponents/form/autoFormTypes";
+import type { AutoFormItem } from "@studio-v2/src/commonUiComponents/form/types/autoFormTypes";
 import { USER_GENDER_OPTIONS } from "@studio-v2/typeFiles/library/labels/libraryLabels";
 
 /**

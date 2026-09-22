@@ -1,37 +1,36 @@
 /**
 	* 引擎 User ↔ 玩家配置页投影；落盘前后投影一致，不做年龄↔生日交叉。
 	*/
-import type { User } from "@studio-v2/typeFiles/library/users/engineUser";
+import type { User } from "@studio-v2/typeFiles/library/users/engine/engineUser";
 import type {
 	UserGender,
 	UserProfileSummary,
-} from "@studio-v2/typeFiles/library/users/userProfileSummary";
+} from "@studio-v2/typeFiles/library/users/summary/userProfileSummary";
+
+function mapGender(raw: User["gender"]): UserGender {
+	if (raw === "female" || raw === "male") return raw;
+	return "male";
+}
+
+function numOr(value: unknown, fallback: number): number {
+	return typeof value === "number" ? value : fallback;
+}
 
 /**
 	* 将引擎 User 投影为列表/详情用的 UserProfileSummary。
 	* 磁盘 optional 字段在编辑态用空串 / 默认性别填充，避免表单缺键。
 	*/
 export function userToSummary(user: User): UserProfileSummary {
-	const gender: UserGender =
-		user.gender === "female" || user.gender === "male"
-			? user.gender
-			: "male";
 	return {
 		userId: user.userId,
 		nickname: user.nickname,
 		fullName: user.fullName ?? "",
-		gender,
+		gender: mapGender(user.gender),
 		birthday: user.birthday ?? "",
-		age: typeof user.age === "number" ? user.age : 0,
+		age: numOr(user.age, 0),
 		outboundWindow: {
-			from:
-				typeof user.outboundWindow?.from === "number"
-					? user.outboundWindow.from
-					: 9,
-			to:
-				typeof user.outboundWindow?.to === "number"
-					? user.outboundWindow.to
-					: 22,
+			from: numOr(user.outboundWindow?.from, 9),
+			to: numOr(user.outboundWindow?.to, 22),
 		},
 		location: {
 			country: user.location?.country ?? "",

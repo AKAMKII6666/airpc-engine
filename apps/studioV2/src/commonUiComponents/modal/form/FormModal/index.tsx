@@ -9,7 +9,7 @@ import { Formik, type FormikHelpers, type FormikProps } from "formik";
 import type { ReactElement, ReactNode } from "react";
 // 引用了AutoForm组件，用于弹层声明式字段编排
 import { AutoForm } from "../../../form/AutoForm";
-import type { FormFieldMode } from "../../../form/formTypes";
+import type { FormFieldMode } from "../../../form/types/formTypes";
 // 引用了AppModal组件，用于统一 Dialog 壳
 import { AppModal } from "../../app/AppModal";
 import {

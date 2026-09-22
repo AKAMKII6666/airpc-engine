@@ -5,28 +5,21 @@
 	* 协议：技术设计 23 §5；L1+L2 合流见 assembleWithPlugins。
 	*/
 import {
-	getEngineHost,
 	isEngineError,
 	resetEngineHostForTests,
 	type EngineHost,
 } from "@airpc/rpg-engine";
-// 引用了本机 IO 工厂，用于一次创建四 Port 并注入 Host
-import {
-	createEngineIOPorts,
-	type EngineIOPorts,
-} from "@studio-v2/engineIOModule/createEngineIOPorts";
+import type { EngineIOPorts } from "@studio-v2/engineIOModule/createEngineIOPorts";
 import { getStudioV2DataRoot } from "../data/dataRoot.server";
-import { createMemoryCommitOrchestratingPort } from "../memory/memoryCommitMemoryPort.server";
-import { createLlmLoreBootstrapPortFromEnv } from "../lore/bootstrap/loreBootstrapLlm.server";
 import {
-	assembleCapabilityRuntime,
 	getCachedCapabilityRuntime,
 	resetAssembledCapabilityRuntimeForTests,
 	type AssembledCapabilityRuntime,
 } from "@studio-v2/src/utils/server/plugins/assemble/assembleWithPlugins.server";
-import { createPluginOutboundRequestHandler } from "@studio-v2/src/utils/server/plugins/api/outbound/requestOutbound.server";
-// 引用了留言物化端口，用于挂机后把 GenStack 写成可读 unread 槽
-import { createStudioGenerateVoicemailPort } from "@studio-v2/src/utils/server/voicemail/generateVoicemail.server";
+import {
+	createBootedHost,
+	type EngineHostBootSlot,
+} from "./engineHostBoot.server";
 
 let ports: EngineIOPorts | null = null;
 let workspaceLoaded = false;
@@ -40,6 +33,16 @@ let bootInFlight: Promise<EngineHost> | null = null;
 /** 首次 loadWorkspace 单飞 */
 let workspaceLoadInFlight: Promise<void> | null = null;
 
+function bootSlot(): EngineHostBootSlot {
+	return { ports, liveHost, runtimePacks };
+}
+
+function applyBootSlot(slot: EngineHostBootSlot): void {
+	ports = slot.ports;
+	liveHost = slot.liveHost;
+	runtimePacks = slot.runtimePacks;
+}
+
 function hostHasPostCallApi(host: EngineHost): boolean {
 	return typeof host.listPostCallJobs === "function";
 }
@@ -52,57 +55,11 @@ async function bootHost(): Promise<EngineHost> {
 	if (bootInFlight) {
 		return bootInFlight;
 	}
-	bootInFlight = (async function () {
-		const dataRoot = getStudioV2DataRoot();
-		const packs = await assembleCapabilityRuntime({
-			getHost: function () {
-				if (!liveHost) {
-					throw new Error("ENGINE_HOST_NOT_READY");
-				}
-				return liveHost;
-			},
-			requestOutbound: createPluginOutboundRequestHandler({
-				getHost: function () {
-					if (!liveHost) {
-						throw new Error("ENGINE_HOST_NOT_READY");
-					}
-					return liveHost;
-				},
-			}),
-		});
-		runtimePacks = packs;
-		if (!ports) {
-			const io = createEngineIOPorts(dataRoot);
-			ports = {
-				...io,
-				memory: createMemoryCommitOrchestratingPort(io.memory, {
-					commitContextEnrichers: packs.commitContextEnrichers,
-					commitExtractContributors: packs.commitExtractContributors,
-				}),
-			};
-		}
-		const host = getEngineHost({
-			toolRegistry: packs.toolRegistry,
-			memory: ports.memory,
-			profile: ports.profile,
-			content: ports.content,
-			engineLog: ports.engineLog,
-			postCallJob: ports.postCallJob,
-			loreBootstrap: createLlmLoreBootstrapPortFromEnv(),
-			generateVoicemail: createStudioGenerateVoicemailPort(),
-			promptProviderRegistry: packs.promptProviderRegistry,
-			afterHangupHooks: packs.afterHangupHooks,
-			packIdByHookId: packs.packIdByHookId,
-			scheduleGates: packs.scheduleGates,
-			packIdByGateId: packs.packIdByGateId,
-			softExtraEnrichers: packs.softExtraEnrichers,
-			taskRegistrars: packs.taskRegistrars,
-			packIdByTaskId: packs.packIdByTaskId,
-			capabilityPackEvents: packs.capabilityPackEvents,
-		});
-		liveHost = host;
+	const slot = bootSlot();
+	bootInFlight = createBootedHost(slot).then(function (host) {
+		applyBootSlot(slot);
 		return host;
-	})();
+	});
 	try {
 		return await bootInFlight;
 	} finally {
@@ -140,28 +97,39 @@ async function ensureWorkspaceLoaded(host: EngineHost): Promise<void> {
 	await workspaceLoadInFlight;
 }
 
-/**
-	* 取得已注入本机 Ports 的 Host，并确保 workspace 已 load。
-	*/
-export async function getStudioV2EngineHost(): Promise<EngineHost> {
+/** 缺 PostCall API 时重置并重 boot（测试/热更旧单例） */
+async function resolveLiveHost(): Promise<EngineHost> {
 	let host = liveHost ?? (await bootHost());
 	if (!hostHasPostCallApi(host)) {
 		resetStudioV2EngineHostForTests();
 		host = await bootHost();
 	}
+	return host;
+}
+
+async function maybeRecoverPostCallJobs(host: EngineHost): Promise<void> {
+	if (!workspaceLoaded || postCallJobsRecovered || !hostHasPostCallApi(host)) {
+		return;
+	}
+	postCallJobsRecovered = true;
+	const recovered = await host.recoverPostCallJobs();
+	if (isEngineError(recovered)) {
+		console.warn("[studioV2] recoverPostCallJobs failed", recovered);
+	}
+}
+
+/**
+	* 取得已注入本机 Ports 的 Host，并确保 workspace 已 load。
+	*/
+export async function getStudioV2EngineHost(): Promise<EngineHost> {
+	const host = await resolveLiveHost();
 	if (!workspaceLoaded && !workspaceError) {
 		await ensureWorkspaceLoaded(host);
 	}
 	if (workspaceError && !workspaceLoaded) {
 		throw workspaceError;
 	}
-	if (workspaceLoaded && !postCallJobsRecovered && hostHasPostCallApi(host)) {
-		postCallJobsRecovered = true;
-		const recovered = await host.recoverPostCallJobs();
-		if (isEngineError(recovered)) {
-			console.warn("[studioV2] recoverPostCallJobs failed", recovered);
-		}
-	}
+	await maybeRecoverPostCallJobs(host);
 	return host;
 }
 

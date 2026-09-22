@@ -10,8 +10,8 @@ import {
 import {
 	startDebuggerCallSession,
 	type StartDebuggerCallInput,
-} from "@studio-v2/src/utils/server/debugger/session/debuggerCallSession.server";
-import { ServerLlmError } from "@studio-v2/src/utils/server/llm/llmClient.server";
+} from "@studio-v2/src/utils/server/debugger/session/callSession/debuggerCallSession.server";
+import { ServerLlmError } from "@studio-v2/src/utils/server/llm/client/llmClient.server";
 
 function handleDebuggerCallError(err: unknown): Response {
 	if (isEngineError(err)) {

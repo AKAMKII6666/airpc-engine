@@ -3,8 +3,8 @@
 	*/
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { AppProviders } from "@studio-v2/src/pageComponents/shell/AppProviders";
-import { StudioAppChrome } from "@studio-v2/src/pageComponents/shell/StudioAppChrome";
+import { AppProviders } from "@studio-v2/src/pageComponents/shell/providers/AppProviders";
+import { StudioAppChrome } from "@studio-v2/src/pageComponents/shell/chrome/StudioAppChrome";
 import "./globals.scss";
 
 export const metadata: Metadata = {

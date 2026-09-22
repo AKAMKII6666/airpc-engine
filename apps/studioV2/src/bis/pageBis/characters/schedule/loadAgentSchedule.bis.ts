@@ -5,7 +5,7 @@
 import {
 	fetchAgentSchedule,
 	type ScheduleListDto,
-} from "@studio-v2/src/utils/ajaxProxy/library/api/scheduleApi";
+} from "@studio-v2/src/utils/ajaxProxy/library/api/schedule/scheduleApi";
 
 /**
 	* 拉取某玩家×角色的 schedule 页；失败抛错由调用方记 error。

@@ -1,0 +1,162 @@
+/**
+	* 故事编辑器就绪态主舞台：顶栏/校验条 + 画布 + 底栏 + 弹层。
+	* UserGate：session 水合后按需挂载；有用户直进画布，无用户才开门禁。
+	*/
+"use client";
+
+import type { FC } from "react";
+import { useState } from "react";
+import { Typography } from "@mui/material";
+// 引用了StoryEditorChrome组件，用于顶栏与校验条幅
+import { StoryEditorChrome } from "@studio-v2/src/pageComponents/storyEditor/com/shell/chrome/StoryEditorChrome";
+// 引用了StoryEditorReadyCanvas组件，用于已选玩家后的画布舞台
+import { StoryEditorReadyCanvas } from "@studio-v2/src/pageComponents/storyEditor/com/shell/stage/StoryEditorReadyCanvas";
+// 引用了UserGate组件，用于进画布硬门禁
+import { UserGate } from "@studio-v2/src/commonUiComponents/userGate/UserGate";
+import {
+	formatStudioUserLabel,
+	useStudioSessionUserBis,
+} from "@studio-v2/src/bis/pageBis/users/session/studioSessionUser.bis";
+import type { useStoryEditorShellController } from "@studio-v2/src/pageComponents/storyEditor/hooks/shell/controller/useStoryEditorShellController";
+import type { DiskStoryPackageBundle } from "@studio-v2/typeFiles/story/package/diskStoryPackage";
+import type { EditorGraphSeed } from "@studio-v2/src/bis/pageBis/storyEditor/package/graph/diskBundleGraph";
+import styles from "../../chrome/StoryEditorShell.module.scss";
+
+type ShellController = ReturnType<typeof useStoryEditorShellController>;
+
+function StoryEditorSessionBody({
+	// sessionReady 表示玩家会话是否水合完成，用于占位与画布切换
+	sessionReady,
+	// needsUser 表示尚未选择玩家，用于门禁提示
+	needsUser,
+	// packageId 表示路由包键，用于画布保存与预览
+	packageId,
+	// chapterId 表示路由章键，用于保存与顶栏
+	chapterId,
+	// bundle 表示当前会话整包，用于章节标题与画布
+	bundle,
+	// graphSeed 表示画布初始图，用于 RF 初始化
+	graphSeed,
+	// shell 表示壳控制器快照，用于保存与画布绑定
+	shell,
+}: {
+	sessionReady: boolean;
+	needsUser: boolean;
+	packageId: string;
+	chapterId: string;
+	bundle: DiskStoryPackageBundle;
+	graphSeed: EditorGraphSeed;
+	shell: ShellController;
+}) {
+	if (!sessionReady) {
+		return (
+			<div className={styles.gateBlock}>
+				{/* 引用了Typography组件，用于会话水合占位 */}
+				<Typography variant="body1">正在恢复玩家会话…</Typography>
+			</div>
+		);
+	}
+	if (needsUser) {
+		return (
+			<div className={styles.gateBlock}>
+				{/* 引用了Typography组件，用于未选玩家提示 */}
+				<Typography variant="body1">
+					进入画布前请先选择玩家（UserGate）。
+				</Typography>
+			</div>
+		);
+	}
+	return (
+		// 引用了StoryEditorReadyCanvas组件，用于已选玩家后的画布舞台
+		<StoryEditorReadyCanvas
+			packageId={packageId}
+			chapterId={chapterId}
+			bundle={bundle}
+			graphSeed={graphSeed}
+			shell={shell}
+		/>
+	);
+}
+
+export type StoryEditorReadyStageProps = {
+	packageId: string;
+	chapterId: string;
+	bundle: DiskStoryPackageBundle;
+	graphSeed: EditorGraphSeed;
+	shell: ShellController;
+};
+
+export const StoryEditorReadyStage: FC<StoryEditorReadyStageProps> = function ({
+	// packageId 表示路由包键，用于画布保存与预览
+	packageId,
+	// chapterId 表示路由章键，用于保存与顶栏
+	chapterId,
+	// bundle 表示当前会话整包，用于章节标题与画布
+	bundle,
+	// graphSeed 表示画布初始图，用于 RF 初始化
+	graphSeed,
+	// shell 表示壳控制器快照，用于保存与画布绑定
+	shell,
+}) {
+	const { packageSession } = shell;
+	const session = useStudioSessionUserBis();
+	const [switchGateOpen, setSwitchGateOpen] = useState(false);
+
+	const needsUser = session.ready && !session.hasUser;
+	/** 仅水合后按需挂载，杜绝空用户首帧 Dialog 闪关 */
+	const mountUserGate = session.ready && (needsUser || switchGateOpen);
+	const userLabel = formatStudioUserLabel(session.currentUser);
+
+	return (
+		<div className={styles.root}>
+			{/* 引用了StoryEditorChrome组件，用于顶栏与校验条幅 */}
+			<StoryEditorChrome
+				packageTitle={shell.packageTitle}
+				chapterId={chapterId}
+				chapterTitle={bundle.conf.title ?? "章节"}
+				saveState={packageSession.saveState}
+				saveError={packageSession.saveError}
+				saveValidation={packageSession.saveValidation}
+				onSave={function () {
+					void packageSession.onSave();
+				}}
+				onLocateValidationIssue={packageSession.onLocateValidationIssue}
+				dismissSaveValidation={packageSession.dismissSaveValidation}
+				currentUserLabel={userLabel}
+				onSwitchUser={function () {
+					if (!session.ready) return;
+					setSwitchGateOpen(true);
+				}}
+			>
+				{/* 引用了StoryEditorSessionBody组件，用于水合占位或画布 */}
+				<StoryEditorSessionBody
+					sessionReady={session.ready}
+					needsUser={needsUser}
+					packageId={packageId}
+					chapterId={chapterId}
+					bundle={bundle}
+					graphSeed={graphSeed}
+					shell={shell}
+				/>
+			</StoryEditorChrome>
+
+			{mountUserGate ? (
+				// 引用了UserGate组件，用于进画布硬门禁 / 切换玩家
+				<UserGate
+					open
+					currentUserId={session.currentUser.userId}
+					allowDismissWhenSelected={!needsUser}
+					onClose={function () {
+						setSwitchGateOpen(false);
+					}}
+					onSelected={function () {
+						setSwitchGateOpen(false);
+					}}
+					title={
+						needsUser ? "选择玩家后进入画布" : "切换当前玩家"
+					}
+				/>
+			) : null}
+		</div>
+	);
+};

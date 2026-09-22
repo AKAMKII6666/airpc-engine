@@ -2,7 +2,7 @@
  * 统一 Schedule/Free 卡引用解析（休整 REST-E1）。
  */
 import { FREE_CHAPTER_ID, SCHEDULE_CHAPTER_ID } from "../constants.js";
-import type { CallCardDefinition, CardKind } from "../schema/callCard.js";
+import type { CallCardDefinition, CardKind } from "../schema/call/callCard.js";
 
 export type ScheduledCardLookup = (
   chapterId: string,

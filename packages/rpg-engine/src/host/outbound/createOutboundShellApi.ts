@@ -5,7 +5,7 @@
 import { randomUUID } from "node:crypto";
 import { engineError, type EngineError } from "../errors.js";
 import type { LogRecord } from "../types.js";
-import type { FiredScheduleItem } from "../../runtime/scheduleTick.js";
+import type { FiredScheduleItem } from "../../runtime/schedule/scheduleTick.js";
 import type {
 	IncomingCallShellEvent,
 	IncomingCallShellEventStatus,

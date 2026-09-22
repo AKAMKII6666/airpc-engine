@@ -3,20 +3,11 @@
 	*/
 "use client";
 
-import type { FC, MouseEvent } from "react";
-import { Button } from "@mui/material";
-import type { UserProfileSummary } from "@studio-v2/typeFiles/library/users/userProfileSummary";
-import { formatRelativeEdit } from "@studio-v2/typeFiles/story/labels/statusLabels";
+import type { FC } from "react";
+import type { UserProfileSummary } from "@studio-v2/typeFiles/library/users/summary/userProfileSummary";
 import styles from "@studio-v2/src/pageComponents/library/LibrarySplit.module.scss";
-
-function initialOf(name: string): string {
-	return name.slice(0, 1);
-}
-
-function locationSummary(u: UserProfileSummary): string {
-	const { country, province, city, district } = u.location;
-	return [country, province, city, district].filter((s) => s.trim() !== "").join(" · ");
-}
+// 引用了UserLibraryListRow组件，用于单行展示
+import { UserLibraryListRow } from "./com/library/UserLibraryListRow";
 
 export type UserLibraryListProps = {
 	items: readonly UserProfileSummary[];
@@ -29,63 +20,29 @@ export type UserLibraryListProps = {
 	onRequestDelete: (userId: string) => void;
 };
 
-export const UserLibraryList: FC<UserLibraryListProps> = function (props) {
-	const {
-		// items 是当前会话可见的玩家列表
-		items,
-		// selectedId 是当前选中的 userId
-		selectedId,
-		// onSelect 是行选中回调
-		onSelect,
-		// onRequestDelete 是行内删除请求，打开确认弹层
-		onRequestDelete,
-	} = props;
+export const UserLibraryList: FC<UserLibraryListProps> = function ({
+	// items 是当前会话可见的玩家列表
+	items,
+	// selectedId 是当前选中的 userId
+	selectedId,
+	// onSelect 是行选中回调
+	onSelect,
+	// onRequestDelete 是行内删除请求，打开确认弹层
+	onRequestDelete,
+}) {
 	return (
 		<section className={styles.listPane} aria-label="玩家配置列表">
 			<ul className={styles.list}>
-				{items.map((u) => {
-					const active = u.userId === selectedId;
-					const place = locationSummary(u);
-					return (
-						<li key={u.userId}>
-							<div className={active ? styles.rowActive : styles.row}>
-								<button
-									type="button"
-									className={styles.rowSelect}
-									onClick={() => onSelect(u.userId)}
-								>
-									<span className={styles.avatar} aria-hidden>
-										{initialOf(u.nickname)}
-									</span>
-									<span className={styles.rowMain}>
-										<span className={styles.rowTitle}>{u.nickname}</span>
-										<span className={styles.rowMeta}>
-											{place || "未填地理位置"}
-											{u.updatedAt
-												? ` · ${formatRelativeEdit(u.updatedAt)}`
-												: ""}
-										</span>
-									</span>
-								</button>
-								{/* 引用了Button组件，用于请求删除玩家 */}
-								<Button
-									type="button"
-									size="small"
-									color="error"
-									variant="text"
-									className={styles.rowDelete}
-									aria-label={`删除 ${u.nickname}`}
-									onClick={(event: MouseEvent<HTMLButtonElement>) => {
-										event.stopPropagation();
-										onRequestDelete(u.userId);
-									}}
-								>
-									删除
-								</Button>
-							</div>
-						</li>
-					);
-				})}
+				{items.map((u) => (
+					// 引用了UserLibraryListRow组件，用于单行玩家
+					<UserLibraryListRow
+						key={u.userId}
+						user={u}
+						active={u.userId === selectedId}
+						onSelect={onSelect}
+						onRequestDelete={onRequestDelete}
+					/>
+				))}
 			</ul>
 		</section>
 	);

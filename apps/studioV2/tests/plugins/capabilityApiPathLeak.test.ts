@@ -3,7 +3,7 @@
 	*/
 import { describe, expect, it } from "vitest";
 import type { EngineHost, PlayerProfile } from "@airpc/rpg-engine";
-import { createPluginCapabilityApi } from "@studio-v2/src/utils/server/plugins/api/createPluginCapabilityApi.server";
+import { createPluginCapabilityApi } from "@studio-v2/src/utils/server/plugins/api/core/createPluginCapabilityApi.server";
 
 function expectNoDiskPath(value: unknown): void {
 	const text = JSON.stringify(value);

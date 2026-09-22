@@ -5,9 +5,9 @@
  */
 import { appendFile, mkdir, readFile } from "node:fs/promises";
 import path from "node:path";
-import { redactLogRecord } from "../../src/host/engineLogViaPort.js";
+import { redactLogRecord } from "../../src/host/viaPort/engineLogViaPort.js";
 import type { LogRecord } from "../../src/host/types.js";
-import type { EngineLogPort } from "../../src/ports/engineLogPort.js";
+import type { EngineLogPort } from "../../src/ports/host/engineLogPort.js";
 
 function logFilePath(dataRoot: string, day = new Date()): string {
 	const y = day.getUTCFullYear();

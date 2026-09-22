@@ -4,8 +4,8 @@
 import {
 	buildCreateCharacterDef,
 	characterDefToSummary,
-} from "@studio-v2/src/bis/pageBis/characters/detail/form/characterDefMapper";
-import { postCharacterDef } from "@studio-v2/src/utils/ajaxProxy/library/api/charactersApi";
+} from "@studio-v2/src/bis/pageBis/characters/detail/form/mapper/characterDefMapper";
+import { postCharacterDef } from "@studio-v2/src/utils/ajaxProxy/library/api/characters/charactersApi";
 import { createStudioId } from "@studio-v2/typeFiles/ids/createStudioId";
 import type { CharacterSummary } from "@studio-v2/typeFiles/library/characters/form/characterSummary";
 import type { CreateCharacterFormValues } from "./createCharacterForm";

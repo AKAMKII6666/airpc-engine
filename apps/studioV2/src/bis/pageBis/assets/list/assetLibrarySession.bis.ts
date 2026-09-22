@@ -7,9 +7,9 @@
 
 import { useCallback, useMemo } from "react";
 import { commitDeleteAsset } from "@studio-v2/src/bis/pageBis/assets/delete/deleteAsset_bis";
-import { commitUploadAssetFile } from "@studio-v2/src/bis/pageBis/assets/uploadAsset_bis";
-import { useAssetsStore } from "@studio-v2/src/stores/assets/assetsStore";
+import { commitUploadAssetFile } from "@studio-v2/src/bis/pageBis/assets/upload/uploadAsset_bis";
 import type { AssetSummary } from "@studio-v2/typeFiles/library/assets/assetSummary";
+import { useAssetLibraryStoreSlice } from "./assetLibrarySession.helpers";
 
 /**
 	* 资源库列表会话投影：供 page hook 绑 UI，不含 Modal / kind 瞬时态。
@@ -38,70 +38,48 @@ export type AssetLibrarySessionBis = {
 	* 订 assets store 列表切片 + create/delete 命令；供页 hook 消费。
 	*/
 export function useAssetLibrarySessionBis(): AssetLibrarySessionBis {
-	const assets = useAssetsStore(function (s) {
-		return s.assets;
-	});
-	const selectedId = useAssetsStore(function (s) {
-		return s.selectedId;
-	});
-	const loading = useAssetsStore(function (s) {
-		return s.loading;
-	});
-	const loadError = useAssetsStore(function (s) {
-		return s.loadError;
-	});
-	const setSelectedId = useAssetsStore(function (s) {
-		return s.setSelectedId;
-	});
-	const applyAssetUpsertResult = useAssetsStore(function (s) {
-		return s.applyAssetUpsertResult;
-	});
-	const setPreferSelectedId = useAssetsStore(function (s) {
-		return s.setPreferSelectedId;
-	});
-	const bumpAssetsRefreshStamp = useAssetsStore(function (s) {
-		return s.bumpAssetsRefreshStamp;
-	});
+	const slice = useAssetLibraryStoreSlice();
 
 	const selected = useMemo(
 		function () {
 			return (
-				assets.find((a) => a.assetId === selectedId) ?? assets[0]
+				slice.assets.find((a) => a.assetId === slice.selectedId) ??
+				slice.assets[0]
 			);
 		},
-		[assets, selectedId],
+		[slice.assets, slice.selectedId],
 	);
 
 	const onDetailSaved = useCallback(
 		function (next: AssetSummary) {
-			applyAssetUpsertResult(next);
+			slice.applyAssetUpsertResult(next);
 		},
-		[applyAssetUpsertResult],
+		[slice.applyAssetUpsertResult],
 	);
 
 	const onUploadFile = useCallback(
 		async function (file: File): Promise<void> {
 			const { assetId } = await commitUploadAssetFile(file);
-			setPreferSelectedId(assetId);
-			bumpAssetsRefreshStamp();
+			slice.setPreferSelectedId(assetId);
+			slice.bumpAssetsRefreshStamp();
 		},
-		[setPreferSelectedId, bumpAssetsRefreshStamp],
+		[slice.setPreferSelectedId, slice.bumpAssetsRefreshStamp],
 	);
 
 	const onConfirmDelete = useCallback(
 		async function (assetId: string): Promise<void> {
 			await commitDeleteAsset(assetId);
-			bumpAssetsRefreshStamp();
+			slice.bumpAssetsRefreshStamp();
 		},
-		[bumpAssetsRefreshStamp],
+		[slice.bumpAssetsRefreshStamp],
 	);
 
 	return {
-		assets,
+		assets: slice.assets,
 		selected,
-		loading,
-		loadError,
-		setSelectedId,
+		loading: slice.loading,
+		loadError: slice.loadError,
+		setSelectedId: slice.setSelectedId,
 		onDetailSaved,
 		onUploadFile,
 		onConfirmDelete,

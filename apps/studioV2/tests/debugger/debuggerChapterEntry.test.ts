@@ -6,7 +6,7 @@ import type { DiskChapterBundle } from "@studio-v2/src/utils/server/types/diskSt
 import {
 	findDebuggerChapterEntry,
 	projectDebuggerChapterEntry,
-} from "@studio-v2/src/utils/server/debugger/session/debuggerChapterEntry.server";
+} from "@studio-v2/src/utils/server/debugger/session/chapterEntry/debuggerChapterEntry.server";
 
 function bundleFixture(entryCardId?: string): DiskChapterBundle {
 	return {

@@ -1,7 +1,7 @@
 /**
 	* 故事包单章磁盘写。
 	*/
-import { mkdir, readdir, readFile, unlink } from "node:fs/promises";
+import { mkdir, readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import {
 	CallCardDefinitionSchema,
@@ -19,10 +19,7 @@ import {
 import { buildDefaultCanvasLayout } from "../../layout/defaultCanvasLayout.server";
 import {
 	chapterCardsDir,
-	chapterConfPath,
 	chapterLayoutPath,
-	isValidChapterId,
-	isValidPackageId,
 	packageConfPath,
 	packageFail,
 } from "../../paths/packagesPaths.server";
@@ -36,6 +33,12 @@ import {
 	parsePackageConfOrFail,
 	writeJson,
 } from "../package/packageFsShared.server";
+import {
+	assertChapterBundleShape,
+	assertConfCardsPresent,
+	assertValidChapterIds,
+	writeChapterCardsAndPrune,
+} from "./chapterFsWriteSteps.server";
 
 export function parseChapterConfOrFail(
 	chapterId: string,
@@ -217,56 +220,29 @@ export async function writeDiskChapterBundle(
 		layout?: unknown | null;
 	},
 ): Promise<DiskChapterBundle> {
-	if (!isValidPackageId(packageId) || !isValidChapterId(chapterId)) {
-		packageFail("VALIDATION_FAILED", "invalid packageId or chapterId");
-	}
+	assertValidChapterIds(packageId, chapterId);
 	await ensurePackageReady(packageId);
-	if (!bundle.conf || typeof bundle.conf !== "object") {
-		packageFail("VALIDATION_FAILED", "conf object required");
-	}
-	if (!Array.isArray(bundle.cards)) {
-		packageFail("VALIDATION_FAILED", "cards array required");
-	}
+	assertChapterBundleShape(bundle);
 
 	const conf = parseChapterConfOrFail(chapterId, {
 		...(bundle.conf as object),
 		chapterId,
 	});
 	const byId = parseCardsPayload(bundle.cards);
-	for (const ref of conf.cards) {
-		if (!byId.has(ref.cardId)) {
-			packageFail(
-				"VALIDATION_FAILED",
-				`cards missing definition for conf cardId: ${ref.cardId}`,
-			);
-		}
-	}
+	assertConfCardsPresent(conf, byId);
 
 	const ordered = conf.cards.map(function (ref) {
 		return byId.get(ref.cardId)!;
 	});
 	const layout = resolveWriteLayout(chapterId, conf, ordered, bundle.layout);
-	const cardsDir = chapterCardsDir(packageId, chapterId);
-	await mkdir(cardsDir, { recursive: true });
-	await writeJson(
-		chapterConfPath(packageId, chapterId),
-		chapterConfForDiskWrite(conf),
-	);
-
-	const keep = new Set(conf.cards.map(function (c) {
-		return c.cardId;
-	}));
-	for (const cardId of keep) {
-		const card = byId.get(cardId);
-		if (!card) continue;
-		await writeJson(path.join(cardsDir, `${cardId}.s-card.json`), card);
-	}
-
-	const onDisk = await listCardIdsOnDisk(packageId, chapterId);
-	for (const orphan of onDisk) {
-		if (keep.has(orphan)) continue;
-		await unlink(path.join(cardsDir, `${orphan}.s-card.json`));
-	}
+	await writeChapterCardsAndPrune({
+		packageId,
+		chapterId,
+		conf,
+		byId,
+		confForDisk: chapterConfForDiskWrite(conf),
+		listCardIdsOnDisk,
+	});
 
 	await writeJson(chapterLayoutPath(packageId, chapterId), layout);
 	return { conf, cards: ordered, layout };

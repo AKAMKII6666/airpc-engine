@@ -47,14 +47,49 @@ function parseV2ContainerImport(
 	};
 }
 
+function legacyChapterId(confObj: {
+	packageId?: string;
+	chapterId?: string;
+}): string {
+	return confObj.chapterId ?? confObj.packageId ?? "";
+}
+
+function buildLegacyChapterConf(
+	bodyConf: object,
+	chapterId: string,
+	packageId: string,
+): object {
+	const confForChapter = {
+		...bodyConf,
+		chapterId: chapterId || packageId,
+	};
+	delete (confForChapter as { packageId?: string }).packageId;
+	return confForChapter;
+}
+
+function buildLegacyPackageConf(
+	packageId: string,
+	chapterId: string,
+	legacyTitle: unknown,
+): Record<string, unknown> {
+	const resolvedChapterId = chapterId || packageId;
+	return {
+		schemaVersion: 1,
+		packageId,
+		title: typeof legacyTitle === "string" ? legacyTitle : packageId,
+		entryChapterId: resolvedChapterId,
+		chapters: [{ chapterId: resolvedChapterId }],
+	};
+}
+
 function parseLegacyBundleImport(
 	body: Record<string, unknown>,
 ): ParsedImportBody | null {
 	if (!body.conf || !Array.isArray(body.cards)) {
 		return null;
 	}
-	const confObj = body.conf as { packageId?: string; chapterId?: string };
-	const chapterId = confObj.chapterId ?? confObj.packageId ?? "";
+	const confObj = body.conf as { packageId?: string; chapterId?: string; title?: string };
+	const chapterId = legacyChapterId(confObj);
 	const packageId = resolvePackageId(
 		body.packageId,
 		confObj.packageId,
@@ -62,26 +97,16 @@ function parseLegacyBundleImport(
 	);
 	if (!isValidPackageId(packageId)) return null;
 
-	const confForChapter = {
-		...(body.conf as object),
-		chapterId: chapterId || packageId,
-	};
-	delete (confForChapter as { packageId?: string }).packageId;
-
-	const legacyTitle = (body.conf as { title?: string }).title;
 	return {
 		packageId,
-		packageConf: {
-			schemaVersion: 1,
-			packageId,
-			title:
-				typeof legacyTitle === "string" ? legacyTitle : packageId,
-			entryChapterId: chapterId || packageId,
-			chapters: [{ chapterId: chapterId || packageId }],
-		},
+		packageConf: buildLegacyPackageConf(packageId, chapterId, confObj.title),
 		chapters: [
 			{
-				conf: confForChapter,
+				conf: buildLegacyChapterConf(
+					body.conf as object,
+					chapterId,
+					packageId,
+				),
 				cards: body.cards as unknown[],
 				layout: body.layout ?? null,
 			},

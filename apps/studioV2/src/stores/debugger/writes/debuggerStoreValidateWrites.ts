@@ -13,16 +13,14 @@ import {
 
 type DebuggerSet = StoreApi<DebuggerStoreState>["setState"];
 
-/** 包列表灌账、选中、单次校验 */
-export function createDebuggerValidateActions(
+/** 包列表灌账与选中 */
+function createDebuggerValidatePackagesActions(
 	set: DebuggerSet,
 ): Pick<
 	DebuggerStoreState,
 	| "applyValidatePackagesLoadStarted"
 	| "applyValidatePackagesLoadResult"
 	| "setValidatePackageId"
-	| "applyValidateRunStarted"
-	| "applyValidateRunResult"
 > {
 	return {
 		applyValidatePackagesLoadStarted() {
@@ -73,7 +71,17 @@ export function createDebuggerValidateActions(
 				validateError: undefined,
 			});
 		},
+	};
+}
 
+/** 单次校验 run */
+function createDebuggerValidateRunActions(
+	set: DebuggerSet,
+): Pick<
+	DebuggerStoreState,
+	"applyValidateRunStarted" | "applyValidateRunResult"
+> {
+	return {
 		applyValidateRunStarted() {
 			set({
 				validating: true,
@@ -96,5 +104,22 @@ export function createDebuggerValidateActions(
 				validateReport: result.report,
 			});
 		},
+	};
+}
+
+/** 包列表灌账、选中、单次校验 */
+export function createDebuggerValidateActions(
+	set: DebuggerSet,
+): Pick<
+	DebuggerStoreState,
+	| "applyValidatePackagesLoadStarted"
+	| "applyValidatePackagesLoadResult"
+	| "setValidatePackageId"
+	| "applyValidateRunStarted"
+	| "applyValidateRunResult"
+> {
+	return {
+		...createDebuggerValidatePackagesActions(set),
+		...createDebuggerValidateRunActions(set),
 	};
 }

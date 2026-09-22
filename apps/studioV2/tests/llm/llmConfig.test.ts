@@ -6,7 +6,7 @@ import {
 	maskApiKey,
 	resolveServerLlmRuntimeConfig,
 	toServerLlmPublicStatus,
-} from "@studio-v2/src/utils/server/llm/llmConfig.server";
+} from "@studio-v2/src/utils/server/llm/config/llmConfig.server";
 
 describe("server llmConfig.server", () => {
 	it("defaults to Qwen compatible endpoint and reports missing key", () => {

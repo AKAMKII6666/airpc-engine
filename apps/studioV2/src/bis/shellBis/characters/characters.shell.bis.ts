@@ -5,9 +5,9 @@
 "use client";
 
 import { useEffect, useLayoutEffect } from "react";
-import { characterDefToSummary } from "@studio-v2/src/bis/pageBis/characters/detail/form/characterDefMapper";
+import { characterDefToSummary } from "@studio-v2/src/bis/pageBis/characters/detail/form/mapper/characterDefMapper";
 import { useCharactersStore } from "@studio-v2/src/stores/characters/charactersStore";
-import { fetchCharacterDefs } from "@studio-v2/src/utils/ajaxProxy/library/api/charactersApi";
+import { fetchCharacterDefs } from "@studio-v2/src/utils/ajaxProxy/library/api/characters/charactersApi";
 import type { CharactersLoadResult } from "@studio-v2/typeFiles/library/characters/store/charactersStoreState";
 
 function errorMessage(error: unknown, fallback: string): string {

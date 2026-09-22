@@ -14,27 +14,40 @@ type AttitudeRow = {
 	payload_json: string | null;
 };
 
+function filterStringItems(items: unknown[]): string[] {
+	return items.filter(function (item): item is string {
+		return typeof item === "string";
+	});
+}
+
+/** 校验 attitude payload 字段；任一必填缺失则丢弃整段。 */
+function parseAttitudeObject(
+	parsed: unknown,
+): MemoryAttitudePayload | undefined {
+	if (!parsed || typeof parsed !== "object") return undefined;
+	const p = parsed as Partial<MemoryAttitudePayload>;
+	if (
+		typeof p.stance !== "string" ||
+		typeof p.summary !== "string" ||
+		typeof p.evidence !== "string" ||
+		!Array.isArray(p.feel) ||
+		!Array.isArray(p.keywords)
+	) {
+		return undefined;
+	}
+	return {
+		stance: p.stance,
+		summary: p.summary,
+		evidence: p.evidence,
+		feel: filterStringItems(p.feel),
+		keywords: filterStringItems(p.keywords),
+	};
+}
+
 function asAttitudePayload(value: unknown): MemoryAttitudePayload | undefined {
 	if (typeof value !== "string" || value.trim() === "") return undefined;
 	try {
-		const parsed = JSON.parse(value) as Partial<MemoryAttitudePayload> | null;
-		if (!parsed || typeof parsed !== "object") return undefined;
-		if (typeof parsed.stance !== "string") return undefined;
-		if (typeof parsed.summary !== "string") return undefined;
-		if (typeof parsed.evidence !== "string") return undefined;
-		if (!Array.isArray(parsed.feel)) return undefined;
-		if (!Array.isArray(parsed.keywords)) return undefined;
-		return {
-			stance: parsed.stance,
-			summary: parsed.summary,
-			evidence: parsed.evidence,
-			feel: parsed.feel.filter(function (item): item is string {
-				return typeof item === "string";
-			}),
-			keywords: parsed.keywords.filter(function (item): item is string {
-				return typeof item === "string";
-			}),
-		};
+		return parseAttitudeObject(JSON.parse(value));
 	} catch {
 		return undefined;
 	}

@@ -1,11 +1,10 @@
 /**
 	* 故事包配置浮窗：entryCardId / assetRefs / worldFacts / meta 可编。
-	* 写回会话 bundle；整包保存见顶栏。
 	*/
 "use client";
 
 import type { FC } from "react";
-import { Button, MenuItem, TextField, Typography } from "@mui/material";
+import { Button, Typography } from "@mui/material";
 import type { FactMeta, StoryPackageMeta } from "@studio-v2/typeFiles/story/callCard/engineCallCard";
 import {
 	stringifyPackageMetaDraft,
@@ -15,29 +14,24 @@ import { projectEditorPackageConfFromBundle } from "@studio-v2/src/bis/pageBis/s
 import type { CallCardLabelOption } from "@studio-v2/typeFiles/story/callCardLabels";
 import type { DiskStoryPackageBundle } from "@studio-v2/typeFiles/story/package/diskStoryPackage";
 // 引用了PackageAssetRefsEditor组件，用于包级 assetRefs 多选
-import { PackageAssetRefsEditor } from "./PackageAssetRefsEditor";
+import { PackageAssetRefsEditor } from "./blocks/refs/PackageAssetRefsEditor";
+// 引用了PackageConfigEntryCardField组件，用于入口卡 Select
+import { PackageConfigEntryCardField } from "./fields/PackageConfigEntryCardField";
 // 引用了PackageConfigMetaJsonBlocks组件，用于 worldFacts/meta JSON
-import { PackageConfigMetaJsonBlocks } from "./PackageConfigMetaJsonBlocks";
+import { PackageConfigMetaJsonBlocks } from "./blocks/config/PackageConfigMetaJsonBlocks";
 // 引用了PackageConfigReadonlySummary组件，用于只读摘要
-import { PackageConfigReadonlySummary } from "./PackageConfigReadonlySummary";
+import { PackageConfigReadonlySummary } from "./blocks/config/PackageConfigReadonlySummary";
 import styles from "../EditorLibraryFloat.module.scss";
 
 export type PackageConfigFloatProps = {
-	/** 当前打开的磁盘整包（含会话内已改 conf 字段） */
 	bundle: DiskStoryPackageBundle;
-	/** 入口卡 Select 候选；优先画布现有 CallCard，兜底 conf.cards */
 	entryCardOptions: readonly CallCardLabelOption[];
-	/** 全局资产候选；来自 /api/assets，写入 conf.assetRefs */
 	assetOptions: readonly CallCardLabelOption[];
 	open: boolean;
 	onClose: () => void;
-	/** 入口卡变更；写会话 bundle.conf.entryCardId，顶栏保存落盘 */
 	onEntryCardIdChange: (cardId: string) => void;
-	/** 包级 assetRefs 多选写回；顶栏保存落盘 */
 	onAssetRefsChange: (assetRefs: readonly string[]) => void;
-	/** worldFacts 写回；undefined 表示清空 */
 	onWorldFactsChange: (worldFacts: readonly FactMeta[] | undefined) => void;
-	/** meta 写回；undefined 表示清空 */
 	onPackageMetaChange: (meta: StoryPackageMeta | undefined) => void;
 };
 
@@ -87,32 +81,12 @@ export const PackageConfigFloat: FC<PackageConfigFloatProps> =
 				<Typography variant="caption" className={styles.hint}>
 					入口卡、assetRefs、worldFacts、meta 可改。保存请用顶栏「保存」。
 				</Typography>
-				{/* 引用了TextField组件，用于入口卡 Select */}
-				<TextField
-					size="small"
-					select
-					fullWidth
-					label="入口卡 entryCardId"
-					value={entryValue}
-					disabled={entryCardOptions.length === 0}
-					helperText={
-						entryCardOptions.length === 0
-							? "本包暂无 CallCard，请先放置卡片"
-							: "真源为章节开始节点连出的唯一通话卡；保存时会按画布连线覆盖"
-					}
-					onChange={(e) => {
-						onEntryCardIdChange(e.target.value);
-					}}
-				>
-					{entryCardOptions.map(function (opt) {
-						return (
-							// 引用了MenuItem组件，用于入口卡选项
-							<MenuItem key={opt.value} value={opt.value}>
-								{opt.label}
-							</MenuItem>
-						);
-					})}
-				</TextField>
+				{/* 引用了PackageConfigEntryCardField组件，用于入口卡 */}
+				<PackageConfigEntryCardField
+					entryValue={entryValue}
+					entryCardOptions={entryCardOptions}
+					onEntryCardIdChange={onEntryCardIdChange}
+				/>
 				{/* 引用了PackageAssetRefsEditor组件，用于包级资产引用多选 */}
 				<PackageAssetRefsEditor
 					selectedIds={conf.assetRefs}

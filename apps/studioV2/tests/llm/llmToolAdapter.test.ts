@@ -3,7 +3,7 @@
 	*/
 import { describe, expect, it } from "vitest";
 import type { ToolDefinition } from "@airpc/rpg-engine";
-import { toolDefinitionsToOpenAiTools } from "@studio-v2/src/utils/server/llm/llmToolAdapter.server";
+import { toolDefinitionsToOpenAiTools } from "@studio-v2/src/utils/server/llm/tools/llmToolAdapter.server";
 
 describe("llmToolAdapter.server", () => {
 	it("maps engine ToolDefinition to function tool schema", () => {

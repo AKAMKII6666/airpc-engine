@@ -10,7 +10,7 @@ import {
 import {
 	ringDebuggerChapterEntry,
 	type RingDebuggerChapterEntryInput,
-} from "@studio-v2/src/utils/server/debugger/session/debuggerChapterEntryRing.server";
+} from "@studio-v2/src/utils/server/debugger/session/chapterEntry/debuggerChapterEntryRing.server";
 
 function handleError(err: unknown): Response {
 	if (isEngineError(err)) {

@@ -5,7 +5,7 @@
 
 import type { FC } from "react";
 import { Button } from "@mui/material";
-import type { DebuggerVoicemailSlotView } from "@studio-v2/typeFiles/debugger/mailboxView";
+import type { DebuggerVoicemailSlotView } from "@studio-v2/typeFiles/debugger/mailbox/mailboxView";
 import styles from "./MailboxPanel.module.scss";
 
 export type MailboxSlotItemProps = {

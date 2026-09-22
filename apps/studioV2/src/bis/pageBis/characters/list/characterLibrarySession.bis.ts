@@ -9,8 +9,8 @@ import { useCallback, useMemo } from "react";
 import { commitCreateCharacter } from "@studio-v2/src/bis/pageBis/characters/create/createCharacter_bis";
 import type { CreateCharacterFormValues } from "@studio-v2/src/bis/pageBis/characters/create/createCharacterForm";
 import { commitDeleteCharacter } from "@studio-v2/src/bis/pageBis/characters/delete/deleteCharacter_bis";
-import { useCharactersStore } from "@studio-v2/src/stores/characters/charactersStore";
 import type { CharacterSummary } from "@studio-v2/typeFiles/library/characters/form/characterSummary";
+import { useCharacterLibraryStoreSlice } from "./characterLibrarySession.helpers";
 
 /**
 	* 角色库列表会话投影：供 page hook 绑 UI，不含 Modal 开合瞬时态。
@@ -39,71 +39,48 @@ export type CharacterLibrarySessionBis = {
 	* 订 characters store 列表切片 + create/delete 命令；供页 hook 消费。
 	*/
 export function useCharacterLibrarySessionBis(): CharacterLibrarySessionBis {
-	const characters = useCharactersStore(function (s) {
-		return s.characters;
-	});
-	const selectedId = useCharactersStore(function (s) {
-		return s.selectedId;
-	});
-	const loading = useCharactersStore(function (s) {
-		return s.loading;
-	});
-	const loadError = useCharactersStore(function (s) {
-		return s.loadError;
-	});
-	const setSelectedId = useCharactersStore(function (s) {
-		return s.setSelectedId;
-	});
-	const applyCharacterUpsertResult = useCharactersStore(function (s) {
-		return s.applyCharacterUpsertResult;
-	});
-	const setPreferSelectedId = useCharactersStore(function (s) {
-		return s.setPreferSelectedId;
-	});
-	const bumpCharactersRefreshStamp = useCharactersStore(function (s) {
-		return s.bumpCharactersRefreshStamp;
-	});
+	const slice = useCharacterLibraryStoreSlice();
 
 	const selected = useMemo(
 		function () {
 			return (
-				characters.find((c) => c.agentId === selectedId) ??
-				characters[0]
+				slice.characters.find((c) => c.agentId === slice.selectedId) ??
+				slice.characters[0]
 			);
 		},
-		[characters, selectedId],
+		[slice.characters, slice.selectedId],
 	);
 
 	const onDetailSaved = useCallback(
 		function (next: CharacterSummary) {
-			applyCharacterUpsertResult(next);
+			slice.applyCharacterUpsertResult(next);
 		},
-		[applyCharacterUpsertResult],
+		[slice.applyCharacterUpsertResult],
 	);
 
 	const onCreateSubmit = useCallback(
 		async function (values: CreateCharacterFormValues): Promise<void> {
 			const { agentId } = await commitCreateCharacter(values);
-			setPreferSelectedId(agentId);
-			bumpCharactersRefreshStamp();
+			slice.setPreferSelectedId(agentId);
+			slice.bumpCharactersRefreshStamp();
 		},
-		[setPreferSelectedId, bumpCharactersRefreshStamp],
+		[slice.setPreferSelectedId, slice.bumpCharactersRefreshStamp],
 	);
 
 	const onConfirmDelete = useCallback(
 		async function (agentId: string): Promise<void> {
 			await commitDeleteCharacter(agentId);
-			bumpCharactersRefreshStamp();
+			slice.bumpCharactersRefreshStamp();
 		},
-		[bumpCharactersRefreshStamp],
+		[slice.bumpCharactersRefreshStamp],
 	);
 
 	return {
-		characters,
+		characters: slice.characters,
 		selected,
-		loading,
-		loadError,
-		setSelectedId,
+		loading: slice.loading,
+		loadError: slice.loadError,
+		setSelectedId: slice.setSelectedId,
 		onDetailSaved,
 		onCreateSubmit,
 		onConfirmDelete,

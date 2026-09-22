@@ -18,18 +18,34 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "../..");
 
 /**
+ * @param {string} arg
+ */
+function quoteShellArg(arg) {
+  if (!/[\s"]/.test(arg)) return arg;
+  return `"${arg.replaceAll('"', '\\"')}"`;
+}
+
+/**
  * @param {string} label
  * @param {string} command
  * @param {string[]} args
  */
 function runStep(label, command, args) {
   console.log(`\n==> ${label}`);
-  const result = spawnSync(command, args, {
-    cwd: repoRoot,
-    stdio: "inherit",
-    shell: process.platform === "win32",
-    env: process.env,
-  });
+  // Windows 的 shell + args 数组会触发 Node DEP0190；改成单条命令字符串。
+  const useShell = process.platform === "win32";
+  const result = useShell
+    ? spawnSync([command, ...args.map(quoteShellArg)].join(" "), {
+        cwd: repoRoot,
+        stdio: "inherit",
+        shell: true,
+        env: process.env,
+      })
+    : spawnSync(command, args, {
+        cwd: repoRoot,
+        stdio: "inherit",
+        env: process.env,
+      });
   if (result.error) {
     console.error(result.error);
     process.exitCode = 1;

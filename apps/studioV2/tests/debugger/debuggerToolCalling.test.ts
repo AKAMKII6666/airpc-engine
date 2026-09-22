@@ -11,13 +11,13 @@ import type {
 import type {
 	ServerLlmChatInput,
 	ServerLlmChatResult,
-} from "@studio-v2/src/utils/server/llm/llmClient.server";
+} from "@studio-v2/src/utils/server/llm/client/llmClient.server";
 import {
 	resolveDebuggerToolChoice,
 	runDebuggerLlmWithTools,
 	runDebuggerLlmWithToolsStream,
-} from "@studio-v2/src/utils/server/debugger/session/debuggerToolCalling.server";
-import { projectDebuggerCallSession } from "@studio-v2/src/utils/server/debugger/session/debuggerCallSession.server";
+} from "@studio-v2/src/utils/server/debugger/session/toolCalling/debuggerToolCalling.server";
+import { projectDebuggerCallSession } from "@studio-v2/src/utils/server/debugger/session/callSession/debuggerCallSession.server";
 
 function sessionFixture(): CallSession {
 	return {

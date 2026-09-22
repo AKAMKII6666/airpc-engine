@@ -4,28 +4,16 @@
 	*/
 import type { Edge, Node } from "@xyflow/react";
 import type { CallCardDefinition } from "@studio-v2/typeFiles/story/callCard/engineCallCard";
-import {
-	callCardDefToProjection,
-	callCardProjectionToDef,
-} from "@studio-v2/src/bis/pageBis/storyEditor/package/graph/callCardProjectionMapper";
+import { callCardProjectionToDef } from "@studio-v2/src/bis/pageBis/storyEditor/package/graph/callCardProjectionMapper";
 import {
 	buildCharacterAnchorNodes,
-	ownerDisplayNameForCard,
-	resolveAnchorTarget,
 	type CharacterDisplayLookup,
 } from "@studio-v2/src/bis/pageBis/storyEditor/package/graph/characterAnchorGraph";
-import {
-	deriveLayoutLanes,
-} from "@studio-v2/src/bis/pageBis/storyEditor/package/conf/referencedAgentsDerive";
-import {
-	ATTACH_EFFECT_EDGE_STYLE,
-	UNMOUNT_EFFECT_EDGE_STYLE,
-	type EffectEdgeData,
-} from "@studio-v2/src/bis/pageBis/storyEditor/canvas/effectEdgeSync";
+import { deriveLayoutLanes } from "@studio-v2/src/bis/pageBis/storyEditor/package/conf/referencedAgentsDerive";
+import { type EffectEdgeData } from "@studio-v2/src/bis/pageBis/storyEditor/canvas/effectEdgeSync";
 import {
 	readCallCardData,
 	readChapterNodeData,
-	ROLE_EDGE_STYLE,
 	type EditorEdgeKind,
 } from "@studio-v2/src/bis/pageBis/storyEditor/role/roleConnection";
 import { withoutLightweightDockNodes } from "@studio-v2/src/bis/pageBis/storyEditor/dock/dockNodeFactory";
@@ -33,7 +21,11 @@ import {
 	ensureChapterStartNode,
 	resolveEntryCardIdFromChapterStart,
 } from "@studio-v2/src/bis/pageBis/storyEditor/chapterStart/chapterStartGraph";
-import type { EditorChapterNodeData } from "@studio-v2/typeFiles/story/editor/mock/storyEditorMock";
+import {
+	findEntryNodeId,
+	layoutEdgeToRfEdge,
+	layoutNodeToRfNode,
+} from "@studio-v2/src/bis/pageBis/storyEditor/package/graph/layout/diskBundleLayoutToRf";
 import type {
 	DiskStoryPackageBundle,
 	StudioCanvasLayout,
@@ -54,144 +46,6 @@ export type EditorGraphSeed = {
 	initialSelectionNodeId: string | null;
 };
 
-function cardNodeId(layoutNode: StudioCanvasLayoutNode): string {
-	if (typeof layoutNode.nodeId === "string" && layoutNode.nodeId !== "") {
-		return layoutNode.nodeId;
-	}
-	if (typeof layoutNode.cardId === "string" && layoutNode.cardId !== "") {
-		return `card_${layoutNode.cardId}`;
-	}
-	return "unknown_node";
-}
-
-function chapterNodeId(layoutNode: StudioCanvasLayoutNode): string {
-	if (typeof layoutNode.nodeId === "string" && layoutNode.nodeId !== "") {
-		return layoutNode.nodeId;
-	}
-	if (layoutNode.kind === "chapter_start") return "chapter_start";
-	if (layoutNode.kind === "chapter_end") return "chapter_end";
-	return `chapter_${layoutNode.kind ?? "unknown"}`;
-}
-
-function layoutNodeToRfNode(
-	layoutNode: StudioCanvasLayoutNode,
-	bundle: DiskStoryPackageBundle,
-	names: CharacterDisplayLookup,
-): Node | null {
-	if (layoutNode.kind === "chapter_start" || layoutNode.kind === "chapter_end") {
-		const nextChapterId =
-			layoutNode.nextChapterId ?? layoutNode.nextPackageId ?? undefined;
-		const data: EditorChapterNodeData = {
-			kind: layoutNode.kind,
-			title: layoutNode.title ?? (layoutNode.kind === "chapter_start" ? "章节开始" : "章节结束"),
-			summary: layoutNode.summary ?? "",
-			nextChapterId,
-			nextEntryCardId: layoutNode.nextEntryCardId,
-		};
-		return {
-			id: chapterNodeId(layoutNode),
-			type: "chapter",
-			position: { x: layoutNode.x, y: layoutNode.y },
-			data,
-		};
-	}
-	if (typeof layoutNode.cardId !== "string" || layoutNode.cardId === "") {
-		return null;
-	}
-	const def = bundle.cards.find(function (c) {
-		return c.cardId === layoutNode.cardId;
-	});
-	if (!def) return null;
-	const projection = callCardDefToProjection(
-		def,
-		ownerDisplayNameForCard(def, names),
-	);
-	return {
-		id: cardNodeId(layoutNode),
-		type: "callCard",
-		position: { x: layoutNode.x, y: layoutNode.y },
-		// 入口卡仅 RF selected 高亮；禁止 data.selected（会 sticky）
-		selected: def.cardId === bundle.conf.entryCardId,
-		data: projection,
-	};
-}
-
-function storyEdgeStyle(): Record<string, unknown> {
-	return { stroke: "#7e8da4" };
-}
-
-function layoutEffectEdgeToRf(layoutEdge: StudioCanvasLayoutEdge): Edge {
-	const effectKind = layoutEdge.effectKind === "unmount" ? "unmount" : "attach";
-	const data: EffectEdgeData = {
-		edgeKind: "effect",
-		effectKind,
-		exitId: layoutEdge.exitId ?? "",
-		effectId: layoutEdge.effectId ?? "",
-	};
-	return {
-		id: layoutEdge.edgeId,
-		source: layoutEdge.source,
-		target: layoutEdge.target,
-		sourceHandle: layoutEdge.sourceHandle,
-		targetHandle: layoutEdge.targetHandle ?? "parent",
-		type: "effect",
-		label: layoutEdge.label ?? (effectKind === "attach" ? "挂载" : "卸载"),
-		style:
-			effectKind === "attach"
-				? { ...ATTACH_EFFECT_EDGE_STYLE }
-				: { ...UNMOUNT_EFFECT_EDGE_STYLE },
-		data,
-	};
-}
-
-function layoutStoryEdgeToRf(layoutEdge: StudioCanvasLayoutEdge): Edge {
-	const isEndStory =
-		layoutEdge.edgeId.startsWith("story_end_") ||
-		layoutEdge.label === "结束";
-	return {
-		id: layoutEdge.edgeId,
-		source: layoutEdge.source,
-		target: layoutEdge.target,
-		sourceHandle: layoutEdge.sourceHandle,
-		targetHandle: layoutEdge.targetHandle ?? "parent",
-		type: isEndStory ? "endStory" : undefined,
-		label: layoutEdge.label,
-		style: storyEdgeStyle(),
-		data: { edgeKind: "story", endStory: isEndStory || undefined },
-	};
-}
-
-function layoutEdgeToRfEdge(
-	layoutEdge: StudioCanvasLayoutEdge,
-): Edge {
-	const kind = layoutEdge.edgeKind as EditorEdgeKind;
-	if (kind === "role") {
-		return {
-			id: layoutEdge.edgeId,
-			source: layoutEdge.source,
-			target: resolveAnchorTarget(layoutEdge.target),
-			sourceHandle: layoutEdge.sourceHandle ?? "role",
-			targetHandle: layoutEdge.targetHandle ?? "role",
-			style: { ...ROLE_EDGE_STYLE },
-			data: { edgeKind: "role" },
-		};
-	}
-	if (kind === "effect") {
-		return layoutEffectEdgeToRf(layoutEdge);
-	}
-	return layoutStoryEdgeToRf(layoutEdge);
-}
-
-function findEntryNodeId(
-	nodes: readonly Node[],
-	entryCardId: string,
-): string | null {
-	for (const node of nodes) {
-		const card = readCallCardData(node);
-		if (card?.cardId === entryCardId) return node.id;
-	}
-	return null;
-}
 
 /**
 	* 整包 → 画布初始图；names 缺省时 displayName 回落 agentId。
@@ -347,11 +201,10 @@ function resolveEntryCardIdAfterCardSync(
 	* conf.cards / cards[] 以画布 CallCard 集为准（新建追加、删除移除）；
 	* 磁盘 orphan s-card 由 writeDiskStoryPackage 按 conf 清理。
 	*/
-export function editorGraphToBundle(
+function indexCanvasCards(
 	base: DiskStoryPackageBundle,
 	nodes: readonly Node[],
-	edges: readonly Edge[],
-): DiskStoryPackageBundle {
+): Map<string, CallCardDefinition> {
 	const cardById = new Map<string, CallCardDefinition>();
 	for (const node of nodes) {
 		const proj = readCallCardData(node);
@@ -361,40 +214,64 @@ export function editorGraphToBundle(
 		});
 		cardById.set(proj.cardId, callCardProjectionToDef(proj, original));
 	}
-	const confCardIds = syncConfCardIdsWithCanvas(
-		base.conf.cards,
-		collectCanvasCallCardIds(nodes),
-	);
-	const cards = confCardIds.map(function (cardId) {
-		const built = cardById.get(cardId);
-		if (!built) {
-			throw new Error(`missing card in graph: ${cardId}`);
-		}
-		return built;
-	});
+	return cardById;
+}
+
+function requireCanvasCard(
+	cardById: Map<string, CallCardDefinition>,
+	cardId: string,
+): CallCardDefinition {
+	const built = cardById.get(cardId);
+	if (!built) {
+		throw new Error(`missing card in graph: ${cardId}`);
+	}
+	return built;
+}
+
+function layoutNodesFromCanvas(nodes: readonly Node[]): StudioCanvasLayoutNode[] {
 	const layoutNodes: StudioCanvasLayoutNode[] = [];
 	for (const node of nodes) {
 		if (node.type === "characterAnchor") continue;
 		const ln = rfNodeToLayoutNode(node);
 		if (ln) layoutNodes.push(ln);
 	}
+	return layoutNodes;
+}
+
+function layoutEdgesFromCanvas(edges: readonly Edge[]): StudioCanvasLayoutEdge[] {
 	const layoutEdges: StudioCanvasLayoutEdge[] = [];
 	for (const edge of edges) {
 		const le = rfEdgeToLayoutEdge(edge);
 		if (le) layoutEdges.push(le);
 	}
-	const layout: StudioCanvasLayout = {
-		schemaVersion: base.layout.schemaVersion ?? 1,
-		chapterId: base.conf.chapterId,
-		lanes: deriveLayoutLanes({ conf: base.conf, cards }),
-		nodes: layoutNodes,
-		edges: layoutEdges,
-		note: base.layout.note,
-	};
+	return layoutEdges;
+}
+
+/**
+	* 当前会话图 + 原包 conf → 整包写盘载荷。
+	* conf.cards / cards[] 以画布 CallCard 集为准（新建追加、删除移除）；
+	* 磁盘 orphan s-card 由 writeDiskStoryPackage 按 conf 清理。
+	*/
+export function editorGraphToBundle(
+	base: DiskStoryPackageBundle,
+	nodes: readonly Node[],
+	edges: readonly Edge[],
+): DiskStoryPackageBundle {
+	const cardById = indexCanvasCards(base, nodes);
+	const confCardIds = syncConfCardIdsWithCanvas(
+		base.conf.cards,
+		collectCanvasCallCardIds(nodes),
+	);
+	const cards = confCardIds.map(function (cardId) {
+		return requireCanvasCard(cardById, cardId);
+	});
+	const layout = buildBundleLayout(base, cards, nodes, edges);
 	const entryFromChapter = resolveEntryCardIdFromChapterStart(nodes, edges);
-	const entryCardId =
-		entryFromChapter ??
-		resolveEntryCardIdAfterCardSync(base.conf.entryCardId, confCardIds);
+	const entryCardId = resolveBundleEntryCardId(
+		entryFromChapter,
+		base.conf.entryCardId,
+		confCardIds,
+	);
 	return {
 		conf: {
 			...base.conf,
@@ -407,5 +284,32 @@ export function editorGraphToBundle(
 		},
 		cards,
 		layout,
+	};
+}
+
+function resolveBundleEntryCardId(
+	entryFromChapter: string | null,
+	previousEntryCardId: string | undefined,
+	confCardIds: readonly string[],
+): string | undefined {
+	return (
+		entryFromChapter ??
+		resolveEntryCardIdAfterCardSync(previousEntryCardId, confCardIds)
+	);
+}
+
+function buildBundleLayout(
+	base: DiskStoryPackageBundle,
+	cards: CallCardDefinition[],
+	nodes: readonly Node[],
+	edges: readonly Edge[],
+): StudioCanvasLayout {
+	return {
+		schemaVersion: base.layout.schemaVersion ?? 1,
+		chapterId: base.conf.chapterId,
+		lanes: deriveLayoutLanes({ conf: base.conf, cards }),
+		nodes: layoutNodesFromCanvas(nodes),
+		edges: layoutEdgesFromCanvas(edges),
+		note: base.layout.note,
 	};
 }

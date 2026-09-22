@@ -2,9 +2,13 @@
 
 import type { FC } from "react";
 import { Button } from "@mui/material";
-import type { DebuggerCallSessionView } from "@studio-v2/typeFiles/debugger/callSession";
+import type { DebuggerCallSessionView } from "@studio-v2/typeFiles/debugger/callSession/callSession";
+// 引用了DebuggerChatComposer组件，用于输入与发送/中断
 import { DebuggerChatComposer } from "../composer/DebuggerChatComposer";
+// 引用了DebuggerChatContainer组件，用于展示消息滚动区
 import { DebuggerChatContainer } from "../container/DebuggerChatContainer";
+// 引用了DebuggerChatErrorBlock组件，用于流式错误与重试
+import { DebuggerChatErrorBlock } from "./DebuggerChatErrorBlock";
 import { useDebuggerChatStream } from "../../stream/hook/useDebuggerChatStream";
 import styles from "../container/DebuggerChat.module.scss";
 
@@ -47,6 +51,11 @@ export const DebuggerChatFlow: FC<DebuggerChatFlowProps> =
 			chatStream.send(text);
 		}
 
+		function handleHangupClick(): void {
+			chatStream.abort();
+			onHangup();
+		}
+
 		return (
 			<div className={styles.chatFlow}>
 				{/* 引用了DebuggerChatContainer组件，用于展示消息滚动区 */}
@@ -59,22 +68,12 @@ export const DebuggerChatFlow: FC<DebuggerChatFlowProps> =
 				/>
 
 				{chatStream.error ? (
-					<div className={styles.errorBlock}>
-						<div className={styles.errorRow}>
-							<span>{chatStream.error}</span>
-							{/* 引用了Button组件，用于重试上次失败发送 */}
-							<Button
-								size="small"
-								variant="contained"
-								color="warning"
-								className={styles.retryButton}
-								disabled={!chatStream.lastUserMessageText}
-								onClick={chatStream.retry}
-							>
-								重试
-							</Button>
-						</div>
-					</div>
+					// 引用了DebuggerChatErrorBlock组件，用于错误与重试
+					<DebuggerChatErrorBlock
+						error={chatStream.error}
+						canRetry={Boolean(chatStream.lastUserMessageText)}
+						onRetry={chatStream.retry}
+					/>
 				) : null}
 
 				{/* 引用了DebuggerChatComposer组件，用于输入与发送/中断 */}
@@ -84,18 +83,13 @@ export const DebuggerChatFlow: FC<DebuggerChatFlowProps> =
 					disabled={remoteHangup}
 					onDraftChange={onDraftChange}
 					onSend={handleSend}
-					onAbort={function () {
-						chatStream.abort();
-					}}
+					onAbort={chatStream.abort}
 				/>
 				{/* 引用了Button组件，用于挂断或结束通话 */}
 				<Button
 					variant="outlined"
 					color="error"
-					onClick={function () {
-						chatStream.abort();
-						onHangup();
-					}}
+					onClick={handleHangupClick}
 				>
 					{remoteHangup ? "结束" : "挂断"}
 				</Button>

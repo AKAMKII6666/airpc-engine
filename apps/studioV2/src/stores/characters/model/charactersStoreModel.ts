@@ -7,7 +7,7 @@ import type {
 	MemoryAttitudeListItemDto,
 	MemoryListItemDto,
 } from "@studio-v2/typeFiles/library/characters/memory/memoryReadModel";
-import type { DiskUserSummaryDto } from "@studio-v2/typeFiles/library/users/diskUserSummary";
+import type { DiskUserSummaryDto } from "@studio-v2/typeFiles/library/users/summary/diskUserSummary";
 import type { ScheduledIntent } from "@studio-v2/typeFiles/library/schedule/engineScheduledIntent";
 import type {
 	CharactersLoadResult,

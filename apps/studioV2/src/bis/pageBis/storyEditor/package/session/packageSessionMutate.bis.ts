@@ -4,16 +4,12 @@
 	*/
 "use client";
 
-import { useCallback } from "react";
 import type { FactMeta, StoryPackageMeta } from "@studio-v2/typeFiles/story/callCard/engineCallCard";
+import type { DiskStoryPackageBundle } from "@studio-v2/typeFiles/story/package/diskStoryPackage";
 import {
-	withAssetRefs,
-	withEntryCardId,
-	withPackageMeta,
-	withWorldFacts,
-} from "@studio-v2/src/bis/pageBis/storyEditor/package/session/packageSessionLoad";
-import { commitStoryEditorPackageSave } from "@studio-v2/src/bis/pageBis/storyEditor/package/session/packageSessionSave";
-import { useStoryEditorStore } from "@studio-v2/src/stores/storyEditor/storyEditorStore";
+	usePackageSessionMutateStoreSlice,
+	usePackageSessionMutations,
+} from "./packageSessionMutate.helpers";
 
 /** 画布命令口最小面：校验定位选卡；避免 value import pageComponents */
 export type PackageSessionCanvasApi = {
@@ -38,102 +34,15 @@ type PackageSessionMutateBisArgs = {
 	*/
 export function usePackageSessionMutateBis(
 	args: PackageSessionMutateBisArgs,
-) {
-	const { packageId, chapterId, flushCanvasToStore } = args;
-	const bundle = useStoryEditorStore(function (s) {
-		return s.bundle;
-	});
-	const applyBundleWriteResult = useStoryEditorStore(function (s) {
-		return s.applyBundleWriteResult;
-	});
-	const applySaveStarted = useStoryEditorStore(function (s) {
-		return s.applySaveStarted;
-	});
-	const applySaveSuccess = useStoryEditorStore(function (s) {
-		return s.applySaveSuccess;
-	});
-	const applySaveFailure = useStoryEditorStore(function (s) {
-		return s.applySaveFailure;
-	});
-	const clearSaveValidation = useStoryEditorStore(function (s) {
-		return s.clearSaveValidation;
-	});
-
-	const onSave = useCallback(
-		async function () {
-			await commitStoryEditorPackageSave({
-				packageId,
-				chapterId,
-				bundle,
-				flushCanvasToStore,
-				applySaveStarted,
-				applySaveSuccess,
-				applySaveFailure,
-			});
-		},
-		[
-			applySaveFailure,
-			applySaveStarted,
-			applySaveSuccess,
-			bundle,
-			chapterId,
-			flushCanvasToStore,
-			packageId,
-		],
-	);
-
-	const onEntryCardIdChange = useCallback(
-		function (cardId: string) {
-			const prev = useStoryEditorStore.getState().bundle;
-			if (!prev) return;
-			const next = withEntryCardId(prev, cardId);
-			if (!next) return;
-			applyBundleWriteResult(next);
-		},
-		[applyBundleWriteResult],
-	);
-
-	const onAssetRefsChange = useCallback(
-		function (assetRefs: readonly string[]) {
-			const prev = useStoryEditorStore.getState().bundle;
-			if (!prev) return;
-			applyBundleWriteResult(withAssetRefs(prev, assetRefs));
-		},
-		[applyBundleWriteResult],
-	);
-
-	const onWorldFactsChange = useCallback(
-		function (worldFacts: readonly FactMeta[] | undefined) {
-			const prev = useStoryEditorStore.getState().bundle;
-			if (!prev) return;
-			applyBundleWriteResult(withWorldFacts(prev, worldFacts));
-		},
-		[applyBundleWriteResult],
-	);
-
-	const onPackageMetaChange = useCallback(
-		function (meta: StoryPackageMeta | undefined) {
-			const prev = useStoryEditorStore.getState().bundle;
-			if (!prev) return;
-			applyBundleWriteResult(withPackageMeta(prev, meta));
-		},
-		[applyBundleWriteResult],
-	);
-
-	const dismissSaveValidation = useCallback(
-		function () {
-			clearSaveValidation();
-		},
-		[clearSaveValidation],
-	);
-
-	return {
-		bundle,
-		onSave,
-		onEntryCardIdChange,
-		onAssetRefsChange,
-		onWorldFactsChange,
-		onPackageMetaChange,
-		dismissSaveValidation,
-	};
+): {
+	bundle: DiskStoryPackageBundle | null;
+	onSave: () => Promise<void>;
+	onEntryCardIdChange: (cardId: string) => void;
+	onAssetRefsChange: (assetRefs: readonly string[]) => void;
+	onWorldFactsChange: (worldFacts: readonly FactMeta[] | undefined) => void;
+	onPackageMetaChange: (meta: StoryPackageMeta | undefined) => void;
+	dismissSaveValidation: () => void;
+} {
+	const slice = usePackageSessionMutateStoreSlice();
+	return usePackageSessionMutations(args, slice);
 }

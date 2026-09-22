@@ -42,6 +42,65 @@ function commitItemLayerKind(
 	}
 }
 
+/** 事务体内写入 call_summary 与 items；失败由外层 catch 转 ok:false。 */
+function commitInTransaction(
+	insertEntry: InsertFn,
+	input: MemoryCommitInput,
+): MemoryCommitResult {
+	const summary =
+		input.summaryText?.trim() ||
+		summaryFromTranscript(input.transcript) ||
+		`call_summary session=${input.sessionId} ended=${input.endedAt}`;
+	const ids: string[] = [];
+	const writtenEpisodicIds: string[] = [];
+	const writtenLayers = new Set<MemoryCommitResult["writtenLayers"][number]>([
+		"episodic",
+	]);
+
+	ids.push(
+		insertEntry({
+			userId: input.userId,
+			agentId: input.agentId,
+			layer: "episodic",
+			kind: "call_summary",
+			text: summary,
+			at: input.endedAt,
+			callId: input.sessionId,
+		}),
+	);
+	writtenEpisodicIds.push(ids[ids.length - 1]!);
+
+	for (const item of input.items ?? []) {
+		const text = item.text.trim();
+		if (!text) continue;
+		const mapping = commitItemLayerKind(item.kind);
+		if (!mapping) continue;
+		ids.push(
+			insertEntry({
+				userId: input.userId,
+				agentId: input.agentId,
+				layer: mapping.layer,
+				kind: mapping.kind,
+				text,
+				at: input.endedAt,
+				callId: input.sessionId,
+				payload: item.payload,
+			}),
+		);
+		writtenLayers.add(mapping.layer as MemoryCommitResult["writtenLayers"][number]);
+		if (mapping.layer === "episodic") {
+			writtenEpisodicIds.push(ids[ids.length - 1]!);
+		}
+	}
+
+	return {
+		ok: true,
+		writtenLayers: Array.from(writtenLayers),
+		writtenEntryIds: ids,
+		writtenEpisodicIds,
+	};
+}
+
 export async function getMemoryById(
 	db: SqlDb,
 	input: { userId: string; agentId: string; entryId: string },
@@ -95,58 +154,7 @@ export async function commitMemoryAfterCall(
 ): Promise<MemoryCommitResult> {
 	try {
 		return db.transaction(function (): MemoryCommitResult {
-			const summary =
-				input.summaryText?.trim() ||
-				summaryFromTranscript(input.transcript) ||
-				`call_summary session=${input.sessionId} ended=${input.endedAt}`;
-			const ids: string[] = [];
-			const writtenEpisodicIds: string[] = [];
-			const writtenLayers = new Set<MemoryCommitResult["writtenLayers"][number]>([
-				"episodic",
-			]);
-
-			ids.push(
-				insertEntry({
-					userId: input.userId,
-					agentId: input.agentId,
-					layer: "episodic",
-					kind: "call_summary",
-					text: summary,
-					at: input.endedAt,
-					callId: input.sessionId,
-				}),
-			);
-			writtenEpisodicIds.push(ids[ids.length - 1]!);
-
-			for (const item of input.items ?? []) {
-				const text = item.text.trim();
-				if (!text) continue;
-				const mapping = commitItemLayerKind(item.kind);
-				if (!mapping) continue;
-				ids.push(
-					insertEntry({
-						userId: input.userId,
-						agentId: input.agentId,
-						layer: mapping.layer,
-						kind: mapping.kind,
-						text,
-						at: input.endedAt,
-						callId: input.sessionId,
-						payload: item.payload,
-					}),
-				);
-				writtenLayers.add(mapping.layer as MemoryCommitResult["writtenLayers"][number]);
-				if (mapping.layer === "episodic") {
-					writtenEpisodicIds.push(ids[ids.length - 1]!);
-				}
-			}
-
-			return {
-				ok: true,
-				writtenLayers: Array.from(writtenLayers),
-				writtenEntryIds: ids,
-				writtenEpisodicIds,
-			};
+			return commitInTransaction(insertEntry, input);
 		})();
 	} catch (err) {
 		return {

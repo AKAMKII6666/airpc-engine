@@ -30,6 +30,7 @@ alwaysApply: true
 - V2 合并前必须通过统一质量命令；不得以人工承诺替代机器门禁。
 - **Client / Server 端口隔离**：Client 与引擎/Server 禁止模块级 import（含 `import type`）；唯一互通 XHR↔API；类型与轻量函数可复制镜像。详见 [studio-v2-client-server-isolation.mdc](./studio-v2-client-server-isolation.mdc)；`check:studio-structure` 硬失败。
 - **Client 分层（store · shell · bis）**：读 store→bis→UI；写 UI→bis→store；请求只经 ajaxProxy。UI 禁直读 store / 直引 ajaxProxy；store 禁网络与 import bis。一域一 store；故事编辑器画布高频自管并 flush。详见 [studio-v2-client-layering.mdc](./studio-v2-client-layering.mdc) 与技术设计 21；硬门禁 `STUDIO-STRUCT-021`～`024`。
+- **目录职责聚类（硬门禁）：** `STUDIO-STRUCT-008` 无子目录异责平铺；`STUDIO-STRUCT-025` 根层异责堆叠（有子目录仍堆 ≥4 异责且 ≥2 组）；`STUDIO-STRUCT-026` stub 森林（同层 ≥4 个纯 re-export）。拆文件后须同步收目录；真搬迁后删根 stub 并改 import，禁止为过门禁留转发壳。
 
 ## 注释不要求覆盖的内容
 

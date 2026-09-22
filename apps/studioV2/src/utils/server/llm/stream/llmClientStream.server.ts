@@ -12,18 +12,18 @@ import {
 	type ServerLlmChatInput,
 	type ServerLlmChatResult,
 	type ServerLlmStreamCallbacks,
-} from "../llmClient.server";
+} from "../client/llmClient.server";
 import {
 	resolveServerLlmRuntimeConfig,
 	type ServerLlmRuntimeConfig,
-} from "../llmConfig.server";
+} from "../config/llmConfig.server";
 import { writeDtoLog } from "@studio-v2/src/utils/server/observability/dto/dtoLogStore.server";
 import { writeStudioLog } from "@studio-v2/src/utils/server/observability/logger/pinoLogger.server";
 import {
 	handleStreamLine,
 	type StreamAccumulators,
 } from "./llmStreamChunk.server";
-import { runE2ELlmIfEnabled } from "../llmClientE2E.server";
+import { runE2ELlmIfEnabled } from "../client/llmClientE2E.server";
 
 type FetchLike = typeof fetch;
 

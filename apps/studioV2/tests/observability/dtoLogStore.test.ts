@@ -168,6 +168,9 @@ describe("dtoLogStore.server", () => {
 	});
 
 	it("falls back when the primary DTO file is not writable", async () => {
+		// Windows 上 chmod 对目录写权限基本无效，无法构造「主路径不可写」场景。
+		if (process.platform === "win32") return;
+
 		const dataRoot = await tempDataRoot();
 		const input = {
 			bucket: "tool-calls" as const,

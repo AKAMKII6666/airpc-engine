@@ -5,7 +5,7 @@ import { parseStudioApiJson } from "@studio-v2/src/utils/ajaxHelper/studioApiCli
 import type {
 	DebuggerMailboxListenResult,
 	DebuggerMailboxSnapshot,
-} from "@studio-v2/typeFiles/debugger/mailboxView";
+} from "@studio-v2/typeFiles/debugger/mailbox/mailboxView";
 
 /** GET /api/debug/mailbox?userId= */
 export async function fetchDebuggerMailbox(

@@ -134,6 +134,26 @@ describe("check:studio-structure", () => {
     assert.ok(errors.some((v) => v.ruleId === "STUDIO-STRUCT-008"));
   });
 
+  it("根层异责堆叠失败", async () => {
+    const { errors } = await gateFor("fail-cluster-root-stack");
+    assert.ok(errors.some((v) => v.ruleId === "STUDIO-STRUCT-025"));
+  });
+
+  it("stub 森林失败", async () => {
+    const { errors } = await gateFor("fail-cluster-stub-forest");
+    assert.ok(errors.some((v) => v.ruleId === "STUDIO-STRUCT-026"));
+  });
+
+  it("根仅薄入口加子目录通过聚类", async () => {
+    const { errors } = await gateFor("pass-cluster-thin-root");
+    assert.ok(!errors.some((v) => /^STUDIO-STRUCT-00[8]|STUDIO-STRUCT-02[56]$/.test(v.ruleId)));
+  });
+
+  it("同职责四文件不触发聚类", async () => {
+    const { errors } = await gateFor("pass-cluster-same-group");
+    assert.ok(!errors.some((v) => v.ruleId === "STUDIO-STRUCT-008"));
+  });
+
   it("业务 barrel index 失败", async () => {
     const { errors } = await gateFor("fail-barrel");
     assert.ok(errors.some((v) => v.ruleId === "STUDIO-STRUCT-009"));

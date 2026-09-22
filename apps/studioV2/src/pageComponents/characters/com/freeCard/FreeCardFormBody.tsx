@@ -7,9 +7,9 @@ import type { ReactElement } from "react";
 import { Typography } from "@mui/material";
 import type { FormikProps } from "formik";
 import { AutoForm } from "@studio-v2/src/commonUiComponents/form/AutoForm";
-import type { AutoFormItem } from "@studio-v2/src/commonUiComponents/form/autoFormTypes";
-import type { FreeCardFormValues } from "@studio-v2/src/bis/pageBis/characters/freeCard/freeCardForm";
-import type { FormSelectOption } from "@studio-v2/src/commonUiComponents/form/formTypes";
+import type { AutoFormItem } from "@studio-v2/src/commonUiComponents/form/types/autoFormTypes";
+import type { FreeCardFormValues } from "@studio-v2/src/bis/pageBis/characters/freeCard/form/freeCardForm";
+import type { FormSelectOption } from "@studio-v2/src/commonUiComponents/form/types/formTypes";
 import { TOOL_POLICY_MODE_OPTIONS } from "@studio-v2/typeFiles/story/callCardLabels";
 
 const CONTEXT_ITEMS: AutoFormItem[] = [

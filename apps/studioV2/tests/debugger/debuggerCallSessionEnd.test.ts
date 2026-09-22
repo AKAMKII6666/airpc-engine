@@ -3,7 +3,7 @@
 	*/
 import { describe, expect, it } from "vitest";
 import type { CallSession, EngineHost, EndCallResult } from "@airpc/rpg-engine";
-import { endDebuggerCallSession } from "@studio-v2/src/utils/server/debugger/session/debuggerCallSession.server";
+import { endDebuggerCallSession } from "@studio-v2/src/utils/server/debugger/session/callSession/debuggerCallSession.server";
 
 function callSessionFixture(): CallSession {
 	return {

@@ -5,7 +5,7 @@ import {
 	apiFail,
 	apiOk,
 } from "@studio-v2/src/utils/server/http/apiResponse.server";
-import { readDebuggerMemoryTrace } from "@studio-v2/src/utils/server/debugger/session/debuggerMemoryTrace.server";
+import { readDebuggerMemoryTrace } from "@studio-v2/src/utils/server/debugger/session/memoryTrace/debuggerMemoryTrace.server";
 
 function handleError(err: unknown): Response {
 	const coded = err as { code?: unknown; status?: unknown; message?: unknown };

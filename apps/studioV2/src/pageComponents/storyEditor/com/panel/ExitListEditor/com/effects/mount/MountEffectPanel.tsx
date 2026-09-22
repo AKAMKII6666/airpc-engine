@@ -14,10 +14,10 @@ import type {
 } from "@studio-v2/typeFiles/story/editor/callCard/editorEffectParams";
 import { readEffectParams } from "@studio-v2/src/bis/pageBis/storyEditor/form/exitList/effects/effectParams";
 import { summarizeEffect } from "@studio-v2/src/bis/pageBis/storyEditor/form/exitList/effects/summarizeEffect";
-import type { EffectPanelSlotProps } from "@studio-v2/src/pageComponents/storyEditor/com/panel/ExitListEditor/com/effects/effectPanelSlot";
+import type { EffectPanelSlotProps } from "@studio-v2/src/pageComponents/storyEditor/com/panel/ExitListEditor/com/effects/shared/effectPanelSlot";
 // 引用了MountTargetModal组件，用于挂载/卸载目标配置弹层
 import { MountTargetModal } from "@studio-v2/src/pageComponents/storyEditor/com/panel/ExitListEditor/com/effects/mount/MountTargetModal";
-import styles from "../effectPanels.module.scss";
+import styles from "../shared/effectPanels.module.scss";
 
 export const MountEffectPanel: FC<EffectPanelSlotProps> = function MountEffectPanel({
 	// effect 是当前行 effect 名，用于区分挂载/卸载

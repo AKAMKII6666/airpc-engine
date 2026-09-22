@@ -3,7 +3,7 @@
 	*/
 import type { FormikErrors } from "formik";
 import type { ScheduledIntent } from "@studio-v2/typeFiles/library/schedule/engineScheduledIntent";
-import type { AutoFormItem } from "@studio-v2/src/commonUiComponents/form/autoFormTypes";
+import type { AutoFormItem } from "@studio-v2/src/commonUiComponents/form/types/autoFormTypes";
 import { createStudioId } from "@studio-v2/typeFiles/ids/createStudioId";
 
 /** 表单 kind；映射到 ScheduledIntent.kind */

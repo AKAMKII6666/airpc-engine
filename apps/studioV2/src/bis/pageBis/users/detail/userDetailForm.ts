@@ -2,7 +2,7 @@
 	* 玩家详情 Formik 契约：复用共享字段配置；保存编排见 save/saveUser_bis。
 	* 无调试偏好主区；不做年龄↔生日交叉校验。
 	*/
-import type { UserProfileSummary } from "@studio-v2/typeFiles/library/users/userProfileSummary";
+import type { UserProfileSummary } from "@studio-v2/typeFiles/library/users/summary/userProfileSummary";
 import {
 	USER_BASIC_ITEMS,
 	USER_LOCATION_ITEMS,

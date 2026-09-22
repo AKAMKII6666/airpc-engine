@@ -11,7 +11,7 @@ import {
 	parseWorldLoreFromLlmJson,
 } from "../../src/utils/server/lore/bootstrap/loreBootstrapLlm.server";
 import { isUserLocationChanged } from "../../src/utils/server/lore/bootstrap/loreLocationCompare.server";
-import { resolveLoreLlmRuntimeConfig } from "../../src/utils/server/llm/llmConfig.server";
+import { resolveLoreLlmRuntimeConfig } from "../../src/utils/server/llm/config/llmConfig.server";
 
 const sampleInput: LoreBootstrapInput = {
 	user: {
@@ -94,7 +94,7 @@ describe("loreBootstrapLlm.server", () => {
 
 	it("generate calls shared runServerLlmChat and writes llm lore", async () => {
 		const llmClient = await import(
-			"../../src/utils/server/llm/llmClient.server"
+			"../../src/utils/server/llm/client/llmClient.server"
 		);
 		const spy = vi.spyOn(llmClient, "runServerLlmChat").mockResolvedValue({
 			text: JSON.stringify({

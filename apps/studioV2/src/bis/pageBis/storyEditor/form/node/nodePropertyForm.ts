@@ -112,35 +112,11 @@ function toPolicyAndScheduleFormValues(data: EditorCallCardProjection): Pick<
 	NodePropertyFormValues,
 	"toolPolicy" | "schedule"
 > {
-	const legacyRealtimeAllowlist =
-		data.toolPolicy?.mode === "allowlist" &&
-		data.toolPolicy.schemaVersion !== 2 &&
-		data.interactionMode !== "playback_only" &&
-		data.cardKind !== "voicemail";
-	const allowedToolIds = listOrEmpty(data.toolPolicy?.allowedToolIds);
-	if (legacyRealtimeAllowlist && !allowedToolIds.includes("request_hangup")) {
-		allowedToolIds.push("request_hangup");
-	}
-	const legacyShell = (
-		data.context as typeof data.context & {
-			studioShellHangup?: {
-				naturalHangup?: boolean;
-				policyHangup?: boolean;
-			};
-		}
-	).studioShellHangup;
-	const explicitReasons = data.toolPolicy?.options?.request_hangup
-		?.allowedReasonKinds;
-	const legacyReasons: Array<"natural" | "policy"> = [];
-	if (legacyShell?.naturalHangup !== false) legacyReasons.push("natural");
-	if (legacyShell?.policyHangup !== false) legacyReasons.push("policy");
 	return {
 		toolPolicy: {
 			mode: data.toolPolicy?.mode ?? "",
-			allowedToolIds,
-			allowedHangupReasonKinds: listOrEmpty(
-				explicitReasons ?? legacyReasons,
-			),
+			allowedToolIds: resolveAllowedToolIds(data),
+			allowedHangupReasonKinds: resolveHangupReasonKinds(data),
 		},
 		schedule: {
 			mode: data.schedule?.mode ?? "",
@@ -150,6 +126,49 @@ function toPolicyAndScheduleFormValues(data: EditorCallCardProjection): Pick<
 			priority: data.schedule?.priority ?? "",
 		},
 	};
+}
+
+function isLegacyRealtimeAllowlist(data: EditorCallCardProjection): boolean {
+	return (
+		data.toolPolicy?.mode === "allowlist" &&
+		data.toolPolicy.schemaVersion !== 2 &&
+		data.interactionMode !== "playback_only" &&
+		data.cardKind !== "voicemail"
+	);
+}
+
+function resolveAllowedToolIds(data: EditorCallCardProjection): string[] {
+	const allowedToolIds = listOrEmpty(data.toolPolicy?.allowedToolIds);
+	if (isLegacyRealtimeAllowlist(data) && !allowedToolIds.includes("request_hangup")) {
+		allowedToolIds.push("request_hangup");
+	}
+	return allowedToolIds;
+}
+
+function resolveHangupReasonKinds(
+	data: EditorCallCardProjection,
+): Array<"natural" | "policy" | "handoff"> {
+	const explicitReasons = data.toolPolicy?.options?.request_hangup
+		?.allowedReasonKinds;
+	if (explicitReasons) {
+		return listOrEmpty(explicitReasons).filter(function (
+			kind,
+		): kind is "natural" | "policy" | "handoff" {
+			return kind === "natural" || kind === "policy" || kind === "handoff";
+		});
+	}
+	const legacyShell = (
+		data.context as typeof data.context & {
+			studioShellHangup?: {
+				naturalHangup?: boolean;
+				policyHangup?: boolean;
+			};
+		}
+	).studioShellHangup;
+	const legacyReasons: Array<"natural" | "policy"> = [];
+	if (legacyShell?.naturalHangup !== false) legacyReasons.push("natural");
+	if (legacyShell?.policyHangup !== false) legacyReasons.push("policy");
+	return legacyReasons;
 }
 
 /** 将节点 data 投影为 Formik 初始 values */

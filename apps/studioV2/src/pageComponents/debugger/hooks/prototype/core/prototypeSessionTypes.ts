@@ -2,8 +2,8 @@
 	* 调试器电话原型会话类型。
 	*/
 import type { CallState, PhoneUiState, ReceiverMode } from "@studio-v2/src/pageComponents/debugger/debuggerUiModel";
-import type { DebuggerPostCallJobView } from "@studio-v2/typeFiles/debugger/callSession";
-import type { DebuggerMemoryCommitTraceDetailView } from "@studio-v2/typeFiles/debugger/callSession";
+import type { DebuggerPostCallJobView } from "@studio-v2/typeFiles/debugger/callSession/callSession";
+import type { DebuggerMemoryCommitTraceDetailView } from "@studio-v2/typeFiles/debugger/callSession/callSession";
 
 export type HangupToastState = {
 	/** 用于让同文案 toast 也能重新弹出 */

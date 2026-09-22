@@ -1,13 +1,22 @@
 /**
 	* 把 DebuggerMessageStreamEvent 映射为 chat stream reducer action。
 	*/
-import type { DebuggerMessageStreamEvent } from "@studio-v2/typeFiles/debugger/callSession";
+import type { DebuggerMessageStreamEvent } from "@studio-v2/typeFiles/debugger/callSession/callSession";
 import type { DebuggerChatStreamAction } from "../types/debuggerChatStreamTypes";
 import { turnsToDebuggerChatMessages } from "../reduce/debuggerChatStreamReducer";
 
-export function mapStreamEventToActions(
+type MapResult = {
+	actions: DebuggerChatStreamAction[];
+	markUnread?: boolean;
+};
+
+function emptyResult(): MapResult {
+	return { actions: [] };
+}
+
+function mapKnownStreamEvent(
 	event: DebuggerMessageStreamEvent,
-): { actions: DebuggerChatStreamAction[]; markUnread?: boolean } {
+): MapResult | null {
 	switch (event.event) {
 		case "message_start":
 			return {
@@ -55,6 +64,15 @@ export function mapStreamEventToActions(
 					},
 				],
 			};
+		default:
+			return null;
+	}
+}
+
+function mapToolOrTerminalEvent(
+	event: DebuggerMessageStreamEvent,
+): MapResult {
+	switch (event.event) {
 		case "tool_start":
 			return {
 				actions: [
@@ -92,6 +110,12 @@ export function mapStreamEventToActions(
 		case "done":
 			return { actions: [{ type: "done" }], markUnread: true };
 		default:
-			return { actions: [] };
+			return emptyResult();
 	}
+}
+
+export function mapStreamEventToActions(
+	event: DebuggerMessageStreamEvent,
+): MapResult {
+	return mapKnownStreamEvent(event) ?? mapToolOrTerminalEvent(event);
 }

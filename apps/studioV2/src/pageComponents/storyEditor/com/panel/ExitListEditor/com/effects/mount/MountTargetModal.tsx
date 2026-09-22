@@ -17,9 +17,9 @@ import type {
 // 引用了AppModal组件，用于统一 Dialog 壳
 import { AppModal } from "@studio-v2/src/commonUiComponents/modal/app/AppModal";
 // 引用了EffectNodeSelect组件，用于目标卡 id 下拉
-import { EffectNodeSelect } from "@studio-v2/src/pageComponents/storyEditor/com/panel/ExitListEditor/com/effects/EffectNodeSelect";
+import { EffectNodeSelect } from "@studio-v2/src/pageComponents/storyEditor/com/panel/ExitListEditor/com/effects/shared/EffectNodeSelect";
 import type { EditorEffectEdgeKind } from "@studio-v2/src/bis/pageBis/storyEditor/canvas/effectEdgeSync";
-import styles from "../effectPanels.module.scss";
+import styles from "../shared/effectPanels.module.scss";
 
 /**
 	* 草稿 → 参数投影；角色自动取目标卡归属，包/入口模式不在此配置。

@@ -5,8 +5,8 @@
 
 import type { ReactNode } from "react";
 import type { FormikErrors, FormikProps } from "formik";
-import type { AutoFormItem } from "../../form/autoFormTypes";
-import type { FormFieldMode } from "../../form/formTypes";
+import type { AutoFormItem } from "../../form/types/autoFormTypes";
+import type { FormFieldMode } from "../../form/types/formTypes";
 
 /** AppModal / FormModal 共用的宽度档；对应 MUI Dialog maxWidth */
 export type AppModalMaxWidth = "xs" | "sm" | "md" | "lg";

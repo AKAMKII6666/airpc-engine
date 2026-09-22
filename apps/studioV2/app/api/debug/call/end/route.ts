@@ -10,7 +10,7 @@ import {
 import {
 	endDebuggerCallSession,
 	type EndDebuggerCallInput,
-} from "@studio-v2/src/utils/server/debugger/session/debuggerCallSession.server";
+} from "@studio-v2/src/utils/server/debugger/session/callSession/debuggerCallSession.server";
 
 function handleDebuggerEndError(err: unknown): Response {
 	if (isEngineError(err)) {

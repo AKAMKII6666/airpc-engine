@@ -7,18 +7,62 @@
 import type { FC } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, Button, Typography } from "@mui/material";
-import { Formik } from "formik";
+import { Formik, type FormikProps } from "formik";
 import Link from "next/link";
 // 引用了AutoForm组件，用于声明式字段编排
 import { AutoForm } from "@studio-v2/src/commonUiComponents/form/AutoForm";
-import { commitCreatePackage } from "@studio-v2/src/bis/pageBis/packages/createPackage_bis";
+import { commitCreatePackage } from "@studio-v2/src/bis/pageBis/packages/create/createPackage_bis";
 import {
 	CREATE_PACKAGE_FORM_ITEMS,
 	CREATE_PACKAGE_INITIAL_VALUES,
 	validateCreatePackageForm,
 	type CreatePackageFormValues,
-} from "@studio-v2/src/bis/pageBis/packages/createPackageForm";
+} from "@studio-v2/src/bis/pageBis/packages/create/createPackageForm";
 import styles from "./CreatePackageView.module.scss";
+
+function renderCreatePackageForm(
+	formik: FormikProps<CreatePackageFormValues>,
+) {
+	const formError =
+		typeof formik.status === "object" &&
+		formik.status !== null &&
+		"formError" in formik.status &&
+		typeof (formik.status as { formError?: unknown }).formError === "string"
+			? (formik.status as { formError: string }).formError
+			: undefined;
+
+	return (
+		<form className={styles.form} onSubmit={formik.handleSubmit} noValidate>
+			{formError ? (
+				// 引用了Alert组件，用于展示提交级错误
+				<Alert severity="error" role="alert">
+					{formError}
+				</Alert>
+			) : null}
+			{/* 引用了AutoForm组件，用于编排新建故事包字段 */}
+			<AutoForm
+				formik={formik}
+				mode="add"
+				enabled
+				items={CREATE_PACKAGE_FORM_ITEMS}
+			/>
+			<div className={styles.footer}>
+				{/* 引用了Button组件，用于取消返回列表 */}
+				<Button component={Link} href="/packages" variant="text">
+					取消
+				</Button>
+				{/* 引用了Button组件，用于提交并进入编辑器 */}
+				<Button
+					type="submit"
+					variant="contained"
+					disabled={formik.isSubmitting}
+				>
+					创建并进入编辑器
+				</Button>
+			</div>
+		</form>
+	);
+}
 
 export const CreatePackageView: FC = function CreatePackageView() {
 	const router = useRouter();
@@ -45,52 +89,7 @@ export const CreatePackageView: FC = function CreatePackageView() {
 				validate={validateCreatePackageForm}
 				onSubmit={onSubmit}
 			>
-				{function renderForm(formik) {
-					const formError =
-						typeof formik.status === "object" &&
-						formik.status !== null &&
-						"formError" in formik.status &&
-						typeof (formik.status as { formError?: unknown }).formError ===
-							"string"
-							? (formik.status as { formError: string }).formError
-							: undefined;
-
-					return (
-						<form
-							className={styles.form}
-							onSubmit={formik.handleSubmit}
-							noValidate
-						>
-							{formError ? (
-								// 引用了Alert组件，用于展示提交级错误
-								<Alert severity="error" role="alert">
-									{formError}
-								</Alert>
-							) : null}
-							{/* 引用了AutoForm组件，用于编排新建故事包字段 */}
-							<AutoForm
-								formik={formik}
-								mode="add"
-								enabled
-								items={CREATE_PACKAGE_FORM_ITEMS}
-							/>
-							<div className={styles.footer}>
-								{/* 引用了Button组件，用于取消返回列表 */}
-								<Button component={Link} href="/packages" variant="text">
-									取消
-								</Button>
-								{/* 引用了Button组件，用于提交并进入编辑器 */}
-								<Button
-									type="submit"
-									variant="contained"
-									disabled={formik.isSubmitting}
-								>
-									创建并进入编辑器
-								</Button>
-							</div>
-						</form>
-					);
-				}}
+				{renderCreatePackageForm}
 			</Formik>
 		</main>
 	);

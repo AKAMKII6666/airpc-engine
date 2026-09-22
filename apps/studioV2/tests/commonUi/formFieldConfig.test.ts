@@ -3,8 +3,8 @@
 	* 不挂载 React；FormSchemaRenderer / kind 双轨已收口删除。
 	*/
 import { describe, expect, it } from "vitest";
-import type { FormFieldMode } from "@studio-v2/src/commonUiComponents/form/formTypes";
-import type { AutoFormItem } from "@studio-v2/src/commonUiComponents/form/autoFormTypes";
+import type { FormFieldMode } from "@studio-v2/src/commonUiComponents/form/types/formTypes";
+import type { AutoFormItem } from "@studio-v2/src/commonUiComponents/form/types/autoFormTypes";
 import {
 	readFormikFieldError,
 	readFormikFieldString,

@@ -7,7 +7,7 @@ import {
 	apiOk,
 	httpStatusForCode,
 } from "@studio-v2/src/utils/server/http/apiResponse.server";
-import { retryDebuggerPostCallJob } from "@studio-v2/src/utils/server/debugger/session/debuggerPostCallJob.server";
+import { retryDebuggerPostCallJob } from "@studio-v2/src/utils/server/debugger/session/postCall/debuggerPostCallJob.server";
 
 function handleError(err: unknown): Response {
 	if (isEngineError(err)) {

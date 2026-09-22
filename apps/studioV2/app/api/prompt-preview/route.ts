@@ -8,72 +8,17 @@ import {
 	httpStatusForCode,
 } from "@studio-v2/src/utils/server/http/apiResponse.server";
 import { previewFirstConnectPrompt } from "@studio-v2/src/utils/server/promptPreview/previewFirstConnectPrompt.server";
-import { isValidUserId } from "@studio-v2/src/utils/server/users/usersFs.server";
-
-type PreviewBody = {
-	userId?: unknown;
-	callDirection?: unknown;
-	localHour?: unknown;
-	packageId?: unknown;
-	card?: unknown;
-};
-
-function readPreviewBody(body: PreviewBody):
-	| { ok: true; userId: string; callDirection: "inbound" | "outbound"; localHour: number; packageId?: string; card: unknown }
-	| { ok: false; code: string; message: string; status: number } {
-	const userId = typeof body.userId === "string" ? body.userId.trim() : "";
-	if (!userId || !isValidUserId(userId)) {
-		return {
-			ok: false,
-			code: "USER_REQUIRED",
-			message: "valid userId required",
-			status: 403,
-		};
-	}
-	if (body.callDirection !== "inbound" && body.callDirection !== "outbound") {
-		return {
-			ok: false,
-			code: "VALIDATION_FAILED",
-			message: "callDirection must be inbound|outbound",
-			status: 400,
-		};
-	}
-	const localHour =
-		typeof body.localHour === "number"
-			? body.localHour
-			: Number(body.localHour);
-	if (!Number.isFinite(localHour)) {
-		return {
-			ok: false,
-			code: "VALIDATION_FAILED",
-			message: "localHour required",
-			status: 400,
-		};
-	}
-	if (body.card === undefined || body.card === null) {
-		return {
-			ok: false,
-			code: "VALIDATION_FAILED",
-			message: "card required",
-			status: 400,
-		};
-	}
-	return {
-		ok: true,
-		userId,
-		callDirection: body.callDirection,
-		localHour,
-		packageId:
-			typeof body.packageId === "string" ? body.packageId : undefined,
-		card: body.card,
-	};
-}
+import {
+	previewFailResponse,
+	readPreviewBody,
+	type PreviewBody,
+} from "./route.helpers";
 
 export async function POST(req: Request): Promise<Response> {
 	try {
 		const parsed = readPreviewBody((await req.json()) as PreviewBody);
 		if (!parsed.ok) {
-			return apiFail(parsed.code, parsed.message, parsed.status);
+			return previewFailResponse(parsed);
 		}
 		const result = await previewFirstConnectPrompt({
 			userId: parsed.userId,

@@ -4,18 +4,12 @@
 "use client";
 
 import type { FC } from "react";
-import {
-	Alert,
-	Button,
-	List,
-	ListItem,
-	ListItemButton,
-	ListItemText,
-	TextField,
-	Typography,
-} from "@mui/material";
-import type { User } from "@studio-v2/typeFiles/library/users/engineUser";
-import styles from "../../index.module.scss";
+import { Alert } from "@mui/material";
+import type { User } from "@studio-v2/typeFiles/library/users/engine/engineUser";
+// 引用了UserGateUserList组件，用于玩家列表
+import { UserGateUserList } from "../UserGateUserList";
+// 引用了UserGateCreateSection组件，用于新建与刷新
+import { UserGateCreateSection } from "../UserGateCreateSection";
 
 export type UserGateBodyProps = {
 	users: User[];
@@ -31,7 +25,7 @@ export type UserGateBodyProps = {
 	onReload: () => void;
 };
 
-export const UserGateBody: FC<UserGateBodyProps> = function ({
+export const UserGateBody: FC<UserGateBodyProps> = function UserGateBody({
 	// users 表示玩家列表，用于列表展示
 	users,
 	// loading 表示列表加载中，用于禁用交互
@@ -65,64 +59,23 @@ export const UserGateBody: FC<UserGateBodyProps> = function ({
 				// 引用了Alert组件，用于新建失败
 				<Alert severity="error">{createError}</Alert>
 			) : null}
-
-			{/* 引用了List组件，用于玩家列表 */}
-			<List dense className={styles.list}>
-				{users.map(function (u) {
-					return (
-						// 引用了ListItem组件，用于单行玩家
-						<ListItem key={u.userId} disablePadding>
-							{/* 引用了ListItemButton组件，用于选中玩家 */}
-							<ListItemButton
-								disabled={loading || createBusy}
-								selected={u.userId === currentUserId}
-								onClick={function () {
-									onSelect(u.userId, u.nickname);
-								}}
-							>
-								{/* 引用了ListItemText组件，用于展示昵称与 userId */}
-								<ListItemText
-									primary={u.nickname}
-									secondary={u.userId}
-								/>
-							</ListItemButton>
-						</ListItem>
-					);
-				})}
-			</List>
-
-			{users.length === 0 && !loading ? (
-				// 引用了Typography组件，用于空列表提示
-				<Typography variant="body2" color="text.secondary">
-					尚无玩家，请在下方新建。
-				</Typography>
-			) : null}
-
-			<div className={styles.createRow}>
-				{/* 引用了TextField组件，用于新建昵称 */}
-				<TextField
-					size="small"
-					label="新玩家昵称"
-					value={nickname}
-					onChange={function (e) {
-						onNicknameChange(e.target.value);
-					}}
-					disabled={createBusy}
-				/>
-				{/* 引用了Button组件，用于新建并选择 */}
-				<Button
-					variant="outlined"
-					disabled={createBusy || nickname.trim() === ""}
-					onClick={onCreate}
-				>
-					新建并选择
-				</Button>
-			</div>
-
-			{/* 引用了Button组件，用于刷新列表 */}
-			<Button size="small" onClick={onReload} disabled={loading}>
-				刷新列表
-			</Button>
+			{/* 引用了UserGateUserList组件，用于玩家列表 */}
+			<UserGateUserList
+				users={users}
+				loading={loading}
+				createBusy={createBusy}
+				currentUserId={currentUserId}
+				onSelect={onSelect}
+			/>
+			{/* 引用了UserGateCreateSection组件，用于新建与刷新 */}
+			<UserGateCreateSection
+				nickname={nickname}
+				createBusy={createBusy}
+				loading={loading}
+				onNicknameChange={onNicknameChange}
+				onCreate={onCreate}
+				onReload={onReload}
+			/>
 		</>
 	);
 };

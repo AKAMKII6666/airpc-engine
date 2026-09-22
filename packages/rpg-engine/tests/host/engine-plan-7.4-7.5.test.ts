@@ -19,7 +19,7 @@ import {
   type EffectSink,
   type EffectSinkResult,
 } from "../../src/index.js";
-import { executeEffects } from "../../src/runtime/effectExecutor.js";
+import { executeEffects } from "../../src/runtime/effect/effectExecutor.js";
 import { copyDataTree, createTestHost } from "../helpers/inMemoryMemoryPort.js";
 import { cloneChapter02 } from "../helpers/chapterTestFixtures.js";
 

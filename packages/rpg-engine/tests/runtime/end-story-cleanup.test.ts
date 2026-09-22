@@ -9,7 +9,7 @@ import {
   type CallSession,
   type Effect,
 } from "../../src/index.js";
-import { executeEffects } from "../../src/runtime/effectExecutor.js";
+import { executeEffects } from "../../src/runtime/effect/effectExecutor.js";
 
 function baseProfile() {
   return PlayerProfileSchema.parse({

@@ -15,7 +15,7 @@ import {
 	assembleCapabilityRuntime,
 	resetAssembledCapabilityRuntimeForTests,
 } from "@studio-v2/src/utils/server/plugins/assemble/assembleWithPlugins.server";
-import { createPluginCapabilityApi } from "@studio-v2/src/utils/server/plugins/api/createPluginCapabilityApi.server";
+import { createPluginCapabilityApi } from "@studio-v2/src/utils/server/plugins/api/core/createPluginCapabilityApi.server";
 import { createPluginOutboundRequestHandler } from "@studio-v2/src/utils/server/plugins/api/outbound/requestOutbound.server";
 import { assertEntryInsidePackageRoot } from "@studio-v2/src/utils/server/plugins/load/entry/loadPluginEntry.server";
 import {
@@ -189,7 +189,17 @@ describe("L2 closeout: entry path escape", () => {
 			await mkdir(pkg);
 			await writeFile(outside, "export default {};\n");
 			const link = path.join(pkg, "evil.mjs");
-			await symlink(outside, link);
+			try {
+				await symlink(outside, link);
+			} catch (error) {
+				// Windows 无 Developer Mode / 管理员权限时创建 symlink 会 EPERM。
+				const code =
+					error && typeof error === "object" && "code" in error
+						? String((error as { code?: unknown }).code)
+						: "";
+				if (code === "EPERM" || code === "EACCES") return;
+				throw error;
+			}
 			await expect(
 				assertEntryInsidePackageRoot({
 					packageRoot: pkg,

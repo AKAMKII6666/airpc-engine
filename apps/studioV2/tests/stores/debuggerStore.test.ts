@@ -7,11 +7,11 @@ import {
 	useDebuggerStore,
 } from "@studio-v2/src/stores/debugger/debuggerStore";
 import type { DebuggerSessionSnapshot } from "@studio-v2/typeFiles/debugger/store/debuggerStoreState";
-import type { DebuggerMailboxSnapshot } from "@studio-v2/typeFiles/debugger/mailboxView";
+import type { DebuggerMailboxSnapshot } from "@studio-v2/typeFiles/debugger/mailbox/mailboxView";
 import type {
 	DebuggerCallSessionView,
 	DebuggerToolResolutionTrace,
-} from "@studio-v2/typeFiles/debugger/callSession";
+} from "@studio-v2/typeFiles/debugger/callSession/callSession";
 
 function emptyToolResolutionTrace(): DebuggerToolResolutionTrace {
 	return {

@@ -3,7 +3,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { CallCardDefinitionSchema } from "../../src/index.js";
-import { selectExit } from "../../src/runtime/exitSelector.js";
+import { selectExit } from "../../src/runtime/exit/exitSelector.js";
 
 const card = CallCardDefinitionSchema.parse({
   cardId: "t",

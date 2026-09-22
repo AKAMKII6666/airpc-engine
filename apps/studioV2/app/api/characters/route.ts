@@ -4,23 +4,19 @@
 import {
 	CharacterDefSchema,
 	formatZodError,
-	isEngineError,
 } from "@airpc/rpg-engine";
 import {
 	apiFail,
 	apiOk,
-	httpStatusForCode,
 } from "@studio-v2/src/utils/server/http/apiResponse.server";
 import {
-	characterExists,
-	isValidAgentId,
 	listCharacterAgentIds,
 	readCharacterJson,
 	writeCharacterJson,
 } from "@studio-v2/src/utils/server/characters/charactersFs.server";
-import { ensureFreeCardOnCreate } from "@studio-v2/src/utils/server/characters/freeCards/ensureFreeCardOnCreate.server";
 import { findTimeBucketsRejectReason } from "@studio-v2/src/utils/server/characters/timeBucketsReject.server";
 import { reloadStudioV2WorkspaceIfBooted } from "@studio-v2/src/utils/server/host/engineHost.server";
+import { failFromUnknown, prepareCreateCharacter } from "./route.helpers";
 
 export async function GET(): Promise<Response> {
 	try {
@@ -56,47 +52,12 @@ export async function GET(): Promise<Response> {
 export async function POST(req: Request): Promise<Response> {
 	try {
 		const body = (await req.json()) as { character?: unknown };
-		if (!body.character || typeof body.character !== "object") {
-			return apiFail("VALIDATION_FAILED", "character object required");
-		}
-		const raw = body.character as { agentId?: string };
-		if (!raw.agentId || typeof raw.agentId !== "string") {
-			return apiFail("VALIDATION_FAILED", "agentId required");
-		}
-		if (!isValidAgentId(raw.agentId)) {
-			return apiFail("VALIDATION_FAILED", "agentId 格式无效");
-		}
-		if (await characterExists(raw.agentId)) {
-			return apiFail(
-				"VALIDATION_FAILED",
-				`character already exists: ${raw.agentId}`,
-			);
-		}
-		const reject = findTimeBucketsRejectReason(body.character);
-		if (reject) {
-			return apiFail("VALIDATION_FAILED", reject, 422);
-		}
-		const parsed = CharacterDefSchema.safeParse(body.character);
-		if (!parsed.success) {
-			return apiFail("VALIDATION_FAILED", formatZodError(parsed.error), 400, {
-				issues: parsed.error.issues,
-			});
-		}
-		const ensured = await ensureFreeCardOnCreate(parsed.data);
-		if (!ensured.ok) {
-			return apiFail(ensured.code, ensured.message);
-		}
-		await writeCharacterJson(ensured.character.agentId, ensured.character);
+		const prepared = await prepareCreateCharacter(body);
+		if (!prepared.ok) return prepared.response;
+		await writeCharacterJson(prepared.character.agentId, prepared.character);
 		await reloadStudioV2WorkspaceIfBooted();
-		return apiOk({ character: ensured.character });
+		return apiOk({ character: prepared.character });
 	} catch (err) {
-		if (isEngineError(err)) {
-			return apiFail(err.code, err.message, httpStatusForCode(err.code));
-		}
-		return apiFail(
-			"ENGINE_INTERNAL",
-			err instanceof Error ? err.message : String(err),
-			500,
-		);
+		return failFromUnknown(err);
 	}
 }

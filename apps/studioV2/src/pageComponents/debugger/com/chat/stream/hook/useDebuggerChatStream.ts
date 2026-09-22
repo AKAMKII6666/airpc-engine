@@ -8,11 +8,11 @@
 	* server LLM `llmClientStream.server` → SSE 事件 → `dispatchDebuggerChatStreamEvent` → reducer。
 	*/
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
-import { useDebuggerCallSessionBis } from "@studio-v2/src/bis/pageBis/debugger/callSession.bis";
+import { useDebuggerCallSessionBis } from "@studio-v2/src/bis/pageBis/debugger/callSession/callSession.bis";
 import type {
 	DebuggerCallSessionView,
 	DebuggerMessageStreamEvent,
-} from "@studio-v2/typeFiles/debugger/callSession";
+} from "@studio-v2/typeFiles/debugger/callSession/callSession";
 import {
 	createInitialDebuggerChatState,
 	debuggerChatStreamReducer,
@@ -38,6 +38,54 @@ function createLocalId(prefix: string): string {
 		return `${prefix}_${crypto.randomUUID()}`;
 	}
 	return `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+}
+
+function useDebuggerChatSendCommands(input: {
+	status: DebuggerChatStatus;
+	callBis: ReturnType<typeof useDebuggerCallSessionBis>;
+	dispatch: (action: Parameters<typeof debuggerChatStreamReducer>[1]) => void;
+	abortRef: { current: AbortController | null };
+	setHasUnread: (unread: boolean) => void;
+	lastUserMessageText: string;
+}) {
+	function dispatchStreamEvent(event: DebuggerMessageStreamEvent): void {
+		const mapped = mapStreamEventToActions(event);
+		for (const action of mapped.actions) input.dispatch(action);
+		if (mapped.markUnread) {
+			input.setHasUnread(document.visibilityState === "hidden");
+		}
+	}
+
+	function send(text: string): void {
+		const trimmed = text.trim();
+		if (!trimmed || input.status !== "idle") return;
+		const userMessageId = createLocalId("user");
+		input.dispatch({
+			type: "send",
+			userMessageId,
+			text: trimmed,
+			createdAt: new Date().toISOString(),
+		});
+		const controller = input.callBis.sendMessageStream(trimmed, {
+			onEvent: dispatchStreamEvent,
+			onClose: function () {
+				input.abortRef.current = null;
+			},
+		});
+		if (controller) input.abortRef.current = controller;
+	}
+
+	function abort(): void {
+		input.abortRef.current?.abort();
+		input.abortRef.current = null;
+		input.dispatch({ type: "abort" });
+	}
+
+	function retry(): void {
+		if (input.lastUserMessageText) send(input.lastUserMessageText);
+	}
+
+	return { send, abort, retry };
 }
 
 export function useDebuggerChatStream(
@@ -84,42 +132,14 @@ export function useDebuggerChatStream(
 		return last?.text ?? "";
 	}, [state.messages]);
 
-	function dispatchStreamEvent(event: DebuggerMessageStreamEvent): void {
-		const mapped = mapStreamEventToActions(event);
-		for (const action of mapped.actions) dispatch(action);
-		if (mapped.markUnread) {
-			setHasUnread(document.visibilityState === "hidden");
-		}
-	}
-
-	function send(text: string): void {
-		const trimmed = text.trim();
-		if (!trimmed || state.status !== "idle") return;
-		const userMessageId = createLocalId("user");
-		dispatch({
-			type: "send",
-			userMessageId,
-			text: trimmed,
-			createdAt: new Date().toISOString(),
-		});
-		const controller = callBis.sendMessageStream(trimmed, {
-			onEvent: dispatchStreamEvent,
-			onClose: function () {
-				abortRef.current = null;
-			},
-		});
-		if (controller) abortRef.current = controller;
-	}
-
-	function abort(): void {
-		abortRef.current?.abort();
-		abortRef.current = null;
-		dispatch({ type: "abort" });
-	}
-
-	function retry(): void {
-		if (lastUserMessageText) send(lastUserMessageText);
-	}
+	const commands = useDebuggerChatSendCommands({
+		status: state.status,
+		callBis,
+		dispatch,
+		abortRef,
+		setHasUnread,
+		lastUserMessageText,
+	});
 
 	return {
 		status: state.status,
@@ -127,8 +147,8 @@ export function useDebuggerChatStream(
 		error: state.error,
 		lastUserMessageText,
 		hasUnread,
-		send,
-		abort,
-		retry,
+		send: commands.send,
+		abort: commands.abort,
+		retry: commands.retry,
 	};
 }

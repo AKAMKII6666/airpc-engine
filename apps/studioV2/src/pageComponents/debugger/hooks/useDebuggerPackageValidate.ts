@@ -3,7 +3,7 @@
 	*/
 "use client";
 
-import { useDebuggerPackageValidateBis } from "@studio-v2/src/bis/pageBis/debugger/debuggerPackageValidate.bis";
+import { useDebuggerPackageValidateBis } from "@studio-v2/src/bis/pageBis/debugger/packageValidate/debuggerPackageValidate.bis";
 
 export function useDebuggerPackageValidate() {
 	return useDebuggerPackageValidateBis();

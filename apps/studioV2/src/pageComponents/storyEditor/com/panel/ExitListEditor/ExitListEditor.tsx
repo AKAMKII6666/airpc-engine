@@ -14,7 +14,7 @@ import {
 } from "@studio-v2/src/bis/pageBis/storyEditor/form/exitList/exitListForm";
 import type { EffectPanelSources } from "@studio-v2/typeFiles/story/editor/callCard/editorEffectParams";
 // 引用了ExitListRow组件，用于单出口字段编辑
-import { ExitListRow } from "@studio-v2/src/pageComponents/storyEditor/com/panel/ExitListEditor/com/ExitListRow";
+import { ExitListRow } from "@studio-v2/src/pageComponents/storyEditor/com/panel/ExitListEditor/com/row/ExitListRow";
 import styles from "./index.module.scss";
 
 export type ExitListEditorProps = {

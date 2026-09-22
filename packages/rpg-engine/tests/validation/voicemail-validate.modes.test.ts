@@ -10,7 +10,7 @@ import {
 	VM_VALIDATE_PKG,
 } from "./voicemailValidateHelpers.js";
 
-describe("validatePackage voicemail modes (V2-VM-3)", () => {
+describe("validatePackage voicemail legal", () => {
 	let tmpRoot: string | undefined;
 
 	afterEach(async () => {
@@ -43,6 +43,17 @@ describe("validatePackage voicemail modes (V2-VM-3)", () => {
 			report.errors.some((e) => e.ruleId === "SCHEMA_UNSUPPORTED"),
 		).toBe(false);
 	});
+});
+
+describe("validatePackage voicemail interaction", () => {
+	let tmpRoot: string | undefined;
+
+	afterEach(async () => {
+		if (tmpRoot) {
+			await rm(tmpRoot, { recursive: true, force: true });
+			tmpRoot = undefined;
+		}
+	});
 
 	it("VOICEMAIL_INTERACTION_MODE", async () => {
 		const prepared = await prepareVmValidateWorkspace();
@@ -58,6 +69,17 @@ describe("validatePackage voicemail modes (V2-VM-3)", () => {
 			report.errors.some((e) => e.ruleId === "VOICEMAIL_INTERACTION_MODE"),
 		).toBe(true);
 		expect(hasBlockingErrors(report)).toBe(true);
+	});
+});
+
+describe("validatePackage voicemail entry", () => {
+	let tmpRoot: string | undefined;
+
+	afterEach(async () => {
+		if (tmpRoot) {
+			await rm(tmpRoot, { recursive: true, force: true });
+			tmpRoot = undefined;
+		}
 	});
 
 	it("VOICEMAIL_ENTRY_MODE", async () => {
@@ -76,6 +98,17 @@ describe("validatePackage voicemail modes (V2-VM-3)", () => {
 		expect(
 			report.errors.some((e) => e.ruleId === "VOICEMAIL_ENTRY_MODE"),
 		).toBe(true);
+	});
+});
+
+describe("validatePackage voicemail tool policy", () => {
+	let tmpRoot: string | undefined;
+
+	afterEach(async () => {
+		if (tmpRoot) {
+			await rm(tmpRoot, { recursive: true, force: true });
+			tmpRoot = undefined;
+		}
 	});
 
 	it("VOICEMAIL_TOOL_POLICY", async () => {

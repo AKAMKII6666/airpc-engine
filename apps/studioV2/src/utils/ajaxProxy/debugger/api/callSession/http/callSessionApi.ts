@@ -18,15 +18,15 @@ import type {
 	EndDebuggerCallBody,
 	SendDebuggerMessageBody,
 	StartDebuggerCallBody,
-} from "@studio-v2/typeFiles/debugger/callSession";
+} from "@studio-v2/typeFiles/debugger/callSession/callSession";
 import type {
 	DebuggerChapterEntryRingResponse,
 	DebuggerChapterEntryRingView,
-} from "@studio-v2/typeFiles/debugger/callSessionResponses";
+} from "@studio-v2/typeFiles/debugger/callSession/callSessionResponses";
 import type {
 	DebuggerDialableRole,
 	DebuggerDialableRolesResponse,
-} from "@studio-v2/typeFiles/debugger/dialableRole";
+} from "@studio-v2/typeFiles/debugger/incoming/dialableRole";
 
 /** POST /api/debug/call/start */
 export async function postDebuggerCallStart(

@@ -76,74 +76,86 @@ function toIoFailed(err: unknown, message: string): never {
 	});
 }
 
+async function readProfileFromFs(
+	dataRoot: string,
+	userId: string,
+): Promise<PlayerProfile | null> {
+	const file = profileFilePath(dataRoot, userId);
+	let text: string;
+	try {
+		text = await readFile(file, "utf8");
+	} catch {
+		return null;
+	}
+	try {
+		return PlayerProfileSchema.parse(JSON.parse(text));
+	} catch (err) {
+		throw engineError("VALIDATION_FAILED", "profile parse failed", err);
+	}
+}
+
+async function writeProfileToFs(
+	dataRoot: string,
+	profile: PlayerProfile,
+): Promise<void> {
+	const file = profileFilePath(dataRoot, profile.userId);
+	try {
+		const next: PlayerProfile = {
+			...profile,
+			meta: {
+				...(profile.meta ?? {}),
+				updatedAt: new Date().toISOString(),
+			},
+		};
+		await enqueueProfileWrite(file, function () {
+			return writeProfileFileAtomic(file, next);
+		});
+	} catch (err) {
+		toIoFailed(err, `writeProfile failed: ${profile.userId}`);
+	}
+}
+
+async function ensureProfileOnFs(
+	dataRoot: string,
+	input: { userId: string; initial?: PlayerProfile },
+): Promise<PlayerProfile> {
+	const existing = await readProfileFromFs(dataRoot, input.userId);
+	if (existing) {
+		return existing;
+	}
+	const initial = input.initial ?? createMinimalProfile(input.userId);
+	if (initial.userId !== input.userId) {
+		throw engineError(
+			"VALIDATION_FAILED",
+			`ensureProfile initial.userId mismatch: ${initial.userId} !== ${input.userId}`,
+		);
+	}
+	await writeProfileToFs(dataRoot, initial);
+	const written = await readProfileFromFs(dataRoot, input.userId);
+	if (!written) {
+		toIoFailed(
+			undefined,
+			`ensureProfile write then read miss: ${input.userId}`,
+		);
+	}
+	return written;
+}
+
 /**
 	* 创建指向 `dataRoot` 的本机 ProfilePort（行为与迁前 Host 直写 fs 等价）。
 	*
 	* @param dataRoot 工作区根（本机即仓库 `data/` 或测试临时 data 根）
 	*/
 export function createFsProfilePort(dataRoot: string): ProfilePort {
-	async function readProfile(input: {
-		userId: string;
-	}): Promise<PlayerProfile | null> {
-		const file = profileFilePath(dataRoot, input.userId);
-		let text: string;
-		try {
-			text = await readFile(file, "utf8");
-		} catch {
-			return null;
-		}
-		try {
-			return PlayerProfileSchema.parse(JSON.parse(text));
-		} catch (err) {
-			throw engineError("VALIDATION_FAILED", "profile parse failed", err);
-		}
-	}
-
-	async function writeProfile(input: {
-		profile: PlayerProfile;
-	}): Promise<void> {
-		const { profile } = input;
-		const file = profileFilePath(dataRoot, profile.userId);
-		try {
-			const next: PlayerProfile = {
-				...profile,
-				meta: {
-					...(profile.meta ?? {}),
-					updatedAt: new Date().toISOString(),
-				},
-			};
-			await enqueueProfileWrite(file, function () {
-				return writeProfileFileAtomic(file, next);
-			});
-		} catch (err) {
-			toIoFailed(err, `writeProfile failed: ${profile.userId}`);
-		}
-	}
-
 	return {
-		readProfile,
-		writeProfile,
-		async ensureProfile(input) {
-			const existing = await readProfile({ userId: input.userId });
-			if (existing) {
-				return existing;
-			}
-			const initial = input.initial ?? createMinimalProfile(input.userId);
-			if (initial.userId !== input.userId) {
-				throw engineError(
-					"VALIDATION_FAILED",
-					`ensureProfile initial.userId mismatch: ${initial.userId} !== ${input.userId}`,
-				);
-			}
-			await writeProfile({ profile: initial });
-			const written = await readProfile({ userId: input.userId });
-			if (!written) {
-				toIoFailed(
-					undefined,
-					`ensureProfile write then read miss: ${input.userId}`,
-				);
-			}
-			return written;
+		readProfile(input) {
+			return readProfileFromFs(dataRoot, input.userId);
+		},
+		writeProfile(input) {
+			return writeProfileToFs(dataRoot, input.profile);
+		},
+		ensureProfile(input) {
+			return ensureProfileOnFs(dataRoot, input);
 		},
 	};
 }

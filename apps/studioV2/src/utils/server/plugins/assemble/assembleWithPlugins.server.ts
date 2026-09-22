@@ -2,8 +2,6 @@
 	* L1 静态 merge + L2 plugins 扫描合流 → Host / Orchestrator 注入物。
 	*/
 import {
-	createPromptProviderRegistry,
-	type MergeCapabilityPacksResult,
 	type AfterHangupHook,
 	type SoftExtraEnricher,
 	type ScheduleGate,
@@ -12,8 +10,8 @@ import {
 	type CommitExtractContributor,
 	type EngineHost,
 	type PromptProviderRegistry,
-	createToolRegistry,
 	type ToolRegistry,
+	type MergeCapabilityPacksResult,
 } from "@airpc/rpg-engine";
 import { assembleFirstPartyCapabilityPacks } from "@studio-v2/src/utils/server/capabilityPacks/assembleFirstPartyPacks.server";
 import {
@@ -25,6 +23,7 @@ import {
 } from "@studio-v2/src/utils/server/plugins/load/scan/scanPlugins.server";
 import { rejectL2ConflictsWithL1, collectL1ReservedIds } from "@studio-v2/src/utils/server/plugins/assemble/rejectL2ConflictsWithL1.server";
 import type { PluginOutboundRequest } from "@airpc/pack-sdk";
+import { buildAssembledCapabilityRuntime } from "./assembleCapabilityRuntimeHelpers.server";
 
 export type AssembledCapabilityRuntime = {
 	promptProviderRegistry: PromptProviderRegistry;
@@ -75,56 +74,7 @@ export async function assembleCapabilityRuntime(input: {
 	});
 	rejectL2ConflictsWithL1({ l1, plugins });
 
-	const providers = [
-		...l1.promptProviderRegistry.providers,
-		...plugins.extraProviders,
-	];
-	const promptProviderRegistry = createPromptProviderRegistry(providers);
-	const toolRegistry = createToolRegistry([
-		...l1.registeredTools,
-		...plugins.registeredTools,
-	]);
-
-	const packIdByHookId = new Map(l1.packIdByHookId);
-	for (const [k, v] of plugins.packIdByHookId) {
-		packIdByHookId.set(k, v);
-	}
-	const packIdByGateId = new Map(l1.packIdByGateId);
-	for (const [k, v] of plugins.packIdByGateId) {
-		packIdByGateId.set(k, v);
-	}
-	const packIdByTaskId = new Map(l1.packIdByTaskId);
-	for (const [k, v] of plugins.packIdByTaskId) {
-		packIdByTaskId.set(k, v);
-	}
-
-	cached = {
-		promptProviderRegistry,
-		afterHangupHooks: [...l1.afterHangupHooks, ...plugins.afterHangupHooks],
-		packIdByHookId,
-		scheduleGates: [...l1.scheduleGates, ...plugins.scheduleGates],
-		packIdByGateId,
-		softExtraEnrichers: [
-			...l1.softExtraEnrichers,
-			...plugins.softExtraEnrichers,
-		],
-		taskRegistrars: [...l1.taskRegistrars, ...plugins.taskRegistrars],
-		packIdByTaskId,
-		commitContextEnrichers: [
-			...l1.commitContextEnrichers,
-			...plugins.commitContextEnrichers,
-		],
-		commitExtractContributors: [
-			...l1.commitExtractContributors,
-			...plugins.commitExtractContributors,
-		],
-		capabilityPackEvents: l1.events,
-		plugins,
-		uiPanels: plugins.uiPanels,
-		loadedPlugins: plugins.loaded,
-		pluginFailures: plugins.failures,
-		toolRegistry,
-	};
+	cached = buildAssembledCapabilityRuntime({ l1, plugins });
 	return cached;
 }
 

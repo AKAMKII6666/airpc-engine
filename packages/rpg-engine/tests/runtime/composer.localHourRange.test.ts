@@ -142,7 +142,7 @@ describe("composeRenderedPrompt localHourRange negatives", () => {
   });
 });
 
-describe("composeRenderedPrompt localHourRange match", () => {
+describe("composeRenderedPrompt localHourRange night", () => {
   it("night layer matches at localHour 22", () => {
     const card = baseCard({
       context: {
@@ -182,7 +182,9 @@ describe("composeRenderedPrompt localHourRange match", () => {
       "outbound_night",
     ]);
   });
+});
 
+describe("composeRenderedPrompt localHourRange late_night", () => {
   it("late_night layer matches at localHour 2", () => {
     const card = baseCard({
       context: {

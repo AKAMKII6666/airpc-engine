@@ -7,7 +7,7 @@
 import type { DragEvent, FC } from "react";
 import { Button } from "@mui/material";
 import type { PromptSceneLayerForm } from "@studio-v2/typeFiles/library/characters/form/characterFormShapes";
-import type { FormFieldMode } from "../../../../formTypes";
+import type { FormFieldMode } from "../../../../types/formTypes";
 import type { FormBoundFieldProps } from "../../../../fields/types/formBoundTypes";
 import styles from "../../index.module.scss";
 import { PromptSceneCard } from "../PromptSceneCard";

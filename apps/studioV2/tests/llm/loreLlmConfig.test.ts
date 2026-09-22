@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
 	resolveLoreLlmRuntimeConfig,
 	resolveServerLlmRuntimeConfig,
-} from "@studio-v2/src/utils/server/llm/llmConfig.server";
+} from "@studio-v2/src/utils/server/llm/config/llmConfig.server";
 
 describe("resolveLoreLlmRuntimeConfig", () => {
 	it("defaults to shared AIRPC_LLM_* when lore override unset", () => {

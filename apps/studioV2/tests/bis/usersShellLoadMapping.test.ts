@@ -3,7 +3,7 @@
 	*/
 import { describe, expect, it } from "vitest";
 import { toUsersLoadResult } from "@studio-v2/src/bis/shellBis/users/users.shell.bis";
-import type { User } from "@studio-v2/typeFiles/library/users/engineUser";
+import type { User } from "@studio-v2/typeFiles/library/users/engine/engineUser";
 
 function minimalUser(userId: string): User {
 	return {

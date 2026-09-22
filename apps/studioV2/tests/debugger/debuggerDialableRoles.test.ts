@@ -3,7 +3,7 @@
 	*/
 import { describe, expect, it } from "vitest";
 import type { CharacterDef } from "@airpc/rpg-engine";
-import { projectDebuggerDialableRole } from "@studio-v2/src/utils/server/debugger/session/debuggerDialableRoles.server";
+import { projectDebuggerDialableRole } from "@studio-v2/src/utils/server/debugger/session/dialable/debuggerDialableRoles.server";
 
 function characterFixture(
 	patch: Partial<CharacterDef> = {},

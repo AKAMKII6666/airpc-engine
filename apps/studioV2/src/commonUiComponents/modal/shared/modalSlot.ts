@@ -1,7 +1,7 @@
 /**
- * Modal 默认中文动作文案（AppModal/FormModal 共用）。
- * 业务页可覆盖 submitLabel/cancelLabel；未传时必须落中文，禁止英文默认。
- */
+	* Modal 默认中文动作文案（AppModal/FormModal 共用）。
+	* 业务页可覆盖 submitLabel/cancelLabel；未传时必须落中文，禁止英文默认。
+	*/
 export const MODAL_DEFAULT_SUBMIT_LABEL = "确认";
 export const MODAL_DEFAULT_CANCEL_LABEL = "取消";
 

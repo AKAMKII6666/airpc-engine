@@ -6,7 +6,7 @@
 
 import type { FC } from "react";
 import { Formik, type FormikHelpers, type FormikProps } from "formik";
-import type { UserProfileSummary } from "@studio-v2/typeFiles/library/users/userProfileSummary";
+import type { UserProfileSummary } from "@studio-v2/typeFiles/library/users/summary/userProfileSummary";
 import {
 	toUserDetailFormValues,
 	validateUserDetailForm,
@@ -17,8 +17,8 @@ import { commitSaveUserDetail } from "@studio-v2/src/bis/pageBis/users/detail/sa
 import { usePluginPanelsBis } from "@studio-v2/src/bis/pageBis/plugins/pluginPanels.bis";
 // 引用了PluginPanelHost组件，用于 L2 user.plugin 面板挂载
 import { PluginPanelHost } from "@studio-v2/src/commonUiComponents/PluginPanelHost";
-import { UserDetailEditForm } from "@studio-v2/src/pageComponents/users/com/UserDetailEditForm";
-import { useUserDetailLore } from "@studio-v2/src/pageComponents/users/hooks/useUserDetailLore";
+import { UserDetailEditForm } from "@studio-v2/src/pageComponents/users/com/form/UserDetailEditForm";
+import { useUserDetailLore } from "@studio-v2/src/pageComponents/users/hooks/detail/useUserDetailLore";
 import styles from "@studio-v2/src/pageComponents/library/LibrarySplit.module.scss";
 
 function initialOf(name: string): string {
@@ -50,6 +50,59 @@ export type UserLibraryDetailProps = {
 	onSaved: (next: UserProfileSummary) => void;
 };
 
+async function submitUserDetail(
+	profile: UserProfileSummary,
+	lore: ReturnType<typeof useUserDetailLore>,
+	onSaved: (next: UserProfileSummary) => void,
+	values: UserDetailFormValues,
+	helpers: FormikHelpers<UserDetailFormValues>,
+): Promise<void> {
+	helpers.setStatus({ formError: undefined });
+	try {
+		const next = await commitSaveUserDetail(profile, values);
+		onSaved(next.summary);
+		lore.applySaveResult(next);
+	} catch (error) {
+		helpers.setStatus({ formError: toErrorMessage(error) });
+	} finally {
+		helpers.setSubmitting(false);
+	}
+}
+
+async function bootstrapUserDetailLore(
+	profile: UserProfileSummary,
+	lore: ReturnType<typeof useUserDetailLore>,
+	onSaved: (next: UserProfileSummary) => void,
+	formik: FormikProps<UserDetailFormValues>,
+): Promise<void> {
+	formik.setStatus({ formError: undefined });
+	if (formik.dirty) {
+		const errors = await formik.validateForm();
+		if (Object.keys(errors).length > 0) {
+			touchAllFields(formik);
+			return;
+		}
+	}
+	lore.beginBootstrap();
+	try {
+		const result = await commitBootstrapUserLoreWithOptionalSave(
+			profile,
+			formik.values,
+			{ dirty: formik.dirty },
+		);
+		if (result.save) {
+			onSaved(result.save.summary);
+			lore.applySaveResult(result.save);
+			void formik.resetForm({
+				values: toUserDetailFormValues(result.save.summary),
+			});
+		}
+		lore.applyBootstrapResult(result.bootstrap);
+	} catch (error) {
+		lore.failBootstrap(error);
+	}
+}
+
 export const UserLibraryDetail: FC<UserLibraryDetailProps> = function ({
 	// profile 表示当前选中玩家投影，用于表单初始值与头区
 	profile,
@@ -59,53 +112,6 @@ export const UserLibraryDetail: FC<UserLibraryDetailProps> = function ({
 	const lore = useUserDetailLore(profile.userId);
 	// 引用了usePluginPanelsBis，用于拉取 user.plugin 面板
 	const pluginPanels = usePluginPanelsBis("user.plugin");
-
-	async function handleSubmit(
-		values: UserDetailFormValues,
-		helpers: FormikHelpers<UserDetailFormValues>,
-	): Promise<void> {
-		helpers.setStatus({ formError: undefined });
-		try {
-			const next = await commitSaveUserDetail(profile, values);
-			onSaved(next.summary);
-			lore.applySaveResult(next);
-		} catch (error) {
-			helpers.setStatus({ formError: toErrorMessage(error) });
-		} finally {
-			helpers.setSubmitting(false);
-		}
-	}
-
-	async function handleBootstrapLore(
-		formik: FormikProps<UserDetailFormValues>,
-	): Promise<void> {
-		formik.setStatus({ formError: undefined });
-		if (formik.dirty) {
-			const errors = await formik.validateForm();
-			if (Object.keys(errors).length > 0) {
-				touchAllFields(formik);
-				return;
-			}
-		}
-		lore.beginBootstrap();
-		try {
-			const result = await commitBootstrapUserLoreWithOptionalSave(
-				profile,
-				formik.values,
-				{ dirty: formik.dirty },
-			);
-			if (result.save) {
-				onSaved(result.save.summary);
-				lore.applySaveResult(result.save);
-				void formik.resetForm({
-					values: toUserDetailFormValues(result.save.summary),
-				});
-			}
-			lore.applyBootstrapResult(result.bootstrap);
-		} catch (error) {
-			lore.failBootstrap(error);
-		}
-	}
 
 	return (
 		<section className={styles.detailPane} aria-label="玩家配置详情">
@@ -126,7 +132,9 @@ export const UserLibraryDetail: FC<UserLibraryDetailProps> = function ({
 				initialValues={toUserDetailFormValues(profile)}
 				enableReinitialize
 				validate={validateUserDetailForm}
-				onSubmit={handleSubmit}
+				onSubmit={function (values, helpers) {
+					return submitUserDetail(profile, lore, onSaved, values, helpers);
+				}}
 			>
 				{(formik) => (
 					// 引用了UserDetailEditForm组件，用于 AutoForm 编排详情字段
@@ -137,7 +145,7 @@ export const UserLibraryDetail: FC<UserLibraryDetailProps> = function ({
 						loreNotice={lore.loreNotice}
 						loreBusy={lore.loreBusy}
 						onBootstrapLore={function () {
-							void handleBootstrapLore(formik);
+							void bootstrapUserDetailLore(profile, lore, onSaved, formik);
 						}}
 					/>
 				)}

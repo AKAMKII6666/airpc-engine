@@ -177,24 +177,36 @@ const LEAF_SUMMARY: Record<
 
 /** 由 condition 派生人话预览；嵌套给出只读提示，不假装可编 */
 export function summarizeExitCondition(condition: ExitCondition): string {
-	if (condition.op === "and") {
-		return `复合条件 and（${condition.items.length} 项，只读）`;
-	}
-	if (condition.op === "or") {
-		return `复合条件 or（${condition.items.length} 项，只读）`;
+	if (condition.op === "and" || condition.op === "or") {
+		return `复合条件 ${condition.op}（${condition.items.length} 项，只读）`;
 	}
 	if (condition.op === "not") return "复合条件 not（只读）";
 	if (condition.op === "always" || condition.op === "all_required_beats_completed") {
 		return LEAF_SUMMARY[condition.op];
 	}
 	if (condition.op === "outcome_flag") {
-		const flagLabel =
-			OUTCOME_FLAG_OPTIONS.find((o) => o.value === condition.flag)?.label ??
-			condition.flag;
-		return condition.equals
-			? `结果标记 · ${flagLabel}`
-			: `结果标记非 · ${flagLabel}`;
+		return summarizeOutcomeFlag(condition);
 	}
+	return summarizeBeatCondition(condition);
+}
+
+function summarizeOutcomeFlag(
+	condition: Extract<ExitCondition, { op: "outcome_flag" }>,
+): string {
+	const flagLabel =
+		OUTCOME_FLAG_OPTIONS.find((o) => o.value === condition.flag)?.label ??
+		condition.flag;
+	return condition.equals
+		? `结果标记 · ${flagLabel}`
+		: `结果标记非 · ${flagLabel}`;
+}
+
+function summarizeBeatCondition(
+	condition: Extract<
+		ExitCondition,
+		{ op: "beat_completed" | "beat_missing" }
+	>,
+): string {
 	const beatLabel =
 		condition.beatId.trim() !== ""
 			? condition.beatId

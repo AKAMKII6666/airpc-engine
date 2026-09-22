@@ -5,28 +5,15 @@ import {
 	apiFail,
 	apiOk,
 } from "@studio-v2/src/utils/server/http/apiResponse.server";
-import { clearAgentMemoryForUser } from "@studio-v2/src/utils/server/memory/memoryClear.server";
-import { listMemoryPage } from "@studio-v2/src/utils/server/memory/memoryRead.server";
+import { clearAgentMemoryForUser } from "@studio-v2/src/utils/server/memory/readClear/memoryClear.server";
+import { listMemoryPage } from "@studio-v2/src/utils/server/memory/readClear/memoryRead.server";
+import { parseMemoryQuery } from "./route.helpers";
 
 export async function GET(req: Request): Promise<Response> {
 	try {
-		const url = new URL(req.url);
-		const userId = url.searchParams.get("userId")?.trim() ?? "";
-		const agentId = url.searchParams.get("agentId")?.trim() ?? "";
-		const page = Number(url.searchParams.get("page") ?? "1");
-		const pageSize = Number(url.searchParams.get("pageSize") ?? "10");
-		if (!userId) {
-			return apiFail("VALIDATION_FAILED", "userId required");
-		}
-		if (!agentId) {
-			return apiFail("VALIDATION_FAILED", "agentId required");
-		}
-		const pageData = listMemoryPage({
-			userId,
-			agentId,
-			page: Number.isFinite(page) ? page : 1,
-			pageSize: Number.isFinite(pageSize) ? pageSize : 10,
-		});
+		const parsed = parseMemoryQuery(new URL(req.url));
+		if (!parsed.ok) return parsed.response;
+		const pageData = listMemoryPage(parsed.query);
 		return apiOk(pageData);
 	} catch (err) {
 		return apiFail(
@@ -42,16 +29,12 @@ export async function GET(req: Request): Promise<Response> {
 	*/
 export async function DELETE(req: Request): Promise<Response> {
 	try {
-		const url = new URL(req.url);
-		const userId = url.searchParams.get("userId")?.trim() ?? "";
-		const agentId = url.searchParams.get("agentId")?.trim() ?? "";
-		if (!userId) {
-			return apiFail("VALIDATION_FAILED", "userId required");
-		}
-		if (!agentId) {
-			return apiFail("VALIDATION_FAILED", "agentId required");
-		}
-		const result = await clearAgentMemoryForUser(userId, agentId);
+		const parsed = parseMemoryQuery(new URL(req.url));
+		if (!parsed.ok) return parsed.response;
+		const result = await clearAgentMemoryForUser(
+			parsed.query.userId,
+			parsed.query.agentId,
+		);
 		return apiOk(result);
 	} catch (err) {
 		return apiFail(

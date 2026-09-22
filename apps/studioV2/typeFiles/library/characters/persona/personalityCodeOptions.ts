@@ -2,7 +2,7 @@
 	* 人格扮演码（personalityCode）前端枚举。
 	* 引擎只存字符串；Composer 对 16 型 MBTI 规范化为大写。
 	*/
-import type { FormSelectOption } from "@studio-v2/src/commonUiComponents/form/formTypes";
+import type { FormSelectOption } from "@studio-v2/src/commonUiComponents/form/types/formTypes";
 
 /** 标准 16 型 MBTI；value 写入 persona.personalityCode */
 export const PERSONALITY_CODE_OPTIONS: FormSelectOption[] = [

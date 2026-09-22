@@ -13,6 +13,44 @@ function requireNonEmpty(
 	return undefined;
 }
 
+function requireSelected(
+	value: string,
+	message: string,
+): string | undefined {
+	if (!value) return message;
+	return undefined;
+}
+
+function assignIfPresent(
+	bag: Record<string, string>,
+	key: string,
+	message: string | undefined,
+): void {
+	if (message) bag[key] = message;
+}
+
+function requireAttitudeLimit(
+	limit: number | "",
+): string | undefined {
+	if (
+		limit === "" ||
+		typeof limit !== "number" ||
+		!Number.isInteger(limit) ||
+		limit < 1
+	) {
+		return "态度记忆参考条数须为不小于 1 的整数";
+	}
+	return undefined;
+}
+
+function requireExampleLines(lines: string[]): string | undefined {
+	if (lines.length === 0) return "请至少添加一句样例句";
+	if (lines.some((l) => l.trim().length === 0)) {
+		return "样例句不能有空行";
+	}
+	return undefined;
+}
+
 function requireVariantList(
 	list: PromptVariantForm[],
 	label: string,
@@ -25,6 +63,34 @@ function requireVariantList(
 		}
 	}
 	return undefined;
+}
+
+function validateCallFlow(
+	values: CharacterDetailFormValues,
+): FormikErrors<CharacterDetailFormValues["callFlowPrompts"]> | undefined {
+	const callFlowErrors: Record<string, string> = {};
+	assignIfPresent(
+		callFlowErrors,
+		"longSilence",
+		requireVariantList(values.callFlowPrompts.longSilence, "长静默话术"),
+	);
+	assignIfPresent(
+		callFlowErrors,
+		"longCallNudge",
+		requireVariantList(values.callFlowPrompts.longCallNudge, "超长通话催促"),
+	);
+	assignIfPresent(
+		callFlowErrors,
+		"preHangupFarewell",
+		requireVariantList(
+			values.callFlowPrompts.preHangupFarewell,
+			"预挂机告别",
+		),
+	);
+	if (Object.keys(callFlowErrors).length === 0) return undefined;
+	return callFlowErrors as FormikErrors<
+		CharacterDetailFormValues["callFlowPrompts"]
+	>;
 }
 
 function validateIdentity(
@@ -68,70 +134,79 @@ function validatePersona(
 	values: CharacterDetailFormValues,
 ): FormikErrors<CharacterDetailFormValues["persona"]> | undefined {
 	const personaErrors: Record<string, string> = {};
-	if (!values.persona.voiceId) personaErrors.voiceId = "请选择音色";
-	const voiceNotesErr = requireNonEmpty(
-		values.persona.voiceNotes,
-		"请填写音色备注",
+	assignIfPresent(personaErrors, "voiceId", requireSelected(values.persona.voiceId, "请选择音色"));
+	assignIfPresent(
+		personaErrors,
+		"voiceNotes",
+		requireNonEmpty(values.persona.voiceNotes, "请填写音色备注"),
 	);
-	if (voiceNotesErr) personaErrors.voiceNotes = voiceNotesErr;
-	if (!values.persona.personalityCode) {
-		personaErrors.personalityCode = "请选择人格类型";
-	}
-	const systemErr = requireNonEmpty(
-		values.persona.systemPrompt,
-		"请填写系统人设",
+	assignIfPresent(
+		personaErrors,
+		"personalityCode",
+		requireSelected(values.persona.personalityCode, "请选择人格类型"),
 	);
-	if (systemErr) personaErrors.systemPrompt = systemErr;
-	const styleErr = requireNonEmpty(
-		values.persona.speakingStyle,
-		"请填写说话风格",
+	assignIfPresent(
+		personaErrors,
+		"systemPrompt",
+		requireNonEmpty(values.persona.systemPrompt, "请填写系统人设"),
 	);
-	if (styleErr) personaErrors.speakingStyle = styleErr;
-	const professionErr = requireNonEmpty(
-		values.persona.profession,
-		"请填写职业",
+	assignIfPresent(
+		personaErrors,
+		"speakingStyle",
+		requireNonEmpty(values.persona.speakingStyle, "请填写说话风格"),
 	);
-	if (professionErr) personaErrors.profession = professionErr;
-	if (
-		values.persona.attitudeHistoryLimit === "" ||
-		typeof values.persona.attitudeHistoryLimit !== "number" ||
-		!Number.isInteger(values.persona.attitudeHistoryLimit) ||
-		values.persona.attitudeHistoryLimit < 1
-	) {
-		personaErrors.attitudeHistoryLimit = "态度记忆参考条数须为不小于 1 的整数";
-	}
-	if (values.persona.exampleLines.length === 0) {
-		personaErrors.exampleLines = "请至少添加一句样例句";
-	} else if (values.persona.exampleLines.some((l) => l.trim().length === 0)) {
-		personaErrors.exampleLines = "样例句不能有空行";
-	}
+	assignIfPresent(
+		personaErrors,
+		"profession",
+		requireNonEmpty(values.persona.profession, "请填写职业"),
+	);
+	assignIfPresent(
+		personaErrors,
+		"attitudeHistoryLimit",
+		requireAttitudeLimit(values.persona.attitudeHistoryLimit),
+	);
+	assignIfPresent(
+		personaErrors,
+		"exampleLines",
+		requireExampleLines(values.persona.exampleLines),
+	);
 	if (Object.keys(personaErrors).length === 0) return undefined;
 	return personaErrors as FormikErrors<CharacterDetailFormValues["persona"]>;
 }
 
-function validateCallFlow(
-	values: CharacterDetailFormValues,
-): FormikErrors<CharacterDetailFormValues["callFlowPrompts"]> | undefined {
-	const callFlowErrors: Record<string, string> = {};
-	const silenceErr = requireVariantList(
-		values.callFlowPrompts.longSilence,
-		"长静默话术",
+function sceneHourRangeInvalid(range: {
+	from: number;
+	to: number;
+}): boolean {
+	return (
+		typeof range.from !== "number" ||
+		typeof range.to !== "number" ||
+		range.from >= range.to
 	);
-	if (silenceErr) callFlowErrors.longSilence = silenceErr;
-	const nudgeErr = requireVariantList(
-		values.callFlowPrompts.longCallNudge,
-		"超长通话催促",
+}
+
+function scenePatchIncomplete(patch: CharacterDetailFormValues["defaultPromptScenes"][number]["patch"]): boolean {
+	return (
+		!patch.openingSpeakable.trim() ||
+		!patch.openingPrivate.trim() ||
+		!patch.emotion.trim() ||
+		!patch.toneHint.trim() ||
+		!patch.appendSpeakable.trim() ||
+		!patch.appendPrivate.trim()
 	);
-	if (nudgeErr) callFlowErrors.longCallNudge = nudgeErr;
-	const farewellErr = requireVariantList(
-		values.callFlowPrompts.preHangupFarewell,
-		"预挂机告别",
-	);
-	if (farewellErr) callFlowErrors.preHangupFarewell = farewellErr;
-	if (Object.keys(callFlowErrors).length === 0) return undefined;
-	return callFlowErrors as FormikErrors<
-		CharacterDetailFormValues["callFlowPrompts"]
-	>;
+}
+
+function validateOneScene(
+	scene: CharacterDetailFormValues["defaultPromptScenes"][number],
+): string | undefined {
+	if (scene.layerId.trim().length === 0) return "场景 id 必填";
+	if (sceneHourRangeInvalid(scene.match.localHourRange)) {
+		return "本地小时区间须满足 from < to";
+	}
+	if (scenePatchIncomplete(scene.patch)) {
+		return "场景卡展开项均为必填";
+	}
+	return undefined;
 }
 
 function validateScenes(
@@ -141,31 +216,12 @@ function validateScenes(
 		return "请至少添加一张场景卡";
 	}
 	for (const scene of values.defaultPromptScenes) {
-		if (scene.layerId.trim().length === 0) {
-			return "场景 id 必填";
-		}
-		const range = scene.match.localHourRange;
-		if (
-			typeof range.from !== "number" ||
-			typeof range.to !== "number" ||
-			range.from >= range.to
-		) {
-			return "本地小时区间须满足 from < to";
-		}
-		const patch = scene.patch;
-		if (
-			!patch.openingSpeakable.trim() ||
-			!patch.openingPrivate.trim() ||
-			!patch.emotion.trim() ||
-			!patch.toneHint.trim() ||
-			!patch.appendSpeakable.trim() ||
-			!patch.appendPrivate.trim()
-		) {
-			return "场景卡展开项均为必填";
-		}
+		const err = validateOneScene(scene);
+		if (err) return err;
 	}
 	return undefined;
 }
+
 
 /**
 	* 编辑态展示字段全必填；列表类至少一条且子字段齐。

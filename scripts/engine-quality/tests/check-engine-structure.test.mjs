@@ -135,6 +135,32 @@ describe("check:engine-structure", () => {
     assert.ok(errors.some((v) => v.ruleId === "ENGINE-STRUCT-004"));
   });
 
+  it("无子目录异责平铺硬失败", async () => {
+    const { errors } = await gateFor("fail-cluster-flat");
+    assert.ok(errors.some((v) => v.ruleId === "ENGINE-STRUCT-009"));
+  });
+
+  it("根层异责堆叠硬失败", async () => {
+    const { errors } = await gateFor("fail-cluster-root-stack");
+    assert.ok(errors.some((v) => v.ruleId === "ENGINE-STRUCT-010"));
+  });
+
+  it("stub 森林硬失败", async () => {
+    const { errors } = await gateFor("fail-cluster-stub-forest");
+    assert.ok(errors.some((v) => v.ruleId === "ENGINE-STRUCT-011"));
+  });
+
+  it("根仅薄入口加子目录通过聚类", async () => {
+    const { errors } = await gateFor("pass-cluster-thin-root");
+    assert.ok(
+      !errors.some((v) =>
+        ["ENGINE-STRUCT-009", "ENGINE-STRUCT-010", "ENGINE-STRUCT-011"].includes(
+          v.ruleId,
+        ),
+      ),
+    );
+  });
+
   it("无理由 suppress 失败", async () => {
     const { errors } = await gateFor("fail-suppress");
     assert.ok(errors.some((v) => v.ruleId === "ENGINE-STRUCT-006"));
@@ -171,13 +197,37 @@ describe("check:engine-structure", () => {
     assert.match(line, /允许=/);
   });
 
-  it("真实引擎包在基线下可过结构门禁", async () => {
+  it("真实引擎包非聚类结构门禁可过", async () => {
     const { errors, filesChecked } = await runEngineStructureGate({});
     assert.ok(filesChecked > 10);
+    const nonCluster = errors.filter(
+      (e) =>
+        ![
+          "ENGINE-STRUCT-009",
+          "ENGINE-STRUCT-010",
+          "ENGINE-STRUCT-011",
+        ].includes(e.ruleId),
+    );
     assert.equal(
-      errors.length,
+      nonCluster.length,
       0,
-      errors.map(formatViolation).join("\n"),
+      nonCluster.map(formatViolation).join("\n"),
+    );
+  });
+
+  it("真实引擎包聚类门禁清零", async () => {
+    const { errors } = await runEngineStructureGate({});
+    const cluster = errors.filter((e) =>
+      [
+        "ENGINE-STRUCT-009",
+        "ENGINE-STRUCT-010",
+        "ENGINE-STRUCT-011",
+      ].includes(e.ruleId),
+    );
+    assert.equal(
+      cluster.length,
+      0,
+      cluster.map(formatViolation).join("\n"),
     );
   });
 });

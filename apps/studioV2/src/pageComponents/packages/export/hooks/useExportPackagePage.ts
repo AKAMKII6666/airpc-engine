@@ -4,11 +4,12 @@
 	*/
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { buildExportSummary } from "@studio-v2/src/bis/pageBis/packages/export/buildExportSummary_bis";
 import { downloadStorypackExport } from "@studio-v2/src/bis/pageBis/packages/export/downloadStorypackExport_bis";
 import { usePackageListSessionBis } from "@studio-v2/src/bis/pageBis/packages/list/packageListSession.bis";
 import type { ExportKind } from "@studio-v2/typeFiles/story/transfer/packageTransfer";
+import type { StoryPackageSummary } from "@studio-v2/typeFiles/story/summary/storyPackageSummary";
 
 const EXPORT_KIND_LABEL: Record<ExportKind, string> = {
 	formal: "正式故事包",
@@ -16,107 +17,153 @@ const EXPORT_KIND_LABEL: Record<ExportKind, string> = {
 	source: "源工程包",
 };
 
-/**
-	* 导出流：列表来自 session；下载写本机 .storypack.json。
-	*/
-export function useExportPackagePage() {
-	const session = usePackageListSessionBis();
+function resolveEffectiveExportPackageId(
+	packages: readonly { packageId: string }[],
+	packageId: string,
+): string {
+	if (
+		packageId !== "" &&
+		packages.some(function (p) {
+			return p.packageId === packageId;
+		})
+	) {
+		return packageId;
+	}
+	return (
+		packages.find(function (p) {
+			return p.packageId === "wrong_number_act1";
+		})?.packageId ??
+		packages[0]?.packageId ??
+		""
+	);
+}
+
+type ExportSelection = {
+	packageId: string;
+	kind: ExportKind;
+	summary: ReturnType<typeof buildExportSummary>;
+	formalBlocked: boolean;
+	canExport: boolean;
+	onPackageChange: (nextId: string) => void;
+	onKindChange: (nextKind: ExportKind) => void;
+};
+
+function useExportPackageSelection(
+	packages: readonly StoryPackageSummary[],
+	clearDownloadNotice: () => void,
+): ExportSelection {
 	const [packageId, setPackageId] = useState("");
 	const [kind, setKind] = useState<ExportKind>("formal");
-	const [doneMsg, setDoneMsg] = useState<string | null>(null);
-	const [exportError, setExportError] = useState<string | undefined>();
-	const [exporting, setExporting] = useState(false);
-
-	/**
-		* 解析有效选中：优先用户已选且仍在列表；否则演示包 wrong_number_act1；再回落首项。
-		* 列表异步灌入后避免 Select 空值。
-		*/
 	const effectivePackageId = useMemo(
 		function () {
-			const list = session.packages;
-			if (
-				packageId !== "" &&
-				list.some(function (p) {
-					return p.packageId === packageId;
-				})
-			) {
-				return packageId;
-			}
-			return (
-				list.find(function (p) {
-					return p.packageId === "wrong_number_act1";
-				})?.packageId ??
-				list[0]?.packageId ??
-				""
-			);
+			return resolveEffectiveExportPackageId(packages, packageId);
 		},
-		[session.packages, packageId],
+		[packages, packageId],
 	);
-
-	const selected = session.packages.find(function (p) {
+	const selected = packages.find(function (p) {
 		return p.packageId === effectivePackageId;
 	});
-
 	const summary = useMemo(
 		function () {
 			return buildExportSummary(selected);
 		},
 		[selected],
 	);
-
 	const formalBlocked = Boolean(summary && summary.errors.length > 0);
 	const canExport = summary != null && (kind !== "formal" || !formalBlocked);
 
-	async function onExport(): Promise<void> {
-		if (!summary || !canExport) return;
-		setExporting(true);
-		setExportError(undefined);
-		setDoneMsg(null);
-		try {
-			const { fileName } = await downloadStorypackExport({
-				packageId: summary.packageId,
-				kind,
-			});
-			setDoneMsg(
-				`已下载「${summary.packageTitle}」为${EXPORT_KIND_LABEL[kind]}：${fileName}`,
-			);
-		} catch (error) {
-			setExportError(
-				error instanceof Error && error.message.trim() !== ""
-					? error.message
-					: "导出下载失败",
-			);
-		} finally {
-			setExporting(false);
-		}
-	}
-
 	function onPackageChange(nextId: string): void {
 		setPackageId(nextId);
-		setDoneMsg(null);
-		setExportError(undefined);
+		clearDownloadNotice();
 	}
 
 	function onKindChange(nextKind: ExportKind): void {
 		setKind(nextKind);
+		clearDownloadNotice();
+	}
+
+	return {
+		packageId: effectivePackageId,
+		kind,
+		summary,
+		formalBlocked,
+		canExport,
+		onPackageChange,
+		onKindChange,
+	};
+}
+
+async function runStorypackDownload(input: {
+	summary: NonNullable<ReturnType<typeof buildExportSummary>>;
+	kind: ExportKind;
+	setExporting: (busy: boolean) => void;
+	setExportError: (message: string | undefined) => void;
+	setDoneMsg: (message: string | null) => void;
+}): Promise<void> {
+	input.setExporting(true);
+	input.setExportError(undefined);
+	input.setDoneMsg(null);
+	try {
+		const { fileName } = await downloadStorypackExport({
+			packageId: input.summary.packageId,
+			kind: input.kind,
+		});
+		input.setDoneMsg(
+			`已下载「${input.summary.packageTitle}」为${EXPORT_KIND_LABEL[input.kind]}：${fileName}`,
+		);
+	} catch (error) {
+		input.setExportError(
+			error instanceof Error && error.message.trim() !== ""
+				? error.message
+				: "导出下载失败",
+		);
+	} finally {
+		input.setExporting(false);
+	}
+}
+
+/**
+	* 导出流：列表来自 session；下载写本机 .storypack.json。
+	*/
+export function useExportPackagePage() {
+	const session = usePackageListSessionBis();
+	const [doneMsg, setDoneMsg] = useState<string | null>(null);
+	const [exportError, setExportError] = useState<string | undefined>();
+	const [exporting, setExporting] = useState(false);
+	const clearDownloadNotice = useCallback(function () {
 		setDoneMsg(null);
 		setExportError(undefined);
+	}, []);
+	const selection = useExportPackageSelection(
+		session.packages,
+		clearDownloadNotice,
+	);
+
+	async function onExport(): Promise<void> {
+		if (!selection.summary || !selection.canExport) return;
+		await runStorypackDownload({
+			summary: selection.summary,
+			kind: selection.kind,
+			setExporting,
+			setExportError,
+			setDoneMsg,
+		});
 	}
 
 	return {
 		packages: session.packages,
 		loading: session.loading,
 		loadError: session.loadError,
-		packageId: effectivePackageId,
-		kind,
-		summary,
-		formalBlocked,
-		canExport: canExport && !exporting,
+		packageId: selection.packageId,
+		kind: selection.kind,
+		summary: selection.summary,
+		formalBlocked: selection.formalBlocked,
+		canExport: selection.canExport && !exporting,
 		doneMsg,
 		exportError,
 		exporting,
-		onPackageChange,
-		onKindChange,
+		onPackageChange: selection.onPackageChange,
+		onKindChange: selection.onKindChange,
 		onExport: function () {
 			void onExport();
 		},

@@ -1,12 +1,12 @@
 /**
 	* 资源详情保存：经 API 读 AssetMeta → 合并表单 → PUT 落盘。
 	*/
-import { mergeDetailFormIntoAssetMeta } from "@studio-v2/src/bis/pageBis/assets/assetMetaMapper";
-import type { AssetDetailFormValues } from "@studio-v2/src/bis/pageBis/assets/assetDetailForm";
+import { mergeDetailFormIntoAssetMeta } from "@studio-v2/src/bis/pageBis/assets/form/assetMetaMapper";
+import type { AssetDetailFormValues } from "@studio-v2/src/bis/pageBis/assets/form/assetDetailForm";
 import {
 	fetchAssetRecord,
 	putAssetMeta,
-} from "@studio-v2/src/utils/ajaxProxy/library/api/assetsApi";
+} from "@studio-v2/src/utils/ajaxProxy/library/api/assets/assetsApi";
 import { isAssetMetaShape } from "@studio-v2/typeFiles/library/assets/engineAssetMeta";
 import type { AssetSummary } from "@studio-v2/typeFiles/library/assets/assetSummary";
 

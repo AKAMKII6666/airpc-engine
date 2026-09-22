@@ -1,9 +1,9 @@
 /**
  * 模块名称：Lore fallback 文档（无网／port 失败）
  */
-import type { CharacterDef } from "../schema/character.js";
-import type { User } from "../schema/profile.js";
-import type { WorldLoreDoc } from "../schema/worldLore.js";
+import type { CharacterDef } from "../schema/identity/character.js";
+import type { User } from "../schema/identity/profile.js";
+import type { WorldLoreDoc } from "../schema/world/worldLore.js";
 
 export function buildFallbackLore(input: {
   user: User;

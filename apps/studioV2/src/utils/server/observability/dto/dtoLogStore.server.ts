@@ -55,7 +55,8 @@ function fallbackDtoRoot(dataRoot: string): string {
 }
 
 function dtoRelativePath(input: WriteDtoLogInput): string {
-	return path.join(input.bucket, `${safeFileId(input.id)}.json`);
+	// 索引里的相对路径必须跨平台稳定（POSIX），禁止落 Windows 反斜杠。
+	return `${input.bucket}/${safeFileId(input.id)}.json`;
 }
 
 function dtoFilePath(root: string, input: WriteDtoLogInput): string {

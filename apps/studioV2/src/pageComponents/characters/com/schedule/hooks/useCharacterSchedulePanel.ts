@@ -37,6 +37,79 @@ export type UseCharacterSchedulePanelResult = {
 	togglePause: (intent: ScheduledIntent) => Promise<void>;
 };
 
+function useScheduleIntentCommands(input: {
+	userId: string;
+	agentId: string;
+	clockMs: number;
+	editingIntent: ScheduledIntent | null;
+	deleteTarget: ScheduledIntent | null;
+	closeForm: () => void;
+	setDeleteTarget: (intent: ScheduledIntent | null) => void;
+	reload: () => Promise<void>;
+}) {
+	async function submitForm(
+		values: ScheduleIntentFormValues,
+	): Promise<void> {
+		if (!input.userId) {
+			throw new Error("请先选择玩家");
+		}
+		await saveScheduleIntentFromForm({
+			userId: input.userId,
+			agentId: input.agentId,
+			clockMs: input.clockMs,
+			values,
+			previous: input.editingIntent,
+		});
+		input.closeForm();
+		await input.reload();
+	}
+
+	async function confirmDelete(): Promise<void> {
+		if (!input.userId || !input.deleteTarget) return;
+		await removeScheduleIntent(
+			input.userId,
+			input.agentId,
+			input.deleteTarget.intentId,
+		);
+		input.setDeleteTarget(null);
+		await input.reload();
+	}
+
+	async function togglePause(intent: ScheduledIntent): Promise<void> {
+		if (!input.userId) return;
+		await toggleRecurringPause(input.userId, input.agentId, intent);
+		await input.reload();
+	}
+
+	return { submitForm, confirmDelete, togglePause };
+}
+
+function beginScheduleCreate(
+	setFormMode: (mode: "add" | "edit") => void,
+	setEditingIntent: (intent: ScheduledIntent | null) => void,
+	setFormInitial: (values: ScheduleIntentFormValues) => void,
+	setFormOpen: (open: boolean) => void,
+): void {
+	setFormMode("add");
+	setEditingIntent(null);
+	setFormInitial({ ...SCHEDULE_INTENT_INITIAL_VALUES });
+	setFormOpen(true);
+}
+
+function beginScheduleEdit(
+	intent: ScheduledIntent,
+	clockMs: number,
+	setFormMode: (mode: "add" | "edit") => void,
+	setEditingIntent: (intent: ScheduledIntent | null) => void,
+	setFormInitial: (values: ScheduleIntentFormValues) => void,
+	setFormOpen: (open: boolean) => void,
+): void {
+	setFormMode("edit");
+	setEditingIntent(intent);
+	setFormInitial(intentToFormValues(intent, clockMs));
+	setFormOpen(true);
+}
+
 /**
 	* 绑定 agentId + 所选 userId 的 schedule intents CRUD（Modal 流）。
 	*/
@@ -57,58 +130,29 @@ export function useCharacterSchedulePanel(
 		null,
 	);
 
-	function openCreate(): void {
-		setFormMode("add");
-		setEditingIntent(null);
-		setFormInitial({ ...SCHEDULE_INTENT_INITIAL_VALUES });
-		setFormOpen(true);
-	}
-
-	function openEdit(intent: ScheduledIntent): void {
-		setFormMode("edit");
-		setEditingIntent(intent);
-		setFormInitial(intentToFormValues(intent, list.clockMs));
-		setFormOpen(true);
-	}
-
 	function closeForm(): void {
 		setFormOpen(false);
 		setEditingIntent(null);
 	}
 
-	async function submitForm(
-		values: ScheduleIntentFormValues,
-	): Promise<void> {
-		if (!usersState.userId) {
-			throw new Error("请先选择玩家");
-		}
-		await saveScheduleIntentFromForm({
-			userId: usersState.userId,
-			agentId,
-			clockMs: list.clockMs,
-			values,
-			previous: editingIntent,
-		});
-		closeForm();
-		await list.reload();
+	function openCreate(): void {
+		beginScheduleCreate(setFormMode, setEditingIntent, setFormInitial, setFormOpen);
 	}
 
-	async function confirmDelete(): Promise<void> {
-		if (!usersState.userId || !deleteTarget) return;
-		await removeScheduleIntent(
-			usersState.userId,
-			agentId,
-			deleteTarget.intentId,
-		);
-		setDeleteTarget(null);
-		await list.reload();
+	function openEdit(intent: ScheduledIntent): void {
+		beginScheduleEdit(intent, list.clockMs, setFormMode, setEditingIntent, setFormInitial, setFormOpen);
 	}
 
-	async function togglePause(intent: ScheduledIntent): Promise<void> {
-		if (!usersState.userId) return;
-		await toggleRecurringPause(usersState.userId, agentId, intent);
-		await list.reload();
-	}
+	const commands = useScheduleIntentCommands({
+		userId: usersState.userId,
+		agentId,
+		clockMs: list.clockMs,
+		editingIntent,
+		deleteTarget,
+		closeForm,
+		setDeleteTarget,
+		reload: list.reload,
+	});
 
 	return {
 		usersState,
@@ -123,11 +167,11 @@ export function useCharacterSchedulePanel(
 		openCreate,
 		openEdit,
 		closeForm,
-		submitForm,
+		submitForm: commands.submitForm,
 		deleteTarget,
 		requestDelete: setDeleteTarget,
 		closeDelete: () => setDeleteTarget(null),
-		confirmDelete,
-		togglePause,
+		confirmDelete: commands.confirmDelete,
+		togglePause: commands.togglePause,
 	};
 }

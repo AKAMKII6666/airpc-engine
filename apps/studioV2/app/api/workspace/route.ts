@@ -4,7 +4,6 @@
 import {
 	apiFail,
 	apiOk,
-	httpStatusForCode,
 } from "@studio-v2/src/utils/server/http/apiResponse.server";
 import {
 	readWorkspaceConfig,
@@ -12,6 +11,7 @@ import {
 	type WorkspaceConfig,
 } from "@studio-v2/src/utils/server/workspace/workspaceFs.server";
 import { reloadStudioV2WorkspaceIfBooted } from "@studio-v2/src/utils/server/host/engineHost.server";
+import { failFromUnknown, mergeWorkspacePatch } from "./route.helpers";
 
 export async function GET(): Promise<Response> {
 	try {
@@ -32,36 +32,15 @@ export async function PUT(req: Request): Promise<Response> {
 		const body = (await req.json()) as {
 			workspace?: Partial<WorkspaceConfig>;
 		};
-		if (body.workspace && typeof body.workspace === "object") {
-			const prev = await readWorkspaceConfig();
-			const next: WorkspaceConfig = {
-				schemaVersion:
-					typeof body.workspace.schemaVersion === "number"
-						? body.workspace.schemaVersion
-						: prev.schemaVersion,
-				title:
-					typeof body.workspace.title === "string"
-						? body.workspace.title
-						: prev.title,
-				engineMinVersion:
-					typeof body.workspace.engineMinVersion === "string"
-						? body.workspace.engineMinVersion
-						: prev.engineMinVersion,
-			};
-			await writeWorkspaceConfig(next);
-			await reloadStudioV2WorkspaceIfBooted();
-			return apiOk({ workspace: next });
+		const prev = await readWorkspaceConfig();
+		const next = mergeWorkspacePatch(prev, body.workspace);
+		if (!next) {
+			return apiFail("VALIDATION_FAILED", "workspace object required");
 		}
-		return apiFail("VALIDATION_FAILED", "workspace object required");
+		await writeWorkspaceConfig(next);
+		await reloadStudioV2WorkspaceIfBooted();
+		return apiOk({ workspace: next });
 	} catch (err) {
-		const code =
-			err && typeof err === "object" && "code" in err
-				? String((err as { code: string }).code)
-				: "ENGINE_INTERNAL";
-		return apiFail(
-			code,
-			err instanceof Error ? err.message : String(err),
-			httpStatusForCode(code),
-		);
+		return failFromUnknown(err);
 	}
 }

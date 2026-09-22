@@ -4,22 +4,17 @@
 	*/
 "use client";
 
-import { useState, type DragEvent, type FC } from "react";
+import type { FC } from "react";
 import { FormFieldShell } from "../../FormFieldShell";
 import type { FormBoundFieldProps } from "../../fields/types/formBoundTypes";
 import {
 	readFormikFieldError,
 	readFormikFieldRaw,
 } from "../../fields/formBoundFieldProps";
-import {
-	asPromptSceneList,
-	emptyPromptScene,
-} from "@studio-v2/src/utils/promptScene/promptSceneListHelpers";
-import {
-	applyPromptSceneDrop,
-	createWritePromptSceneList,
-} from "./com/promptSceneListActions";
+import { asPromptSceneList } from "@studio-v2/src/utils/promptScene/promptSceneListHelpers";
+// 引用了PromptSceneListPanel组件，用于列表渲染与添加
 import { PromptSceneListPanel } from "./com/PromptSceneListPanel";
+import { usePromptSceneListEditorState } from "./hooks/usePromptSceneListEditorState";
 
 export const FormPromptSceneListEditor: FC<
 	FormBoundFieldProps<Record<string, unknown>>
@@ -49,10 +44,9 @@ export const FormPromptSceneListEditor: FC<
 			? valueOverride
 			: readFormikFieldRaw(formik, name),
 	);
-	const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-	const [dragFrom, setDragFrom] = useState<number | null>(null);
-	const writeList = createWritePromptSceneList({
+	const session = usePromptSceneListEditorState({
 		name,
+		list,
 		setFieldValue: (field, value) => formik.setFieldValue(field, value),
 		setFieldTouched: (field, touched) => formik.setFieldTouched(field, touched),
 		onChangeOverride,
@@ -79,31 +73,13 @@ export const FormPromptSceneListEditor: FC<
 				formik={formik}
 				mode={mode}
 				disabled={disabled}
-				expanded={expanded}
-				onToggleExpand={(layerId, open) =>
-					setExpanded((prev) => ({ ...prev, [layerId]: !open }))
-				}
-				onDeleteAt={(index) => writeList(list.filter((_, i) => i !== index))}
-				onPatchAt={(index, patcher) =>
-					writeList(
-						list.map((scene, i) => (i === index ? patcher(scene) : scene)),
-					)
-				}
-				onDragStartAt={(index, e: DragEvent<HTMLLIElement>) => {
-					setDragFrom(index);
-					e.dataTransfer.effectAllowed = "move";
-				}}
-				onDropAt={(index, e) => {
-					e.preventDefault();
-					applyPromptSceneDrop({
-						list,
-						dragFrom,
-						toIndex: index,
-						writeList,
-						clearDrag: () => setDragFrom(null),
-					});
-				}}
-				onAdd={() => writeList([...list, emptyPromptScene(list.length)])}
+				expanded={session.expanded}
+				onToggleExpand={session.onToggleExpand}
+				onDeleteAt={session.onDeleteAt}
+				onPatchAt={session.onPatchAt}
+				onDragStartAt={session.onDragStartAt}
+				onDropAt={session.onDropAt}
+				onAdd={session.onAdd}
 			/>
 		</FormFieldShell>
 	);

@@ -7,11 +7,11 @@ import {
 	apiOk,
 	httpStatusForCode,
 } from "@studio-v2/src/utils/server/http/apiResponse.server";
-import { ServerLlmError } from "@studio-v2/src/utils/server/llm/llmClient.server";
+import { ServerLlmError } from "@studio-v2/src/utils/server/llm/client/llmClient.server";
 import {
 	sendDebuggerCallMessage,
 	type SendDebuggerMessageInput,
-} from "@studio-v2/src/utils/server/debugger/session/debuggerCallSession.server";
+} from "@studio-v2/src/utils/server/debugger/session/callSession/debuggerCallSession.server";
 
 function handleDebuggerMessageError(err: unknown): Response {
 	if (isEngineError(err)) {

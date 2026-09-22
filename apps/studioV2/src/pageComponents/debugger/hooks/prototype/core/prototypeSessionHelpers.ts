@@ -10,11 +10,11 @@ import {
 	type ReceiverMode,
 	type RoleRow,
 } from "@studio-v2/src/pageComponents/debugger/debuggerUiModel";
-import type { DebuggerCallSessionBis } from "@studio-v2/src/bis/pageBis/debugger/callSession.bis";
+import type { DebuggerCallSessionBis } from "@studio-v2/src/bis/pageBis/debugger/callSession/callSession.bis";
 import type {
 	DebuggerCallEndView,
 	DebuggerMemoryCommitTraceDetailView,
-} from "@studio-v2/typeFiles/debugger/callSession";
+} from "@studio-v2/typeFiles/debugger/callSession/callSession";
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 
 type TimeoutRef = MutableRefObject<ReturnType<typeof setTimeout> | null>;
@@ -101,78 +101,15 @@ export function hasRemoteHangup(callState: CallState): boolean {
 	return remoteHangupEventId(callState) !== null;
 }
 
-export function formatEndResultLines(end: DebuggerCallEndView): string[] {
-	const lines = [`Host endCall 完成：status=${end.status}`];
-	if (end.planStatus) lines.push(`Effect plan：${end.planStatus}`);
-	if (end.selectedExitId) lines.push(`命中出口：${end.selectedExitId}`);
-	if (end.postCallJobId) lines.push(`PostCallJob：${end.postCallJobId}`);
-	if (end.freeCommitted !== null) {
-		lines.push(
-			`Free MemoryCommit：${
-				end.freeCommitted
-					? "已提交"
-					: end.memoryTrace?.skippedReason === "background_pending"
-						? "后台进行中"
-						: "未提交"
-			}`,
-		);
-	}
-	if (end.memoryTrace) {
-		lines.push(
-			`Memory Trace：${end.memoryTrace.policy} · ${
-				end.memoryTrace.committed
-					? "committed"
-					: end.memoryTrace.skippedReason === "background_pending"
-						? "pending"
-						: "skipped"
-			} · entries=${end.memoryTrace.entryIds.length} · dto=${end.memoryTrace.dtoId}`,
-		);
-		if (
-			end.memoryTrace.skippedReason &&
-			end.memoryTrace.skippedReason !== "background_pending"
-		) {
-			lines.push(`Memory skipped：${end.memoryTrace.skippedReason}`);
-		}
-		if (end.memoryTrace.error) {
-			lines.push(`Memory error：${end.memoryTrace.error}`);
-		}
-	}
-	return lines;
-}
+import {
+	formatEndResultLines,
+	formatMemoryTraceLines,
+} from "./prototypeSessionFormatters";
 
-export function formatMemoryTraceLines(
-	trace: DebuggerMemoryCommitTraceDetailView,
-): string[] {
-	const lines = [
-		`Memory Trace DTO：${trace.dtoId} · ok=${trace.ok} · layers=${trace.writtenLayers.join(",") || "none"}`,
-		`Memory counts：raw=${JSON.stringify(trace.rawCounts)} sanitized=${JSON.stringify(trace.sanitizedCounts)} filtered=${JSON.stringify(trace.filteredCounts)}`,
-		`Memory exclusionSeeds：${trace.exclusionSeedCount}`,
-	];
-	if (trace.summaryText) lines.push(`Memory summary：${trace.summaryText}`);
-	if (trace.structured.userFacts.length > 0) {
-		lines.push(`Memory userFacts：${trace.structured.userFacts.join(" / ")}`);
-	}
-	if (trace.structured.sharedEvents.length > 0) {
-		lines.push(`Memory sharedEvents：${trace.structured.sharedEvents.join(" / ")}`);
-	}
-	if (trace.structured.promises.length > 0) {
-		lines.push(`Memory promises：${trace.structured.promises.join(" / ")}`);
-	}
-	if (trace.structured.emotion) lines.push(`Memory emotion：${trace.structured.emotion}`);
-	if (trace.structured.attitude) {
-		lines.push(
-			`Memory attitude：${trace.structured.attitude.stance} · ${trace.structured.attitude.summary}`,
-		);
-	}
-	for (const block of trace.blocks.slice(0, 3)) {
-		const preview = block.text.replace(/\s+/g, " ").slice(0, 260);
-		lines.push(
-			`Memory block：${block.title} · chars=${block.charCount}${block.truncated ? " · truncated" : ""}`,
-		);
-		if (preview) lines.push(`Memory ${block.title} preview：${preview}`);
-	}
-	return lines;
-}
+export {
+	formatEndResultLines,
+	formatMemoryTraceLines,
+};
 
 export async function appendMemoryTraceDetail(
 	end: DebuggerCallEndView,

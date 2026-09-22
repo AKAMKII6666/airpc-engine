@@ -15,8 +15,8 @@
 | `packages/rpg-engine/src/runtime/promptPhoneBlocks.ts` | 电话口语、call source、scheduled callback、missed outbound、conversation inertia 等块 |
 | `packages/rpg-engine/src/runtime/personalityPrompt.ts` | persona / personalityCode / 角色级风格 hard block |
 | `packages/rpg-engine/src/host/createEngineHost.ts` | `beginCall` 提升 `RenderedPrompt.openingFirstTurn`；`consumeOpeningFirstTurn` 幂等消费 |
-| `apps/studioV2/src/utils/server/debugger/session/debuggerConsumeOpeningFirstTurn.server.ts` | StudioV2 到 Host first-turn API 的薄适配 |
-| `apps/studioV2/src/utils/server/debugger/session/debuggerLlmMessages.server.ts` | 开场 LLM 消息投影；按 `OpeningLlmContextPolicy` 裁剪 |
+| `apps/studioV2/src/utils/server/debugger/session/callSession/debuggerConsumeOpeningFirstTurn.server.ts` | StudioV2 到 Host first-turn API 的薄适配 |
+| `apps/studioV2/src/utils/server/debugger/session/llm/debuggerLlmMessages.server.ts` | 开场 LLM 消息投影；按 `OpeningLlmContextPolicy` 裁剪 |
 | `apps/studioV2/src/utils/server/debugger/session/projectors/promptTraceProject.server.ts` | `RenderedPrompt` → Prompt Trace DTO |
 
 ## 2. Provider Registry
@@ -123,7 +123,7 @@ Host 映射后进入 `CallSession.openingFirstTurn.mode="direct"`，`consumeOpen
 
 ## 6. persona / personalityCode
 
-`CharacterDef.persona.personalityCode?: string` 定义在 `packages/rpg-engine/src/schema/character.ts`。当前 Studio 约定用 MBTI 四字母；引擎不强制枚举，未知码 trim 后仍可注入。
+`CharacterDef.persona.personalityCode?: string` 定义在 `packages/rpg-engine/src/schema/identity/character.ts`。当前 Studio 约定用 MBTI 四字母；引擎不强制枚举，未知码 trim 后仍可注入。
 
 相关文件：
 

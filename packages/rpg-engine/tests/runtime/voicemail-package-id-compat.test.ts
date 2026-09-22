@@ -9,7 +9,7 @@ import {
   type CallSession,
   type Effect,
 } from "../../src/index.js";
-import { tryAttachVoicemailCallCard } from "../../src/runtime/voicemail/voicemailDivert.js";
+import { tryAttachVoicemailCallCard } from "../../src/runtime/voicemail/core/divert/voicemailDivert.js";
 
 const voicemailCard: CallCardDefinition = {
   cardId: "legacy_voicemail",

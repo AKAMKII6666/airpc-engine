@@ -1,0 +1,143 @@
+/**
+	* 资源详情 Formik 表单体：基本信息 / 文件信息 / 引用 / 高级 assetId。
+	* 主编排走 AutoForm items[]；不再依赖 FormSchemaRenderer。
+	*/
+"use client";
+
+import type { FC } from "react";
+import { Alert, Button, Typography } from "@mui/material";
+import type { FormikProps } from "formik";
+// 引用了AutoForm组件，用于声明式字段编排
+import { AutoForm } from "@studio-v2/src/commonUiComponents/form/AutoForm";
+import type { AssetSummary } from "@studio-v2/typeFiles/library/assets/assetSummary";
+import {
+	ASSET_BASIC_ITEMS,
+	type AssetDetailFormValues,
+} from "@studio-v2/src/bis/pageBis/assets/form/assetDetailForm";
+import { AssetFilePreview } from "@studio-v2/src/pageComponents/assets/com/detail/AssetFilePreview";
+import {
+	assetAvailabilityLabel,
+	assetKindLabel,
+	formatAssetMeasure,
+} from "@studio-v2/typeFiles/library/labels/libraryLabels";
+import styles from "@studio-v2/src/pageComponents/library/LibrarySplit.module.scss";
+
+export type AssetDetailEditFormProps = {
+	asset: AssetSummary;
+	formik: FormikProps<AssetDetailFormValues>;
+};
+
+function readFormError(
+	status: FormikProps<AssetDetailFormValues>["status"],
+): string | undefined {
+	if (
+		typeof status === "object" &&
+		status !== null &&
+		"formError" in status &&
+		typeof (status as { formError?: unknown }).formError === "string"
+	) {
+		return (status as { formError: string }).formError;
+	}
+	return undefined;
+}
+
+function renderAssetDetailFacts(asset: AssetSummary) {
+	return (
+		<>
+			<div className={styles.section}>
+				<h3 className={styles.sectionTitle}>文件属性</h3>
+				{/* 引用了Typography组件，用于展示资源类型 */}
+				<Typography variant="body2" className={styles.detailMeta}>
+					类型：{assetKindLabel(asset.kind)}
+				</Typography>
+				{/* 引用了Typography组件，用于展示文件格式 */}
+				<Typography variant="body2" className={styles.detailMeta}>
+					格式：{asset.format || "未知"}
+				</Typography>
+				{/* 引用了Typography组件，用于展示文件大小或时长 */}
+				<Typography variant="body2" className={styles.detailMeta}>
+					大小/时长：{formatAssetMeasure(
+						asset.measureValue,
+						asset.measureUnit,
+					)}
+				</Typography>
+				{/* 引用了Typography组件，用于展示资源可用状态 */}
+				<Typography variant="body2" className={styles.detailMeta}>
+					状态：{assetAvailabilityLabel(asset.availability)}
+				</Typography>
+			</div>
+
+			<div className={styles.section}>
+				<h3 className={styles.sectionTitle}>引用情况</h3>
+				{asset.referenceLines.length === 0 ? (
+					// 引用了Typography组件，用于无引用空态
+					<Typography variant="body2" color="text.secondary">
+						尚未被卡片或动作引用
+					</Typography>
+				) : (
+					<ul className={styles.refList}>
+						{asset.referenceLines.map((line) => (
+							<li key={line}>{line}</li>
+						))}
+					</ul>
+				)}
+			</div>
+
+			<div className={styles.advanced}>
+				<h3 className={styles.sectionTitle}>高级信息</h3>
+				<div className={styles.advancedId}>assetId · {asset.assetId}</div>
+			</div>
+		</>
+	);
+}
+
+export const AssetDetailEditForm: FC<AssetDetailEditFormProps> =
+	function AssetDetailEditForm({
+		// asset 是当前资源投影，用于只读引用区与预览占位
+		asset,
+		// formik 是详情页持有的 Formik 实例，用于 AutoForm 字段自动绑
+		formik,
+	}) {
+		const formError = readFormError(formik.status);
+
+		return (
+			<form onSubmit={formik.handleSubmit} noValidate>
+				{formError ? (
+					// 引用了Alert组件，用于展示提交级错误
+					<Alert severity="error" role="alert">
+						{formError}
+					</Alert>
+				) : null}
+
+				<div className={styles.section}>
+					<h3 className={styles.sectionTitle}>基本信息</h3>
+					{/* 引用了AutoForm组件，用于编排资源名与类型字段 */}
+					<AutoForm
+						formik={formik}
+						mode="edit"
+						enabled
+						items={ASSET_BASIC_ITEMS}
+					/>
+				</div>
+
+				<div className={styles.section}>
+					<h3 className={styles.sectionTitle}>文件预览</h3>
+					{/* 引用了AssetFilePreview组件，用于展示资源文件预览与请求路径 */}
+					<AssetFilePreview asset={asset} />
+				</div>
+
+				{renderAssetDetailFacts(asset)}
+
+				<div className={styles.section}>
+					{/* 引用了Button组件，用于提交并写盘 */}
+					<Button
+						type="submit"
+						variant="contained"
+						disabled={formik.isSubmitting}
+					>
+						保存到磁盘
+					</Button>
+				</div>
+			</form>
+		);
+	};

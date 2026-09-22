@@ -89,7 +89,7 @@ describe("composeRenderedPrompt personalityCode", () => {
   });
 });
 
-describe("composeRenderedPrompt persona style", () => {
+describe("composeRenderedPrompt persona style inject", () => {
   it("injects character-level speaking style as a provider block", () => {
     const character: CharacterDef = {
       schemaVersion: 1,
@@ -127,7 +127,9 @@ describe("composeRenderedPrompt persona style", () => {
     expect(styleBlock).toContain("只学节奏和口吻，不要机械复读");
     expect(prompt.debug?.providerIds).toContain("persona.style");
   });
+});
 
+describe("composeRenderedPrompt persona style skip", () => {
   it("skips persona style block when style fields are empty", () => {
     const scene = buildComposeScene({
       entryMode: "outbound",

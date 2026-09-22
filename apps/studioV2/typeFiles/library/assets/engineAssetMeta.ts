@@ -1,6 +1,6 @@
 /**
 	* 与引擎同构镜像，不以 import 同步。
-	* 对齐 packages/rpg-engine/src/schema/asset.ts 的 AssetKindSchema / AssetMetaSchema。
+	* 对齐 packages/rpg-engine/src/schema/identity/asset.ts 的 AssetKindSchema / AssetMetaSchema。
 	*/
 
 /** 对齐引擎 AssetKindSchema 枚举 */

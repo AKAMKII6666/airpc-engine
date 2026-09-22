@@ -10,7 +10,7 @@ import {
   type CallSession,
   type CharacterDef,
 } from "../../src/index.js";
-import { invokeSessionTool } from "../../src/tools/invokeSessionLocal.js";
+import { invokeSessionTool } from "../../src/tools/invoke/session/invokeSessionLocal.js";
 
 function freeCard(): CallCardDefinition {
   return {

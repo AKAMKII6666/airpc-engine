@@ -1,8 +1,8 @@
 /**
  * 动态 schedule_recurring_call：解析卡引用后写入 Profile（REST-E2）。
  */
-import type { PlayerProfile } from "../schema/profile.js";
-import type { Effect } from "../schema/outcome.js";
+import type { PlayerProfile } from "../schema/identity/profile.js";
+import type { Effect } from "../schema/call/outcome.js";
 import {
   resolveScheduledCardReference,
   type ScheduledCardLookup,
@@ -42,57 +42,77 @@ function pickRef(effect: Effect): {
   };
 }
 
+function assertRecurringRef(
+	ref: ReturnType<typeof pickRef>,
+	lookupCard: ScheduledCardLookup | null | undefined,
+): ScheduledCardLookup {
+	if (!ref.scheduleCardId && !(ref.cardId && ref.chapterId)) {
+		throw new Error(
+			"schedule_recurring_call requires scheduleCardId or cardId+chapterId",
+		);
+	}
+	if (!lookupCard) {
+		throw new Error(
+			"schedule_recurring_call requires lookupCard for reference validation",
+		);
+	}
+	return lookupCard;
+}
+
+function buildRecurringIntentRow(input: {
+	effect: Effect;
+	agentId: string;
+	nowIso: string;
+	ref: ReturnType<typeof pickRef>;
+}): Record<string, unknown> {
+	const intent: Record<string, unknown> = {
+		kind: "recurring",
+		intentId: input.effect.id,
+		agentId: input.agentId,
+		hour: clampHour(input.effect.hour),
+		minute: clampMinute(input.effect.minute),
+		scheduleMode: input.effect.scheduleMode === "weekly" ? "weekly" : "daily",
+		status: "active",
+		createdAt: input.nowIso,
+		...input.ref,
+	};
+	if (typeof input.effect.topicHint === "string") {
+		intent.topicHint = input.effect.topicHint;
+	}
+	intent.origin =
+		typeof input.effect.scheduleOrigin === "string"
+			? input.effect.scheduleOrigin
+			: "recurring_schedule";
+	if (Array.isArray(input.effect.weekdays)) {
+		intent.weekdays = input.effect.weekdays;
+	}
+	if (input.effect.jobId !== undefined) intent.jobId = input.effect.jobId;
+	return intent;
+}
+
 /**
  * @throws 缺引用或 lookup 解析失败时抛错；不写 intent
  */
 export function writeRecurringIntentFromEffect(input: {
-  effect: Effect;
-  profile: PlayerProfile;
-  agentId: string;
-  nowIso: string;
-  lookupCard: ScheduledCardLookup | null | undefined;
+	effect: Effect;
+	profile: PlayerProfile;
+	agentId: string;
+	nowIso: string;
+	lookupCard: ScheduledCardLookup | null | undefined;
 }): void {
-  const { effect, profile, agentId, nowIso, lookupCard } = input;
-  if (!profile.schedule) {
-    profile.schedule = { clockMs: 0, intents: [] };
-  }
-  const ref = pickRef(effect);
-  if (!ref.scheduleCardId && !(ref.cardId && ref.chapterId)) {
-    throw new Error(
-      "schedule_recurring_call requires scheduleCardId or cardId+chapterId",
-    );
-  }
-  if (!lookupCard) {
-    throw new Error(
-      "schedule_recurring_call requires lookupCard for reference validation",
-    );
-  }
-  const resolved = resolveScheduledCardReference(
-    { agentId, ...ref },
-    lookupCard,
-  );
-  if (!resolved.ok) {
-    throw new Error(
-      `schedule_recurring_call ${resolved.code}: ${resolved.reason}`,
-    );
-  }
-  const intent: Record<string, unknown> = {
-    kind: "recurring",
-    intentId: effect.id,
-    agentId,
-    hour: clampHour(effect.hour),
-    minute: clampMinute(effect.minute),
-    scheduleMode: effect.scheduleMode === "weekly" ? "weekly" : "daily",
-    status: "active",
-    createdAt: nowIso,
-    ...ref,
-  };
-  if (typeof effect.topicHint === "string") intent.topicHint = effect.topicHint;
-  intent.origin =
-    typeof effect.scheduleOrigin === "string"
-      ? effect.scheduleOrigin
-      : "recurring_schedule";
-  if (Array.isArray(effect.weekdays)) intent.weekdays = effect.weekdays;
-  if (effect.jobId !== undefined) intent.jobId = effect.jobId;
-  profile.schedule.intents.push(intent);
+	const { effect, profile, agentId, nowIso, lookupCard } = input;
+	if (!profile.schedule) {
+		profile.schedule = { clockMs: 0, intents: [] };
+	}
+	const ref = pickRef(effect);
+	const lookup = assertRecurringRef(ref, lookupCard);
+	const resolved = resolveScheduledCardReference({ agentId, ...ref }, lookup);
+	if (!resolved.ok) {
+		throw new Error(
+			`schedule_recurring_call ${resolved.code}: ${resolved.reason}`,
+		);
+	}
+	profile.schedule.intents.push(
+		buildRecurringIntentRow({ effect, agentId, nowIso, ref }),
+	);
 }

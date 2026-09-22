@@ -9,9 +9,11 @@ import { useCallback, useMemo } from "react";
 import { commitCreateUser } from "@studio-v2/src/bis/pageBis/users/create/createUser_bis";
 import type { CreateUserFormValues } from "@studio-v2/src/bis/pageBis/users/create/createUserForm";
 import { commitDeleteUser } from "@studio-v2/src/bis/pageBis/users/delete/deleteUser_bis";
-import { useUsersStore } from "@studio-v2/src/stores/users/usersStore";
-import { useStudioSessionStore } from "@studio-v2/src/stores/studioSession/studioSessionStore";
-import type { UserProfileSummary } from "@studio-v2/typeFiles/library/users/userProfileSummary";
+import type { UserProfileSummary } from "@studio-v2/typeFiles/library/users/summary/userProfileSummary";
+import {
+	useUserLibraryStoreSlice,
+	type UserLibraryStoreSlice,
+} from "./userLibrarySession.helpers";
 
 /**
 	* 用户库列表会话投影：供 page hook 绑 UI，不含 Modal 开合瞬时态。
@@ -40,73 +42,17 @@ export type UserLibrarySessionBis = {
 	onConfirmDelete: (userId: string) => Promise<void>;
 };
 
-/**
-	* 订 users store 列表切片 + create/delete 命令；供页 hook 消费。
-	*/
-export function useUserLibrarySessionBis(): UserLibrarySessionBis {
-	const profiles = useUsersStore(function (s) {
-		return s.profiles;
-	});
-	const selectedId = useUsersStore(function (s) {
-		return s.selectedId;
-	});
-	const loading = useUsersStore(function (s) {
-		return s.loading;
-	});
-	const loadError = useUsersStore(function (s) {
-		return s.loadError;
-	});
-	const setSelectedIdStore = useUsersStore(function (s) {
-		return s.setSelectedId;
-	});
-	const applyUserUpsertResult = useUsersStore(function (s) {
-		return s.applyUserUpsertResult;
-	});
-	const setPreferSelectedId = useUsersStore(function (s) {
-		return s.setPreferSelectedId;
-	});
-	const bumpUsersRefreshStamp = useUsersStore(function (s) {
-		return s.bumpUsersRefreshStamp;
-	});
-	const setCurrentUser = useStudioSessionStore(function (s) {
-		return s.setCurrentUser;
-	});
-
-	const selected = useMemo(
-		function () {
-			return (
-				profiles.find((u) => u.userId === selectedId) ?? profiles[0]
-			);
-		},
-		[profiles, selectedId],
-	);
-
-	/** 列表选中同时写入跨页 studioSession（编辑器 / 提示词预览真源） */
-	const setSelectedId = useCallback(
-		function (userId: string) {
-			setSelectedIdStore(userId);
-			const hit = profiles.find(function (u) {
-				return u.userId === userId;
-			});
-			if (hit) {
-				setCurrentUser({
-					userId: hit.userId,
-					nickname: hit.nickname,
-				});
-			}
-		},
-		[profiles, setSelectedIdStore, setCurrentUser],
-	);
-
+/** 新建与删除写口；从列表会话 hook 拆出以压函数行数。 */
+function useUserLibraryWriteCommands(slice: UserLibraryStoreSlice) {
 	const onDetailSaved = useCallback(
 		function (next: UserProfileSummary) {
-			applyUserUpsertResult(next);
-			setCurrentUser({
+			slice.applyUserUpsertResult(next);
+			slice.setCurrentUser({
 				userId: next.userId,
 				nickname: next.nickname,
 			});
 		},
-		[applyUserUpsertResult, setCurrentUser],
+		[slice.applyUserUpsertResult, slice.setCurrentUser],
 	);
 
 	const onCreateSubmit = useCallback(
@@ -114,33 +60,71 @@ export function useUserLibrarySessionBis(): UserLibrarySessionBis {
 			values: CreateUserFormValues,
 		): Promise<{ loreWarning?: string }> {
 			const result = await commitCreateUser(values);
-			setPreferSelectedId(result.userId);
-			setCurrentUser({
+			slice.setPreferSelectedId(result.userId);
+			slice.setCurrentUser({
 				userId: result.userId,
 				nickname: result.summary.nickname,
 			});
-			bumpUsersRefreshStamp();
+			slice.bumpUsersRefreshStamp();
 			return { loreWarning: result.loreWarning };
 		},
-		[setPreferSelectedId, bumpUsersRefreshStamp, setCurrentUser],
+		[slice.setPreferSelectedId, slice.bumpUsersRefreshStamp, slice.setCurrentUser],
 	);
 
 	const onConfirmDelete = useCallback(
 		async function (userId: string): Promise<void> {
 			await commitDeleteUser(userId);
-			bumpUsersRefreshStamp();
+			slice.bumpUsersRefreshStamp();
 		},
-		[bumpUsersRefreshStamp],
+		[slice.bumpUsersRefreshStamp],
 	);
 
+	return { onDetailSaved, onCreateSubmit, onConfirmDelete };
+}
+
+/**
+	* 订 users store 列表切片 + create/delete 命令；供页 hook 消费。
+	*/
+export function useUserLibrarySessionBis(): UserLibrarySessionBis {
+	const slice = useUserLibraryStoreSlice();
+
+	const selected = useMemo(
+		function () {
+			return (
+				slice.profiles.find((u) => u.userId === slice.selectedId) ??
+				slice.profiles[0]
+			);
+		},
+		[slice.profiles, slice.selectedId],
+	);
+
+	/** 列表选中同时写入跨页 studioSession（编辑器 / 提示词预览真源） */
+	const setSelectedId = useCallback(
+		function (userId: string) {
+			slice.setSelectedIdStore(userId);
+			const hit = slice.profiles.find(function (u) {
+				return u.userId === userId;
+			});
+			if (hit) {
+				slice.setCurrentUser({
+					userId: hit.userId,
+					nickname: hit.nickname,
+				});
+			}
+		},
+		[slice.profiles, slice.setSelectedIdStore, slice.setCurrentUser],
+	);
+
+	const writes = useUserLibraryWriteCommands(slice);
+
 	return {
-		profiles,
+		profiles: slice.profiles,
 		selected,
-		loading,
-		loadError,
+		loading: slice.loading,
+		loadError: slice.loadError,
 		setSelectedId,
-		onDetailSaved,
-		onCreateSubmit,
-		onConfirmDelete,
+		onDetailSaved: writes.onDetailSaved,
+		onCreateSubmit: writes.onCreateSubmit,
+		onConfirmDelete: writes.onConfirmDelete,
 	};
 }

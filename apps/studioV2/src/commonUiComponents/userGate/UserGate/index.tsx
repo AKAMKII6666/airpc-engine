@@ -5,12 +5,12 @@
 "use client";
 
 import type { FC } from "react";
-import { useState } from "react";
 // 引用了AppModal组件，用于 UserGate 弹层壳
 import { AppModal } from "@studio-v2/src/commonUiComponents/modal/app/AppModal";
 import { useUserGateSessionBis } from "@studio-v2/src/bis/pageBis/users/gate/userGateSession.bis";
 // 引用了UserGateBody组件，用于列表与新建区
 import { UserGateBody } from "./com/UserGateBody";
+import { useUserGateCreateForm } from "./hooks/useUserGateCreateForm";
 
 export type UserGateProps = {
 	open: boolean;
@@ -28,7 +28,7 @@ export type UserGateProps = {
 	currentUserId?: string;
 };
 
-export const UserGate: FC<UserGateProps> = function ({
+export const UserGate: FC<UserGateProps> = function UserGate({
 	// open 表示弹层是否打开，用于显隐
 	open,
 	// onClose 用于已选时可关
@@ -43,11 +43,10 @@ export const UserGate: FC<UserGateProps> = function ({
 	currentUserId = "",
 }) {
 	const gate = useUserGateSessionBis(open);
-	const [nickname, setNickname] = useState("");
-	const [createBusy, setCreateBusy] = useState(false);
-	const [createError, setCreateError] = useState<string | undefined>(
-		undefined,
-	);
+	const createForm = useUserGateCreateForm({
+		createAndSelect: gate.createAndSelect,
+		onSelected,
+	});
 
 	const canDismiss =
 		allowDismissWhenSelected &&
@@ -63,7 +62,7 @@ export const UserGate: FC<UserGateProps> = function ({
 			onClose={function () {
 				if (canDismiss) onClose?.();
 			}}
-			busy={gate.loading || createBusy}
+			busy={gate.loading || createForm.createBusy}
 			maxWidth="sm"
 		>
 			{/* 引用了UserGateBody组件，用于列表与新建区 */}
@@ -71,35 +70,16 @@ export const UserGate: FC<UserGateProps> = function ({
 				users={gate.users}
 				loading={gate.loading}
 				error={gate.error}
-				createError={createError}
-				createBusy={createBusy}
+				createError={createForm.createError}
+				createBusy={createForm.createBusy}
 				currentUserId={currentUserId}
-				nickname={nickname}
-				onNicknameChange={setNickname}
+				nickname={createForm.nickname}
+				onNicknameChange={createForm.setNickname}
 				onSelect={function (userId, nick) {
 					gate.selectUser(userId, nick);
 					onSelected(userId);
 				}}
-				onCreate={function () {
-					setCreateError(undefined);
-					setCreateBusy(true);
-					void gate
-						.createAndSelect(nickname)
-						.then(function (userId) {
-							setNickname("");
-							onSelected(userId);
-						})
-						.catch(function (err: unknown) {
-							setCreateError(
-								err instanceof Error
-									? err.message
-									: "新建玩家失败",
-							);
-						})
-						.finally(function () {
-							setCreateBusy(false);
-						});
-				}}
+				onCreate={createForm.onCreate}
 				onReload={gate.reload}
 			/>
 		</AppModal>

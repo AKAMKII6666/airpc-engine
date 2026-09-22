@@ -1,8 +1,8 @@
 /**
 	* 玩家配置 Formik values：与 AutoForm name 对齐（含 location.* 嵌套）。
 	*/
-import type { UserGender } from "@studio-v2/typeFiles/library/users/userProfileSummary";
-import type { UserProfileSummary } from "@studio-v2/typeFiles/library/users/userProfileSummary";
+import type { UserGender } from "@studio-v2/typeFiles/library/users/summary/userProfileSummary";
+import type { UserProfileSummary } from "@studio-v2/typeFiles/library/users/summary/userProfileSummary";
 
 /**
 	* 详情/新建共用 values；age 空串表示未填（IntegerInput 约定）。

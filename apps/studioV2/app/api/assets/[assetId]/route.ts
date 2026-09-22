@@ -3,16 +3,10 @@
 	*/
 import {
 	AssetMetaSchema,
-	formatZodError,
-	isEngineError,
+	type AssetMeta,
 } from "@airpc/rpg-engine";
-import type { AssetMeta } from "@airpc/rpg-engine";
 import { assetMetaToSummary } from "@studio-v2/src/utils/server/assets/meta/assetMetaMapper.server";
-import {
-	apiFail,
-	apiOk,
-	httpStatusForCode,
-} from "@studio-v2/src/utils/server/http/apiResponse.server";
+import { apiOk } from "@studio-v2/src/utils/server/http/apiResponse.server";
 import {
 	assetFileExists,
 	deleteAssetMetaJson,
@@ -21,6 +15,7 @@ import {
 	writeAssetMetaJson,
 } from "@studio-v2/src/utils/server/assets/assetsFs.server";
 import type { AssetSummary } from "@studio-v2/src/utils/server/types/assetSummary.server";
+import { failFromUnknown, parsePutAssetBody } from "./route.helpers";
 
 async function loadRecord(
 	assetId: string,
@@ -50,15 +45,7 @@ export async function GET(
 		const record = await loadRecord(assetId);
 		return apiOk(record);
 	} catch (err) {
-		const code =
-			err && typeof err === "object" && "code" in err
-				? String((err as { code: string }).code)
-				: "ENGINE_INTERNAL";
-		return apiFail(
-			code,
-			err instanceof Error ? err.message : String(err),
-			httpStatusForCode(code),
-		);
+		return failFromUnknown(err);
 	}
 }
 
@@ -69,38 +56,13 @@ export async function PUT(
 	try {
 		const { assetId } = await ctx.params;
 		const body = (await req.json()) as { asset?: unknown };
-		if (!body.asset || typeof body.asset !== "object") {
-			return apiFail("VALIDATION_FAILED", "asset object required");
-		}
-		const raw = body.asset as { assetId?: string };
-		if (raw.assetId && raw.assetId !== assetId) {
-			return apiFail("VALIDATION_FAILED", "assetId mismatch");
-		}
-		const parsed = AssetMetaSchema.safeParse({ ...raw, assetId });
-		if (!parsed.success) {
-			return apiFail(
-				"VALIDATION_FAILED",
-				formatZodError(parsed.error),
-				400,
-				{ issues: parsed.error.issues },
-			);
-		}
-		await writeAssetMetaJson(assetId, parsed.data);
+		const parsed = parsePutAssetBody(assetId, body);
+		if (!parsed.ok) return parsed.response;
+		await writeAssetMetaJson(assetId, parsed.meta);
 		const record = await loadRecord(assetId);
 		return apiOk(record);
 	} catch (err) {
-		if (isEngineError(err)) {
-			return apiFail(err.code, err.message, httpStatusForCode(err.code));
-		}
-		const code =
-			err && typeof err === "object" && "code" in err
-				? String((err as { code: string }).code)
-				: "ENGINE_INTERNAL";
-		return apiFail(
-			code,
-			err instanceof Error ? err.message : String(err),
-			httpStatusForCode(code),
-		);
+		return failFromUnknown(err);
 	}
 }
 
@@ -113,14 +75,6 @@ export async function DELETE(
 		await deleteAssetMetaJson(assetId);
 		return apiOk({ ok: true });
 	} catch (err) {
-		const code =
-			err && typeof err === "object" && "code" in err
-				? String((err as { code: string }).code)
-				: "ENGINE_INTERNAL";
-		return apiFail(
-			code,
-			err instanceof Error ? err.message : String(err),
-			httpStatusForCode(code),
-		);
+		return failFromUnknown(err);
 	}
 }

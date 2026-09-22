@@ -15,11 +15,11 @@ import {
   parseMemoryCommitExtraction,
   sanitizeMemoryCommitExtractionForFacts,
   type MemoryCallTranscriptLike,
-} from "@studio-v2/src/utils/server/memory/memoryCommitExtractor.server";
+} from "@studio-v2/src/utils/server/memory/extractor/memoryCommitExtractor.server";
 import {
 	createMemoryCommitExtractingPort,
 	createMemoryCommitOrchestrator,
-} from "@studio-v2/src/utils/server/memory/memoryCommitMemoryPort.server";
+} from "@studio-v2/src/utils/server/memory/ports/memoryCommitMemoryPort.server";
 
 function transcript(): MemoryCallTranscriptLike {
   return {

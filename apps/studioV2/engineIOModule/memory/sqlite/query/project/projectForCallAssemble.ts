@@ -15,65 +15,44 @@ type PushChunkFn = (
 	isRollup: boolean,
 ) => void;
 
+type EntrySlice = {
+	label: string;
+	rows: Array<{
+		id: string;
+		text: string;
+		at: string;
+		created_at: string;
+		layer: string;
+	}>;
+};
+
+function entrySlices(rows: ProjectForCallRows): EntrySlice[] {
+	return [
+		{ label: "semantic", rows: rows.semantic },
+		{ label: "call_summary", rows: rows.summaries },
+		{ label: "vignette", rows: rows.vignettes },
+		{ label: "shared_event", rows: rows.sharedEvents },
+		{ label: "emotion", rows: rows.emotions },
+		{ label: "identity_note", rows: rows.identityNotes },
+		{ label: "promise", rows: rows.promises },
+		{ label: "social_share", rows: rows.socialShares },
+		{ label: "attitude", rows: rows.attitudes },
+	];
+}
+
 function pushAllRows(rows: ProjectForCallRows, pushChunk: PushChunkFn): void {
-	for (const row of rows.semantic) {
-		pushChunk("semantic", row.id, row.text, row.at, row.created_at, row.layer, false);
-	}
-	for (const row of rows.summaries) {
-		pushChunk(
-			"call_summary",
-			row.id,
-			row.text,
-			row.at,
-			row.created_at,
-			row.layer,
-			false,
-		);
-	}
-	for (const row of rows.vignettes) {
-		pushChunk("vignette", row.id, row.text, row.at, row.created_at, row.layer, false);
-	}
-	for (const row of rows.sharedEvents) {
-		pushChunk(
-			"shared_event",
-			row.id,
-			row.text,
-			row.at,
-			row.created_at,
-			row.layer,
-			false,
-		);
-	}
-	for (const row of rows.emotions) {
-		pushChunk("emotion", row.id, row.text, row.at, row.created_at, row.layer, false);
-	}
-	for (const row of rows.identityNotes) {
-		pushChunk(
-			"identity_note",
-			row.id,
-			row.text,
-			row.at,
-			row.created_at,
-			row.layer,
-			false,
-		);
-	}
-	for (const row of rows.promises) {
-		pushChunk("promise", row.id, row.text, row.at, row.created_at, row.layer, false);
-	}
-	for (const row of rows.socialShares) {
-		pushChunk(
-			"social_share",
-			row.id,
-			row.text,
-			row.at,
-			row.created_at,
-			row.layer,
-			false,
-		);
-	}
-	for (const row of rows.attitudes) {
-		pushChunk("attitude", row.id, row.text, row.at, row.created_at, row.layer, false);
+	for (const slice of entrySlices(rows)) {
+		for (const row of slice.rows) {
+			pushChunk(
+				slice.label,
+				row.id,
+				row.text,
+				row.at,
+				row.created_at,
+				row.layer,
+				false,
+			);
+		}
 	}
 	for (const row of rows.rollups) {
 		pushChunk("rollup", row.id, row.text, row.at, row.created_at, "rollup", true);

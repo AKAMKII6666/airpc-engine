@@ -2,7 +2,7 @@
 	* 新建章表单契约：只收标题，chapterId 由系统生成。
 	*/
 import type { FormikErrors } from "formik";
-import type { AutoFormItem } from "@studio-v2/src/commonUiComponents/form/autoFormTypes";
+import type { AutoFormItem } from "@studio-v2/src/commonUiComponents/form/types/autoFormTypes";
 
 /** 新章节表单值；只收标题，chapterId 在提交写口内系统生成 */
 export type CreateChapterFormValues = {

@@ -6,6 +6,7 @@ import type {
 	DebuggerChatStreamState,
 } from "../types/debuggerChatStreamTypes";
 import { createInitialDebuggerChatState } from "../types/debuggerChatStreamState";
+import { reduceChatLifecycleTerminal } from "./debuggerChatStreamLifecycleTerminal";
 
 export function reduceChatLifecycle(
 	state: DebuggerChatStreamState,
@@ -56,78 +57,5 @@ export function reduceChatLifecycle(
 			};
 		default:
 			return reduceChatLifecycleTerminal(state, action);
-	}
-}
-
-function reduceChatLifecycleTerminal(
-	state: DebuggerChatStreamState,
-	action: Extract<
-		DebuggerChatStreamAction,
-		{ type: "snapshot" | "error" | "done" | "abort" }
-	>,
-): DebuggerChatStreamState | null {
-	switch (action.type) {
-		case "snapshot": {
-			const currentStreamMessage = state.currentStreamMessageId
-				? state.messages.find(function (message) {
-						return message.id === state.currentStreamMessageId;
-					})
-				: undefined;
-			const lastNpcIndex = action.messages.reduce(
-				function (lastIndex, message, index) {
-					return message.speaker === "npc" ? index : lastIndex;
-				},
-				-1,
-			);
-			return {
-				status: "idle",
-				messages: action.messages.map(function (message, index) {
-					if (
-						currentStreamMessage &&
-						index === lastNpcIndex &&
-						message.speaker === "npc"
-					) {
-						return {
-							...message,
-							thinkingText: currentStreamMessage.thinkingText,
-							toolEvents: currentStreamMessage.toolEvents,
-							status: "complete" as const,
-						};
-					}
-					return message;
-				}),
-				currentStreamMessageId: null,
-				error: undefined,
-			};
-		}
-		case "error":
-			return {
-				...state,
-				status: "idle",
-				error: action.message,
-				messages: state.messages.map(function (message) {
-					if (message.id !== state.currentStreamMessageId) return message;
-					return { ...message, status: "failed" as const };
-				}),
-			};
-		case "done":
-			return {
-				...state,
-				status: "idle",
-				currentStreamMessageId: null,
-			};
-		case "abort":
-			return {
-				...state,
-				status: "idle",
-				error: undefined,
-				currentStreamMessageId: null,
-				messages: state.messages.map(function (message) {
-					if (message.status !== "streaming") return message;
-					return { ...message, status: "complete" as const };
-				}),
-			};
-		default:
-			return null;
 	}
 }

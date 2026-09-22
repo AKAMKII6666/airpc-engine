@@ -3,13 +3,13 @@
 	*/
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { useStudioSessionUserBis } from "@studio-v2/src/bis/pageBis/users/session/studioSessionUser.bis";
-import { postPromptPreview } from "@studio-v2/src/utils/ajaxProxy/story/api/promptPreviewApi";
 import type {
 	PromptPreviewCallDirection,
 	PromptPreviewResult,
 } from "@studio-v2/typeFiles/story/promptPreview/promptPreviewDto";
+import { usePromptPreviewLocalState } from "./firstConnectPromptPreview.helpers";
 
 /**
 	* 首通预览弹层会话投影：方向/小时/结果；网络只经本 bis。
@@ -54,49 +54,13 @@ export type FirstConnectPromptPreviewBis = {
 	*/
 export function useFirstConnectPromptPreviewBis(): FirstConnectPromptPreviewBis {
 	const session = useStudioSessionUserBis();
-	const [callDirection, setCallDirection] =
-		useState<PromptPreviewCallDirection>("inbound");
-	const [localHour, setLocalHour] = useState(12);
-	const [busy, setBusy] = useState(false);
-	const [error, setError] = useState<string | undefined>(undefined);
-	const [result, setResult] = useState<PromptPreviewResult | null>(null);
-
-	const resetResult = useCallback(function () {
-		setResult(null);
-		setError(undefined);
-	}, []);
-
-	const renderPreview = useCallback(
-		async function (input: {
-			card: unknown;
-			packageId?: string;
-		}): Promise<boolean> {
-			const userId = session.currentUser.userId.trim();
-			if (userId === "") {
-				return false;
-			}
-			setBusy(true);
-			setError(undefined);
-			try {
-				const data = await postPromptPreview({
-					userId,
-					callDirection,
-					localHour,
-					packageId: input.packageId,
-					card: input.card,
-				});
-				setResult(data);
-				return true;
-			} catch (err: unknown) {
-				setResult(null);
-				setError(err instanceof Error ? err.message : "渲染失败");
-				return true;
-			} finally {
-				setBusy(false);
-			}
+	const getUserId = useCallback(
+		function () {
+			return session.currentUser.userId;
 		},
-		[session.currentUser.userId, callDirection, localHour],
+		[session.currentUser.userId],
 	);
+	const local = usePromptPreviewLocalState(getUserId);
 
 	const userLabel =
 		session.currentUser.userId.trim() === ""
@@ -109,14 +73,14 @@ export function useFirstConnectPromptPreviewBis(): FirstConnectPromptPreviewBis 
 		userId: session.currentUser.userId,
 		userLabel,
 		hasUser: session.hasUser,
-		callDirection,
-		setCallDirection,
-		localHour,
-		setLocalHour,
-		busy,
-		error,
-		result,
-		renderPreview,
-		resetResult,
+		callDirection: local.callDirection,
+		setCallDirection: local.setCallDirection,
+		localHour: local.localHour,
+		setLocalHour: local.setLocalHour,
+		busy: local.busy,
+		error: local.error,
+		result: local.result,
+		renderPreview: local.renderPreview,
+		resetResult: local.resetResult,
 	};
 }

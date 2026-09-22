@@ -2,21 +2,17 @@
 	* 模块名称：本机 Content 按需读
 	* 模块说明：路径仅本模块知道（storis-packages / characters / assets）。
 	*/
-import { access, readdir, readFile } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import path from "node:path";
 import {
 	AssetMetaSchema,
 	CallCardDefinitionSchema,
-	CharacterDefSchema,
-	ChapterConfSchema,
 	FREE_CHAPTER_ID,
 	SCHEDULE_CHAPTER_ID,
 	engineError,
 	type AssetMeta,
 	type CallCardDefinition,
-	type CharacterDef,
 	type ChapterConf,
-	type PackageValidateBundle,
 } from "@airpc/rpg-engine";
 import { findChapterDir } from "../snapshot/workspaceSnapshot";
 
@@ -151,103 +147,4 @@ export async function assetUriExistsFromFs(input: {
 	} catch {
 		return false;
 	}
-}
-
-async function loadAllCharacters(
-	workspaceKey: string,
-): Promise<CharacterDef[]> {
-	const charactersRoot = path.join(workspaceKey, "characters");
-	let charFiles: string[] = [];
-	try {
-		charFiles = await readdir(charactersRoot);
-	} catch {
-		return [];
-	}
-	const out: CharacterDef[] = [];
-	for (const name of charFiles) {
-		if (!name.endsWith(".json")) continue;
-		try {
-			const raw = await readJsonFile(path.join(charactersRoot, name));
-			out.push(CharacterDefSchema.parse(raw));
-		} catch {
-			// validate 规则侧再报
-		}
-	}
-	return out;
-}
-
-export async function loadPackageForValidateFromFs(input: {
-	workspaceKey: string;
-	chapterId: string;
-}): Promise<PackageValidateBundle> {
-	const { workspaceKey, chapterId } = input;
-	const characters = await loadAllCharacters(workspaceKey);
-	const found = await findChapterDir(workspaceKey, chapterId);
-
-	if (!found) {
-		return {
-			chapterId,
-			conf: null,
-			confRaw: null,
-			cards: [],
-			diskCardIds: [],
-			characters,
-		};
-	}
-
-	const confPath = path.join(found.dir, "story.conf.json");
-	let confRaw: unknown | null = null;
-	try {
-		confRaw = await readJsonFile(confPath);
-	} catch {
-		return {
-			chapterId,
-			containerPackageId: found.containerPackageId,
-			conf: null,
-			confRaw: null,
-			cards: [],
-			diskCardIds: [],
-			characters,
-		};
-	}
-
-	const confParsed = ChapterConfSchema.safeParse(confRaw);
-	const conf = confParsed.success ? confParsed.data : null;
-
-	let diskCardIds: string[] = [];
-	try {
-		const diskFiles = await readdir(path.join(found.dir, "cards"));
-		diskCardIds = diskFiles
-			.filter((f) => f.endsWith(".s-card.json"))
-			.map((f) => f.replace(/\.s-card\.json$/, ""));
-	} catch {
-		diskCardIds = [];
-	}
-
-	const cards: PackageValidateBundle["cards"] = [];
-	const indexedIds = conf?.cards.map((c) => c.cardId) ?? [];
-	for (const cardId of indexedIds) {
-		const cardPath = path.join(found.dir, "cards", `${cardId}.s-card.json`);
-		try {
-			const cardRaw = await readJsonFile(cardPath);
-			const parsed = CallCardDefinitionSchema.safeParse(cardRaw);
-			cards.push({
-				cardId,
-				card: parsed.success ? parsed.data : null,
-				cardRaw,
-			});
-		} catch {
-			cards.push({ cardId, card: null, cardRaw: null });
-		}
-	}
-
-	return {
-		chapterId,
-		containerPackageId: found.containerPackageId,
-		conf,
-		confRaw,
-		cards,
-		diskCardIds,
-		characters,
-	};
 }

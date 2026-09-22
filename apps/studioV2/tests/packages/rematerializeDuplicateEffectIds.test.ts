@@ -3,7 +3,7 @@
 	*/
 import { describe, expect, it } from "vitest";
 import type { CallCardDefinition } from "@airpc/rpg-engine";
-import { rematerializeDuplicateEffectIds } from "@studio-v2/src/utils/server/packages/fs/package/rematerializeDuplicateEffectIds.server";
+import { rematerializeDuplicateEffectIds } from "@studio-v2/src/utils/server/packages/fs/package/rematerialize/rematerializeDuplicateEffectIds.server";
 import type { StudioCanvasLayout } from "@studio-v2/src/utils/server/types/diskStoryPackage.server";
 
 function cardWithFx(

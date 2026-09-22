@@ -5,15 +5,11 @@
 
 import { useCallback, useEffect } from "react";
 import { loadAgentSchedule } from "@studio-v2/src/bis/pageBis/characters/schedule/loadAgentSchedule.bis";
-import { useCharactersStore } from "@studio-v2/src/stores/characters/charactersStore";
 import type { ScheduledIntent } from "@studio-v2/typeFiles/library/schedule/engineScheduledIntent";
-
-function errorMessage(error: unknown, fallback: string): string {
-	if (error instanceof Error && error.message.trim() !== "") {
-		return error.message;
-	}
-	return fallback;
-}
+import {
+	scheduleErrorMessage,
+	useCharacterScheduleStoreSlice,
+} from "./characterScheduleList.helpers";
 
 /**
 	* 日程列表投影：供 UI 绑 CRUD；真源在 characters store。
@@ -41,57 +37,37 @@ export function useCharacterScheduleListBis(
 	userId: string,
 	agentId: string,
 ): CharacterScheduleListBis {
-	const intents = useCharactersStore(function (s) {
-		return s.scheduleIntents;
-	});
-	const clockMs = useCharactersStore(function (s) {
-		return s.scheduleClockMs;
-	});
-	const loading = useCharactersStore(function (s) {
-		return s.scheduleLoading;
-	});
-	const error = useCharactersStore(function (s) {
-		return s.scheduleError;
-	});
-	const applyScheduleLoadStarted = useCharactersStore(function (s) {
-		return s.applyScheduleLoadStarted;
-	});
-	const applyScheduleLoadResult = useCharactersStore(function (s) {
-		return s.applyScheduleLoadResult;
-	});
-	const clearScheduleList = useCharactersStore(function (s) {
-		return s.clearScheduleList;
-	});
-	const setScheduleError = useCharactersStore(function (s) {
-		return s.setScheduleError;
-	});
+	const slice = useCharacterScheduleStoreSlice();
 
-	const reload = useCallback(async function () {
-		if (!userId) {
-			clearScheduleList();
-			return;
-		}
-		applyScheduleLoadStarted();
-		try {
-			const page = await loadAgentSchedule({ userId, agentId });
-			applyScheduleLoadResult({
-				ok: true,
-				intents: page.intents,
-				clockMs: page.clockMs,
-			});
-		} catch (err) {
-			applyScheduleLoadResult({
-				ok: false,
-				message: errorMessage(err, "加载定时外呼失败"),
-			});
-		}
-	}, [
-		agentId,
-		applyScheduleLoadResult,
-		applyScheduleLoadStarted,
-		clearScheduleList,
-		userId,
-	]);
+	const reload = useCallback(
+		async function () {
+			if (!userId) {
+				slice.clearScheduleList();
+				return;
+			}
+			slice.applyScheduleLoadStarted();
+			try {
+				const page = await loadAgentSchedule({ userId, agentId });
+				slice.applyScheduleLoadResult({
+					ok: true,
+					intents: page.intents,
+					clockMs: page.clockMs,
+				});
+			} catch (err) {
+				slice.applyScheduleLoadResult({
+					ok: false,
+					message: scheduleErrorMessage(err, "加载定时外呼失败"),
+				});
+			}
+		},
+		[
+			agentId,
+			slice.applyScheduleLoadResult,
+			slice.applyScheduleLoadStarted,
+			slice.clearScheduleList,
+			userId,
+		],
+	);
 
 	useEffect(
 		function () {
@@ -101,11 +77,11 @@ export function useCharacterScheduleListBis(
 	);
 
 	return {
-		intents,
-		clockMs,
-		loading,
-		error,
-		setError: setScheduleError,
+		intents: slice.intents,
+		clockMs: slice.clockMs,
+		loading: slice.loading,
+		error: slice.error,
+		setError: slice.setScheduleError,
 		reload,
 	};
 }

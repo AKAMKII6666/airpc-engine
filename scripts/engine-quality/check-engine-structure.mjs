@@ -13,6 +13,10 @@ import { createRequire } from "node:module";
 import { readdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  analyzeDirectoryClusteringShared,
+  engineResponsibilityGroup,
+} from "../quality/directory-clustering.mjs";
 
 const require = createRequire(import.meta.url);
 const ts = require("typescript");
@@ -30,6 +34,8 @@ const RULE = {
   BASELINE: "ENGINE-STRUCT-007",
   BASELINE_META: "ENGINE-STRUCT-008",
   CLUSTER: "ENGINE-STRUCT-009",
+  CLUSTER_ROOT_STACK: "ENGINE-STRUCT-010",
+  CLUSTER_STUB_FOREST: "ENGINE-STRUCT-011",
 };
 
 /** @typedef {{ ruleId: string, file: string, line: number, column: number, message: string, suggestion: string, severity?: "error"|"warn", current?: string|number, allowed?: string|number }} Violation */
@@ -520,60 +526,22 @@ async function analyzeColocatedTests(scanRootAbs, ctx, enginePackageRel) {
 }
 
 /**
- * 目录聚类：同层 ≥4 个 ts 且职责组 ≥2、无子目录 → 违规（跳过 host 单文件热点目录的误伤需靠子目录存在）。
+ * 目录聚类：009 无子目录平铺（硬失败）；010 根层异责堆叠；011 stub 森林。
  */
 async function analyzeDirectoryClustering(scanRootAbs, ctx) {
-  /** @type {Violation[]} */
-  const violations = [];
   const exclude = new Set(ctx.config.excludeDirNames ?? []);
   const root = path.join(scanRootAbs, "src");
-
-  function responsibilityGroup(name) {
-    const stem = name.replace(/\.tsx?$/, "");
-    if (/Host|Session|Resolver/i.test(stem)) return "host";
-    if (/Effect|Sink|Ledger/i.test(stem)) return "effect";
-    if (/Schedule|Tick|Clock|Recurring/i.test(stem)) return "schedule";
-    if (/Memory|Profile|Persist/i.test(stem)) return "persist";
-    if (/Valid|Schema|Package/i.test(stem)) return "validate";
-    if (/Card|Call|Free/i.test(stem)) return "card";
-    const m = stem.match(/^([a-z]+)/i);
-    return m ? m[1].toLowerCase() : stem.slice(0, 6).toLowerCase();
-  }
-
-  const walk = async (dir) => {
-    let entries;
-    try {
-      entries = await readdir(dir, { withFileTypes: true });
-    } catch {
-      return;
-    }
-    const codeFiles = entries
-      .filter((e) => e.isFile() && /\.tsx?$/.test(e.name) && !e.name.endsWith(".d.ts"))
-      .map((e) => e.name);
-    const subdirs = entries.filter((e) => e.isDirectory() && !exclude.has(e.name));
-    if (codeFiles.length >= 4 && subdirs.length === 0) {
-      const groups = new Set(codeFiles.map(responsibilityGroup));
-      if (groups.size >= 2) {
-        const rel = path.relative(ctx.repoRoot, dir).split(path.sep).join("/");
-        // v1：既有平铺目录只告警；硬阻断留给后续拆目录任务，避免休整期无法落地止血门禁。
-        violations.push({
-          ruleId: RULE.CLUSTER,
-          file: rel,
-          line: 1,
-          column: 1,
-          severity: "warn",
-          current: codeFiles.length,
-          allowed: "clustered-dirs",
-          message: `目录含 ${codeFiles.length} 个源文件且职责组≥2（${[...groups].join(",")}），应分子目录`,
-          suggestion: "按职责拆分子目录，禁止长前缀代目录；新增文件勿继续恶化平铺",
-        });
-      }
-    }
-    for (const d of subdirs) await walk(path.join(dir, d.name));
-  };
-
-  await walk(root);
-  return violations;
+  return analyzeDirectoryClusteringShared({
+    scanRootAbs: root,
+    repoRoot: ctx.repoRoot,
+    excludeDirNames: exclude,
+    responsibilityGroup: engineResponsibilityGroup,
+    ruleIds: {
+      noSubdir: RULE.CLUSTER,
+      rootStack: RULE.CLUSTER_ROOT_STACK,
+      stubForest: RULE.CLUSTER_STUB_FOREST,
+    },
+  });
 }
 
 /**

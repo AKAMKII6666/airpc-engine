@@ -3,7 +3,7 @@
 	* 不挂载 React；锁编排形状与 comProps 覆盖解析行为，避免后续角色批改坏基建。
 	*/
 import { describe, expect, it, vi } from "vitest";
-import type { AutoFormItem } from "@studio-v2/src/commonUiComponents/form/autoFormTypes";
+import type { AutoFormItem } from "@studio-v2/src/commonUiComponents/form/types/autoFormTypes";
 import { AutoFormComsMap } from "@studio-v2/src/commonUiComponents/form/AutoForm/comsMap";
 import {
 	buildNestedAutoBindProps,

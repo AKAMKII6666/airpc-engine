@@ -3,9 +3,9 @@
  */
 import { describe, expect, it } from "vitest";
 import { PlayerProfileSchema } from "../../src/index.js";
-import { executeEffects } from "../../src/runtime/effectExecutor.js";
+import { executeEffects } from "../../src/runtime/effect/effectExecutor.js";
 import type { CallSession } from "../../src/host/types.js";
-import type { Effect } from "../../src/schema/outcome.js";
+import type { Effect } from "../../src/schema/call/outcome.js";
 
 describe("create_voicemail executor reject (V2-VM-12)", () => {
 	it("unsupported：failed 且 telephony.voicemails 无新写", async () => {

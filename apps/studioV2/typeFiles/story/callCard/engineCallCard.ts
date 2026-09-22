@@ -1,6 +1,6 @@
 /**
 	* 与引擎同构镜像，不以 import 同步。
-	* 对齐 packages/rpg-engine/src/schema/callCard.ts 的 CallCardDefinitionSchema / StoryPackageConfSchema。
+	* 对齐 packages/rpg-engine/src/schema/call/callCard.ts 的 CallCardDefinitionSchema / StoryPackageConfSchema。
 	*/
 import type { EnginePromptSceneLayer } from "@studio-v2/typeFiles/library/characters/engineCharacterDef";
 import type {

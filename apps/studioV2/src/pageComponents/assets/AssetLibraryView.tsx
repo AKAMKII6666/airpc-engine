@@ -1,22 +1,21 @@
 /**
 	* 资源库独立页：类型筛选 + 列表 + 详情 Formik + 上传 Modal + 删除确认。
-	* 挂 shell 灌 assets store；增删改经 pageBis ↔ /api/assets。
 	*/
 "use client";
 
 import type { FC } from "react";
-import { Alert, Typography } from "@mui/material";
+import { Alert } from "@mui/material";
 import { useAssetsShellBis } from "@studio-v2/src/bis/shellBis/assets/assets.shell.bis";
 // 引用了AssetLibraryList组件，用于资源列表
 import { AssetLibraryList } from "@studio-v2/src/pageComponents/assets/AssetLibraryList";
-// 引用了AssetLibraryDetail组件，用于资源详情
-import { AssetLibraryDetail } from "@studio-v2/src/pageComponents/assets/AssetLibraryDetail";
 // 引用了AssetLibraryHeader组件，用于页头
-import { AssetLibraryHeader } from "@studio-v2/src/pageComponents/assets/com/AssetLibraryHeader";
+import { AssetLibraryHeader } from "@studio-v2/src/pageComponents/assets/com/library/AssetLibraryHeader";
+// 引用了AssetLibraryDetailPane组件，用于详情区
+import { AssetLibraryDetailPane } from "@studio-v2/src/pageComponents/assets/com/library/AssetLibraryDetailPane";
 // 引用了AssetUploadModal组件，用于上传资源文件
-import { AssetUploadModal } from "@studio-v2/src/pageComponents/assets/com/AssetUploadModal";
+import { AssetUploadModal } from "@studio-v2/src/pageComponents/assets/com/upload/AssetUploadModal";
 // 引用了AssetLibraryToolbar组件，用于类型筛选
-import { AssetLibraryToolbar } from "@studio-v2/src/pageComponents/assets/com/AssetLibraryToolbar";
+import { AssetLibraryToolbar } from "@studio-v2/src/pageComponents/assets/com/library/AssetLibraryToolbar";
 // 引用了DeleteConfirmModal组件，用于删除确认
 import { DeleteConfirmModal } from "@studio-v2/src/commonUiComponents/modal/confirm/DeleteConfirmModal";
 import { useAssetLibraryPage } from "@studio-v2/src/pageComponents/assets/hooks/useAssetLibraryPage";
@@ -47,28 +46,12 @@ export const AssetLibraryView: FC = function () {
 					onSelect={page.setSelectedId}
 					onRequestDelete={page.onRequestDelete}
 				/>
-				{page.loading ? (
-					<section className={styles.detailPane} aria-label="资源详情">
-						{/* 引用了Typography组件，用于加载态 */}
-						<Typography variant="body2" color="text.secondary">
-							加载资源中…
-						</Typography>
-					</section>
-				) : page.selected ? (
-					// 引用了AssetLibraryDetail组件，用于资源详情编辑
-					<AssetLibraryDetail
-						key={page.selected.assetId}
-						asset={page.selected}
-						onSaved={page.onDetailSaved}
-					/>
-				) : (
-					<section className={styles.detailPane} aria-label="资源详情">
-						{/* 引用了Typography组件，用于空列表提示 */}
-						<Typography variant="body2" color="text.secondary">
-							暂无资源。可点击「上传资源」写入 data/assets。
-						</Typography>
-					</section>
-				)}
+				{/* 引用了AssetLibraryDetailPane组件，用于详情区 */}
+				<AssetLibraryDetailPane
+					loading={page.loading}
+					selected={page.selected}
+					onSaved={page.onDetailSaved}
+				/>
 			</div>
 
 			{/* 引用了AssetUploadModal组件，用于上传真实文件 */}

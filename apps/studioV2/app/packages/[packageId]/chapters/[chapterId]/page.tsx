@@ -1,7 +1,7 @@
 /**
 	* 章编辑器路由。
 	*/
-import { StoryEditorShell } from "@studio-v2/src/pageComponents/storyEditor/StoryEditorShell";
+import { StoryEditorShell } from "@studio-v2/src/pageComponents/storyEditor/chrome/StoryEditorShell";
 
 type ChapterEditorPageProps = {
 	params: Promise<{ packageId: string; chapterId: string }>;

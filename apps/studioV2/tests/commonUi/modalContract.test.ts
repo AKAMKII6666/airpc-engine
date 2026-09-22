@@ -7,7 +7,7 @@ import type {
 	FormModalProps,
 } from "@studio-v2/src/commonUiComponents/modal/shared/modalTypes";
 import type { DeleteConfirmModalProps } from "@studio-v2/src/commonUiComponents/modal/confirm/DeleteConfirmModal";
-import type { AutoFormItem } from "@studio-v2/src/commonUiComponents/form/autoFormTypes";
+import type { AutoFormItem } from "@studio-v2/src/commonUiComponents/form/types/autoFormTypes";
 
 describe("AppModal / FormModal / DeleteConfirmModal contracts", () => {
 	it("AppModalProps requires open/title/onClose/children", () => {

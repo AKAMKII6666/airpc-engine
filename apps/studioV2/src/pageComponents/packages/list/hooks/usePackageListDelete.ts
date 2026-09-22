@@ -13,6 +13,50 @@ export type PackageDeleteTarget = {
 	referenceLines: string[];
 };
 
+function openPackageDeleteTarget(
+	pkg: StoryPackageSummary,
+	packageCount: number,
+	setDeleteError: (message: string | undefined) => void,
+	setDeleteTarget: (target: PackageDeleteTarget | undefined) => void,
+): void {
+	if (packageCount <= 1) {
+		setDeleteError("不能删除工作区最后一个故事包");
+		return;
+	}
+	setDeleteError(undefined);
+	setDeleteTarget({
+		packageId: pkg.packageId,
+		title: pkg.title,
+		referenceLines: [
+			`packageId：${pkg.packageId}`,
+			`${pkg.cardCount} 张卡 · ${pkg.characterCount} 角色引用`,
+		],
+	});
+}
+
+async function confirmPackageDelete(input: {
+	deleteTarget: PackageDeleteTarget | undefined;
+	deleteBusy: boolean;
+	onDelete: (packageId: string) => Promise<void>;
+	setDeleteBusy: (busy: boolean) => void;
+	setDeleteError: (message: string | undefined) => void;
+	setDeleteTarget: (target: PackageDeleteTarget | undefined) => void;
+}): Promise<void> {
+	if (!input.deleteTarget || input.deleteBusy) return;
+	input.setDeleteBusy(true);
+	input.setDeleteError(undefined);
+	try {
+		await input.onDelete(input.deleteTarget.packageId);
+		input.setDeleteTarget(undefined);
+	} catch (err) {
+		input.setDeleteError(
+			err instanceof Error ? err.message : "删除故事包失败",
+		);
+	} finally {
+		input.setDeleteBusy(false);
+	}
+}
+
 /**
 	* 删除确认弹层编排；onDelete 由 session 注入。
 	*/
@@ -45,20 +89,7 @@ export function usePackageListDelete(input: {
 	}
 
 	function openDeleteModal(pkg: StoryPackageSummary): void {
-		const blocked = deleteBlockedReason(pkg);
-		if (blocked) {
-			setDeleteError(blocked);
-			return;
-		}
-		setDeleteError(undefined);
-		setDeleteTarget({
-			packageId: pkg.packageId,
-			title: pkg.title,
-			referenceLines: [
-				`packageId：${pkg.packageId}`,
-				`${pkg.cardCount} 张卡 · ${pkg.characterCount} 角色引用`,
-			],
-		});
+		openPackageDeleteTarget(pkg, packageCount, setDeleteError, setDeleteTarget);
 	}
 
 	function closeDeleteModal(): void {
@@ -68,19 +99,14 @@ export function usePackageListDelete(input: {
 	}
 
 	async function onConfirmDelete(): Promise<void> {
-		if (!deleteTarget || deleteBusy) return;
-		setDeleteBusy(true);
-		setDeleteError(undefined);
-		try {
-			await onDelete(deleteTarget.packageId);
-			setDeleteTarget(undefined);
-		} catch (err) {
-			setDeleteError(
-				err instanceof Error ? err.message : "删除故事包失败",
-			);
-		} finally {
-			setDeleteBusy(false);
-		}
+		await confirmPackageDelete({
+			deleteTarget,
+			deleteBusy,
+			onDelete,
+			setDeleteBusy,
+			setDeleteError,
+			setDeleteTarget,
+		});
 	}
 
 	return {

@@ -10,7 +10,7 @@ import {
 	RadioGroup,
 } from "@mui/material";
 import { FormFieldShell } from "../../FormFieldShell";
-import type { FormSelectOption } from "../../formTypes";
+import type { FormSelectOption } from "../../types/formTypes";
 import type { FormBoundFieldProps } from "../types/formBoundTypes";
 import {
 	readFormikFieldError,

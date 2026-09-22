@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
   validateCreatePackageForm,
   CREATE_PACKAGE_INITIAL_VALUES,
-} from "@studio-v2/src/bis/pageBis/packages/createPackageForm";
+} from "@studio-v2/src/bis/pageBis/packages/create/createPackageForm";
 
 describe("createPackageForm", () => {
   it("rejects empty title", () => {

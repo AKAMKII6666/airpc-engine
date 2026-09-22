@@ -7,7 +7,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createTestHost } from "./inMemoryMemoryPort.js";
-import type { CreateEngineHostOptions } from "../../src/ports/engineHostApi.js";
+import type { CreateEngineHostOptions } from "../../src/ports/host/engineHostSurface.js";
 
 const dataSrc = path.resolve(
 	path.dirname(fileURLToPath(import.meta.url)),

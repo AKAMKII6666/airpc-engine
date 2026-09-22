@@ -32,24 +32,82 @@ export type PackageValidatePanelProps = {
 	onValidate: () => void;
 };
 
+function renderPackageValidateActions(input: {
+	packages: StoryPackageSummary[];
+	packageId: string;
+	selectDisabled: boolean;
+	validateDisabled: boolean;
+	validating: boolean;
+	onPackageChange: (packageId: string) => void;
+	onValidate: () => void;
+}) {
+	return (
+		<div className={styles.actions}>
+			{/* 引用了FormControl组件，用于故事包 Select */}
+			<FormControl size="small" className={styles.select}>
+				{/* 引用了InputLabel组件，用于 Select 标签 */}
+				<InputLabel id="debugger-pkg-validate-label">故事包</InputLabel>
+				{/* 引用了Select组件，用于选择磁盘包 */}
+				<Select
+					labelId="debugger-pkg-validate-label"
+					label="故事包"
+					value={input.packageId}
+					disabled={input.selectDisabled}
+					onChange={function (e) {
+						input.onPackageChange(String(e.target.value));
+					}}
+				>
+					{input.packages.map(function (p) {
+						return (
+							// 引用了MenuItem组件，用于单条包选项
+							<MenuItem key={p.packageId} value={p.packageId}>
+								{p.title}（{p.packageId}）
+							</MenuItem>
+						);
+					})}
+				</Select>
+			</FormControl>
+			{/* 引用了Button组件，用于触发读盘 validate */}
+			<Button
+				size="small"
+				variant="contained"
+				disabled={input.validateDisabled}
+				onClick={input.onValidate}
+			>
+				{input.validating ? "校验中…" : "校验读盘包"}
+			</Button>
+			{/* 引用了Button组件，用于跳转编辑器改 Content */}
+			<Button
+				component={Link}
+				href={`/packages/${encodeURIComponent(input.packageId)}`}
+				size="small"
+				variant="outlined"
+				disabled={!input.packageId}
+			>
+				打开编辑器
+			</Button>
+		</div>
+	);
+}
+
 export const PackageValidatePanel: FC<PackageValidatePanelProps> = function ({
-	// packages 是磁盘故事包列表
+	// packages 是磁盘故事包列表，用于 Select 选项
 	packages,
-	// packageId 是当前选中包键
+	// packageId 是当前选中包键，用于 Select 值
 	packageId,
 	// listLoading 表示列表加载中
 	listLoading,
-	// listError 是列表失败人话
+	// listError 是列表失败人话，用于错误提示
 	listError,
 	// validating 表示校验请求进行中
 	validating,
-	// validateError 是校验请求失败人话
+	// validateError 是校验请求失败人话，用于错误提示
 	validateError,
-	// report 是最近一次读盘 ValidationReport
+	// report 是最近一次读盘 ValidationReport，用于报告区
 	report,
-	// onPackageChange 切换目标包并清空旧报告
+	// onPackageChange 用于切换目标包并清空旧报告
 	onPackageChange,
-	// onValidate 触发只读 validate
+	// onValidate 用于触发只读 validate
 	onValidate,
 }) {
 	const selectDisabled = listLoading || packages.length === 0;
@@ -67,56 +125,15 @@ export const PackageValidatePanel: FC<PackageValidatePanelProps> = function ({
 						只读 data/storis-packages · 不写盘 · 不 Host beginCall
 					</span>
 				</div>
-				<div className={styles.actions}>
-					{/* 引用了FormControl组件，用于故事包 Select */}
-					<FormControl size="small" className={styles.select}>
-						{/* 引用了InputLabel组件，用于 Select 标签 */}
-						<InputLabel id="debugger-pkg-validate-label">
-							故事包
-						</InputLabel>
-						{/* 引用了Select组件，用于选择磁盘包 */}
-						<Select
-							labelId="debugger-pkg-validate-label"
-							label="故事包"
-							value={packageId}
-							disabled={selectDisabled}
-							onChange={function (e) {
-								onPackageChange(String(e.target.value));
-							}}
-						>
-							{packages.map(function (p) {
-								return (
-									// 引用了MenuItem组件，用于单条包选项
-									<MenuItem
-										key={p.packageId}
-										value={p.packageId}
-									>
-										{p.title}（{p.packageId}）
-									</MenuItem>
-								);
-							})}
-						</Select>
-					</FormControl>
-					{/* 引用了Button组件，用于触发读盘 validate */}
-					<Button
-						size="small"
-						variant="contained"
-						disabled={validateDisabled}
-						onClick={onValidate}
-					>
-						{validating ? "校验中…" : "校验读盘包"}
-					</Button>
-					{/* 引用了Button组件，用于跳转编辑器改 Content */}
-					<Button
-						component={Link}
-						href={`/packages/${encodeURIComponent(packageId)}`}
-						size="small"
-						variant="outlined"
-						disabled={!packageId}
-					>
-						打开编辑器
-					</Button>
-				</div>
+				{renderPackageValidateActions({
+					packages,
+					packageId,
+					selectDisabled,
+					validateDisabled,
+					validating,
+					onPackageChange,
+					onValidate,
+				})}
 			</div>
 
 			{listError ? (

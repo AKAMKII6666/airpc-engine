@@ -29,12 +29,6 @@ function mapGenderToEdit(gender: CharacterGender): CharacterEditGender {
 	return "other";
 }
 
-function mapEditGenderToStore(gender: CharacterEditGender): CharacterGender {
-	if (gender === "male") return "male";
-	if (gender === "female") return "female";
-	return "non_binary";
-}
-
 /** 变体 id 系统 UUID；UI 隐藏，prefix 仅兼容旧调用签名 */
 function emptyVariant(_prefix: string): PromptVariantForm {
 	void _prefix;
@@ -91,86 +85,7 @@ export function toCharacterDetailFormValues(
 	};
 }
 
-/**
-	* 将详情表单合并回既有角色投影（保留 kind/bio/freeCall/社交摘要等列表字段）。
-	* lastEditedAt 刷新；纯投影，不写盘（写盘见 commitSaveCharacterDetail）。
-	*/
-export function applyCharacterDetailForm(
-	previous: CharacterSummary,
-	values: CharacterDetailFormValues,
-): CharacterSummary {
-	const phoneNumber = values.meta.phoneNumber.trim();
-	const avatarAssetId = values.meta.avatarAssetId.trim();
-	const age =
-		values.identity.age === "" ? null : (values.identity.age as number);
-
-	return {
-		...previous,
-		displayName: values.displayName.trim(),
-		avatarAssetId: avatarAssetId.length > 0 ? avatarAssetId : null,
-		lastEditedAt: new Date().toISOString(),
-		identity: {
-			...previous.identity,
-			fullName: values.identity.fullName.trim(),
-			nickname: values.identity.nickname.trim(),
-			gender: mapEditGenderToStore(values.identity.gender),
-			age,
-			birthday: values.identity.birthday.trim(),
-			phoneNumber,
-		},
-		meta: {
-			phoneNumber,
-			avatarAssetId,
-		},
-		persona: {
-			systemPrompt: values.persona.systemPrompt.trim(),
-			personalityCode: values.persona.personalityCode.trim(),
-			speakingStyle: values.persona.speakingStyle.trim(),
-			profession: values.persona.profession.trim(),
-			exampleLines: values.persona.exampleLines.map((l) => l.trim()),
-			voiceId: values.persona.voiceId,
-			voiceNotes: values.persona.voiceNotes.trim(),
-			attitudeHistoryLimit:
-				values.persona.attitudeHistoryLimit === ""
-					? 5
-					: values.persona.attitudeHistoryLimit,
-		},
-		callFlowPrompts: {
-			longSilence: values.callFlowPrompts.longSilence.map((v) => ({
-				variantId: v.variantId.trim(),
-				text: v.text.trim(),
-			})),
-			longCallNudge: values.callFlowPrompts.longCallNudge.map((v) => ({
-				variantId: v.variantId.trim(),
-				text: v.text.trim(),
-			})),
-			preHangupFarewell: values.callFlowPrompts.preHangupFarewell.map((v) => ({
-				variantId: v.variantId.trim(),
-				text: v.text.trim(),
-			})),
-		},
-		defaultPromptScenes: values.defaultPromptScenes.map((scene, index) => ({
-			...scene,
-			layerId: scene.layerId.trim(),
-			priority: index * 10,
-			match: {
-				callDirection: scene.match.callDirection,
-				localHourRange: {
-					from: scene.match.localHourRange.from,
-					to: scene.match.localHourRange.to,
-				},
-			},
-			patch: {
-				openingSpeakable: scene.patch.openingSpeakable.trim(),
-				openingPrivate: scene.patch.openingPrivate.trim(),
-				emotion: scene.patch.emotion.trim(),
-				toneHint: scene.patch.toneHint.trim(),
-				appendSpeakable: scene.patch.appendSpeakable.trim(),
-				appendPrivate: scene.patch.appendPrivate.trim(),
-			},
-		})),
-	};
-}
+export { applyCharacterDetailForm } from "./characterDetailFormApply.helpers";
 
 /** 新建角色时详情可编辑字段的默认空档 */
 export function createEmptyCharacterDetailSlots(): Pick<

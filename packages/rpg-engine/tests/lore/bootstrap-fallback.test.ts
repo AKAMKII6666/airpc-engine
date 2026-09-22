@@ -9,7 +9,7 @@ import {
 } from "@airpc/rpg-engine";
 import { bareProfile, failingLorePort, mockLlmPort } from "./loreBootstrapFixtures.js";
 
-describe("lore bootstrap unit", function () {
+describe("lore bootstrap fallback builder", function () {
 	it("buildFallbackLore sets source=fallback", function () {
 		const lore = buildFallbackLore({
 			user: bareProfile("u").user,
@@ -26,7 +26,9 @@ describe("lore bootstrap unit", function () {
 		expect(lore.source).toBe("fallback");
 		expect(lore.sharedPremise).toContain("深圳");
 	});
+});
 
+describe("lore bootstrap LLM path", function () {
 	it("mock LLM port writes source=llm", async function () {
 		const llmDoc: WorldLoreDoc = {
 			version: 1,
@@ -64,7 +66,9 @@ describe("lore bootstrap unit", function () {
 		expect(result.lore.sharedPremise).toContain("LLM");
 		expect(profile.world.lore?.source).toBe("llm");
 	});
+});
 
+describe("lore bootstrap port failure", function () {
 	it("port failure falls back", async function () {
 		const profile = bareProfile("u2");
 		const result = await bootstrapLoreOntoProfile({

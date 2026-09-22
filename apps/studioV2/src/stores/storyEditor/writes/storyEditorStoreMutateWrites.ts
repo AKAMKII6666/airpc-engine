@@ -52,18 +52,14 @@ function flushBaseline(
 	};
 }
 
-/** conf 写回、画布 flush、保存相位 */
-export function createStoryEditorMutateActions(
+/** conf 写回与画布 flush */
+function createStoryEditorConfFlushActions(
 	set: StoryEditorSet,
 ): Pick<
 	StoryEditorStoreState,
 	| "applyBundleWriteResult"
 	| "applyCanvasFlushResult"
 	| "markCanvasPendingFlush"
-	| "applySaveStarted"
-	| "applySaveSuccess"
-	| "applySaveFailure"
-	| "clearSaveValidation"
 > {
 	return {
 		applyBundleWriteResult(bundle: DiskStoryPackageBundle) {
@@ -96,7 +92,20 @@ export function createStoryEditorMutateActions(
 		markCanvasPendingFlush() {
 			set({ canvasPendingFlush: true });
 		},
+	};
+}
 
+/** 保存相位与校验清理 */
+function createStoryEditorSaveActions(
+	set: StoryEditorSet,
+): Pick<
+	StoryEditorStoreState,
+	| "applySaveStarted"
+	| "applySaveSuccess"
+	| "applySaveFailure"
+	| "clearSaveValidation"
+> {
+	return {
 		applySaveStarted() {
 			set({
 				savePhase: "saving",
@@ -131,5 +140,24 @@ export function createStoryEditorMutateActions(
 		clearSaveValidation() {
 			set({ saveValidation: null });
 		},
+	};
+}
+
+/** conf 写回、画布 flush、保存相位 */
+export function createStoryEditorMutateActions(
+	set: StoryEditorSet,
+): Pick<
+	StoryEditorStoreState,
+	| "applyBundleWriteResult"
+	| "applyCanvasFlushResult"
+	| "markCanvasPendingFlush"
+	| "applySaveStarted"
+	| "applySaveSuccess"
+	| "applySaveFailure"
+	| "clearSaveValidation"
+> {
+	return {
+		...createStoryEditorConfFlushActions(set),
+		...createStoryEditorSaveActions(set),
 	};
 }

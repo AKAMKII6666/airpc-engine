@@ -33,6 +33,33 @@ type Props = {
 	onExport: () => void;
 };
 
+function renderExportKindPicker(
+	kind: ExportKind,
+	onKindChange: (kind: ExportKind) => void,
+) {
+	return (
+		// 引用了FormControl组件，用于导出用途 Select 容器
+		<FormControl size="small" fullWidth>
+			{/* 引用了InputLabel组件，用于导出用途 Select 标签 */}
+			<InputLabel id="export-kind-label">导出用途</InputLabel>
+			{/* 引用了Select组件，用于选择导出类型 */}
+			<Select
+				labelId="export-kind-label"
+				label="导出用途"
+				value={kind}
+				onChange={(e) => onKindChange(e.target.value as ExportKind)}
+			>
+				{/* 引用了MenuItem组件，用于正式故事包选项 */}
+				<MenuItem value="formal">正式故事包（引擎 / 话机）</MenuItem>
+				{/* 引用了MenuItem组件，用于调试故事包选项 */}
+				<MenuItem value="debug">调试故事包</MenuItem>
+				{/* 引用了MenuItem组件，用于源工程包选项 */}
+				<MenuItem value="source">源工程包（含布局）</MenuItem>
+			</Select>
+		</FormControl>
+	);
+}
+
 export const ExportPackageForm: FC<Props> = function ExportPackageForm({
 	// packages 是磁盘故事包列表，用于 Select 选项
 	packages,
@@ -79,25 +106,7 @@ export const ExportPackageForm: FC<Props> = function ExportPackageForm({
 				</Select>
 			</FormControl>
 
-			{/* 引用了FormControl组件，用于导出用途 Select 容器 */}
-			<FormControl size="small" fullWidth>
-				{/* 引用了InputLabel组件，用于导出用途 Select 标签 */}
-				<InputLabel id="export-kind-label">导出用途</InputLabel>
-				{/* 引用了Select组件，用于选择导出类型 */}
-				<Select
-					labelId="export-kind-label"
-					label="导出用途"
-					value={kind}
-					onChange={(e) => onKindChange(e.target.value as ExportKind)}
-				>
-					{/* 引用了MenuItem组件，用于正式故事包选项 */}
-					<MenuItem value="formal">正式故事包（引擎 / 话机）</MenuItem>
-					{/* 引用了MenuItem组件，用于调试故事包选项 */}
-					<MenuItem value="debug">调试故事包</MenuItem>
-					{/* 引用了MenuItem组件，用于源工程包选项 */}
-					<MenuItem value="source">源工程包（含布局）</MenuItem>
-				</Select>
-			</FormControl>
+			{renderExportKindPicker(kind, onKindChange)}
 
 			{summary ? (
 				// 引用了ExportSummaryPanel组件，用于展示校验摘要

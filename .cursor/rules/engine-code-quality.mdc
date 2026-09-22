@@ -23,6 +23,7 @@ alwaysApply: false
 - 新文件 / 新函数执行硬上限；已超限遗留文件以 `scripts/engine-quality/engine-quality-baseline.json` 止血——触碰后受控指标不得净增长。
 - `eslint-disable`、`@ts-ignore`、`@ts-expect-error`、门禁豁免必须在同处写明原因；临时豁免写清退出条件。
 - 引擎合并前必须通过 `npm run quality:engine`；不得以人工承诺替代机器门禁。
+- **目录职责聚类（硬门禁）：** `ENGINE-STRUCT-009` 无子目录异责平铺；`ENGINE-STRUCT-010` 根层异责堆叠；`ENGINE-STRUCT-011` stub 森林。三者均为 **error**（挡 `quality:engine`）。真搬迁后删根 stub 并改 import；仅包门面 `src/index.ts` 允许聚合导出。
 
 ## 阈值（与 check:engine-structure 一致）
 

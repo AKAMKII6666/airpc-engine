@@ -8,7 +8,7 @@ import { useEffect } from "react";
 import type { SelectChangeEvent } from "@mui/material/Select";
 import { loadCharacterMemoryUsers } from "@studio-v2/src/bis/pageBis/characters/memory/loadCharacterMemoryUsers.bis";
 import { useCharactersStore } from "@studio-v2/src/stores/characters/charactersStore";
-import type { DiskUserSummaryDto } from "@studio-v2/typeFiles/library/users/diskUserSummary";
+import type { DiskUserSummaryDto } from "@studio-v2/typeFiles/library/users/summary/diskUserSummary";
 
 function errorMessage(error: unknown, fallback: string): string {
 	if (error instanceof Error && error.message.trim() !== "") {

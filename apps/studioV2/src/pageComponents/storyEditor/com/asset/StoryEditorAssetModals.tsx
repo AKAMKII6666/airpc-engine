@@ -10,9 +10,9 @@ import {
 	ASSET_BASIC_ITEMS,
 	validateAssetDetailForm,
 	type AssetDetailFormValues,
-} from "@studio-v2/src/bis/pageBis/assets/assetDetailForm";
+} from "@studio-v2/src/bis/pageBis/assets/form/assetDetailForm";
 import type { AssetSummary } from "@studio-v2/typeFiles/library/assets/assetSummary";
-import { AssetUploadModal } from "@studio-v2/src/pageComponents/assets/com/AssetUploadModal";
+import { AssetUploadModal } from "@studio-v2/src/pageComponents/assets/com/upload/AssetUploadModal";
 
 const EDIT_ASSET_FORM_ITEMS = [...ASSET_BASIC_ITEMS];
 

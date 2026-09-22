@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
 	buildConversationInertiaBlock,
 	buildConversationInertiaSoftContext,
-} from "../../src/runtime/promptPhoneBlocks.js";
+} from "../../src/runtime/prompt/blocks/promptPhoneBlocks.js";
 import type { BeginCallContext } from "../../src/host/types.js";
 
 function beginWithInertia(): BeginCallContext {

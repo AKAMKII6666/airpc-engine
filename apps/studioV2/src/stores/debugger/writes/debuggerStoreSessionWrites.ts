@@ -6,9 +6,9 @@ import type {
 	DebuggerMailboxLoadResult,
 	DebuggerSessionLoadResult,
 } from "@studio-v2/typeFiles/debugger/store/debuggerStoreState";
-import type { DebuggerMailboxSnapshot } from "@studio-v2/typeFiles/debugger/mailboxView";
-import type { DebuggerCallSessionView } from "@studio-v2/typeFiles/debugger/callSession";
-import type { DebuggerPostCallJobView } from "@studio-v2/typeFiles/debugger/callSession";
+import type { DebuggerMailboxSnapshot } from "@studio-v2/typeFiles/debugger/mailbox/mailboxView";
+import type { DebuggerCallSessionView } from "@studio-v2/typeFiles/debugger/callSession/callSession";
+import type { DebuggerPostCallJobView } from "@studio-v2/typeFiles/debugger/callSession/callSession";
 import {
 	createDebuggerSessionSlice,
 	type DebuggerStoreState,

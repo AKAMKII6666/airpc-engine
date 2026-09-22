@@ -14,7 +14,7 @@ import {
   isEngineError,
   SCHEDULE_CHAPTER_ID,
 } from "../../src/index.js";
-import { expandRegisterExitEffects } from "../../src/tools/expandExitEffects.js";
+import { expandRegisterExitEffects } from "../../src/tools/prepare/expandExitEffects.js";
 import { copyDataTree, createTestHost } from "../helpers/inMemoryMemoryPort.js";
 
 const repoRoot = path.resolve(

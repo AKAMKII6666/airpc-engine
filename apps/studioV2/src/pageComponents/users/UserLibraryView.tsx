@@ -17,8 +17,8 @@ import {
 import { useUsersShellBis } from "@studio-v2/src/bis/shellBis/users/users.shell.bis";
 import { UserLibraryList } from "@studio-v2/src/pageComponents/users/UserLibraryList";
 import { UserLibraryDetail } from "@studio-v2/src/pageComponents/users/UserLibraryDetail";
-import { UserLibraryHeader } from "@studio-v2/src/pageComponents/users/com/UserLibraryHeader";
-import { useUserLibraryPage } from "@studio-v2/src/pageComponents/users/hooks/useUserLibraryPage";
+import { UserLibraryHeader } from "@studio-v2/src/pageComponents/users/com/library/UserLibraryHeader";
+import { useUserLibraryPage } from "@studio-v2/src/pageComponents/users/hooks/library/useUserLibraryPage";
 import styles from "@studio-v2/src/pageComponents/library/LibrarySplit.module.scss";
 
 /**
@@ -55,6 +55,72 @@ function userDeleteReferenceLines(
 		lines.push(`地理位置：${place}`);
 	}
 	return lines;
+}
+
+function renderUserLibraryDetail(
+	page: ReturnType<typeof useUserLibraryPage>,
+) {
+	if (page.loading) {
+		return (
+			<section className={styles.detailPane} aria-label="玩家配置详情">
+				{/* 引用了Typography组件，用于加载态 */}
+				<Typography variant="body2" color="text.secondary">
+					加载玩家中…
+				</Typography>
+			</section>
+		);
+	}
+	if (page.selected) {
+		return (
+			// 引用了UserLibraryDetail组件，用于玩家详情编辑
+			<UserLibraryDetail
+				key={page.selected.userId}
+				profile={page.selected}
+				onSaved={page.onDetailSaved}
+			/>
+		);
+	}
+	return (
+		<section className={styles.detailPane} aria-label="玩家配置详情">
+			{/* 引用了Typography组件，用于空列表提示 */}
+			<Typography variant="body2" color="text.secondary">
+				暂无玩家。可点击「新建玩家」写入 data/users。
+			</Typography>
+		</section>
+	);
+}
+
+function renderUserLibraryModals(
+	page: ReturnType<typeof useUserLibraryPage>,
+) {
+	return (
+		<>
+			{/* 引用了FormModal组件，用于新建玩家 AutoForm（与详情同一字段集） */}
+			<FormModal<CreateUserFormValues>
+				open={page.createOpen}
+				title="新建玩家"
+				description="填写与详情相同的身份字段。userId 与时间戳由系统生成；确认后写入 data/users。"
+				onClose={() => page.setCreateOpen(false)}
+				initialValues={CREATE_USER_INITIAL_VALUES}
+				items={CREATE_USER_FORM_ITEMS}
+				validate={validateCreateUserForm}
+				onSubmit={page.onCreateSubmit}
+				submitLabel="创建玩家"
+				mode="add"
+			/>
+			{/* 引用了DeleteConfirmModal组件，用于删除确认 */}
+			<DeleteConfirmModal
+				open={page.deleteTarget != null}
+				title="确认删除玩家"
+				description="将删除 data/users 下该玩家目录与 Profile。demo-user 样例不可删。"
+				displayName={page.deleteTarget?.nickname ?? ""}
+				referenceLines={userDeleteReferenceLines(page.deleteTarget)}
+				error={page.deleteError}
+				onClose={page.closeDeleteModal}
+				onConfirm={page.onConfirmDelete}
+			/>
+		</>
+	);
 }
 
 export const UserLibraryView: FC = function () {
@@ -103,55 +169,10 @@ export const UserLibraryView: FC = function () {
 					onSelect={page.setSelectedId}
 					onRequestDelete={page.onRequestDelete}
 				/>
-				{page.loading ? (
-					<section className={styles.detailPane} aria-label="玩家配置详情">
-						{/* 引用了Typography组件，用于加载态 */}
-						<Typography variant="body2" color="text.secondary">
-							加载玩家中…
-						</Typography>
-					</section>
-				) : page.selected ? (
-					// 引用了UserLibraryDetail组件，用于玩家详情编辑
-					<UserLibraryDetail
-						key={page.selected.userId}
-						profile={page.selected}
-						onSaved={page.onDetailSaved}
-					/>
-				) : (
-					<section className={styles.detailPane} aria-label="玩家配置详情">
-						{/* 引用了Typography组件，用于空列表提示 */}
-						<Typography variant="body2" color="text.secondary">
-							暂无玩家。可点击「新建玩家」写入 data/users。
-						</Typography>
-					</section>
-				)}
+				{renderUserLibraryDetail(page)}
 			</div>
 
-			{/* 引用了FormModal组件，用于新建玩家 AutoForm（与详情同一字段集） */}
-			<FormModal<CreateUserFormValues>
-				open={page.createOpen}
-				title="新建玩家"
-				description="填写与详情相同的身份字段。userId 与时间戳由系统生成；确认后写入 data/users。"
-				onClose={() => page.setCreateOpen(false)}
-				initialValues={CREATE_USER_INITIAL_VALUES}
-				items={CREATE_USER_FORM_ITEMS}
-				validate={validateCreateUserForm}
-				onSubmit={page.onCreateSubmit}
-				submitLabel="创建玩家"
-				mode="add"
-			/>
-
-			{/* 引用了DeleteConfirmModal组件，用于删除确认 */}
-			<DeleteConfirmModal
-				open={page.deleteTarget != null}
-				title="确认删除玩家"
-				description="将删除 data/users 下该玩家目录与 Profile。demo-user 样例不可删。"
-				displayName={page.deleteTarget?.nickname ?? ""}
-				referenceLines={userDeleteReferenceLines(page.deleteTarget)}
-				error={page.deleteError}
-				onClose={page.closeDeleteModal}
-				onConfirm={page.onConfirmDelete}
-			/>
+			{renderUserLibraryModals(page)}
 		</main>
 	);
 };

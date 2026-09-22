@@ -2,7 +2,7 @@
 	* Realtime 音色前端枚举（label + value）。
 	* 引擎 JSON 只存 persona.voiceId 字符串；本文件不进 rpg-engine。
 	*/
-import type { FormSelectOption } from "@studio-v2/src/commonUiComponents/form/formTypes";
+import type { FormSelectOption } from "@studio-v2/src/commonUiComponents/form/types/formTypes";
 
 /** 音色下拉选项；value 写入 persona.voiceId */
 export const REALTIME_VOICE_OPTIONS: FormSelectOption[] = [

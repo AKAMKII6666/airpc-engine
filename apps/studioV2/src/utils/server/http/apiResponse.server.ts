@@ -19,32 +19,25 @@ export function apiFail(
 	);
 }
 
+/** 引擎 / 门面错误码 → HTTP 状态；未列出的一律 500 */
+const HTTP_STATUS_BY_CODE: Record<string, number> = {
+	OK: 200,
+	VALIDATION_FAILED: 400,
+	INVALID_PACKAGE_ID: 400,
+	PACKAGE_VALIDATION_FAILED: 422,
+	UNAUTHORIZED: 401,
+	USER_REQUIRED: 403,
+	NOT_FOUND: 404,
+	CONFLICT: 409,
+	CONFLICT_ACTIVE_CALL: 409,
+	CHARACTER_NOT_DIALABLE: 409,
+	STORY_LOCKED: 409,
+	AGENT_POST_CALL_BUSY: 409,
+	NO_EXIT_MATCHED: 422,
+	SCHEMA_UNSUPPORTED: 422,
+};
+
 /** 将引擎 / 门面错误码映射到 HTTP 状态 */
 export function httpStatusForCode(code: string): number {
-	switch (code) {
-		case "OK":
-			return 200;
-		case "VALIDATION_FAILED":
-		case "INVALID_PACKAGE_ID":
-			return 400;
-		case "PACKAGE_VALIDATION_FAILED":
-			return 422;
-		case "UNAUTHORIZED":
-			return 401;
-		case "USER_REQUIRED":
-			return 403;
-		case "NOT_FOUND":
-			return 404;
-		case "CONFLICT":
-		case "CONFLICT_ACTIVE_CALL":
-		case "CHARACTER_NOT_DIALABLE":
-		case "STORY_LOCKED":
-		case "AGENT_POST_CALL_BUSY":
-			return 409;
-		case "NO_EXIT_MATCHED":
-		case "SCHEMA_UNSUPPORTED":
-			return 422;
-		default:
-			return 500;
-	}
+	return HTTP_STATUS_BY_CODE[code] ?? 500;
 }

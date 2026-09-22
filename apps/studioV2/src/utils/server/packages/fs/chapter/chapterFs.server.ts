@@ -1,7 +1,6 @@
 /**
 	* 故事包单章磁盘读 / 章管理（建 / 删 / 摘要）。
 	*/
-import { randomUUID } from "node:crypto";
 import { readFile, rm, stat } from "node:fs/promises";
 import path from "node:path";
 import {
@@ -40,6 +39,7 @@ import {
 	parseChapterConfOrFail,
 	writeDiskChapterBundle,
 } from "./chapterFsWrite.server";
+import { buildDefaultStartCard } from "./startCard/chapterStartCard.server";
 import {
 	ensurePackageReady,
 	parsePackageConfOrFail,
@@ -266,27 +266,9 @@ export async function createDiskChapter(input: {
 	const cards: CallCardDefinition[] = [];
 	let entryCardId: string | undefined;
 	if (input.withStartCard !== false) {
-		entryCardId = `card_${randomUUID().replace(/-/g, "").toLowerCase()}`;
-		cards.push({
-			cardId: entryCardId,
-			cardKind: "story",
-			title: "第一张通话卡",
-			ownerAgentId: "",
-			entryMode: "inbound_user_dial",
-			interactionMode: "realtime_dialogue",
-			context: { privateBrief: "", speakableBrief: "" },
-			objectives: { requiredBeats: [] },
-			toolPolicy: {
-				schemaVersion: 2,
-				mode: "inherit_free",
-				options: {
-					request_hangup: {
-						allowedReasonKinds: ["natural", "policy"],
-					},
-				},
-			},
-			exits: [],
-		});
+		const start = buildDefaultStartCard();
+		entryCardId = start.cardId;
+		cards.push(start);
 	}
 
 	const chapterConf: ChapterConf = {

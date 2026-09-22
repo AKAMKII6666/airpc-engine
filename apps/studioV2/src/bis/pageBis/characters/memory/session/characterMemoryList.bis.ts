@@ -8,18 +8,14 @@ import {
 	CHARACTER_MEMORY_PAGE_SIZE,
 	loadCharacterMemoryPage,
 } from "@studio-v2/src/bis/pageBis/characters/memory/loadCharacterMemoryPage.bis";
-import { useCharactersStore } from "@studio-v2/src/stores/characters/charactersStore";
 import type {
 	MemoryAttitudeListItemDto,
 	MemoryListItemDto,
 } from "@studio-v2/typeFiles/library/characters/memory/memoryReadModel";
-
-function errorMessage(error: unknown, fallback: string): string {
-	if (error instanceof Error && error.message.trim() !== "") {
-		return error.message;
-	}
-	return fallback;
-}
+import {
+	memoryErrorMessage,
+	useCharacterMemoryStoreSlice,
+} from "./characterMemoryList.helpers";
 
 /**
 	* 记忆分页投影：供 UI 绑分页；真源在 characters store。
@@ -51,41 +47,15 @@ export function useCharacterMemoryListBis(
 	agentId: string,
 	userId: string,
 ): CharacterMemoryListBis {
-	const items = useCharactersStore(function (s) {
-		return s.memoryItems;
-	});
-	const attitudes = useCharactersStore(function (s) {
-		return s.memoryAttitudes;
-	});
-	const total = useCharactersStore(function (s) {
-		return s.memoryTotal;
-	});
-	const page = useCharactersStore(function (s) {
-		return s.memoryPage;
-	});
-	const loading = useCharactersStore(function (s) {
-		return s.memoryLoading;
-	});
-	const error = useCharactersStore(function (s) {
-		return s.memoryError;
-	});
-	const applyMemoryLoadStarted = useCharactersStore(function (s) {
-		return s.applyMemoryLoadStarted;
-	});
-	const applyMemoryLoadResult = useCharactersStore(function (s) {
-		return s.applyMemoryLoadResult;
-	});
-	const clearMemoryList = useCharactersStore(function (s) {
-		return s.clearMemoryList;
-	});
+	const slice = useCharacterMemoryStoreSlice();
 
 	const load = useCallback(
 		async function (nextPage: number, nextUserId: string) {
 			if (!nextUserId) {
-				clearMemoryList();
+				slice.clearMemoryList();
 				return;
 			}
-			applyMemoryLoadStarted();
+			slice.applyMemoryLoadStarted();
 			try {
 				const data = await loadCharacterMemoryPage({
 					userId: nextUserId,
@@ -93,7 +63,7 @@ export function useCharacterMemoryListBis(
 					page: nextPage,
 					pageSize: CHARACTER_MEMORY_PAGE_SIZE,
 				});
-				applyMemoryLoadResult({
+				slice.applyMemoryLoadResult({
 					ok: true,
 					items: data.items,
 					attitudes: data.attitudes,
@@ -101,17 +71,17 @@ export function useCharacterMemoryListBis(
 					page: data.page,
 				});
 			} catch (err) {
-				applyMemoryLoadResult({
+				slice.applyMemoryLoadResult({
 					ok: false,
-					message: errorMessage(err, "加载记忆失败"),
+					message: memoryErrorMessage(err, "加载记忆失败"),
 				});
 			}
 		},
 		[
 			agentId,
-			applyMemoryLoadResult,
-			applyMemoryLoadStarted,
-			clearMemoryList,
+			slice.applyMemoryLoadResult,
+			slice.applyMemoryLoadStarted,
+			slice.clearMemoryList,
 		],
 	);
 
@@ -127,12 +97,12 @@ export function useCharacterMemoryListBis(
 	}
 
 	return {
-		page,
-		items,
-		attitudes,
-		total,
-		loading,
-		error,
+		page: slice.page,
+		items: slice.items,
+		attitudes: slice.attitudes,
+		total: slice.total,
+		loading: slice.loading,
+		error: slice.error,
 		onPageChange,
 		reload() {
 			void load(1, userId);

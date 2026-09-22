@@ -1,0 +1,170 @@
+/**
+ * 模块名称：schedule once intent 解析／序列化
+ * 从 scheduleTick 拆出：降低基线 maxFnLines／complexity。
+ */
+import { resolveChapterId } from "../../chapter/resolveChapterId.js";
+
+export type ScheduledOnceIntent = {
+	kind: "once";
+	intentId: string;
+	agentId: string;
+	cardId: string;
+	chapterId: string;
+	topicHint?: string;
+	origin?: string;
+	fireAtMs: number;
+	status: "pending" | "fired" | "cancelled" | "consumed";
+	createdAt?: string;
+	sourcedFromRecurringId?: string;
+	linkedInstanceId?: string;
+	/** voicemail 延迟进信箱标记；序列化须保留 */
+	delivery?: string;
+};
+
+function optionalString(value: unknown): string | undefined {
+	return typeof value === "string" && value ? value : undefined;
+}
+
+function parseOnceStatus(
+	raw: unknown,
+): ScheduledOnceIntent["status"] {
+	if (raw === "fired" || raw === "cancelled" || raw === "consumed") {
+		return raw;
+	}
+	return "pending";
+}
+
+function readOnceIds(row: Record<string, unknown>): {
+	cardId: string;
+	chapterId: string;
+	agentId: string;
+	intentId: string;
+	fireAtMs: number;
+} {
+	const cardId = typeof row.cardId === "string" ? row.cardId : "";
+	const chapterId = resolveChapterId(row);
+	const agentId = typeof row.agentId === "string" ? row.agentId : "";
+	const intentId =
+		typeof row.intentId === "string"
+			? row.intentId
+			: typeof row.id === "string"
+				? row.id
+				: "";
+	const fireAtMs =
+		typeof row.fireAtMs === "number"
+			? row.fireAtMs
+			: typeof row.triggerAtMs === "number"
+				? row.triggerAtMs
+				: NaN;
+	return { cardId, chapterId, agentId, intentId, fireAtMs };
+}
+
+function isCompleteOnceIds(ids: {
+	cardId: string;
+	chapterId: string;
+	agentId: string;
+	intentId: string;
+	fireAtMs: number;
+}): boolean {
+	if (!ids.cardId || !ids.chapterId || !ids.agentId || !ids.intentId) {
+		return false;
+	}
+	return Number.isFinite(ids.fireAtMs);
+}
+
+function parseModernOnce(
+	row: Record<string, unknown>,
+): ScheduledOnceIntent | null {
+	const ids = readOnceIds(row);
+	if (!isCompleteOnceIds(ids)) return null;
+	return {
+		kind: "once",
+		intentId: ids.intentId,
+		agentId: ids.agentId,
+		cardId: ids.cardId,
+		chapterId: ids.chapterId,
+		topicHint: optionalString(row.topicHint),
+		origin: optionalString(row.origin),
+		fireAtMs: ids.fireAtMs,
+		status: parseOnceStatus(row.status),
+		createdAt: optionalString(row.createdAt),
+		sourcedFromRecurringId: optionalString(row.sourcedFromRecurringId),
+		linkedInstanceId: optionalString(row.linkedInstanceId),
+		delivery: optionalString(row.delivery),
+	};
+}
+
+function readLegacyOnceIds(row: Record<string, unknown>): {
+	cardId: string;
+	chapterId: string;
+	agentId: string;
+	intentId: string;
+	fireAtMs: number;
+} | null {
+	const cardId = typeof row.cardId === "string" ? row.cardId : "";
+	const chapterId = resolveChapterId(row);
+	if (!cardId || !chapterId) return null;
+	const agentId = typeof row.agentId === "string" ? row.agentId : "";
+	const intentId = typeof row.id === "string" ? row.id : "";
+	const fireAtMs =
+		typeof row.triggerAtMs === "number" ? row.triggerAtMs : NaN;
+	if (!agentId || !intentId || !Number.isFinite(fireAtMs)) return null;
+	return { cardId, chapterId, agentId, intentId, fireAtMs };
+}
+
+function parseLegacyScheduleCallCard(
+	row: Record<string, unknown>,
+): ScheduledOnceIntent | null {
+	const ids = readLegacyOnceIds(row);
+	if (!ids) return null;
+	return {
+		kind: "once",
+		intentId: ids.intentId,
+		agentId: ids.agentId,
+		cardId: ids.cardId,
+		chapterId: ids.chapterId,
+		topicHint: optionalString(row.topicHint),
+		origin: optionalString(row.origin) ?? "story_scheduled_call",
+		fireAtMs: ids.fireAtMs,
+		status: "pending",
+		createdAt: optionalString(row.createdAt),
+		linkedInstanceId: optionalString(row.linkedInstanceId),
+	};
+}
+
+export function asOnceIntent(raw: unknown): ScheduledOnceIntent | null {
+	if (!raw || typeof raw !== "object") {
+		return null;
+	}
+	const row = raw as Record<string, unknown>;
+	if (row.kind === "once") {
+		return parseModernOnce(row);
+	}
+	if (row.kind === "schedule_call_card") {
+		return parseLegacyScheduleCallCard(row);
+	}
+	return null;
+}
+
+export function serializeOnce(
+	once: ScheduledOnceIntent,
+): Record<string, unknown> {
+	const row: Record<string, unknown> = {
+		kind: "once",
+		intentId: once.intentId,
+		agentId: once.agentId,
+		cardId: once.cardId,
+		chapterId: once.chapterId,
+		fireAtMs: once.fireAtMs,
+		status: once.status,
+	};
+	if (once.topicHint) row.topicHint = once.topicHint;
+	if (once.origin) row.origin = once.origin;
+	if (once.createdAt) row.createdAt = once.createdAt;
+	if (once.sourcedFromRecurringId) {
+		row.sourcedFromRecurringId = once.sourcedFromRecurringId;
+	}
+	if (once.linkedInstanceId) row.linkedInstanceId = once.linkedInstanceId;
+	if (once.delivery) row.delivery = once.delivery;
+	return row;
+}
